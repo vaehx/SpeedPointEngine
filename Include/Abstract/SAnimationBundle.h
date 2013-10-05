@@ -1,0 +1,50 @@
+// ********************************************************************************************
+
+//	SpeedPoint Animation Bundle
+
+//	This is a virtual class. You cannot instantiate it.
+//	Please use Specific Implementation to instantiate.
+
+// ********************************************************************************************
+
+#pragma once
+
+#include <SPrerequisites.h>
+
+namespace SpeedPoint
+{
+	// SpeedPoint Animation Bundle (abstract)
+	class S_API SAnimationBundle
+	{
+	public:
+		// Initialize the animation bundle with its parent solid
+		virtual SResult Initialize( SSolid* pSolid ) = 0;
+
+		// Add a new empty joint to this animation bundle
+		virtual SAnimationJoint* AddJoint( SP_ID* pID ) = 0;
+
+		// Get a joint by its id
+		virtual SAnimationJoint* GetJoint( SP_ID id ) = 0;
+
+		// Add an Animation Sequence to this bundle
+		virtual SAnimationSequence* AddAnimationSequence( SP_ID* pID ) = 0;
+
+		// Get an animation sequence by its id
+		virtual SAnimationSequence* GetAnimationSequence( SP_ID id ) = 0;
+
+		// Stop current animation seq. and run a specific Animation sequence
+		// Restarts current animation sequence if it already runs
+		virtual SResult StartAnimationSequence( SP_ID id ) = 0;
+
+		// Get the currently running animation sequence
+		virtual SP_ID GetRunningAnimationSequence( void ) = 0;
+
+		// Tick the current animation sequence
+		virtual SResult Tick( float fTimeFactor ) = 0;
+
+		// Clearout the Bundle but including the animations that are stored in this bundle
+		virtual void Clear( void ) = 0;
+		
+		//// TODO : Is that everything did we forgot any functions?
+	};
+}
