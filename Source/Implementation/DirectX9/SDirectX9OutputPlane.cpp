@@ -4,6 +4,7 @@
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
 #include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
 #include <SVertex.h>
+#include <SpeedPoint.h>
 
 namespace SpeedPoint
 {
@@ -11,42 +12,50 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9OutputPlane::Initialize( SpeedPointEngine* eng, SRenderer* renderer, int nW, int nH )
 	{
-		if( eng == NULL || renderer == NULL || nW < 600 || nH < 400 ) return S_ABORTED;
+		if( eng == NULL ) return S_ABORTED;
+		
+		if( renderer == NULL || nW < 600 || nH < 400 )
+			return eng->LogReport( S_ABORTED, "Tried Initialize Output Plane with invalid parameters" );
 
 		if( Failure( Clear() ) )
 			return S_ERROR;
 
 		pEngine = eng;
+		
 		pDXRenderer = (SDirectX9Renderer*)renderer;
 
 		// Initialize the shader
-		if( Failure( mergeShader.Initialize( pEngine, "merge.fx" ) ) )
+		if( Failure( mergeShader.Initialize( pEngine, "Effects\\merge.fx" ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed to load Output merge shader!" );
 		}
 
 		if( Failure( mergeShader.SetTechnique( "MergeTechnique" ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed Set Merge technique when creating OutputPlane" );
 		}
 
 		// Initialize the matrices
 		float fWidth = (float)nW * 0.1f;
 		float fHeight = (float)nH * 0.1f;
 		
-		D3DXMatrixOrthoRH( &(D3DXMATRIX)mProjection, fWidth, fHeight, 1.0f, 200.0f );
+		D3DXMATRIX mProj;
+		D3DXMatrixOrthoRH( &mProj, fWidth, fHeight, 2.0f, 200.0f );		
+		mProjection = SMatrix( mProj );
 
-		D3DXMatrixLookAtRH( &(D3DXMATRIX)mView, new D3DXVECTOR3( 0, 0, -10.0f ), new D3DXVECTOR3( 0, 0, 0 ), new D3DXVECTOR3( 0, 1.0f, 0 ) );
+		D3DXMATRIX mV;
+		D3DXMatrixLookAtRH( &mV, new D3DXVECTOR3( 0, 0, -10.0f ), new D3DXVECTOR3( 0, 0, 0.0f ), new D3DXVECTOR3( 0, 1.0f, 0 ) );
+		mView = SMatrix( mV );
 
 		// Create the geometry with plane of 10 * 10 fields
 		if( Failure( vertexBuffer.Initialize( 11 * 11, false, pEngine, renderer ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed initialize vertex Buffer of OutputPlane!" );
 		}
 
 		if( Failure( indexBuffer.Initialize( 10 * 10 * 6, false, pEngine, renderer, S_INDEXBUFFER_32 ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR,"Failed initialize index buffer of OutputPlane!" );
 		}
 
 		SVertex* pVertices = (SVertex*)( malloc( sizeof( SVertex ) * 11 * 11 ) );
@@ -64,31 +73,32 @@ namespace SpeedPoint
 		{
 			for( int xx = 0; xx < 11; xx++ )
 			{
-				pVertices[vPos] = SVertex( xx * fXDiff - fXHalf, yy * fYDiff - fYHalf, 0, 0, 0, -1.0f, (float)xx * 0.1f, (float)yy * 0.1f );
-				++vPos;
-
+				pVertices[vPos] = SVertex( (float)( xx - 5 ) * fXDiff, (float)( yy - 5 ) * fYDiff, 2.0f, 0, 0, -1.0f, (float)xx * 0.1f, (float)yy * 0.1f );
+				
 				if( yy < 10 && xx < 10 )
 				{
 					// Add a facette / 2 triangles
 					pIndices[iPos  ] = vPos;
-					pIndices[iPos+1] = vPos + 1;
-					pIndices[iPos+2] = vPos + 11;
+					pIndices[iPos+1] = vPos + 11;
+					pIndices[iPos+2] = vPos + 1;
 					pIndices[iPos+3] = vPos + 11;
-					pIndices[iPos+4] = vPos + 1;
-					pIndices[iPos+5] = vPos + 12;
+					pIndices[iPos+4] = vPos + 12;
+					pIndices[iPos+5] = vPos + 1;
 					iPos += 6;
 				}
+
+				++vPos;
 			}
 		}
 
-		if( Failure( vertexBuffer.Fill( pVertices, 11 * 11, false ) ) )
+		if( Failure( vertexBuffer.Fill( pVertices, 11 * 11, true ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed Fill Vertex Buffer of output plane!" );
 		}
 
-		if( Failure( indexBuffer.Fill( pIndices, 10 * 10 * 6, false ) ) )
+		if( Failure( indexBuffer.Fill( pIndices, 10 * 10 * 6, true ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed fill index buffer of output plane!" );
 		}
 
 		free( pVertices );
@@ -105,26 +115,25 @@ namespace SpeedPoint
 
 		if( pGBufferAlbedo == NULL || pLightingBuffer == NULL ) return S_ABORTED;
 
+		pDXRenderer->pd3dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+
 		// first, when calling this method, the target buffers should be set properly already
 
 		// so we can immediately setup vertex- and indexbuffer data and start drawing the plane
 		if( FAILED( pDXRenderer->pd3dDevice->SetStreamSource( 0, vertexBuffer.pHWVertexBuffer, 0, sizeof( SVertex ) ) ) )
 		{
-//////// TODO: Throw error
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set vertex stream source for output plane!" );
 		}
 
 		if( FAILED( pDXRenderer->pd3dDevice->SetIndices( indexBuffer.pHWIndexBuffer ) ) )
 		{
-//////// TODO: Throw error
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set index stream source for output plane!" );
 		}
 
-		SDirectX9FrameBuffer* pDXGAlbedoBuffer = (SDirectX9FrameBuffer*)pGBufferAlbedo;
+		SDirectX9FrameBuffer* pDXGAlbedoBuffer = (SDirectX9FrameBuffer*)pGBufferAlbedo;		
 		if( FAILED( pDXRenderer->pd3dDevice->SetTexture( 0, pDXGAlbedoBuffer->pTexture ) ) )
 		{
-//////// TODO: Throw error
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set albedo buffer as temporary texture of output plane!" );
 		}
 
 //////// TODO: Implement Lighting buffer creation and proper merge shader
@@ -137,45 +146,47 @@ namespace SpeedPoint
 		UINT nPasses = 0;
 		if( FAILED( mergeShader.pEffect->Begin( &nPasses, 0 ) ) )
 		{
-//////// TODO: Throw error
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed Begin merge shader rendering for output plane!" );
 		}
 
 		// Set the shader parameters
 		D3DXMATRIX mWorld; D3DXMatrixIdentity( &mWorld );
+		
+		D3DXMATRIX pmView = (D3DXMATRIX)mView;
+		D3DXMATRIX pmProjection = (D3DXMATRIX)mProjection;					
 
 		mergeShader.pEffect->SetMatrix( "World", &mWorld );
-		mergeShader.pEffect->SetMatrix( "View", &(D3DXMATRIX)mView );
-		mergeShader.pEffect->SetMatrix( "Proj", &(D3DXMATRIX)mProjection );
+		mergeShader.pEffect->SetMatrix( "View", &pmView );
+		mergeShader.pEffect->SetMatrix( "Proj", &pmProjection );
 
 		for( UINT iPass = 0; iPass < nPasses; ++iPass )
 		{
 
 			if( FAILED( mergeShader.pEffect->BeginPass( iPass ) ) )
 			{
-//////// TODO: Throw error
-				return S_ERROR;
+				mergeShader.pEffect->End();
+				return pEngine->LogReport( S_ERROR, "Failed Begin Merge shader pass for output plane!" );
 			}
 
 			if( FAILED( pDXRenderer->pd3dDevice->DrawIndexedPrimitive(
 				D3DPT_TRIANGLELIST, 0, 0, 11 * 11, 0, 10 * 10 * 3 ) ) )
 			{
-//////// TODO: Throw error
-				return S_ERROR;
+				mergeShader.pEffect->EndPass();
+				mergeShader.pEffect->End();
+				return pEngine->LogReport( S_ERROR, "Failed Draw polygons of output Plane!" );
 			}
 
 			if( FAILED( mergeShader.pEffect->EndPass() ) )
 			{
-//////// TODO: Throw error
-				return S_ERROR;
+				mergeShader.pEffect->End();
+				return pEngine->LogReport( S_ERROR, "Failed end merge shader pass for output plane!" );
 			}
 
 		}
 
 		if( FAILED( mergeShader.pEffect->End() ) )
 		{
-//////// TODO: Throw error
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed End merge shader renderering for output plane!" );
 		}
 
 		return S_SUCCESS;
@@ -184,26 +195,37 @@ namespace SpeedPoint
 	// **********************************************************************************
 
 	S_API SResult SDirectX9OutputPlane::Clear( void )
-	{	
-		pEngine = NULL;
+	{			
+		SResult res = S_SUCCESS;
 
 		pDXRenderer = NULL;
 
 		if( Failure( indexBuffer.Clear() ) )
 		{
-			return S_ERROR;
+			if( pEngine )
+				return pEngine->LogReport( S_ERROR, "Failed Clear index Buffer of output plane!" );
+			else
+				res = S_ERROR;
 		}
 
 		if( Failure( vertexBuffer.Clear() ) )
 		{
-			return S_ERROR;
+			if( pEngine )
+				return pEngine->LogReport( S_ERROR, "Failed Clear vertex buffer of output plane!" );
+			else
+				res = S_ERROR;
 		}
 
 		if( Failure( mergeShader.Clear() ) )
 		{
-			return S_ERROR;
+			if( pEngine )
+				return pEngine->LogReport( S_ERROR, "Failed clear merge shader of output plane!" );
+			else
+				res = S_ERROR;
 		}	
 
-		return S_SUCCESS;
+		pEngine = NULL;
+
+		return res;
 	}
 }

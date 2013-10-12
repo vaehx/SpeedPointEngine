@@ -2,6 +2,7 @@
 
 #include <Implementation\DirectX9\SDirectX9IndexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
+#include <SpeedPoint.h>
 
 namespace SpeedPoint
 {
@@ -27,9 +28,11 @@ namespace SpeedPoint
 		pEngine = engine;
 		pRenderer = renderer;
 
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( Failure( Create( nSize, bDyn, format ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Creation of the index buffer DX9 Resource failed!" );
 		}
 
 		return S_SUCCESS;
@@ -39,7 +42,10 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9IndexBuffer::Create ( int nIndices_, bool bDynamic_, S_INDEXBUFFER_FORMAT format )
 	{
-		if( pEngine == NULL || pRenderer == NULL ) return S_ERROR;
+		if( pEngine == NULL ) return S_ABORTED;
+		
+		if( pRenderer == NULL )
+			return pEngine->LogReport( S_ABORTED, "Renderer not set while trying to create index buffer resource!" );
 	
 		nIndices = nIndices_;
 		bDynamic = bDynamic_;
@@ -54,8 +60,7 @@ namespace SpeedPoint
 						      &pHWIndexBuffer,
 						      NULL ) ) )
 		{
-			return S_ERROR;
-			//return SUtil::error( "Failed to Create Indexbuffer!" );
+			return pEngine->LogReport( S_ABORTED, "Could not create DX9 Hardware Index Buffer resource!" );
 		}
 	
 		pShadowBuffer = (DWORD*)( malloc( nIndices * sizeof( DWORD ) ) );
@@ -67,12 +72,15 @@ namespace SpeedPoint
 	
 	//	Resizes Index Buffer
 	
-	S_API SResult SDirectX9IndexBuffer::Resize ( int nIndices_ )
+	S_API SResult SDirectX9IndexBuffer::Resize ( int nIndices_ )	
 	{
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( nIndices_ == nIndices )
 			return S_SUCCESS;
-	
-		if( pEngine == NULL || pRenderer == NULL ) return S_ABORTED;
+			
+		if( pRenderer == NULL )
+			return pEngine->LogReport( S_ABORTED, "Renderer not set while trying to resize Index Buffer!" );
 	
 		int nIndicesOld = nIndices;
 		nIndices = nIndices_;	
@@ -87,8 +95,7 @@ namespace SpeedPoint
 						      &pIBTemp,
 						      NULL ) ) )
 		{
-			return S_ERROR;
-			//return SUtil::error( "Failed to Resize Indexbuffer: Buffer creation Failed!" );
+			return pEngine->LogReport( S_ERROR, "Failed to create DX9 Hardware Index Buffer resource while trying to resize!" );
 		}
 	
 		if( pHWIndexBuffer != NULL ) pHWIndexBuffer->Release();
@@ -103,14 +110,12 @@ namespace SpeedPoint
 		// Now update bufferset
 		void* pVertices;
 		if( FAILED( pHWIndexBuffer->Lock( 0, nIndicesOld * sizeof(DWORD), (void**)&pVertices, ((!bDynamic) ? D3DLOCK_NOSYSLOCK : 0 ) ) ) )
-			return S_ERROR;
-			//return SUtil::error( "Failed to Resize Indexbuffer: Lock Failed!" );
+			return pEngine->LogReport( S_ERROR, "Could not Lock resized Index Buffer resource" );
 	
 		memcpy( pVertices, (void*)pShadowBuffer, nIndicesOld * sizeof(DWORD) );
 	
 		if( FAILED( pHWIndexBuffer->Unlock() ) )
-			return S_ERROR;
-			//return SUtil::error( "Failed to Resize IndexBuffer: Unlock Failed!" );
+			return pEngine->LogReport( S_ERROR, "Could not unlock resized Index Buffer resource!" );
 	
 		return S_SUCCESS;
 	}
@@ -121,18 +126,7 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9IndexBuffer::Lock ( UINT iBegin, UINT iLength, void** buf )
 	{
-		if( IsInited() && pHWIndexBuffer != NULL && !bLocked )
-		{		
-			if( FAILED( pHWIndexBuffer->Lock( iBegin, iLength, buf, ((!bDynamic) ? D3DLOCK_NOSYSLOCK : D3DLOCK_NOOVERWRITE ) ) ) )
-				return S_ERROR;
-				//return SUtil::error( "Failed to Lock Indexbuffer!" );
-			else
-				bLocked = true;
-
-			return S_SUCCESS;
-		}
-
-		return S_ERROR;
+		return Lock( iBegin, iLength, buf, D3DLOCK_NOOVERWRITE );
 	}
 	
 	// *******************************************************************************************
@@ -141,18 +135,19 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9IndexBuffer::Lock ( UINT iBegin, UINT iLength, void** buf, DWORD flags )
 	{
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( IsInited() && pHWIndexBuffer != NULL && !bLocked )
 		{		
 			if( FAILED( pHWIndexBuffer->Lock( iBegin, iLength, buf, ((!bDynamic) ? D3DLOCK_NOSYSLOCK | flags : flags ) ) ) )
-				return S_ERROR;
-				//return SUtil::error( "Failed to Lock Indexbuffer!" );
+				return pEngine->LogReport( S_ERROR, "Could not lock DX9 Hardware Index Buffer resource" );
 			else
 				bLocked = true;
 
 			return S_SUCCESS;
 		}
 
-		return S_ERROR;
+		return pEngine->LogReport( S_ABORTED, "Could not lock index buffer: Not initialized or already locked!" );
 	}
 	
 	
@@ -162,26 +157,29 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9IndexBuffer::Fill ( DWORD* vertices, int nIndices_, bool append )
 	{
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( IsInited() && pHWIndexBuffer != NULL )
 		{
 			if( !bDynamic && nIndices_ > nIndices )		
-				return S_ERROR;	// too big		
+				return pEngine->LogReport( S_ABORTED, "Cannot fill non-dynamic index buffer: Buffer overflow!" );
 	
 			if( append && nIndicesWritten > 0 && !bDynamic )
-				return S_ERROR;	// Buffer not expandable	
+				return pEngine->LogReport( S_ABORTED, "Cannot append data to non-dynamic index buffer!" );
 	
 			if( nIndices_ + nIndicesWritten >  nIndices )
 			{
 				// Resize
-				Resize( nIndices_ + nIndicesWritten );
+				if( Failure( Resize( nIndices_ + nIndicesWritten ) ) )
+					return pEngine->LogReport( S_ERROR, "Resize of index buffer failed while trying to fill!" );
 			}		
 	
 			// Lock buffer if not happened
 			void* pVert;
 			if( !bLocked )
 			{
-				if( FAILED( Lock( (UINT)(nIndicesWritten * sizeof(DWORD)), (UINT)(nIndices_ * sizeof(DWORD)), &pVert ) ) )
-					return S_ERROR;
+				if( Failure( Lock( (UINT)(nIndicesWritten * sizeof(DWORD)), (UINT)(nIndices_ * sizeof(DWORD)), &pVert ) ) )
+					return pEngine->LogReport( S_ERROR, "Failed to lock index buffer while trying to fill!" );
 			}
 	
 			// Now copy data		
@@ -194,7 +192,7 @@ namespace SpeedPoint
 	
 			// ... and unlock
 			if( FAILED( pHWIndexBuffer->Unlock() ) )
-				return S_ERROR;
+				return pEngine->LogReport( S_ERROR, "failed to unlock index buffer while trying to fill!" );
 	
 			bLocked = false;
 	
@@ -205,7 +203,7 @@ namespace SpeedPoint
 			return S_SUCCESS;
 		}
 
-		return S_ERROR;
+		return pEngine->LogReport( S_ABORTED, "Cannot fill not-initialized index buffer!" );
 	}
 	
 	// *******************************************************************************************
@@ -214,17 +212,19 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9IndexBuffer::Unlock ( void )
 	{
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( IsInited() && pHWIndexBuffer != NULL && bLocked )
 		{
 			if( FAILED( pHWIndexBuffer->Unlock() ) )
-				return S_ERROR;
+				return pEngine->LogReport( S_ERROR, "Failed to unlock DX9 Hardware index buffer resource!" );
 			else
 				bLocked = false;
 
 			return S_SUCCESS;
 		}
 
-		return S_ERROR;
+		return pEngine->LogReport( S_ABORTED, "Cannot unlock DX9 Hardware index buffer resource: Not initialized or not locked!" );
 	}
 	
 	// *******************************************************************************************

@@ -14,10 +14,11 @@ namespace SpeedPoint
 	enum S_API SResult
 	{
 		S_ERROR = 0,
-		S_SUCCESS = 1,
+		S_SUCCESS = 1,		
 		S_ABORTED = 2,
-		S_FULL = 3,
-		S_NOTFOUND = 4
+		S_INFO = 3,
+		S_FULL = 4,
+		S_NOTFOUND = 5
 	};
 
 	static bool Success( const SResult& r ) { return r == S_SUCCESS; }

@@ -34,10 +34,17 @@ namespace SpeedPoint
 
 		// Default constructor
 		SDirectX9Settings()
-			: nRefreshRate( SP_TRIVIAL ),
+			: nRefreshRate( 60 ),
 			iAdapterIndex( SP_TRIVIAL ),
-			iSwapEffect( D3DSWAPEFFECT_FLIP ),
-			cAlphaColorKey( D3DCOLOR_XRGB( 255, 0, 255 ) ) {}
+			iSwapEffect( D3DSWAPEFFECT_COPY ),
+			cAlphaColorKey( D3DCOLOR_XRGB( 255, 0, 255 ) ),
+			iBackBufferFormat( S_BACKBUFFER32 ),
+			iProcessingMode( S_PROCESS_HARDWARE ),
+			iMultiSampleType( S_MULTISAMPLE_NONE ),
+			iMultiSampleQuality( S_MULTISAMPLEQUALITY_MEDIUM ),
+			iDepthStencilQuality( S_DEPTHSTENCIL_LOWQUALITY ),
+			iPresentQuality( S_PRESENT_LOWQUALITY ),
+			bAutoDepthStencil( true ) {};
 
 		// Copy constructor
 		SDirectX9Settings( const SDirectX9Settings& o )

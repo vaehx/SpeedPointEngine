@@ -19,13 +19,13 @@ namespace SpeedPoint
 		SVector3 vSize;
 
 		// Default constructor
-		STransformable() {};
+		STransformable() : vSize( 1.0f ) {};
 
 		// Constructor with position
-		STransformable( const SVector3& pos ) : vPosition( pos ) {};
+		STransformable( const SVector3& pos ) : vPosition( pos ), vSize( 1.0f ) {};
 
 		// Constructor with position and rotation
-		STransformable( const SVector3& pos, const SVector3& rot ) : vPosition( pos ), vRotation( rot ) {};
+		STransformable( const SVector3& pos, const SVector3& rot ) : vPosition( pos ), vRotation( rot ), vSize( 1.0f ) {};
 
 		// Constructor with position, rotation and scale
 		STransformable( const SVector3& pos, const SVector3& rot, const SVector3& scale )

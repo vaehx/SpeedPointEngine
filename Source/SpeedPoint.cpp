@@ -9,7 +9,11 @@
 
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9ResourcePool.h>
+
 #include <Lighting\SLightSystem.h>
+#include <Abstract\SSolidSystem.h>
+
+#include <Implementation\Geometry\SBasicSolidSystem.h>
 
 //#include <Implementation\DirectX10\SDirectX10Renderer.h>
 //#include <Implementation\DirectX11\SDirectX11Renderer.h>
@@ -28,6 +32,10 @@ namespace SpeedPoint
 		if( settings.nXResolution < 600 || settings.nYResolution < 400 ) return S_ABORTED;		
 
 		sSettings = settings;
+
+		// Initialize default logging stream
+		if( !bCustomLoggingStream )
+			pLoggingStream = new SLogStream();
 	
 		// Initialize the renderer and its resource pool
 		if( settings.tyRendererType == S_DIRECTX9 )
@@ -35,32 +43,84 @@ namespace SpeedPoint
 			pRenderer = (SRenderer*)new SDirectX9Renderer();
 			if( Failure( pRenderer->Initialize( this, settings.hWnd, settings.nXResolution, settings.nYResolution, false ) ) )
 			{
-				return S_ERROR;	// failed to initialize renderer
+				return LogReport( S_ERROR, "Failed initialize renderer" );
 			}
 
 			pResourcePool = (SResourcePool*)new SDirectX9ResourcePool();
 			if( Failure( pResourcePool->Initialize( this, pRenderer ) ) )
 			{				
-				return S_ERROR; // failed to initialize resource pool
+				return LogReport( S_ERROR, "Failed initialize Resource Pool" );
 			}
 
 			// Initialize the viewports array
-			pViewports = (SViewport**)( malloc( sizeof( SViewport* ) * SP_MAX_VIEWPORTS ) );
+			pViewports = (SViewport**)( malloc( sizeof( SViewport* ) * SP_MAX_VIEWPORTS ) );			
 			if( pViewports == NULL )
 			{
-				return S_ERROR;
+				return LogReport( S_ERROR, "Failed Initialize viewport storage" );
 			}
+
+			ZeroMemory( pViewports, sizeof( SViewport* ) * SP_MAX_VIEWPORTS );
 
 			// Set the default viewport of the renderer as the zero-viewport
 			pViewports[0] = pRenderer->GetDefaultViewport();
 		}
 		else
 		{
-			return S_ABORTED; // not supported yet
-		}		
+			return LogReport( S_ABORTED, "This Renderer type is not supported yet" );
+		}
+
+		// Initialize the default viewport
+		pViewports[0]->SetCamera( &camCamera );
+
+		// Initialize the solid system
+		pSolidSystem = (SSolidSystem*)new SBasicSolidSystem();
+		pSolidSystem->Initialize( this );
 
 		bRunning = true;
 		return S_SUCCESS;
+	}
+
+	// ********************************************************************************************
+
+	S_API SResult SpeedPointEngine::SetCustomLogStream( SLogStream* pLogStream )
+	{
+		if( pLogStream == NULL || pLoggingStream == pLogStream ) return S_ABORTED;
+
+		// Destroy old Logging stream instance if default log stream
+		if( !bCustomLoggingStream && pLoggingStream != NULL )
+			delete pLoggingStream;					
+
+		bCustomLoggingStream = true;
+
+		pLoggingStream = pLogStream;
+		LogReport( S_INFO, "Switched Logging Stream successfully" );
+
+		return S_SUCCESS;
+	}
+
+	// ********************************************************************************************
+	
+	S_API SResult SpeedPointEngine::LogReport( SResult res, SString msg )
+	{
+		if( pLoggingStream == NULL ) return S_ABORTED;
+
+		SString sActualMsg;
+
+		char* cPrefix;
+		switch( sSettings.tyRendererType )
+		{
+		case S_DIRECTX9: cPrefix = "[SpeedPoint:DX9]"; break;
+		case S_DIRECTX10: cPrefix = "[SpeedPoint:DX10]"; break;
+		case S_DIRECTX11: cPrefix = "[SpeedPoint:DX11]"; break;
+		case S_OPENGL: cPrefix = "[SpeedPoint:GL]"; break;
+		default: cPrefix = "[SpeedPoint:??]"; break;
+		}
+		
+		sActualMsg.cString = new char[ msg.GetLength() + strlen( cPrefix ) + 2 ];
+		ZeroMemory( sActualMsg.cString, msg.GetLength() + strlen( cPrefix ) + 2 );
+		wsprintf( sActualMsg.cString, "%s %s", cPrefix, msg.cString );
+
+		return pLoggingStream->Report( res, sActualMsg );
 	}
 
 	// ********************************************************************************************
@@ -86,18 +146,83 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
+	S_API SViewport* SpeedPointEngine::AddAdditionalViewport( void )
+	{
+		if( pViewports == NULL ) return NULL;
+
+		// Check for a free viewport slot
+		UINT iFreeSlot = 99999999;
+		for( UINT i = 0; i < SP_MAX_VIEWPORTS; i++ )
+		{
+			if( pViewports[i] == NULL )
+			{
+				iFreeSlot = i;
+				break;
+			}
+		}
+
+		if( iFreeSlot > SP_MAX_VIEWPORTS )
+		{
+			LogReport( S_ERROR, "Cannot add additional Viewport: No free slot!" );
+		}
+
+		if( Failure( pRenderer->CreateAdditionalViewport( &pViewports[iFreeSlot] ) ) )
+			LogReport( S_ERROR, "Failed add addition viewport!" );
+
+		return pViewports[iFreeSlot];
+	}
+
+	// ********************************************************************************************
+
+	S_API SViewport* SpeedPointEngine::GetViewport( UINT index )
+	{
+		if( pViewports == NULL ) return NULL;
+
+		return pViewports[index];
+	}
+
+	// ********************************************************************************************
+
+	S_API SP_ID SpeedPointEngine::AddSolid( void )
+	{
+		if( pSolidSystem == NULL ) return SP_ID();
+
+		return pSolidSystem->AddSolid();
+	}
+
+	// ********************************************************************************************
+
+	S_API SSolid* SpeedPointEngine::AddSolid( SP_ID* pUID )
+	{
+		if( pSolidSystem == NULL ) return NULL;
+
+		SP_ID id = pSolidSystem->AddSolid();
+		
+		if( pUID ) *pUID = id;
+
+		return pSolidSystem->GetSolid( id );
+	}
+
+	// ********************************************************************************************
+
+	S_API SSolid* SpeedPointEngine::GetSolid( const SP_ID& id )
+	{
+		if( pSolidSystem == NULL ) return NULL;
+
+		return pSolidSystem->GetSolid( id );
+	}
+
+	// ********************************************************************************************
+
 	S_API SResult SpeedPointEngine::BeginFrame( void )
 	{
 		if( pRenderer == NULL || !bRunning ) return S_ABORTED;
 
 /////// TODO: Add Commandbuffer management here
 //////		This means we add a new task here to begin a new frame section inside the rendering pipeline
-/////		But for now, the simple call should be enough
-		
-		S_RENDER_STATE iCurrentState = pRenderer->GetRenderPipeline()->NextState();		
-		if( iCurrentState != S_RENDER_BEGINFRAME ) return S_ERROR;
+/////		But for now, the simple call should be enough			
 
-		// BEGINFRAME = Begin the scene, clear backbuffer
+		// BEGINFRAME = Begin the scene, clear backbuffer, switch state
 		if( Failure( pRenderer->GetRenderPipeline()->BeginFrameSection() ) )
 		{
 			return S_ERROR;
@@ -108,7 +233,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API SResult SpeedPointEngine::RenderSolid( SSolid* pSolid )
+	S_API SResult SpeedPointEngine::RenderSolid( SP_ID iSolid )
 	{
 		if( pRenderer == NULL || !bRunning ) return S_ABORTED;
 
@@ -116,7 +241,12 @@ namespace SpeedPoint
 ////////	This means we add a new task here to render the solid.
 ///////		pay attention when giving the pointer: the position of the data might change
 /////		For now, a simple call to the render pipeline should be enough
-		return pRenderer->GetRenderPipeline()->RenderSolidGeometry( pSolid );		
+
+		SSolid* pSolid = pSolidSystem->GetSolid( iSolid );
+
+		if( pSolid == NULL ) return S_ERROR;
+
+		return pRenderer->GetRenderPipeline()->RenderSolidGeometry( pSolid );
 	}
 
 	// ********************************************************************************************
@@ -165,7 +295,12 @@ namespace SpeedPoint
 		if( Failure( pRenderer->GetRenderPipeline()->RenderLighting( (SLight*)NULL ) ) )
 		{
 			return S_ERROR;
-		}		
+		}
+
+		if( Failure( pRenderer->GetRenderPipeline()->RenderPostEffects( NULL ) ) )
+		{
+			return S_ERROR;
+		}
 
 		// EndFrameSection() also renders the Output Plane
 		if( Failure( pRenderer->GetRenderPipeline()->EndFrameSection() ) )
@@ -191,6 +326,7 @@ namespace SpeedPoint
 	{
 		bRunning = false;
 
+		// Clear Resources
 		if( pResourcePool )
 		{
 			if( Failure( pResourcePool->ClearAll() ) ) return S_ERROR;
@@ -198,27 +334,57 @@ namespace SpeedPoint
 			pResourcePool = NULL;
 		}
 
-		free( pViewports );
-		camCamera = SCamera();
+		// Clear Viewports
 		pDefaultViewport = NULL;
+		for( UINT iViewport = 1; iViewport < SP_MAX_VIEWPORTS; iViewport++ )
+		{
+			if( pViewports[iViewport] != NULL )
+			{
+				pViewports[iViewport]->Clear();
+				delete pViewports[iViewport];				
+			}
+		}
+				
+		memset( (void*)pViewports, 0, sizeof( SViewport* ) * SP_MAX_VIEWPORTS );
+		free( pViewports );
 
+		// Clear Solid System
+		if( pSolidSystem )
+		{
+			pSolidSystem->Clear();
+			delete pSolidSystem;
+			pSolidSystem = NULL;
+		}
+				
+		// Clear Lighting System
 		if( pLightSystem )
 		{
-			if( Failure( pLightSystem->Clear() ) ) return S_ERROR;
+			//if( Failure( pLightSystem->Clear() ) ) return S_ERROR;
 			delete pLightSystem;
 			pLightSystem = NULL;
-		}
+		}		
 
-		dwBeforeFrame = 0;
-		dwAfterFrame = 0;
-		fLastFrameDelay = 0;
-
+		// Clear Renderer
 		if( pRenderer )
 		{
 			if( Failure( pRenderer->Shutdown() ) ) return S_ERROR;
 			delete pRenderer;
 			pRenderer = NULL;
 		}
+
+		// Clear logging stream
+		if( !bCustomLoggingStream && pLoggingStream )					
+			delete pLoggingStream;					
+
+		pLoggingStream = NULL;
+		bCustomLoggingStream = false;
+
+		// Reset settings
+		dwBeforeFrame = 0;
+		dwAfterFrame = 0;
+		fLastFrameDelay = 0;
+		camCamera = SCamera();
+		sSettings = SSettings();
 
 		return S_SUCCESS;
 	}

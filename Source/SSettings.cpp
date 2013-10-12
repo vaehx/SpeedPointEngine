@@ -18,7 +18,7 @@ namespace SpeedPoint
 		bPhysics( false ),	//// TODO: Switch this to true as soon as physics is implemented
 		bSound( false ),	//// TOOD: Switch this to true as soon as sound system is implemented
 		nLOD( 1 ),
-		fClipNear( 1.0f ),
+		fClipNear( 2.0f ),
 		fClipFar( 200.0f ),
 		pTargetViewport( NULL ),
 
@@ -44,7 +44,7 @@ namespace SpeedPoint
 		nLOD( o.nLOD ),
 		fClipNear( o.fClipNear ),
 		fClipFar( o.fClipFar ),
-		pTargetViewport( o.pTargetViewport ),
+		pTargetViewport( o.pTargetViewport ),		
 
 		fFogNear( o.fFogNear ),
 		fFogFar( o.fFogFar ),

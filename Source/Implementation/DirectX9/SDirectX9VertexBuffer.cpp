@@ -3,6 +3,7 @@
 #include <Implementation\DirectX9\SDirectX9VertexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <SVertex.h>
+#include <SpeedPoint.h>
 
 namespace SpeedPoint
 {
@@ -40,7 +41,10 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9VertexBuffer::Create ( int nVertices_, bool bDynamic_ )
 	{
-		if( pEngine == NULL || pRenderer == NULL ) return S_ERROR;
+		if( pEngine == NULL ) return S_ABORTED;
+
+		if( pRenderer == NULL )
+			return pEngine->LogReport( S_ABORTED, "No Renderer given when initializing. While creating vertex buffer!" );
 	
 		nVertices = nVertices_;
 		bDynamic = bDynamic_;
@@ -53,9 +57,8 @@ namespace SpeedPoint
 						      ((bDynamic) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED),
 						      &pHWVertexBuffer,
 						      NULL ) ) )
-		{
-			return S_ERROR;
-			//return SUtil::error( "Failed to Create Vertexbuffer!" );
+		{			
+			return pEngine->LogReport( S_ERROR, "Could not create DX9 Vertex Buffer resource!" );
 		}
 	
 		pShadowBuffer = (SVertex*)( malloc( nVertices * sizeof( SVertex ) ) );
@@ -72,7 +75,10 @@ namespace SpeedPoint
 		if( nVertices_ == nVertices )
 			return S_SUCCESS;
 	
-		if( pEngine == NULL || pRenderer == NULL ) return S_ABORTED;
+		if( pEngine == NULL ) return S_ABORTED;
+
+		if( pRenderer == NULL )
+			return pEngine->LogReport( S_ABORTED, "Renderer not set while trying to resize Vertex Buffer!" );
 	
 		int nVerticesOld = nVertices;
 		nVertices = nVertices_;	
@@ -87,8 +93,7 @@ namespace SpeedPoint
 						      &pVBTemp,
 						      NULL ) ) )
 		{
-			return S_ERROR;
-			//return SUtil::error( "Failed to Resize Vertexbuffer: Buffer creation Failed!" );
+			return pEngine->LogReport( S_ERROR, "Failed create resized VertexBuffer while trying to resize vertex buffer!" );
 		}
 	
 		if( pHWVertexBuffer != NULL ) pHWVertexBuffer->Release();
@@ -102,15 +107,14 @@ namespace SpeedPoint
 	
 		// Now update bufferset
 		void* pVertices;
-		if( FAILED( pHWVertexBuffer->Lock( 0, nVerticesOld * sizeof(SVertex), (void**)&pVertices, ((!bDynamic) ? D3DLOCK_NOSYSLOCK : 0 ) ) ) )
-			return S_ERROR;
-			//return SUtil::error( "Failed to Resize Vertexbuffer: Lock Failed!" );
+		
+		if( FAILED( pHWVertexBuffer->Lock( 0, nVerticesOld * sizeof(SVertex), (void**)&pVertices, ((!bDynamic) ? D3DLOCK_NOSYSLOCK : 0 ) ) ) )			
+			return pEngine->LogReport( S_ERROR, "Failed to lock resized Vertex Buffer!" );		
 	
 		memcpy( pVertices, (void*)pShadowBuffer, nVerticesOld * sizeof(SVertex) );
 	
 		if( FAILED( pHWVertexBuffer->Unlock() ) )
-			return S_ERROR;
-			//return SUtil::error( "Failed to Resize VertexBuffer: Unlock Failed!" );
+			return pEngine->LogReport( S_ERROR, "Failed to unlock resized Vertex Buffer!" );
 	
 		return S_SUCCESS;
 	}
@@ -121,18 +125,7 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9VertexBuffer::Lock ( UINT iBegin, UINT iLength, void** buf )
 	{
-		if( IsInited() && pHWVertexBuffer != NULL && !bLocked )
-		{		
-			if( FAILED( pHWVertexBuffer->Lock( iBegin, iLength, buf, ((!bDynamic) ? D3DLOCK_NOSYSLOCK : D3DLOCK_NOOVERWRITE ) ) ) )
-				return S_ERROR;
-				//return SUtil::error( "Failed to Lock Vertexbuffer!" );
-			else
-				bLocked = true;
-
-			return S_SUCCESS;
-		}
-
-		return S_ERROR;
+		return Lock( iBegin, iLength, buf, D3DLOCK_NOOVERWRITE );	
 	}
 	
 	// *******************************************************************************************
@@ -141,18 +134,19 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9VertexBuffer::Lock ( UINT iBegin, UINT iLength, void** buf, DWORD flags )
 	{
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( IsInited() && pHWVertexBuffer != NULL && !bLocked )
 		{		
 			if( FAILED( pHWVertexBuffer->Lock( iBegin, iLength, buf, ((!bDynamic) ? D3DLOCK_NOSYSLOCK | flags : flags ) ) ) )
-				return S_ERROR;
-				//return SUtil::error( "Failed to Lock Vertexbuffer!" );
+				return pEngine->LogReport( S_ERROR, "Failed lock DX9 Hardware Vertex Buffer Resource!" );
 			else
 				bLocked = true;
 
 			return S_SUCCESS;
 		}
 
-		return S_ERROR;
+		return pEngine->LogReport( S_ABORTED, "Could not lock vertex buffer: Not initialized or already locked!" );
 	}
 	
 	
@@ -162,26 +156,29 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9VertexBuffer::Fill ( SVertex* vertices, int nVertices_, bool append )
 	{
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( IsInited() && pHWVertexBuffer != NULL )
 		{
 			if( !bDynamic && nVertices_ > nVertices )		
-				return S_ERROR;	// too big		
+				return pEngine->LogReport( S_ABORTED, "Cannot fill non-dynamic vertex buffer: Buffer overflow!" );
 	
 			if( append && nVerticesWritten > 0 && !bDynamic )
-				return S_ERROR;	// Buffer not expandable	
+				return pEngine->LogReport( S_ABORTED, "Cannot append Vertex data to non-dynamic Vertex Buffer" );				
 	
 			if( nVertices_ + nVerticesWritten >  nVertices )
 			{
 				// Resize
-				Resize( nVertices_ + nVerticesWritten );
+				if( Failure( Resize( nVertices_ + nVerticesWritten ) ) )
+					return pEngine->LogReport( S_ERROR, "Resize for fill vertex buffer failed!" );
 			}		
 	
 			// Lock buffer if not happened
 			void* pVert;
 			if( !bLocked )
 			{
-				if( FAILED( Lock( (UINT)(nVerticesWritten * sizeof(SVertex)), (UINT)(nVertices_ * sizeof(SVertex)), &pVert ) ) )
-					return S_ERROR;
+				if( Failure( Lock( (UINT)(nVerticesWritten * sizeof(SVertex)), (UINT)(nVertices_ * sizeof(SVertex)), &pVert ) ) )
+					return pEngine->LogReport( S_ERROR, "Could not lock vertex buffer to fill with vertex data!" );
 			}
 	
 			// Now copy data		
@@ -194,7 +191,7 @@ namespace SpeedPoint
 	
 			// ... and unlock
 			if( FAILED( pHWVertexBuffer->Unlock() ) )
-				return S_ERROR;
+				return pEngine->LogReport( S_ERROR, "Could not unlock DX9 Vertex Buffer resource while filling with vertex data!" );
 	
 			bLocked = false;
 	
@@ -205,7 +202,7 @@ namespace SpeedPoint
 			return S_SUCCESS;
 		}
 
-		return S_ERROR;
+		return pEngine->LogReport( S_ABORTED, "Cannot Fill vertex buffer that is not initialized!" );
 	}
 	
 	// *******************************************************************************************
@@ -214,17 +211,19 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9VertexBuffer::Unlock ( void )
 	{
+		if( pEngine ) return S_ABORTED;
+
 		if( IsInited() && pHWVertexBuffer != NULL && bLocked )
 		{
 			if( FAILED( pHWVertexBuffer->Unlock() ) )
-				return S_ERROR;
+				return pEngine->LogReport( S_ERROR, "Could not unlock DX9 vertex buffer resource!" );
 			else
 				bLocked = false;
 
 			return S_SUCCESS;
 		}
 
-		return S_ERROR;
+		return pEngine->LogReport( S_ABORTED, "Cannot unlock vertex buffer that is not initialized!" );
 	}
 	
 	// *******************************************************************************************

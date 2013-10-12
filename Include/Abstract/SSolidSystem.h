@@ -23,7 +23,7 @@ namespace SpeedPoint
 		virtual SResult Initialize( SpeedPointEngine* pEngine ) = 0;
 
 		// Add a new solid and return id of it
-		virtual SP_ID AddSolid( /*???*/ ) = 0;
+		virtual SP_ID AddSolid( void ) = 0;
 
 		// Get a pointer to a solid by its id
 		virtual SSolid* GetSolid( SP_ID id ) = 0;

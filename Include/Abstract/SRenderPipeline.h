@@ -45,7 +45,7 @@ namespace SpeedPoint
 
 		// Render the geometry of a Primitive of a solid to the current G-Buffer
 		// Will abort if not in geometry state
-		virtual SResult RenderSolidGeometry( SSolid* pSolid ) = 0;
+		virtual SResult RenderSolidGeometry( SSolid* pSolid ) = 0;		
 
 		// Invokes the end of GBuffer creation
 		// This function is normally called by the CommandBuffer Playback when recognizing a

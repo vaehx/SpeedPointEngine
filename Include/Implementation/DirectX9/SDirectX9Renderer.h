@@ -51,7 +51,7 @@ namespace SpeedPoint
 		
 		SResult Initialize( SpeedPointEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter );
 		
-		SResult CreateAdditionalViewport( SViewport* pViewport );
+		SResult CreateAdditionalViewport( SViewport** pViewport );
 		
 		SResult Shutdown( void );
 		

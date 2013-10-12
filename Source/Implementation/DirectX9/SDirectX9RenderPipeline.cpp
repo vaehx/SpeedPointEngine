@@ -7,6 +7,7 @@
 #include <Implementation\DirectX9\SDirectX9IndexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Texture.h>
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
+#include <Implementation\DirectX9\SDirectX9GeometryRenderSection.h>
 #include <Abstract\SSolid.h>
 #include <SVertex.h>
 #include <SPrimitive.h>
@@ -33,31 +34,31 @@ namespace SpeedPoint
 		pGBufferAlbedo = (SFrameBuffer*)new SDirectX9FrameBuffer();
 		if( Failure( pGBufferAlbedo->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed initialize Albdeo GBuffer component" );
 		}
 
 		pGBufferDepth = (SFrameBuffer*)new SDirectX9FrameBuffer();
 		if( Failure( pGBufferDepth->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed initialize Depth GBuffer component" );
 		}
 
 		pGBufferNormals = (SFrameBuffer*)new SDirectX9FrameBuffer();
 		if( Failure( pGBufferNormals->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed initialize Normal GBuffer component" );
 		}
 
 		pLightingBuffer = (SFrameBuffer*)new SDirectX9FrameBuffer();
 		if( Failure( pLightingBuffer->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed initialize Light buffer component" );
 		}
 
 		// Initialize the gbuffer shader
-		if( Failure( gBufferShader.Initialize( pEngine, "gbuffer.fx" ) ) )
+		if( Failure( gBufferShader.Initialize( pEngine, "Effects\\gbuffer.fx" ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed to load GBuffer creation effect" );
 		}
 
 		// Initialize the output plane
@@ -65,7 +66,14 @@ namespace SpeedPoint
 		SIZE szVPSize = pTargetViewport->GetSize();
 		if( Failure( pOutputPlane->Initialize( pEngine, pRenderer, szVPSize.cx, szVPSize.cy ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed initialize Output plane" );		
+		}
+
+		// Initialize the Geometry Render Section
+		pGeometryRenderSection = new SDirectX9GeometryRenderSection();
+		if( Failure( pGeometryRenderSection->Initialize( pEngine, pRenderer ) ) )
+		{
+			return pEngine->LogReport( S_ERROR, "Failed initialize Geometry render section of Render pipeline!" );
 		}
 
 		return S_SUCCESS;
@@ -107,7 +115,9 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::SetTargetViewport( SViewport* pVP )
 	{
-		if( pVP == NULL ) return S_ABORTED;
+		if( pVP == NULL )		
+			return pEngine->LogReport( S_ABORTED, "Tried to set target Viewport to NULL" );		
+
 		pTargetViewport = pVP;
 		return S_SUCCESS;
 	}
@@ -116,6 +126,9 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::Clear( void )
 	{
+		if( pEngine )
+			pEngine->LogReport( S_INFO, "Clearing DX9 Render Pipeline" );
+
 		pTargetViewport = NULL;
 
 		if( pOutputPlane ) pOutputPlane->Clear(); delete pOutputPlane; pOutputPlane = NULL;
@@ -127,6 +140,8 @@ namespace SpeedPoint
 		if( pGBufferNormals ) pGBufferNormals->Clear(); delete pGBufferNormals; pGBufferNormals = NULL;
 		
 		if( pLightingBuffer ) pLightingBuffer->Clear(); delete pLightingBuffer; pLightingBuffer = NULL;
+
+		if( pGeometryRenderSection ) pGeometryRenderSection->Clear(); delete pGeometryRenderSection; pGeometryRenderSection = NULL;
 		
 		pEngine = NULL;
 		pRenderer = NULL;
@@ -151,7 +166,9 @@ namespace SpeedPoint
 		
 		D3DXVECTOR3 vUpVec( 0.0f, 1.0f, 0.0f );
 		
-		D3DXMatrixLookAtRH( &(D3DXMATRIX)mView, &vEyePt, &vLookAt, &vUpVec );
+		D3DXMATRIX mV;
+		D3DXMatrixLookAtRH( &mV, &vEyePt, &vLookAt, &vUpVec );
+		mView = SMatrix( mV );
 
 		return S_SUCCESS;
 	}
@@ -160,7 +177,10 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::CalcWorldTransformation( const STransformable* form )
 	{
-		if( form == NULL ) return S_ABORTED;
+		if( pEngine == NULL ) return S_ABORTED;
+
+		if( form == NULL )
+			return pEngine->LogReport( S_ABORTED, "Tried calculate World transformation of not given form" );
 
 		// World / Form matrix
 		D3DXMATRIX mTrans, mRot, mScale, mOrig;					
@@ -169,8 +189,10 @@ namespace SpeedPoint
 		D3DXMatrixRotationYawPitchRoll	( &mRot,   form->vRotation.y,  form->vRotation.x,  form->vRotation.z  );		
 		D3DXMatrixTranslation		( &mTrans, form->vPosition.x,  form->vPosition.y,  form->vPosition.z  );			
 		D3DXMatrixScaling		( &mScale, form->vSize.x, form->vSize.y, form->vSize.z );
+		
+		D3DXMATRIX mW = mOrig * mScale * mRot * mTrans;
 
-		mWorld = mOrig * mScale * mRot * mTrans;
+		mWorld = SMatrix( mW );
 
 		return S_SUCCESS;
 	}
@@ -179,9 +201,11 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::CalcRenderingTransformations( const STransformable* form, const STransformable* camera )
 	{
+		if( pEngine == NULL ) return S_ABORTED;
+
 		if( form == NULL || camera == NULL )
 		{
-			return S_ABORTED;
+			return pEngine->LogReport( S_ABORTED, "Tried to calculate Rendering transformations without given form and camera" );
 		}
 
 		if( Aborted( CalcViewTransformation( camera ) ) )
@@ -217,13 +241,13 @@ namespace SpeedPoint
 		if( pDXRenderer->setSettings.bAutoDepthStencil )
 			dwFlags |= D3DCLEAR_ZBUFFER;
 
-		if( FAILED( pDXRenderer->pd3dDevice->Clear( 0, NULL, dwFlags, D3DCOLOR_XRGB( 0, 255, 0 ), 1.0f, 0 ) ) )
+		if( FAILED( pDXRenderer->pd3dDevice->Clear( 0, NULL, dwFlags, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0f, 0 ) ) )
 		{
 			return S_ERROR;
 		}
 
 		// Begin DX Scene
-		if( FAILED( pDXRenderer->pd3dDevice->BeginScene() ) )
+		if( FAILED( pDXRenderer->BeginScene() ) )
 		{
 			return S_ERROR;
 		}
@@ -244,83 +268,38 @@ namespace SpeedPoint
 			pGBufferDepth == NULL ||
 			pGBufferNormals == NULL ||
 			gBufferShader.pEffect == NULL ||
+			pGeometryRenderSection == NULL ||
 			iState != S_RENDER_GEOMETRY )
 		{
 			return S_ABORTED;
 		}
 
-		// ----------------------------------------------------------------
-		// Convert FrameBuffers
-		SDirectX9FrameBuffer* pDXAlbedo = (SDirectX9FrameBuffer*)pGBufferAlbedo;
-		SDirectX9FrameBuffer* pDXDepth = (SDirectX9FrameBuffer*)pGBufferDepth;
-		SDirectX9FrameBuffer* pDXNormals = (SDirectX9FrameBuffer*)pGBufferNormals;
 
-		// First, set the proper render targets
-		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)pRenderer;
-		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 0, pDXAlbedo->pSurface ) ) )
-			return S_ERROR;
+		// -----------------------------------------------------------------------------------------------------------------------
+		// Setup the geometry render section
 
-		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 1, pDXNormals->pSurface ) ) )
-			return S_ERROR;
-
-		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 2, pDXDepth->pSurface ) ) )
-			return S_ERROR;
-
-		// ----------------------------------------------------------------
-		// Set shader for GBuffer creation
-		UINT nGBufferShaderPasses;
-		if( FAILED( gBufferShader.pEffect->Begin( &nGBufferShaderPasses, 0 ) ) )
-		{
-			return S_ERROR;
-		}
-
-		// Set transformation matrices
-		SDirectX9Viewport* pDXTargetViewport = (SDirectX9Viewport*)pTargetViewport;		
-		gBufferShader.pEffect->SetMatrix( "Proj", &(D3DXMATRIX)pDXTargetViewport->mProjection );
+		if( Failure( pGeometryRenderSection->PrepareSection( pSolid ) ) )
+			return pEngine->LogReport( S_ERROR, "Cannot prepare geometry render section" );
 
 
-		CalcWorldTransformation( (STransformable*)pSolid );
-		gBufferShader.pEffect->SetMatrix( "World", &(D3DXMATRIX)mWorld );
+		// -----------------------------------------------------------------------------------------------------------------------
+		// temporary buffer for untextured primitives
+		
+		UINT* pUntexturedPrimitives = new UINT[pSolid->GetPrimitiveCount()];
+		UINT nUntexturedPrimitives = 0;
 
-		gBufferShader.pEffect->SetMatrix( "View", &(D3DXMATRIX)mView );		
 
-		// Get the vertex buffer
-		SDirectX9VertexBuffer* pDXVertexBuffer =
-			(SDirectX9VertexBuffer*)pEngine->GetResourcePool()->GetVertexBuffer( pSolid->GetVertexBuffer() );
+		// -----------------------------------------------------------------------------------------------------------------------
+		// Render textured primitives and select untextured primitives
 
-		if( pDXVertexBuffer == NULL ) return S_ERROR;
+		if( Failure( pGeometryRenderSection->PrepareGBufferCreationShader( true ) ) )
+			return pEngine->LogReport( S_ERROR, "Could not prepare GBuffer creation shader for textured primitives!" );
 
-		// Get the index buffer
-		SDirectX9IndexBuffer* pDXIndexBuffer = 
-			(SDirectX9IndexBuffer*)pEngine->GetResourcePool()->GetIndexBuffer( pSolid->GetIndexBuffer() );
-
-		if( pDXIndexBuffer == NULL ) return S_ERROR;
-
-		// Setup data streams
-		pDXRenderer->pd3dDevice->SetStreamSource( 0, pDXVertexBuffer->pHWVertexBuffer, 0, sizeof( SVertex ) );
-
-		pDXRenderer->pd3dDevice->SetIndices( pDXIndexBuffer->pHWIndexBuffer );
-
-		// Setup the material
-		SColor* pDiffuseColor = &pSolid->GetMaterial()->colDiffuse;
-		D3DXVECTOR4 vDiffuse( pDiffuseColor->r, pDiffuseColor->g, pDiffuseColor->b, pSolid->GetMaterial()->fShininess );				
-		gBufferShader.pEffect->SetVector( "SolidDiffuseColor", &vDiffuse );
-
-		// Now simply go through all passes and draw all primitives of the solid
-		// that need to be rendered
-
-		// As we are going to improve speed we save the last texture index
-		SP_ID iLastTexture;
-		iLastTexture.iIndex = -1;
-
-		for( UINT iPass = 0; iPass < nGBufferShaderPasses; ++iPass )
+		for( UINT iPass = 0; iPass < pGeometryRenderSection->nCurrentPasses; ++iPass )
 		{			
 
-			if( FAILED( gBufferShader.pEffect->BeginPass( iPass ) ) )
-			{
-/////// TODO: Throw error, that pass iPass could not be started
-				return S_ERROR;
-			}
+			if( FAILED( gBufferShader.pEffect->BeginPass( iPass ) ) )			
+				return pEngine->LogReport( S_ERROR, "Failed Begin Pass of GBuffer Creation effect" );			
 
 			for( UINT iPrimitive = 0; iPrimitive < (UINT)pSolid->GetPrimitiveCount(); ++iPrimitive )
 			{
@@ -333,80 +312,81 @@ namespace SpeedPoint
 				SPrimitive* pPrimitive = pSolid->GetPrimitive( iPrimitive );
 				if( !pPrimitive->bDraw ) continue;
 
-				// Setup the texture
-				if( iLastTexture != pPrimitive->iTexture )
+				// Check if this primitive is textured or not
+				if( pPrimitive->iTexture.iIndex == SP_TRIVIAL )
 				{
-					STexture* pTexture = pEngine->GetResourcePool()->GetTexture( pPrimitive->iTexture );			
-					if( pTexture != NULL )
-					{
-						SDirectX9Texture* pDXTexture = (SDirectX9Texture*)pTexture;
-						if( FAILED( pDXRenderer->pd3dDevice->SetTexture( 0, pDXTexture->pTexture ) ) )
-						{
-///// TODO: Give a warning, that the texture could not be properly activated
-							continue;
-						}
-					}
-					else
-					{
-						pDXRenderer->pd3dDevice->SetTexture( 0, NULL );
-					}
-
-					iLastTexture = SP_ID( pPrimitive->iTexture );
+					pUntexturedPrimitives[nUntexturedPrimitives] = iPrimitive;
+					nUntexturedPrimitives++;
+					continue;
 				}
 
-				// Setup the proper Cullmode
-				DWORD dwCullMode = D3DCULL_CCW;
-				if( pPrimitive->tType == S_PRIM_PARTICLE || pPrimitive->tType == S_PRIM_COMPLEX_PLANE )
-				{
-					dwCullMode = D3DCULL_NONE;
-				}
-
-				if( FAILED( pDXRenderer->pd3dDevice->SetRenderState( D3DRS_CULLMODE, dwCullMode ) ) )
-				{
-///////// TODO: Give a warning that the cullmode could not be changed
+				// Render the primitive
+				if( Failure( pGeometryRenderSection->RenderTexturedPrimitive( iPrimitive ) ) )
 					return S_ERROR;
-				}
-
-				// Convert the polygon type
-				D3DPRIMITIVETYPE ptType = D3DPT_TRIANGLELIST;
-				switch( pPrimitive->tRenderType )
-				{
-				case S_PRIM_RENDER_TRIANGLELIST: ptType = D3DPT_TRIANGLELIST; break;
-				case S_PRIM_RENDER_TRIANGLESTRIP: ptType = D3DPT_TRIANGLESTRIP; break;
-				case S_PRIM_RENDER_LINELIST: ptType = D3DPT_LINELIST; break;
-				case S_PRIM_RENDER_POINTLIST: ptType = D3DPT_POINTLIST; break;
-				}
-
-				// Now draw the polygons
-				if( FAILED( pDXRenderer->pd3dDevice->DrawIndexedPrimitive( ptType,
-					pPrimitive->iFirstVertex, 0, (pPrimitive->iLastVertex - pPrimitive->iFirstVertex),
-					pPrimitive->iFirstIndex, (UINT)pPrimitive->nPolygons ) ) )
-				{
-///////// TODO: Throw error that drawing failed
-					return S_ERROR;
-				}
-
-				// and go on with the next primitive
-				continue;
 
 			}
 
-			if( FAILED( gBufferShader.pEffect->EndPass() ) )
-			{
-//////// TODO: throw error that the current pass could not be ended properly
-				return S_ERROR;
-			}
+			if( FAILED( gBufferShader.pEffect->EndPass() ) )			
+				return pEngine->LogReport( S_ERROR, "Could not properly End GBuffer creation shader pass" );			
 
 			// and go on with the next pass
 			continue;
 
 		}
 
-		// Stop using the GBuffer creation shader
-		if( FAILED( gBufferShader.pEffect->End() ) )
-		{
+		if( Failure( pGeometryRenderSection->ExitGBufferCreationShader() ) )
 			return S_ERROR;
+
+		// -----------------------------------------------------------------------------------------------------------------------
+		// Now render untextured primitives
+		
+		if( nUntexturedPrimitives > 0 )
+		{
+			if( Failure( pGeometryRenderSection->PrepareGBufferCreationShader( false ) ) )
+				return pEngine->LogReport( S_ERROR, "Could not prepare GBuffer creation shader for not-textured primitives!" );
+
+			for( UINT iPass = 0; iPass < pGeometryRenderSection->nCurrentPasses; ++iPass )
+			{			
+
+				if( FAILED( gBufferShader.pEffect->BeginPass( iPass ) ) )			
+					return pEngine->LogReport( S_ERROR, "Failed Begin Pass of GBuffer Creation effect for untextured primitives" );			
+
+				for( UINT iPrimitive = 0; iPrimitive < nUntexturedPrimitives; ++iPrimitive )
+				{
+
+//////////////////////////////////
+///////// TODO: Check if the primitive is inside the view volume, otherwise do not render it
+/////////	This will speed up rendering vastly!
+/////////////////////////////////
+
+					SPrimitive* pPrimitive = pSolid->GetPrimitive( pUntexturedPrimitives[iPrimitive] );
+					if( !pPrimitive->bDraw ) continue;					
+
+					// Render the primitive
+					if( Failure( pGeometryRenderSection->RenderUntexturedPrimitive( iPrimitive ) ) )
+						return S_ERROR;
+
+				}
+
+				if( FAILED( gBufferShader.pEffect->EndPass() ) )			
+					return pEngine->LogReport( S_ERROR, "Could not properly End GBuffer creation shader pass for untextured primitives" );			
+
+				// and go on with the next pass
+				continue;
+
+			}
+
+			if( Failure( pGeometryRenderSection->ExitGBufferCreationShader() ) )
+				return S_ERROR;
 		}
+
+		// -----------------------------------------------------------------------------------------------------------------------
+		// Clearup temporary stuff
+
+		delete[] pUntexturedPrimitives;
+
+		
+		// -----------------------------------------------------------------------------------------------------------------------
 
 		return S_SUCCESS;
 	}
@@ -473,25 +453,25 @@ namespace SpeedPoint
 		SDirectX9FrameBuffer* pDXTargetBackBuffer = (SDirectX9FrameBuffer*)pTargetViewport->GetBackBuffer();
 		if( NULL == pDXTargetBackBuffer )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed to Get BackBuffer of current targetviewport of render pipeline" );
 		}
 
 		pDXRenderer->pd3dDevice->SetRenderTarget( 1, NULL );
 		pDXRenderer->pd3dDevice->SetRenderTarget( 2, NULL );
 		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 0, pDXTargetBackBuffer->pSurface ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set target backbuffer render target inside render pipeline" );
 		}
 
 		if( Failure( pOutputPlane->Render( pGBufferAlbedo, pLightingBuffer ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed to render output plane inside render pipeline EndFrameSection()" );
 		}
 
 		// And finally we'll end up the DirectX Scene
 		if( FAILED( pDXRenderer->EndScene() ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed End DX Scene in render pipeline" );
 		}
 
 		NextState();
@@ -503,12 +483,28 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::Present( void )
 	{
-		if( pTargetViewport == NULL || pTargetViewport->GetBackBuffer() == NULL || iState != S_RENDER_PRESENT ) return S_ABORTED;		
+		if( pEngine == NULL ) return S_ABORTED;
+
+		if( pTargetViewport == NULL || pTargetViewport->GetBackBuffer() == NULL || iState != S_RENDER_PRESENT )
+		{
+			return pEngine->LogReport( S_ABORTED, "Tried to present with not initialized target viewport or not in PRESENT RP State" );
+		}
 
 		// Now present
 		SDirectX9Viewport* pDXViewport = (SDirectX9Viewport*)pTargetViewport;
-		if( FAILED( pDXViewport->pSwapChain->Present( NULL, NULL, NULL, NULL, 0 ) ) )
-			return S_ERROR;
+		if( pDXViewport->pSwapChain != NULL && FAILED( pDXViewport->pSwapChain->Present( NULL, NULL, NULL, NULL, 0 ) ) )
+		{
+			return pEngine->LogReport( S_ERROR, "Failed to present current target viewport (additional swapchain) Backbuffer!" );
+		}
+		else
+		{
+			if( pDXViewport->pBackBuffer == NULL )
+				return pEngine->LogReport( S_ERROR, "Cannot present default viewport that has a null pointer as back buffer!" );
+
+			SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)pEngine->GetRenderer();						
+			if( FAILED( pDXRenderer->pd3dDevice->Present( NULL, NULL, NULL, NULL ) ) )
+				return pEngine->LogReport( S_ERROR, "Failed to present default viewport!" );
+		}
 
 		NextState();
 

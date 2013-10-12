@@ -38,7 +38,18 @@ namespace SpeedPoint
 			pCamera( NULL ),
 			pEngine( NULL ),
 			hWnd( NULL ),
-			pBackBuffer( NULL ) {};
+			pBackBuffer( NULL ),
+			pSwapChain( NULL ) {};
+
+		SDirectX9Viewport( const SDirectX9Viewport& o )
+			: fOrthoW( o.fOrthoW ),
+			fOrthoH( o.fOrthoH ),
+			fFOV( o.fFOV ),
+			pCamera( o.pCamera ),
+			pEngine( o.pEngine ),
+			hWnd( o.hWnd ),
+			pBackBuffer( o.pBackBuffer ),
+			pSwapChain( o.pSwapChain ) {};
 
 		// Initialize this viewport with an Engine instance
 		SResult Initialize( SpeedPointEngine* pEngine );

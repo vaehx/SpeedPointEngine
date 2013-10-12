@@ -5,6 +5,7 @@
 #include <Implementation\DirectX9\SDirectX9IndexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Texture.h>
 #include <Implementation\DirectX9\SDirectX9Shader.h>
+#include <SpeedPoint.h>
 
 namespace SpeedPoint
 {
@@ -33,7 +34,10 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9ResourcePool::AddVertexBuffer( SVertexBuffer** pVBuffer, SP_ID* pUID )
 	{
-		if( pDXRenderer == NULL ) return S_ABORTED;
+		if( pEngine == NULL ) return S_ABORTED;
+
+		if( pDXRenderer == NULL )
+			return pEngine->LogReport( S_ABORTED, "Cannot add Vertex Buffer Resource: Renderer not initialized!" );
 
 		SDirectX9VertexBuffer dxVertexBuffer;
 		SDirectX9VertexBuffer* pdxVertexBuffer;
@@ -51,7 +55,7 @@ namespace SpeedPoint
 
 	S_API SVertexBuffer* SDirectX9ResourcePool::GetVertexBuffer( SP_ID iUID )
 	{
-		if( pDXRenderer == NULL ) return NULL;
+		if( pEngine == NULL ) return NULL;
 
 		SDirectX9VertexBuffer* pdxVertexBuffer = plVertexBuffers.GetItemByUID( iUID );
 
@@ -62,8 +66,6 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9ResourcePool::RemoveVertexBuffer( SP_ID iUID )
 	{
-		if( pDXRenderer == NULL ) return S_ABORTED;
-
 		plVertexBuffers.DeleteItem( iUID );
 
 		return S_SUCCESS;
@@ -77,7 +79,7 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9ResourcePool::AddIndexBuffer( SIndexBuffer** pIBuffer, SP_ID* pUID )
 	{
-		if( pDXRenderer == NULL ) return S_ABORTED;
+		if( pEngine == NULL ) return S_ABORTED;
 
 		SDirectX9IndexBuffer dxIndexBuffer;
 		SDirectX9IndexBuffer* pdxIndexBuffer;

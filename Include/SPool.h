@@ -317,8 +317,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 	
-	//		Add an item to list (push_back)
-
+	//		Add an item to list (push_back) and return pointer to added item
 	template <class T>
 	T*	SPool<T>::AddItem ( const T& tItem, SPoolIndex* pIndex )
 	{

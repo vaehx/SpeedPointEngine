@@ -16,10 +16,12 @@ namespace SpeedPoint
 
 	S_API SString::SString( const SString& str )
 	{
-		if( str.cString && strlen( str.cString ) > 0 )
+		UINT nSrcSize = strlen( str.cString );
+		if( str.cString && nSrcSize > 0 )
 		{
-			cString = new char[strlen( str.cString )];
-			strcpy_s( cString, strlen( str.cString ), str.cString );
+			cString = new char[nSrcSize + 1];
+			strcpy_s( cString, nSrcSize + 1, str.cString );
+			cString[nSrcSize] = 0;
 		}
 		else
 		{
@@ -32,10 +34,13 @@ namespace SpeedPoint
 
 	S_API SString::SString( char* src )
 	{
-		if( src && strlen( src ) > 0 )
+		UINT nSrcSize = strlen( src );
+		if( src && nSrcSize > 0 )
 		{
-			cString = new char[strlen( src )];
-			strcpy_s( cString, strlen( src ), src );
+			cString = new char[nSrcSize + 1];
+			ZeroMemory( cString, nSrcSize + 1 );
+			strcpy_s( cString, nSrcSize + 1, src );
+			cString[nSrcSize] = 0;
 		}
 		else
 		{

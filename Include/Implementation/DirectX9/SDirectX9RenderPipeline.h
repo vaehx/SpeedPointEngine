@@ -33,6 +33,7 @@ namespace SpeedPoint
 		SFrameBuffer*			pLightingBuffer;
 		S_RENDER_STATE			iState;
 		SOutputPlane*			pOutputPlane;
+		SDirectX9GeometryRenderSection*	pGeometryRenderSection;
 
 		// Default constructor
 		SDirectX9RenderPipeline()
@@ -66,19 +67,22 @@ namespace SpeedPoint
 		SResult CalcWorldTransformation( const STransformable* form );
 		
 
-
 		SResult BeginFrameSection( void );
+
 
 		SResult RenderSolidGeometry( SSolid* pSolid );		
 
 		SResult StopGeometryRendering( void );
 
+		
 		SResult RenderLighting( SPool<SLight>* pLightPool );
 
-		SResult RenderLighting( SLight* pLightArray );	
+		SResult RenderLighting( SLight* pLightArray );
+
 
 		SResult RenderPostEffects( SP_UNIQUE* pCustomPostShaders );
 
+		
 		SResult EndFrameSection( void );
 
 

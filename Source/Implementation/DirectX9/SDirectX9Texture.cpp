@@ -22,6 +22,7 @@ namespace SpeedPoint
 
 		Clear();
 
+		pEngine = eng;
 		bDynamic = bDyn;
 		sSpecification = spec;
 
@@ -43,13 +44,13 @@ namespace SpeedPoint
 		if( FAILED( D3DXCreateTextureFromFileEx( 
 			pDXRenderer->pd3dDevice,
 			cFileName,
-			w, h, mipLevels,
-			( bDynamic ) ? D3DUSAGE_DYNAMIC : D3DUSAGE_AUTOGENMIPMAP,
+			w, h, 5,
+			( bDynamic ) ? D3DUSAGE_DYNAMIC : 0,
 			D3DFMT_UNKNOWN,
 			( bDynamic ) ? D3DPOOL_MANAGED : D3DPOOL_DEFAULT,
 			D3DX_FILTER_NONE,
 			D3DX_DEFAULT,
-			pDXRenderer->setSettings.cAlphaColorKey,
+			0,
 			NULL,
 			NULL,
 			&pTexture ) ) )			

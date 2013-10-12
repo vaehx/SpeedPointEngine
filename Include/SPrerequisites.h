@@ -47,6 +47,9 @@ namespace SpeedPoint
 	class	S_API SBoundBox;
 	struct	S_API SSettings;			// contains SRendererSettings
 
+	// ---------------------------- Logging ---------------------------------	
+	//class	S_API SLogStream;
+
 	// --------------------------- Settings ---------------------------------
 /*abs*/ class	S_API SRendererSettings;
 	class	S_API SDirectX9Settings;
@@ -141,6 +144,8 @@ namespace SpeedPoint
 	class	S_API SDirectX10OutputPlane;
 	class	S_API SDirectX11OutputPlane;
 	class	S_API SOpenGLOutputPlane;
+
+	class	S_API SDirectX9GeometryRenderSection;	
 
 	// --------------------------- Effects ---------------------------------
 /*abs*/ class	S_API SShader;
@@ -261,7 +266,7 @@ namespace SpeedPoint
 	enum S_API S_BACKBUFFER_FORMAT
 	{
 		S_BACKBUFFER32,
-		S_BACKBUFFER16
+		S_BACKBUFFER16				
 	};
 
 	// SpeedPoint IndexBuffer Format

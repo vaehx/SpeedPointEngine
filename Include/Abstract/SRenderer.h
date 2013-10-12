@@ -39,7 +39,7 @@ namespace SpeedPoint
 		virtual SResult UpdateViewportMatrices( SViewport* pViewport ) = 0;
 
 		// Create an an addition viewport
-		virtual SResult CreateAdditionalViewport( SViewport* pViewport ) = 0;
+		virtual SResult CreateAdditionalViewport( SViewport** pViewport ) = 0;
 
 		// Clearout everything (viewports, buffers, stop render Pipeline thread and task buffer)
 		virtual SResult Shutdown( void ) = 0;

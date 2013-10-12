@@ -3,7 +3,7 @@
 //	This is the main header of the SpeedPoint Engine
 
 //	(c) 2013, Pascal Rosenkranz -- All rights reserved.
-//	- Current Dev Version: 2.0
+//	- Current Dev Version: 2.0.1
 //	- Current Beta Version: 0.2
 //	- Current Release Version: 0.0.2
 
@@ -15,6 +15,7 @@
 #include "SPrerequisites.h"
 #include "SSettings.h"
 #include "SCamera.h"
+#include "Util\SLogStream.h"
 
 #define SP_MAX_VIEWPORTS 10
 
@@ -24,7 +25,7 @@ namespace SpeedPoint
 	class S_API SpeedPointEngine
 	{
 	private:
-		bool		bRunning;
+		bool		bRunning;	
 
 		SSettings	sSettings;		
 		SRenderer*	pRenderer;		
@@ -38,26 +39,43 @@ namespace SpeedPoint
 		// Lighting System
 		SLightSystem*	pLightSystem;
 
+		// Basic Solid System to store solids
+		SSolidSystem*	pSolidSystem;		
+
 		// Frame delay counter
 		DWORD		dwBeforeFrame;
 		DWORD		dwAfterFrame;
 		float		fLastFrameDelay;		
 
-	public:
+		// Basic Logging Stream
+		bool		bCustomLoggingStream;
+		SLogStream*	pLoggingStream;		
+
+	public:	
+
 		// Default constructor
 		SpeedPointEngine()
 			: pRenderer( NULL ),
+			pLoggingStream( NULL ),
+			pSolidSystem( NULL ),
 			pViewports( NULL ),
 			pDefaultViewport( NULL ),			
 			pResourcePool( NULL ),
 			dwBeforeFrame( 0 ),
 			dwAfterFrame( 0 ),
-			fLastFrameDelay( 0 ) {};
+			fLastFrameDelay( 0 ),
+			bCustomLoggingStream( false ) {};
 
 		// --
 
 		// Startup the whole thing
-		SResult Start( const SSettings& settings );		
+		SResult Start( const SSettings& settings );
+
+		// Set custom logging stream
+		SResult SetCustomLogStream( SLogStream* pLogStream );
+
+		// Report a log entry and return the result given as parameter
+		SResult LogReport( SResult res, SString msg );
 
 		// Get the Renderer
 		SRenderer* GetRenderer( void );
@@ -65,14 +83,29 @@ namespace SpeedPoint
 		// Get the settings
 		SSettings* GetSettings( void );
 
-		// Get the resourcepool
+		// Get the Renderer Resourcepool
 		SResourcePool* GetResourcePool( void );
+
+		// Create a new solid
+		SP_ID AddSolid( void );
+
+		// Create a new solid and immediately get the solid pointer
+		SSolid* AddSolid( SP_ID* pUID );
+
+		// Get a solid by its id
+		SSolid* GetSolid( const SP_ID& id );
 
 		// Begin a frame. Sets first position of frame delay counter
 		SResult BeginFrame( void );
 
 		// Render a solid
-		SResult RenderSolid( SSolid* pSolid );
+		SResult RenderSolid( SP_ID iSolid );
+
+		// Add a new Viewport and return static pointer to it
+		SViewport* AddAdditionalViewport( void );
+
+		// Get a viewport by its id
+		SViewport* GetViewport( UINT index );
 
 		// Present the backbuffer of the given viewport
 		SResult FlushViewport( SViewport* pViewport );

@@ -47,8 +47,7 @@ namespace SpeedPoint
 					break;
 				}
 			default:
-				return S_ERROR;
-				//return SUtil::error( "Wrong Display Buffer format given!" );
+				return pEngine->LogReport( S_ERROR, "Wrong BackBuffer format!" );
 			}
 		
 			if( 0 >= ( iNumAdapterModes = pDirect3D->GetAdapterModeCount( iAdapter, fmtBuffer ) ) )
@@ -64,13 +63,12 @@ namespace SpeedPoint
 				fDisplayModeFilter.ScanLineOrdering	= D3DSCANLINEORDERING_INTERLACED;//(D3DSCANLINEORDERING)pSettings_->iFullscreenScanline;					
 						
 				if( FAILED( pDirect3D->EnumAdapterModes( iAdapter, fmtBuffer, iAdapterMode, &pAdapterModeN ) ) )
-				{
-					continue;
-					//return SUtil::error( "Failed to access Adapter Mode enum ex!" );
+				{					
+					return pEngine->LogReport( S_ERROR, "Failed Enumerate Adapter Modes!" );
 				}			
 		
-				if( (vpViewport.nXResolution == SP_TRIVIAL || pAdapterModeN.Width == vpViewport.nXResolution) &&
-					(vpViewport.nYResolution == SP_TRIVIAL || pAdapterModeN.Height == vpViewport.nYResolution) &&
+				if( (nW == SP_TRIVIAL || pAdapterModeN.Width == nW) &&
+					(nH == SP_TRIVIAL || pAdapterModeN.Height == nH) &&
 					(setSettings.nRefreshRate == SP_TRIVIAL || pAdapterModeN.RefreshRate == setSettings.nRefreshRate) )
 				{				
 					bAdapterModeFound = TRUE;
@@ -84,7 +82,7 @@ namespace SpeedPoint
 				setSettings.iAdapterIndex = iAdapter;		
 				vpViewport.d3dDisplayMode = pAdapterModeN;
 		
-				return S_SUCCESS;
+				return pEngine->LogReport( S_SUCCESS, "Good DX adapter mode found." );
 			}		
 		}
 		
@@ -92,9 +90,7 @@ namespace SpeedPoint
 		setSettings.iAdapterIndex = SP_TRIVIAL;
 
 		// Nothing Found, return Fail
-		return S_ERROR;
-		
-		//return SUtil::error( "No matching Video Adapter Found!" );
+		return pEngine->LogReport( S_ERROR, "Hardware does not support specified DX video adapter mode" );		
 	}
 
 	// **********************************************************************************
@@ -105,7 +101,7 @@ namespace SpeedPoint
 
 		if( FAILED( pDirect3D->GetDeviceCaps( setSettings.iAdapterIndex, setSettings.tyDeviceType, &cpsDeviceCaps ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Could not get DX Device caps" );
 		}
 
 		return S_SUCCESS;
@@ -115,7 +111,9 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9Renderer::InitDefaultViewport ( HWND hWnd, int nW, int nH, DWORD* dwBehaviourFlags_ )
 	{
-		if( pDirect3D == NULL ) return S_ABORTED;
+		if( pDirect3D == NULL )
+			return pEngine->LogReport( S_ABORTED, "Tried to init default viewport without initialized Direct3D Interface" );
+
 		if( hWnd != NULL )
 		{		
 			// Initialize the viewport
@@ -147,7 +145,7 @@ namespace SpeedPoint
 						break;
 	
 					default:
-						return S_ERROR;
+						return pEngine->LogReport( S_ERROR, "Failed evaluate Processing Mode!" );
 					}
 				}
 				else
@@ -264,10 +262,10 @@ namespace SpeedPoint
 			// Set Device Window
 			vpViewport.d3dPresentParameters.hDeviceWindow = vpViewport.hWnd;
 
-			return S_SUCCESS;
+			return pEngine->LogReport( S_SUCCESS, "Initialized default DX Viewport properly" );
 		}
 	
-		return S_ABORTED;
+		return pEngine->LogReport( S_ERROR, "Window Handle for default DX Viewport is not valid." );
 	
 	}
 
@@ -284,7 +282,7 @@ namespace SpeedPoint
 			// Clear Device if already initialized
 			if( pd3dDevice != NULL )
 			{
-				pd3dDevice->Release ();
+				pd3dDevice->Release();
 				pd3dDevice = NULL;
 			}			
 						
@@ -366,7 +364,8 @@ namespace SpeedPoint
 				}
 			}			
 
-			if( FAILED( hr ) ) return S_ERROR;
+			if( FAILED( hr ) )
+				return pEngine->LogReport( S_ERROR, "Video device driver does meet system requirements" );
 
 			/// --- NOW CREATE THE DEVICE ---
 
@@ -393,17 +392,20 @@ namespace SpeedPoint
 					D3DCREATE_SOFTWARE_VERTEXPROCESSING | dwDefFlags, &vpViewport.d3dPresentParameters, &pd3dDevice );
 
 				// Failed at the end
-				if( FAILED( hr ) )
-					return S_ERROR;
-					//return SUtil::error( "FAILED CREATE DIRECTX9 DEVICE!" );
+				if( FAILED( hr ) )					
+					return pEngine->LogReport( S_ERROR, "FAILED CREATE DIRECTX9 DEVICE!" );
 			}
 	
+			// Set BackBuffer of default viewport
+			if( FAILED( pd3dDevice->GetRenderTarget( 0, &vpViewport.pBackBuffer ) ) )
+				return pEngine->LogReport( S_ERROR, "Could not retrieve BackBuffer surface of default Render Target!" );
+
 			// Bye
-			return S_SUCCESS;		
+			return pEngine->LogReport( S_SUCCESS, "Initialized D3D Device properly" );
 	
 		}
 	
-		return S_ERROR;
+		return pEngine->LogReport( S_ERROR, "Video device driver does not meet system requirements" );
 	
 	}
 
@@ -411,14 +413,15 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9Renderer::SetRenderStateDefaults( void )
 	{
-		if( !IsInited() ) return S_ABORTED;
+		if( pd3dDevice == NULL ) 
+			return pEngine->LogReport( S_ABORTED, "Tried set render state defaults with not-initialized renderer" );
 
 		pd3dDevice->SetRenderState( D3DRS_SHADEMODE, D3DSHADE_PHONG );
 		pd3dDevice->SetRenderState( D3DRS_LIGHTING, false );
 		pd3dDevice->SetRenderState( D3DRS_AMBIENT, 0x20202020 );
 		pd3dDevice->SetRenderState( D3DRS_FILLMODE, D3DFILL_SOLID );
 		pd3dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CCW );
-		pd3dDevice->SetRenderState( D3DRS_STENCILENABLE, true );
+		pd3dDevice->SetRenderState( D3DRS_STENCILENABLE, false );
 
 		pd3dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
 		pd3dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
@@ -435,7 +438,7 @@ namespace SpeedPoint
 	{
 /////////////////////////
 //////// TODO: Add error messages / log entries
-		if( eng == NULL || hWnd == NULL ) return S_ABORTED;
+		if( eng == NULL || hWnd == NULL ) return S_ABORTED;			
 
 		if( IsInited() ) Shutdown();		
 		pEngine = eng;
@@ -447,8 +450,8 @@ namespace SpeedPoint
 		// DirectX Version was found in the target Computer
 		if ( NULL == ( pDirect3D = Direct3DCreate9( D3D_SDK_VERSION ) ) )
 		{
-			return S_ERROR;
-		}	
+			return pEngine->LogReport( S_ERROR, "Could not create Direct3D Interface" );
+		}		
 	
 		// Auto Select Adapters
 		// This will Test all Video modes with given Settings.
@@ -456,7 +459,7 @@ namespace SpeedPoint
 		if( !bIgnoreAdapter && Failure( AutoSelectAdapter ( nW, nH ) ) )
 		{
 			pDirect3D->Release();
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed automatic selection of Video Adapter" );
 		}
 		else if( bIgnoreAdapter )
 		{
@@ -486,43 +489,43 @@ namespace SpeedPoint
 		if( Failure( CreateDX9Device( &dwFlags ) ) )
 		{
 			pDirect3D->Release();
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed Create DX9 Device!" );			
 		}
 
 		// Get The Device Caps from created DX Device
 		if( Failure( CollectDeviceCaps() ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Could not retrieve Device caps!" );
 		}
 		
 		// Set Default Vertex Format. This Vertex format is FIXED for the whole engine
 		if( FAILED( pd3dDevice->SetFVF( D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2 ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set DX9 FVF" );
 		}
 	
 		// Set Default RenderStates and Texture Sampler States
 		if( Failure( SetRenderStateDefaults() ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set render state defaults!" );;
 		}			
 
 		// First update of Viewport Projection
 		if( Failure( vpViewport.Set3DProjection( S_PROJECTION_PERSPECTIVE, 50.0f, 0, 0 ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set 3D Projection" );
 		}
 
 		// Initialize the render pipeline
 		pRenderPipeline = (SRenderPipeline*)new SDirectX9RenderPipeline();
 		if( Failure( pRenderPipeline->Initialize( pEngine, (SRenderer*)this ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Could not initialize DX9 Render Pipeline" );
 		}
 
 		if( Failure( pRenderPipeline->SetTargetViewport( (SViewport*)&vpViewport ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set Target Viewport!" );
 		}
 
 		return S_SUCCESS;
@@ -530,40 +533,41 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9Renderer::CreateAdditionalViewport( SViewport* pViewport )
+	S_API SResult SDirectX9Renderer::CreateAdditionalViewport( SViewport** pViewport )
 	{
 		if( !IsInited() || pViewport == NULL ) return S_ABORTED;
 
 		// Prepare Present Parameters
-		SDirectX9Viewport* pDXViewport = (SDirectX9Viewport*)pViewport;
-		pDXViewport->d3dPresentParameters.Windowed = true;
-		pDXViewport->d3dPresentParameters.BackBufferCount = 1;
-		pDXViewport->d3dPresentParameters.BackBufferFormat = vpViewport.d3dPresentParameters.BackBufferFormat;
-		pDXViewport->d3dPresentParameters.BackBufferWidth = pViewport->GetSize().cx;
-		pDXViewport->d3dPresentParameters.BackBufferHeight = pViewport->GetSize().cy;
-		pDXViewport->d3dPresentParameters.EnableAutoDepthStencil = setSettings.bAutoDepthStencil;
-		pDXViewport->d3dPresentParameters.hDeviceWindow = pDXViewport->hWnd;
-		pDXViewport->d3dPresentParameters.MultiSampleQuality = vpViewport.d3dPresentParameters.MultiSampleQuality;
-		pDXViewport->d3dPresentParameters.MultiSampleType = vpViewport.d3dPresentParameters.MultiSampleType;
-		pDXViewport->d3dPresentParameters.PresentationInterval = vpViewport.d3dPresentParameters.PresentationInterval;
-		pDXViewport->d3dPresentParameters.SwapEffect = vpViewport.d3dPresentParameters.SwapEffect;
+		SDirectX9Viewport* pDXViewport = new SDirectX9Viewport();
+		*pViewport = (SViewport*)pDXViewport;
+		pDXViewport->d3dPresentParameters.Windowed			= true;
+		pDXViewport->d3dPresentParameters.BackBufferCount		= 1;
+		pDXViewport->d3dPresentParameters.BackBufferFormat		= vpViewport.d3dPresentParameters.BackBufferFormat;
+		pDXViewport->d3dPresentParameters.BackBufferWidth		= pDXViewport->GetSize().cx;
+		pDXViewport->d3dPresentParameters.BackBufferHeight		= pDXViewport->GetSize().cy;
+		pDXViewport->d3dPresentParameters.EnableAutoDepthStencil	= setSettings.bAutoDepthStencil;
+		pDXViewport->d3dPresentParameters.hDeviceWindow			= pDXViewport->hWnd;
+		pDXViewport->d3dPresentParameters.MultiSampleQuality		= vpViewport.d3dPresentParameters.MultiSampleQuality;
+		pDXViewport->d3dPresentParameters.MultiSampleType		= vpViewport.d3dPresentParameters.MultiSampleType;
+		pDXViewport->d3dPresentParameters.PresentationInterval		= vpViewport.d3dPresentParameters.PresentationInterval;
+		pDXViewport->d3dPresentParameters.SwapEffect			= vpViewport.d3dPresentParameters.SwapEffect;
 		
 		// Create the additional Swap Chain
 		if( FAILED( pd3dDevice->CreateAdditionalSwapChain( &pDXViewport->d3dPresentParameters, &pDXViewport->pSwapChain ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed to create additional swapchain for addition viewport" );
 		}		
 		
 		// Get the backbuffer...
 		if( FAILED( pDXViewport->pSwapChain->GetBackBuffer( 0, D3DBACKBUFFER_TYPE_MONO, &pDXViewport->pBackBuffer ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Could not retrieve BackBuffer of recently created additional SwapChain" );
 		}		
 
 		// ... and the according display mode
 		pDXViewport->pSwapChain->GetDisplayMode( &pDXViewport->d3dDisplayMode );
 
-		return S_SUCCESS;
+		return pEngine->LogReport( S_SUCCESS, "Created Additional Viewport successfully." );
 	}
 
 	// **********************************************************************************
@@ -579,7 +583,7 @@ namespace SpeedPoint
 
 		if( FAILED( pd3dDevice->SetRenderTarget( 0, pDXViewport->pBackBuffer ) ) )
 		{
-			return S_ERROR;
+			return pEngine->LogReport( S_ERROR, "Failed set active DX9 render target!" );
 		}
 		
 		pRenderPipeline->SetTargetViewport( pViewport );
@@ -628,11 +632,15 @@ namespace SpeedPoint
 				return S_ERROR;
 		}
 
+		vpViewport.Clear();
+
 		if( pd3dDevice ) pd3dDevice->Release();
 		pd3dDevice = NULL;
 
 		if( pDirect3D ) pDirect3D->Release();
-		pDirect3D = NULL;
+		pDirect3D = NULL;		
+
+		pEngine = NULL;
 
 		return S_SUCCESS;
 	}
@@ -666,7 +674,7 @@ namespace SpeedPoint
 			return S_SUCCESS;
 		}
 
-		return S_ERROR;
+		return pEngine->LogReport( S_ERROR, "Failed Begin DX Scene!" );
 	}
 
 	// **********************************************************************************
@@ -676,7 +684,9 @@ namespace SpeedPoint
 		if( !IsInited() ) return S_ABORTED;
 
 		if( FAILED( pd3dDevice->EndScene() ) )
-			return S_ERROR;
+		{
+			return pEngine->LogReport( S_ERROR, "Failed End DX Scene!" );
+		}
 
 		return S_SUCCESS;
 	}

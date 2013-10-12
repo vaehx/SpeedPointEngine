@@ -12,6 +12,7 @@
 #include <SBoundBox.h>
 #include <SMaterial.h>
 #include <SPool.h>
+#include <SPrimitive.h>
 
 namespace SpeedPoint
 {
@@ -19,24 +20,30 @@ namespace SpeedPoint
 	class S_API SBasicSolid : public SSolid
 	{
 	public:
+		bool			bInitialized;
 		SpeedPointEngine*	pEngine;
 		SP_ID			iAnimationBundle;
 		SP_ID			iVertexBuffer;
 		SP_ID			iIndexBuffer;
 		SBoundBox		bbBoundBox;
 		SMaterial		matMaterial;
-		SPool<SPrimitive>	aPrimitives;
+		SPool<SPrimitive>	plPrimitives;
 		bool			bDynamic;
 		SOctree*		pOctree;
 
 		// Default constructor
-		SBasicSolid() {};
+		SBasicSolid()
+			: pEngine( NULL ),
+			bInitialized( false ),
+			pOctree( NULL ) {};
 
 		// -- General --
 		SResult Initialize( SpeedPointEngine* pEngine, bool bDynamic );
 		SResult Clear( void );
+
+		SResult SetGeometryData( SVertex* pVertices, UINT nVertices, DWORD* pdwIndices, UINT nIndices );
 		SP_ID GetVertexBuffer( void );
-		SP_ID GetIndexBuffer( void );
+		SP_ID GetIndexBuffer( void );		
 
 		// -- Primitive --
 		SP_ID AddPrimitive( const SPrimitive& primitive );

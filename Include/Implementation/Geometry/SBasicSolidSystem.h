@@ -20,7 +20,7 @@ namespace SpeedPoint
 		SPool<SBasicSolid>	plSolids;		
 
 		SResult Initialize( SpeedPointEngine* engine );
-		//SP_ID AddSolid( /*???*/ );
+		SP_ID AddSolid( void );
 		SSolid* GetSolid( SP_ID id );
 		SResult Clear( void );
 	};

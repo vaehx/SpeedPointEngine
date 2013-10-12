@@ -149,7 +149,7 @@ namespace SpeedPoint
 	S_API SResult SDirectX9Viewport::Clear( void )
 	{
 		if( pBackBuffer != NULL ) pBackBuffer->Release();
-		if( pSwapChain != NULL ) pSwapChain->Release();
+		if( pSwapChain != NULL ) pSwapChain->Release();		
 		
 		pBackBuffer = NULL;
 		pSwapChain = NULL;

@@ -17,7 +17,7 @@ namespace SpeedPoint
 		//bool bParallelRendering;	// Use Parallel Rendering?		
 		S_RENDERER_TYPE tyRendererType;
 
-		// -- basic settings --
+		// -- basic settings --	
 		HWND	hWnd;			// Window for the main viewport
 		int	nXResolution;		// X-Resolution of the main viewport
 		int	nYResolution;		// Y-Resolution of the main viewport
