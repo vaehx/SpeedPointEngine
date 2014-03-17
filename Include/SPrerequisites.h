@@ -9,7 +9,10 @@
 #include "SResult.h"
 #include "SPoolIndex.h"
 #include "SString.h"
+
+#ifndef _NO_WINDOWS_HEADER
 #include <Windows.h>
+#endif
 
 // Structure of this file:
 // It is mainly structured into the main projects, the SpeedPoint engine contains
