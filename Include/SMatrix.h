@@ -113,7 +113,7 @@ namespace SpeedPoint
 
 	static void SMatrixIdentity( SMatrix* pMtx )
 	{
-		if( pMtx != NULL )
+		if( pMtx != 0 )
 		{
 			pMtx->_11 = 1; pMtx->_12 = 0; pMtx->_13 = 0; pMtx->_14 = 0;
 			pMtx->_21 = 0; pMtx->_22 = 1; pMtx->_23 = 0; pMtx->_24 = 0;
@@ -121,4 +121,18 @@ namespace SpeedPoint
 			pMtx->_41 = 0; pMtx->_42 = 0; pMtx->_43 = 0; pMtx->_44 = 1;
 		}
 	}
+	
+	static void SMatrixTranspose( SMatrix* pMtx )
+	{
+		if( pMtx != 0)
+		{
+			for( int n = 0; n < 4-2; n++ )
+			{
+				for( int m = n + 1; m < 4-1; m++ )
+				{
+					float fCache = pMtx->m[]
+				}
+			}
+		}
+	}		
 }

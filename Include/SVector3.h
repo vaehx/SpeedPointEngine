@@ -30,14 +30,58 @@ namespace SpeedPoint
 
 		SVector3& operator += ( const SVector3& v ) { this->x += v.x; this->y += v.y; this->z += v.z; return *this; }
 		
-		SVector3& operator -= ( const SVector3& v ) { this->x -= v.x; this->y -= v.y; this->z -= v.z; return *this; }		
+		SVector3& operator -= ( const SVector3& v ) { this->x -= v.x; this->y -= v.y; this->z -= v.z; return *this; }
+		
+		SVector3& operator *= ( const SVector3& v ) { this->x *= v.x; this->y *= v.y; this->z *= v.z; return *this; }
+		
+		SVector3& operator /= ( const SVector3& v ) { this->x /= v.x; this->y /= v.y; this->z /= v.z; return *this; }		
 		
 		SVector3 operator - () { return SVector3( -x, -y, -z ); }
+		
+		// ---
+		
+		// Cross product with another vector
+		SVector3& Cross ( const SVector3& o )
+		{			
+			this->x = y * o.z - z * o.y;
+			this->y = z * o.x - x * o.z;
+			this->z = x * o.y - y * o.x;
+			return *this;		
+		}
+		
+		// Dot product with another vector
+		float Dot ( const SVector3& o )
+		{		
+			return SVector3( x * o.x + y * o.y + z * o.z );		
+		}
+		
+		// Length of this vector
+		float Length ()
+		{
+			return sqrtf( x*x + y*y + z*z );	
+		}
+		
+		// Square of the length
+		float Square ()
+		{
+			return x*x + y*y + z*z;				
+		}
+		
+		// Get unit vector of this vector
+		SVector3& Normalize( float* pLength = 0 )
+		{
+			float l = this->Length();			
+			this->x /= l; this->y /= l; this->z /= l;
+			
+			if( pLength != 0 ) *pLength = l;
+			return *this;								
+		}			
 	};
 
 	typedef struct S_API SVector3 float3;
 	
 	inline bool operator == ( const SVector3& v1, const SVector3& v2 ) { return ( v1.x == v2.x && v1.y == v2.y && v1.z == v2.z ); }
+	inline bool operator != ( const SVector3& v1, const SVector3& v2 ) { return ( v1.x != v2.x || v1.y != v2.y || v1.z != v2.z ); }
 	inline SVector3 operator - (const SVector3& va, const SVector3& vb) { return SVector3(va.x - vb.x, va.y - vb.y, va.z - vb.z); }
 	inline SVector3 operator - (const SVector3& va, const float& f) { return SVector3(va.x - f, va.y - f, va.z - f); }
 	inline SVector3 operator - (const float& f, const SVector3& va) { return SVector3(va.x - f, va.y - f, va.z - f); }
@@ -51,22 +95,31 @@ namespace SpeedPoint
 	inline SVector3 operator / (const SVector3& va, const float& f) { return SVector3(va.x / f, va.y / f, va.z / f); }
 	inline SVector3 operator / (const float& f, const SVector3& va) { return SVector3(va.x / f, va.y / f, va.z / f); }
 	
-	inline SVector3 SVector3Cross( const SVector3& va, const SVector3& vb ) {
-		return SVector3( va.y * vb.z - va.z * vb.y, va.z * vb.x - va.x * vb.z, va.x * vb.y - va.y * vb.x);
+////////////
+// Following vector manipulation methods were kept to prevent the rest of the source from being invalid
+// As it takes a lot of work to change all those occurances of these functions, we'll do this later.
+
+// TODO: Refactor all occurencies of following functions to the corresponding member functions
+	inline SVector3 SVector3Cross( const SVector3& va, const SVector3& vb )
+	{	
+		return va.Cross(vb);	
 	}
 	
-	inline float SVector3Dot( const SVector3& va, const SVector3& vb ) {
-		return va.x * vb.x + va.y * vb.y + va.z * vb.z;
+	inline float SVector3Dot( const SVector3& va, const SVector3& vb )
+	{
+		return va.Dot(vb);
 	}
 
-	inline float SVector3Length(const SVector3& v) {
-		return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+	inline float SVector3Length(const SVector3& v)
+	{
+		return v.Length();
 	}
 	
-	inline SVector3 SVector3Normalize(const SVector3& v) {
-		return v / sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-	}	
-
+	inline SVector3 SVector3Normalize(const SVector3& v)
+	{
+		return v.Normalize();
+	}
+/////////////	
 }
 
 #define S_DEFAULT_VEC3 SpeedPoint::SVector3()
