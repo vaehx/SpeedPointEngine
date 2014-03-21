@@ -6,7 +6,6 @@
 
 #pragma once
 #include "SAPI.h"
-#include <d3dx9.h>
 #include <SVector4.h>
 
 namespace SpeedPoint
@@ -39,6 +38,7 @@ namespace SpeedPoint
 			_31( o._31 ), _32( o._32 ), _33( o._33 ), _34( o._34 ),
 			_41( o._41 ), _42( o._42 ), _43( o._43 ), _44( o._44 ) {};
 
+		/*
 		SMatrix( const D3DXMATRIX& o )
 		{
 			m[0][0] = o._11; m[0][1] = o._12; m[0][2] = o._13; m[0][3] = o._14;
@@ -46,6 +46,7 @@ namespace SpeedPoint
 			m[2][0] = o._31; m[2][1] = o._32; m[2][2] = o._33; m[2][3] = o._34;
 			m[3][0] = o._41; m[3][1] = o._42; m[3][2] = o._43; m[3][3] = o._44;
 		}
+		*/
 
 		SMatrix(const SVector4& v1, const SVector4& v2, const SVector4& v3, const SVector4& v4)
 		{
@@ -88,16 +89,17 @@ namespace SpeedPoint
 				);
 		}
 
-		SMatrix& operator * (const SVector4& v)
+		SVector4& operator * (const SVector4& v)
 		{
 			return SVector4(
 				m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3] * v.w,
 				m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z + m[1][3] * v.w,
 				m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z + m[2][3] * v.w,
-				m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3] * v.w,
+				m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3] * v.w
 				);
 		}
 
+		/*
 		operator D3DXMATRIX() const
 		{
 			D3DXMATRIX mtxOut;
@@ -107,9 +109,10 @@ namespace SpeedPoint
 			mtxOut._41 = _14; mtxOut._42 = _42; mtxOut._43 = _43; mtxOut._44 = _44;
 			return mtxOut;
 		}
+		*/
 
 	};
-	typedef class SMatrix SMatrix4;
+	typedef class SMatrix4 SMatrix;
 
 	static void SMatrixIdentity( SMatrix* pMtx )
 	{
