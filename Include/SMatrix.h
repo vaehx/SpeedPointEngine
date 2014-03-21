@@ -112,7 +112,7 @@ namespace SpeedPoint
 		*/
 
 	};
-	typedef class SMatrix4 SMatrix;
+	typedef class SMatrix SMatrix4;
 
 	static void SMatrixIdentity( SMatrix* pMtx )
 	{
