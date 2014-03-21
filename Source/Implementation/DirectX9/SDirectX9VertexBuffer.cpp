@@ -174,10 +174,11 @@ namespace SpeedPoint
 			}		
 	
 			// Lock buffer if not happened
-			void* pVert;
+			void* pVert = 0;
 			if( !bLocked )
 			{
-				if( Failure( Lock( (UINT)(nVerticesWritten * sizeof(SVertex)), (UINT)(nVertices_ * sizeof(SVertex)), &pVert ) ) )
+				SResult lockResult = Lock((UINT)(nVerticesWritten * sizeof(SVertex)), (UINT)(nVertices_ * sizeof(SVertex)), &pVert);
+				if (Failure(lockResult) || pVert == 0)
 					return pEngine->LogReport( S_ERROR, "Could not lock vertex buffer to fill with vertex data!" );
 			}
 	

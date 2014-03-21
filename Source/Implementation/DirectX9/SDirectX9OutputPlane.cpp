@@ -75,9 +75,10 @@ namespace SpeedPoint
 			for( int xx = 0; xx < 11; xx++ )
 			{
 				pVertices[vPos] = SVertex(
-					(float)( xx - 5 ) * fXDiff, (float)( yy - 5 ) * fYDiff, 2.0f,
-					0.0f, 0.0f, -1.0f,
-					(float)xx * 0.1f, (float)yy * 0.1f );
+					(float)( xx - 5 ) * fXDiff, (float)( yy - 5 ) * fYDiff, 2.0f,	// position
+					0.0f, 0.0f, -1.0f,						// normal
+					1.0f, 0.0f, 0.0f,						// tangent
+					(float)xx * 0.1f, (float)yy * 0.1f );				// texture coords
 				
 				if( yy < 10 && xx < 10 )
 				{
