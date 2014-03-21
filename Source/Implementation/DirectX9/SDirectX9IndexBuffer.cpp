@@ -175,10 +175,11 @@ namespace SpeedPoint
 			}		
 	
 			// Lock buffer if not happened
-			void* pVert;
+			void* pVert = 0;
 			if( !bLocked )
 			{
-				if( Failure( Lock( (UINT)(nIndicesWritten * sizeof(DWORD)), (UINT)(nIndices_ * sizeof(DWORD)), &pVert ) ) )
+				SResult lockResult = Lock((UINT)(nIndicesWritten * sizeof(DWORD)), (UINT)(nIndices_ * sizeof(DWORD)), &pVert);
+				if (Failure(lockResult) || pVert == 0)
 					return pEngine->LogReport( S_ERROR, "Failed to lock index buffer while trying to fill!" );
 			}
 	

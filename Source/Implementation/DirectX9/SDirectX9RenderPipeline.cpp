@@ -8,6 +8,7 @@
 #include <Implementation\DirectX9\SDirectX9Texture.h>
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
 #include <Implementation\DirectX9\SDirectX9GeometryRenderSection.h>
+#include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <Abstract\SSolid.h>
 #include <SVertex.h>
 #include <SPrimitive.h>
@@ -168,7 +169,7 @@ namespace SpeedPoint
 		
 		D3DXMATRIX mV;
 		D3DXMatrixLookAtRH( &mV, &vEyePt, &vLookAt, &vUpVec );
-		mView = SMatrix( mV );
+		mView = DXMatrixToDMatrix( mV );
 
 		return S_SUCCESS;
 	}
@@ -192,7 +193,7 @@ namespace SpeedPoint
 		
 		D3DXMATRIX mW = mOrig * mScale * mRot * mTrans;
 
-		mWorld = SMatrix( mW );
+		mWorld = DXMatrixToDMatrix( mW );
 
 		return S_SUCCESS;
 	}

@@ -2,6 +2,7 @@
 
 #include <Implementation\DirectX9\SDirectX9Viewport.h>
 #include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
+#include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <SpeedPoint.h>
 
 namespace SpeedPoint
@@ -89,7 +90,7 @@ namespace SpeedPoint
 		}
 
 		// Convert D3DXMATRIX to SMatrix
-		mProjection = SMatrix( mProj );
+		mProjection = DXMatrixToSMatrix( mProj );
 
 		return S_SUCCESS;
 	}
@@ -113,7 +114,7 @@ namespace SpeedPoint
 		D3DXMATRIX mCam;
 		D3DXMatrixLookAtRH( &mCam, &vEyePt, &vLookAt, &vUpVec );		
 
-		mView = SMatrix( mCam );
+		mView = DXMatrixToSMatrix( mCam );
 
 		return S_SUCCESS;
 	}

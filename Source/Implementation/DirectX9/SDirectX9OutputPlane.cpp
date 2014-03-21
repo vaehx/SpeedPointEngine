@@ -3,6 +3,7 @@
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
 #include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
+#include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <SVertex.h>
 #include <SpeedPoint.h>
 
@@ -41,11 +42,11 @@ namespace SpeedPoint
 		
 		D3DXMATRIX mProj;
 		D3DXMatrixOrthoRH( &mProj, fWidth, fHeight, 2.0f, 200.0f );		
-		mProjection = SMatrix( mProj );
+		mProjection = DXMatrixToSMatrix( mProj );
 
 		D3DXMATRIX mV;
 		D3DXMatrixLookAtRH( &mV, new D3DXVECTOR3( 0, 0, -10.0f ), new D3DXVECTOR3( 0, 0, 0.0f ), new D3DXVECTOR3( 0, 1.0f, 0 ) );
-		mView = SMatrix( mV );
+		mView = DXMatrixToSMatrix( mV );
 
 		// Create the geometry with plane of 10 * 10 fields
 		if( Failure( vertexBuffer.Initialize( 11 * 11, false, pEngine, renderer ) ) )
@@ -73,7 +74,10 @@ namespace SpeedPoint
 		{
 			for( int xx = 0; xx < 11; xx++ )
 			{
-				pVertices[vPos] = SVertex( (float)( xx - 5 ) * fXDiff, (float)( yy - 5 ) * fYDiff, 2.0f, 0, 0, -1.0f, (float)xx * 0.1f, (float)yy * 0.1f );
+				pVertices[vPos] = SVertex(
+					(float)( xx - 5 ) * fXDiff, (float)( yy - 5 ) * fYDiff, 2.0f,
+					0.0f, 0.0f, -1.0f,
+					(float)xx * 0.1f, (float)yy * 0.1f );
 				
 				if( yy < 10 && xx < 10 )
 				{
@@ -152,8 +156,8 @@ namespace SpeedPoint
 		// Set the shader parameters
 		D3DXMATRIX mWorld; D3DXMatrixIdentity( &mWorld );
 		
-		D3DXMATRIX pmView = (D3DXMATRIX)mView;
-		D3DXMATRIX pmProjection = (D3DXMATRIX)mProjection;					
+		D3DXMATRIX pmView = SMatrixToDXMatrix( mView );
+		D3DXMATRIX pmProjection = SMatrixToDXMatrix( mProjection );
 
 		mergeShader.pEffect->SetMatrix( "World", &mWorld );
 		mergeShader.pEffect->SetMatrix( "View", &pmView );

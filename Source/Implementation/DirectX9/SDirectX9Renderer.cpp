@@ -2,6 +2,7 @@
 
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9RenderPipeline.h>
+#include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <SpeedPoint.h>
 
 namespace SpeedPoint
@@ -616,8 +617,8 @@ namespace SpeedPoint
 		// Convert to dx viewport
 		SDirectX9Viewport* pDXViewport = (SDirectX9Viewport*)pViewport;
 
-		pd3dDevice->SetTransform( D3DTS_PROJECTION, &(D3DXMATRIX)pDXViewport->mProjection );
-		pd3dDevice->SetTransform( D3DTS_VIEW, &(D3DXMATRIX)pDXViewport->mView );
+		pd3dDevice->SetTransform( D3DTS_PROJECTION, &SMatrixToDXMatrix(pDXViewport->mProjection) );
+		pd3dDevice->SetTransform( D3DTS_VIEW, &SMatrixToDXMatrix(pDXViewport->mView) );
 
 		return S_SUCCESS;
 	}
