@@ -133,7 +133,9 @@ namespace SpeedPoint
 			{
 				for( int m = n + 1; m < 4-1; m++ )
 				{
-					float fCache = pMtx->m[]
+					float fCache = pMtx->m[n][m];
+					pMtx->m[n][m] = pMtx->m[m][n];
+					pMtx->m[m][n] = fCache;
 				}
 			}
 		}
