@@ -7,13 +7,19 @@
 #include <SpeedPoint.h>
 #include <Abstract\SRenderPipeline.h>
 
+//~~~~~~~~~
+// TODO: Try to eliminate implementations from the SCore Project
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9ResourcePool.h>
+//~~~~~~~~~
 
 #include <Lighting\SLightSystem.h>
 #include <Abstract\SSolidSystem.h>
 
+//~~~~~~~~~
+// TODO: Try to eliminate implementations from the SCore Project
 #include <Implementation\Geometry\SBasicSolidSystem.h>
+//~~~~~~~~~~
 
 //#include <Implementation\DirectX10\SDirectX10Renderer.h>
 //#include <Implementation\DirectX11\SDirectX11Renderer.h>
