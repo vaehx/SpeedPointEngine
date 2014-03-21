@@ -9,7 +9,6 @@
 
 namespace SpeedPoint
 {
-
 	// SpeedPoint Vertex structure
 	struct S_API SVertex 
 	{	
@@ -20,7 +19,7 @@ namespace SpeedPoint
 			{
 				float x, y, z;				
 			};
-			SVector3 position;						
+			SXYZ position;						
 		};
 		
 		// normal
@@ -30,7 +29,7 @@ namespace SpeedPoint
 			{
 				float nx, ny, nz;
 			};
-			SVector3 normal;
+			SXYZ normal;
 		};
 		
 		// tangent
@@ -40,7 +39,7 @@ namespace SpeedPoint
 			{
 				float tx, ty, tz;
 			};		
-			SVector3 tangent;		
+			SXYZ tangent;		
 		};
 		
 		// binormal
@@ -50,7 +49,7 @@ namespace SpeedPoint
 			{
 				float bx, by, bz;
 			};	
-			SVector3 binormal;	
+			SXYZ binormal;	
 		};									
 
 		// texture coords							
@@ -65,10 +64,10 @@ namespace SpeedPoint
 			tx(tx_), ty(ty_), tz(tz_)
 		{				
 			binormal = SVector3( nx, ny, nz ).Cross( SVector3( tx, ty, ty ) );				
-			avTexture[0].x = tu_;
-			avTexture[0].y = tv_;
-			avTexture[1].x = tu2_;
-			avTexture[1].y = tv2_;
+			textureCoords[0].x = tu_;
+			textureCoords[0].y = tv_;
+			textureCoords[1].x = tu2_;
+			textureCoords[1].y = tv2_;
 		}
 		
 		// constructor with single components and custom normal, 1 texturecoord pair

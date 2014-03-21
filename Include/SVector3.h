@@ -11,6 +11,13 @@
 namespace SpeedPoint
 {
 
+	// sometimes we need a simple 3-Dimensional structure for the components in a unit
+	// The SVector3 structure has a custom default constructor, that's why it does not work with units
+	struct S_API SXYZ
+	{
+		float x, y, z;
+	};
+
 	// SpeedPoint 3 Dimensional Vector
 	struct S_API SVector3
 	{
@@ -38,6 +45,16 @@ namespace SpeedPoint
 		
 		SVector3 operator - () { return SVector3( -x, -y, -z ); }
 		
+		// ---
+
+		// conversion operator to a simple 3-dimensional object
+		operator SXYZ() const
+		{
+			SXYZ out;
+			out.x = x; out.y = y; out.z = z;
+			return out;
+		}
+
 		// ---
 		
 		// Cross product with another vector
