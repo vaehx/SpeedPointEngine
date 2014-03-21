@@ -12,6 +12,8 @@
 
 #ifndef _NO_WINDOWS_HEADER
 #include <Windows.h>
+#else
+typedef unsigned int UINT;
 #endif
 
 // Structure of this file:

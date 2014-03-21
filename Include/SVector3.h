@@ -52,7 +52,7 @@ namespace SpeedPoint
 		// Dot product with another vector
 		float Dot ( const SVector3& o )
 		{		
-			return SVector3( x * o.x + y * o.y + z * o.z );		
+			return x * o.x + y * o.y + z * o.z;		
 		}
 		
 		// Length of this vector
@@ -102,22 +102,26 @@ namespace SpeedPoint
 // TODO: Refactor all occurencies of following functions to the corresponding member functions
 	inline SVector3 SVector3Cross( const SVector3& va, const SVector3& vb )
 	{	
-		return va.Cross(vb);	
+		SVector3 a(va);
+		return a.Cross(vb);
 	}
 	
 	inline float SVector3Dot( const SVector3& va, const SVector3& vb )
-	{
-		return va.Dot(vb);
+	{	
+		SVector3 a(va);
+		return a.Dot(vb);
 	}
 
 	inline float SVector3Length(const SVector3& v)
 	{
-		return v.Length();
+		SVector3 a(v);
+		return a.Length();
 	}
 	
 	inline SVector3 SVector3Normalize(const SVector3& v)
 	{
-		return v.Normalize();
+		SVector3 a(v);
+		return a.Normalize();
 	}
 /////////////	
 }
