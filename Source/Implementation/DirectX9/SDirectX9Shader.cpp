@@ -18,10 +18,13 @@ namespace SpeedPoint
 		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)pEngine->GetRenderer();
 
 		// Create Effect
+//~~~~~~~~~~~~
+// TODO: Setup custom compilation and catch errors and throw them into the Logging Stream!
 		if( FAILED( D3DXCreateEffectFromFile( pDXRenderer->pd3dDevice, cFilename, NULL, NULL, 0, NULL, &pEffect, NULL ) ) )
 		{
 			return S_ERROR;
 		}
+//~~~~~~~~~~~~
 
 		// Set first technique we can find
 		if( FAILED( pEffect->SetTechnique( pEffect->GetTechnique( 0 ) ) ) )

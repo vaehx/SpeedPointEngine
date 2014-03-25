@@ -27,8 +27,9 @@ namespace SpeedPoint
 		// -- Deferred Rendering --
 		LPDIRECT3DVERTEXDECLARATION9	pVertexDeclaration;
 		SDirectX9Shader			gBufferShader;
-		SFrameBuffer*			pGBufferNormals;
-		SFrameBuffer*			pGBufferDepth;
+		SFrameBuffer*			pGBufferPosition;	// in world space
+		SFrameBuffer*			pGBufferNormals;	// in world space
+		SFrameBuffer*			pGBufferTangents;	// in world space		
 		SFrameBuffer*			pGBufferAlbedo;
 		SFrameBuffer*			pLightingBuffer;
 		S_RENDER_STATE			iState;
@@ -38,8 +39,9 @@ namespace SpeedPoint
 		// Default constructor
 		SDirectX9RenderPipeline()
 			: pTargetViewport( NULL ),
+			pGBufferPosition( NULL ),
 			pGBufferNormals( NULL ),
-			pGBufferDepth( NULL ),
+			pGBufferTangents( NULL ),			
 			pGBufferAlbedo( NULL ),
 			pLightingBuffer( NULL ),
 			pOutputPlane( NULL ),

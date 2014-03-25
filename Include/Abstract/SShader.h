@@ -14,7 +14,10 @@
 namespace SpeedPoint
 {
 	// SpeedPoint HLSL Shader Effect (abstract)
+//~~~~~~~~~~~~~~
+// TODO: Refactor this class to SRendererEffect. See implementations also!
 	class S_API SShader
+//~~~~~~~~~~~~~~~
 	{
 	public:
 		// Loads the shader from the file and compiles it

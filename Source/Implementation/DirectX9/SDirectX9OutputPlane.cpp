@@ -114,32 +114,28 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
+	// This function should only be called by the Render Pipeline!
+	// The target buffers should be set properly already!
 	S_API SResult SDirectX9OutputPlane::Render( SFrameBuffer* pGBufferAlbedo, SFrameBuffer* pLightingBuffer )
 	{
 		if( pEngine == NULL || pDXRenderer == NULL ) return S_ABORTED;
 
 		if( pGBufferAlbedo == NULL || pLightingBuffer == NULL ) return S_ABORTED;
 
-		pDXRenderer->pd3dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
-
-		// first, when calling this method, the target buffers should be set properly already
+		// Set proper culling mode
+		pDXRenderer->pd3dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );		
 
 		// so we can immediately setup vertex- and indexbuffer data and start drawing the plane
-		if( FAILED( pDXRenderer->pd3dDevice->SetStreamSource( 0, vertexBuffer.pHWVertexBuffer, 0, sizeof( SVertex ) ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed set vertex stream source for output plane!" );
-		}
+		if( FAILED( pDXRenderer->pd3dDevice->SetStreamSource( 0, vertexBuffer.pHWVertexBuffer, 0, sizeof( SVertex ) ) ) )		
+			return pEngine->LogReport( S_ERROR, "Failed set vertex stream source for output plane!" );		
 
-		if( FAILED( pDXRenderer->pd3dDevice->SetIndices( indexBuffer.pHWIndexBuffer ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed set index stream source for output plane!" );
-		}
+		if( FAILED( pDXRenderer->pd3dDevice->SetIndices( indexBuffer.pHWIndexBuffer ) ) )		
+			return pEngine->LogReport( S_ERROR, "Failed set index stream source for output plane!" );		
 
+		// Select Albedo FrameBuffer as Texture for the Plane
 		SDirectX9FrameBuffer* pDXGAlbedoBuffer = (SDirectX9FrameBuffer*)pGBufferAlbedo;		
-		if( FAILED( pDXRenderer->pd3dDevice->SetTexture( 0, pDXGAlbedoBuffer->pTexture ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed set albedo buffer as temporary texture of output plane!" );
-		}
+		if( FAILED( pDXRenderer->pd3dDevice->SetTexture( 0, pDXGAlbedoBuffer->pTexture ) ) )		
+			return pEngine->LogReport( S_ERROR, "Failed set albedo buffer as temporary texture of output plane!" );		
 
 //////// TODO: Implement Lighting buffer creation and proper merge shader
 		/*SDirectX9FrameBuffer* pDXLightingBuffer = (SDirectX9FrameBuffer*)pLightingBuffer;
@@ -160,10 +156,11 @@ namespace SpeedPoint
 		D3DXMATRIX pmView = SMatrixToDXMatrix( mView );
 		D3DXMATRIX pmProjection = SMatrixToDXMatrix( mProjection );
 
-		mergeShader.pEffect->SetMatrix( "World", &mWorld );
-		mergeShader.pEffect->SetMatrix( "View", &pmView );
-		mergeShader.pEffect->SetMatrix( "Proj", &pmProjection );
+		mergeShader.pEffect->SetMatrix( "mtxWorld", &mWorld );
+		mergeShader.pEffect->SetMatrix( "mtxView", &pmView );
+		mergeShader.pEffect->SetMatrix( "mtxProjection", &pmProjection );
 
+		// Now render all passes of the Output plane
 		for( UINT iPass = 0; iPass < nPasses; ++iPass )
 		{
 
@@ -173,8 +170,7 @@ namespace SpeedPoint
 				return pEngine->LogReport( S_ERROR, "Failed Begin Merge shader pass for output plane!" );
 			}
 
-			if( FAILED( pDXRenderer->pd3dDevice->DrawIndexedPrimitive(
-				D3DPT_TRIANGLELIST, 0, 0, 11 * 11, 0, 10 * 10 * 3 ) ) )
+			if( FAILED( pDXRenderer->pd3dDevice->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, 0, 11 * 11, 0, 10 * 10 * 3 ) ) )
 			{
 				mergeShader.pEffect->EndPass();
 				mergeShader.pEffect->End();

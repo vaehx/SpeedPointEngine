@@ -64,21 +64,25 @@ namespace SpeedPoint
 		SDirectX9RenderPipeline* pDXRenderPipeline = (SDirectX9RenderPipeline*)pDXRenderer->GetRenderPipeline();
 
 		if( pDXRenderPipeline->pGBufferAlbedo == NULL )
-			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: Albedo component of GBuffer not initialized!" );
-
-		if( pDXRenderPipeline->pGBufferDepth == NULL )
-			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: Depth component of GBuffer not initialized!" );
+			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: Albedo component of GBuffer not initialized!" );					
 
 		if( pDXRenderPipeline->pGBufferNormals == NULL )
-			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: Normal component of GBuffer not initialized!" );		
+			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: Normal component of GBuffer not initialized!" );			
+
+		if( pDXRenderPipeline->pGBufferTangents == NULL )
+			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: Tangent component of GBuffer not initialized!" );		
+
+		if( pDXRenderPipeline->pGBufferPosition == NULL )
+			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: Position component of GBuffer not initialized!" );		
 
 		if( pDXRenderPipeline->gBufferShader.pEffect == NULL )
 			return pEngine->LogReport( S_ABORTED, "Cannot prepare Geometry Section: GBuffer creation shader not initilized!" );
 
 		// Convert FrameBuffers
-		SDirectX9FrameBuffer* pDXAlbedo = (SDirectX9FrameBuffer*)pDXRenderPipeline->pGBufferAlbedo;
-		SDirectX9FrameBuffer* pDXDepth = (SDirectX9FrameBuffer*)pDXRenderPipeline->pGBufferDepth;
+		SDirectX9FrameBuffer* pDXAlbedo = (SDirectX9FrameBuffer*)pDXRenderPipeline->pGBufferAlbedo;		
 		SDirectX9FrameBuffer* pDXNormals = (SDirectX9FrameBuffer*)pDXRenderPipeline->pGBufferNormals;			
+		SDirectX9FrameBuffer* pDXTangents = (SDirectX9FrameBuffer*)pDXRenderPipeline->pGBufferTangents;
+		SDirectX9FrameBuffer* pDXPosition = (SDirectX9FrameBuffer*)pDXRenderPipeline->pGBufferPosition;
 
 		// --------------------------------------------------------------------------------------------
 		// Set the render targets		
@@ -89,11 +93,14 @@ namespace SpeedPoint
 		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 0, pDXAlbedo->pSurface ) ) )
 			return pEngine->LogReport( S_ERROR, "Failed to set Albedo Frame Buffer Object of the GBuffer as Render Target!" );
 
-		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 1, pDXNormals->pSurface ) ) )
-			return pEngine->LogReport( S_ERROR, "Failed to set Normal Frame Buffer Object of the GBuffer as Render Target!" );
+		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 1, pDXPosition->pSurface ) ) )
+			return pEngine->LogReport( S_ERROR, "Failed to set Position Frame Buffer Object of the GBuffer as Render Target!" );
 
-		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 2, pDXDepth->pSurface ) ) )
-			return pEngine->LogReport( S_ERROR, "Failed to set Depth Frame Buffer Object of the GBuffer as Render Target!" );
+		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 2, pDXNormals->pSurface ) ) )
+			return pEngine->LogReport( S_ERROR, "Failed to set Normals Frame Buffer Object of the GBuffer as Render Target!" );
+
+		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 3, pDXTangents->pSurface ) ) )
+			return pEngine->LogReport( S_ERROR, "Failed to set Tangents Frame Buffer Object of the GBuffer as Render Target!" );		
 
 		// --------------------------------------------------------------------------------------------
 		// Clear the frame buffer objects
@@ -185,13 +192,13 @@ namespace SpeedPoint
 		D3DXMatrixLookAtRH( &mV, new D3DXVECTOR3( 0, 0, -10.0f ), new D3DXVECTOR3( 0, 0, 1.0f ), new D3DXVECTOR3( 0, 1.0f, 0 ) );
 
 		// Set transformation matrices
-		if( FAILED( pDXRenderPipeline->gBufferShader.pEffect->SetMatrix( "Proj", &mProj ) ) )
+		if( FAILED( pDXRenderPipeline->gBufferShader.pEffect->SetMatrix( "mtxProjection", &mProj ) ) )
 			return pEngine->LogReport( S_ERROR, "Failed to pass projection matrix to GBuffer creation shader!" );
 
-		if( FAILED( pDXRenderPipeline->gBufferShader.pEffect->SetMatrix( "World", &mWrld ) ) )
+		if( FAILED( pDXRenderPipeline->gBufferShader.pEffect->SetMatrix( "mtxWorld", &mWrld ) ) )
 			return pEngine->LogReport( S_ERROR, "Failed to pass world matrix to GBuffer creation shader!" );
 
-		if( FAILED( pDXRenderPipeline->gBufferShader.pEffect->SetMatrix( "View", &mV ) ) )
+		if( FAILED( pDXRenderPipeline->gBufferShader.pEffect->SetMatrix( "mtxView", &mV ) ) )
 			return pEngine->LogReport( S_ERROR, "Failed to pass view matrix to GBuffer creation shader!" );
 
 //////// DEbUG END

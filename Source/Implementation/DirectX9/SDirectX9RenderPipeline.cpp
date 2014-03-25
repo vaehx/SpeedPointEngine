@@ -36,13 +36,7 @@ namespace SpeedPoint
 		if( Failure( pGBufferAlbedo->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
 		{
 			return pEngine->LogReport( S_ERROR, "Failed initialize Albdeo GBuffer component" );
-		}
-
-		pGBufferDepth = (SFrameBuffer*)new SDirectX9FrameBuffer();
-		if( Failure( pGBufferDepth->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Depth GBuffer component" );
-		}
+		}		
 
 		pGBufferNormals = (SFrameBuffer*)new SDirectX9FrameBuffer();
 		if( Failure( pGBufferNormals->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
@@ -50,11 +44,33 @@ namespace SpeedPoint
 			return pEngine->LogReport( S_ERROR, "Failed initialize Normal GBuffer component" );
 		}
 
+		pGBufferTangents = (SFrameBuffer*)new SDirectX9FrameBuffer();
+		if( Failure( pGBufferTangents->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
+		{
+			return pEngine->LogReport( S_ERROR, "Failed initialize Tangent GBuffer component" );		
+		}
+
+		pGBufferPosition = (SFrameBuffer*)new SDirectX9FrameBuffer();
+		if( Failure( pGBufferPosition->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
+		{
+			return pEngine->LogReport( S_ERROR, "Failed initialize Position GBuffer component" );		
+		}
+
+//~~~~~~~~~
+// TODO: Check if lighting used at all
+		/*pseudo:
+		if (pEngine->GetSettings()->bLighting)
+		{
+		*/		
 		pLightingBuffer = (SFrameBuffer*)new SDirectX9FrameBuffer();
 		if( Failure( pLightingBuffer->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
 		{
 			return pEngine->LogReport( S_ERROR, "Failed initialize Light buffer component" );
 		}
+		/*pseudo:
+		}
+		*/
+//~~~~~~~~~
 
 		// Initialize the gbuffer shader
 		if( Failure( gBufferShader.Initialize( pEngine, "Effects\\gbuffer.fx" ) ) )
@@ -134,11 +150,13 @@ namespace SpeedPoint
 
 		if( pOutputPlane ) pOutputPlane->Clear(); delete pOutputPlane; pOutputPlane = NULL;
 		
-		if( pGBufferAlbedo ) pGBufferAlbedo->Clear(); delete pGBufferAlbedo; pGBufferAlbedo = NULL;
-		
-		if( pGBufferDepth ) pGBufferDepth->Clear(); delete pGBufferDepth; pGBufferDepth = NULL;
+		if( pGBufferAlbedo ) pGBufferAlbedo->Clear(); delete pGBufferAlbedo; pGBufferAlbedo = NULL;		
 		
 		if( pGBufferNormals ) pGBufferNormals->Clear(); delete pGBufferNormals; pGBufferNormals = NULL;
+
+		if( pGBufferTangents ) pGBufferTangents->Clear(); delete pGBufferTangents; pGBufferTangents = NULL;
+
+		if( pGBufferPosition ) pGBufferPosition->Clear(); delete pGBufferPosition; pGBufferPosition = NULL;
 		
 		if( pLightingBuffer ) pLightingBuffer->Clear(); delete pLightingBuffer; pLightingBuffer = NULL;
 
@@ -265,9 +283,10 @@ namespace SpeedPoint
 	S_API SResult SDirectX9RenderPipeline::RenderSolidGeometry( SSolid* pSolid )
 	{
 		if( pSolid == NULL ||
-			pGBufferAlbedo == NULL ||
-			pGBufferDepth == NULL ||
+			pGBufferAlbedo == NULL ||			
 			pGBufferNormals == NULL ||
+			pGBufferTangents == NULL ||
+			pGBufferPosition == NULL ||
 			gBufferShader.pEffect == NULL ||
 			pGeometryRenderSection == NULL ||
 			iState != S_RENDER_GEOMETRY )
@@ -450,24 +469,29 @@ namespace SpeedPoint
 
 		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)pRenderer;
 
-		// Setup proper render target		
+		// Setup backbuffer (screen) as active RenderTarget now	
 		SDirectX9FrameBuffer* pDXTargetBackBuffer = (SDirectX9FrameBuffer*)pTargetViewport->GetBackBuffer();
 		if( NULL == pDXTargetBackBuffer )
 		{
 			return pEngine->LogReport( S_ERROR, "Failed to Get BackBuffer of current targetviewport of render pipeline" );
 		}
-
-		pDXRenderer->pd3dDevice->SetRenderTarget( 1, NULL );
-		pDXRenderer->pd3dDevice->SetRenderTarget( 2, NULL );
+		
+		pDXRenderer->pd3dDevice->SetRenderTarget( 1, NULL ); // was: Position
+		pDXRenderer->pd3dDevice->SetRenderTarget( 2, NULL ); // was: Normals
+		pDXRenderer->pd3dDevice->SetRenderTarget( 3, NULL ); // was: Tangents
 		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 0, pDXTargetBackBuffer->pSurface ) ) )
 		{
 			return pEngine->LogReport( S_ERROR, "Failed set target backbuffer render target inside render pipeline" );
 		}
 
+		// Now render the Output plane with the lighting effect
+//~~~~~~~~~
+// TODO: Implement Uber-Post-Effect (Lighting, MotionBlur, HDR, Ambient Occlusion, Shadow, ...) instead of Lighting effect only
 		if( Failure( pOutputPlane->Render( pGBufferAlbedo, pLightingBuffer ) ) )
 		{
 			return pEngine->LogReport( S_ERROR, "Failed to render output plane inside render pipeline EndFrameSection()" );
 		}
+//~~~~~~~~
 
 		// And finally we'll end up the DirectX Scene
 		if( FAILED( pDXRenderer->EndScene() ) )
