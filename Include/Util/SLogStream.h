@@ -18,8 +18,15 @@ namespace SpeedPoint
 	// SpeedPoint Log Stream
 	class S_API SLogStream
 	{
-	public:	
+	private:
 		SLogHandler* pLogHandlers;
+
+	public:		
+		// Default constructor
+		SLogStream()
+			: pLogHandlers(0)
+		{
+		}
 
 		// Initialize the stream
 		void Initialize( void );
