@@ -16,7 +16,7 @@
 
 // Include abstract geometry component classes
 
-#include <Util\STransformable.h>
+#include <STransformable.h>
 #include <Abstract\STexture.h>
 #include <Abstract\SOctreeNode.h>
 #include <Abstract\SOctree.h>

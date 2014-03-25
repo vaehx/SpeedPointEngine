@@ -37,11 +37,11 @@
 #include <SpeedPointRendering.h>
 #endif
 
-#ifndef SP_NO_ANIMATIONS
+#if !defined(SP_NO_ANIMATION) && !defined(SP_NO_ANIMATIONS)
 #include <SpeedPointAnimations.h>
 #endif
 
-#ifndef SP_NO_SCRIPTING
+#if !defined(SP_NO_SCRIPTING) && !defined(SP_NO_SCRIPT)
 #include <SpeedPointScripting.h>
 #endif
 
