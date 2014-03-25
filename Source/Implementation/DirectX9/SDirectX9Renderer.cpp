@@ -91,7 +91,7 @@ namespace SpeedPoint
 		setSettings.iAdapterIndex = SP_TRIVIAL;
 
 		// Nothing Found, return Fail
-		return pEngine->LogReport( S_ERROR, "Hardware does not support specified DX video adapter mode" );		
+		return pEngine->LogReport( S_ERROR, "Hardware does not support this video adapter mode. Check resolutions in settings!" );		
 	}
 
 	// **********************************************************************************
