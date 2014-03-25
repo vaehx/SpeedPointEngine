@@ -22,6 +22,7 @@ namespace SpeedPoint
 		LPDIRECT3D9		pDirect3D;
 		LPDIRECT3DDEVICE9	pd3dDevice;
 		D3DCAPS9		cpsDeviceCaps;
+		D3DDISPLAYMODE		m_AutoSelectedDisplayMode;	// automatically selected in AutoSelectAdapter()
 		SRenderPipeline*	pRenderPipeline;
 		SDirectX9Viewport	vpViewport;
 

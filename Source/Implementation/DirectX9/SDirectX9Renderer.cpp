@@ -81,7 +81,7 @@ namespace SpeedPoint
 			{			
 				// If Adapter Mode found, take this
 				setSettings.iAdapterIndex = iAdapter;		
-				vpViewport.d3dDisplayMode = pAdapterModeN;
+				m_AutoSelectedDisplayMode = pAdapterModeN;
 		
 				return pEngine->LogReport( S_SUCCESS, "Good DX adapter mode found." );
 			}		
@@ -125,6 +125,9 @@ namespace SpeedPoint
 			vpViewport.hWnd = hWnd;
 			vpViewport.nXResolution = nW;
 			vpViewport.nYResolution = nH;
+
+			// Assign auto selected display mode
+			vpViewport.d3dDisplayMode = m_AutoSelectedDisplayMode;
 	
 			// Evaluate Vertex Processing Method
 			if( dwBehaviourFlags_ != NULL )
@@ -182,6 +185,13 @@ namespace SpeedPoint
 			
 			// Set the Multisample quality (before, determine maximum quality)
 			DWORD dwMaxQualityLevel;
+			
+//~~~~~~~~~~
+// TODO: Check if HAL is available, otherwise switch to REF or change the multi sample quality afterwards
+// As Default, the device Type is 0. This would throw an error in DX, so we temporarily set it to HAL
+			setSettings.tyDeviceType = D3DDEVTYPE_HAL;
+//~~~~~~~~~~
+			
 			if( FAILED( pDirect3D->CheckDeviceMultiSampleType(
 				setSettings.iAdapterIndex,
 				setSettings.tyDeviceType,
@@ -203,7 +213,7 @@ namespace SpeedPoint
 				break;
 			default:
 				vpViewport.d3dPresentParameters.MultiSampleQuality = 0;
-			}		
+			}			
 	
 			// Presentation Interval. V-Sync? if yes, decide how often to vsync
 			switch( setSettings.iPresentQuality )
@@ -425,8 +435,8 @@ namespace SpeedPoint
 		pd3dDevice->SetRenderState( D3DRS_STENCILENABLE, false );
 
 		pd3dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-		pd3dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC );
-		pd3dDevice->SetSamplerState( 0, D3DSAMP_MIPFILTER, D3DTEXF_ANISOTROPIC );
+		pd3dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
+		pd3dDevice->SetSamplerState( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
 		pd3dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP );
 		pd3dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP );
 
