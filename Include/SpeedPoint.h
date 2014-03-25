@@ -2,9 +2,9 @@
 
 //	This is the main header of the SpeedPoint Engine
 
-//	(c) 2013, Pascal Rosenkranz -- All rights reserved.
-//	- Current Dev Version: 2.0.1
-//	- Current Beta Version: 0.2
+//	(c) 2014, Pascal Rosenkranz -- All rights reserved.
+//	- Current Dev Version: 2.0.2
+//	- Current Beta Version: 0.2.0
 //	- Current Release Version: 0.0.2
 
 // ******************************************************************************************
