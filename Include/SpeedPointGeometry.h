@@ -26,6 +26,7 @@
 #include <Abstract\SParticleSystem.h>
 #endif
 
+#include <SVertex.h>
 #include <Abstract\SSolid.h>
 #include <Abstract\STerrain.h>
 

@@ -27,7 +27,7 @@ namespace SpeedPoint
 		// Initialize this solid with given pointer to the Engine instance
 		virtual SResult Initialize( SpeedPointEngine* pEngine, bool bDynamic ) = 0;
 
-		// Set the geometry data
+		// Set both (Hardware) Vertex and Index Buffer data immediately
 		virtual SResult SetGeometryData( SVertex* pVertices, UINT nVertices, DWORD* pdwIndices, UINT nIndices ) = 0;
 
 		// Get the id of the vertex buffer

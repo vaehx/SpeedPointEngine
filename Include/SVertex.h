@@ -4,6 +4,8 @@
 
 // ********************************************************************************************
 
+#pragma once
+
 #include "SPrerequisites.h"
 #include "SVector2.h"
 #include "SVector3.h"
