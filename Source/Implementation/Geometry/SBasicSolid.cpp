@@ -142,7 +142,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::RenderSolid( SpeedPointEngine* pEngineReplacement = 0 )
+	S_API SResult SBasicSolid::RenderSolid( SpeedPointEngine* pEngineReplacement )
 	{
 		SpeedPointEngine* pFinalEngine = 0;
 		
