@@ -51,16 +51,17 @@ namespace SpeedPoint
 		// Default constructor
 		SpeedPointEngine()
 			: bRunning( false ),
-			pRenderer( NULL ),
-			pLoggingStream( NULL ),
+			pRenderer( NULL ),			
 			pSolidSystem( NULL ),
+			pLightSystem( NULL ),
 			pViewports( NULL ),
 			pDefaultViewport( NULL ),			
 			pResourcePool( NULL ),
 			dwBeforeFrame( 0 ),
 			dwAfterFrame( 0 ),
 			fLastFrameDelay( 0 ),
-			bCustomLoggingStream( false )
+			bCustomLoggingStream( false ),
+			pLoggingStream( NULL )
 		{
 		};
 
