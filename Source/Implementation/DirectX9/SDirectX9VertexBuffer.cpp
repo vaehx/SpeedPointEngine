@@ -138,11 +138,21 @@ namespace SpeedPoint
 
 		if( IsInited() && pHWVertexBuffer != NULL && !bLocked )
 		{		
-			if( FAILED( pHWVertexBuffer->Lock( iBegin, iLength, buf, ((!bDynamic) ? D3DLOCK_NOSYSLOCK | flags : flags ) ) ) )
+			// check flags for HW Buffer Lock
+			if (!bDynamic)
+			{
+				if (flags & D3DLOCK_DISCARD) flags &= ~D3DLOCK_DISCARD;
+				if (flags & D3DLOCK_NOOVERWRITE) flags &= ~D3DLOCK_NOOVERWRITE;
+				if (!(flags & D3DLOCK_NOSYSLOCK)) flags |= D3DLOCK_NOSYSLOCK;
+			}
+
+			// Now lock the Hardware Vertex Buffer
+			if( FAILED( pHWVertexBuffer->Lock( iBegin, iLength, buf, flags ) ) )
 				return pEngine->LogReport( S_ERROR, "Failed lock DX9 Hardware Vertex Buffer Resource!" );
 			else
 				bLocked = true;
 
+			// everything went well
 			return S_SUCCESS;
 		}
 

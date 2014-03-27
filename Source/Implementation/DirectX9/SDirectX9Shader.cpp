@@ -20,8 +20,13 @@ namespace SpeedPoint
 		// Create Effect
 //~~~~~~~~~~~~
 // TODO: Setup custom compilation and catch errors and throw them into the Logging Stream!
-		if( FAILED( D3DXCreateEffectFromFile( pDXRenderer->pd3dDevice, cFilename, NULL, NULL, 0, NULL, &pEffect, NULL ) ) )
-		{
+		LPD3DXBUFFER pErrorBuffer = 0;
+		if( FAILED( D3DXCreateEffectFromFile( pDXRenderer->pd3dDevice, cFilename, NULL, NULL, D3DXSHADER_DEBUG, NULL, &pEffect, &pErrorBuffer ) ) )
+		{			
+#ifdef _DEBUG
+			char* cErrorText = (char*)pErrorBuffer->GetBufferPointer();
+			MessageBox(0, cErrorText, "Shader Error", MB_ICONERROR | MB_OK);
+#endif
 			return S_ERROR;
 		}
 //~~~~~~~~~~~~

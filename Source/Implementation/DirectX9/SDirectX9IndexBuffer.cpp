@@ -139,11 +139,21 @@ namespace SpeedPoint
 
 		if( IsInited() && pHWIndexBuffer != NULL && !bLocked )
 		{		
-			if( FAILED( pHWIndexBuffer->Lock( iBegin, iLength, buf, ((!bDynamic) ? D3DLOCK_NOSYSLOCK | flags : flags ) ) ) )
+			// check flags for HW Buffer Lock
+			if (!bDynamic)
+			{
+				if (flags & D3DLOCK_DISCARD) flags &= ~D3DLOCK_DISCARD;
+				if (flags & D3DLOCK_NOOVERWRITE) flags &= ~D3DLOCK_NOOVERWRITE;
+				if (!(flags & D3DLOCK_NOSYSLOCK)) flags |= D3DLOCK_NOSYSLOCK;
+			}
+
+			// Now Fill the HW Index Buffer
+			if( FAILED( pHWIndexBuffer->Lock( iBegin, iLength, buf, flags ) ) )
 				return pEngine->LogReport( S_ERROR, "Could not lock DX9 Hardware Index Buffer resource" );
 			else
 				bLocked = true;
 
+			// everything went well
 			return S_SUCCESS;
 		}
 

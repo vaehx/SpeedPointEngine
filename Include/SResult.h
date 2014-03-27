@@ -21,8 +21,8 @@ namespace SpeedPoint
 		S_NOTFOUND = 5
 	};
 
-	static bool Success( const SResult& r ) { return r == S_SUCCESS; }
-	static bool Failure( const SResult& r ) { return r != S_SUCCESS; }
+	static bool Success( const SResult& r ) { return (r == S_SUCCESS || r == S_INFO); }
+	static bool Failure( const SResult& r ) { return !(r == S_SUCCESS || r == S_INFO); }
 	static bool Aborted( const SResult& r ) { return r == S_ABORTED; }
 	static bool FullPool( const SResult& r ) { return r == S_FULL; }
 	static bool NotFound( const SResult& r ) { return r == S_NOTFOUND; }
