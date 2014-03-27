@@ -43,7 +43,9 @@ namespace SpeedPoint
 
 		SResult SetGeometryData( SVertex* pVertices, UINT nVertices, DWORD* pdwIndices, UINT nIndices );
 		SP_ID GetVertexBuffer( void );
-		SP_ID GetIndexBuffer( void );		
+		SP_ID GetIndexBuffer( void );
+
+		virtual SResult RenderSolid( SpeedPointEngine* pEngineReplacement = 0 );
 
 		// -- Primitive --
 		SP_ID AddPrimitive( const SPrimitive& primitive );

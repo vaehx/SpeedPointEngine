@@ -140,6 +140,21 @@ namespace SpeedPoint
 		return iIndexBuffer;
 	}	
 
+	// **********************************************************************************
+
+	S_API SResult SBasicSolid::RenderSolid( SpeedPointEngine* pEngineReplacement = 0 )
+	{
+		SpeedPointEngine* pFinalEngine = 0;
+		
+		if ( pEngine == 0 && ( pFinalEngine = pEngineReplacement ) == 0 )
+			return S_ABORTED;
+
+//~~~~~~~~~~~
+// TODO: Call pFinalEngine->RenderSolid() and get id using this->GetSolidID()
+		return pFinalEngine->LogReport( S_ABORTED, "Tried not implemented SBasicSolid::RenderSolid!" );
+//~~~~~~~~~~~
+	}
+
 
 	// **********************************************************************************
 	//		PRIMITIVE

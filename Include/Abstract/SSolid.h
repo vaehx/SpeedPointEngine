@@ -36,6 +36,9 @@ namespace SpeedPoint
 		// Get the id of the index buffer
 		virtual SP_ID GetIndexBuffer( void ) = 0;
 
+		// Render this Solid
+		virtual SResult RenderSolid( SpeedPointEngine* pEngineReplacement = 0 ) = 0;
+
 		// -- Primitive --
 
 		// Get pointer to a single primitive by its id
