@@ -145,8 +145,11 @@ namespace SpeedPoint
 	S_API SResult SBasicSolid::RenderSolid( SpeedPointEngine* pEngineReplacement )
 	{
 		SpeedPointEngine* pFinalEngine = 0;
+
+		if ( pEngineReplacement != 0 || pEngine == 0 )
+			pFinalEngine = pEngineReplacement;
 		
-		if ( pEngine == 0 && ( pFinalEngine = pEngineReplacement ) == 0 )
+		if ( pFinalEngine )
 			return S_ABORTED;
 
 //~~~~~~~~~~~
