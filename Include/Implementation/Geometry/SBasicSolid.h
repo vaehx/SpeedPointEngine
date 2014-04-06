@@ -35,7 +35,12 @@ namespace SpeedPoint
 		SBasicSolid()
 			: pEngine( NULL ),
 			bInitialized( false ),
-			pOctree( NULL ) {};
+			pOctree( NULL )
+		{
+		};
+
+		// Default destructor
+		~SBasicSolid();
 
 		// -- General --
 		SResult Initialize( SpeedPointEngine* pEngine, bool bDynamic );

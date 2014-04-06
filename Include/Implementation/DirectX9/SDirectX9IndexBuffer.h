@@ -43,6 +43,9 @@ namespace SpeedPoint
 			bDynamic( o.bDynamic ),
 			bLocked( o.bLocked ) {};
 
+		// Default destructor
+		~SDirectX9IndexBuffer();
+
 		// Initialize the Index Buffer
 		SResult Initialize( int nSize, bool bDyn, SpeedPointEngine* pEng, SRenderer* pRenderer, S_INDEXBUFFER_FORMAT format );
 

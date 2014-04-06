@@ -250,7 +250,8 @@ namespace SpeedPoint
 
 		SSolid* pSolid = pSolidSystem->GetSolid( iSolid );
 
-		if( pSolid == NULL ) return S_ERROR;
+		if (pSolid == NULL)
+			return LogReport(S_ERROR, "(eng) Tried to render solid of invalid index!");
 
 		return pRenderer->GetRenderPipeline()->RenderSolidGeometry( pSolid );
 	}

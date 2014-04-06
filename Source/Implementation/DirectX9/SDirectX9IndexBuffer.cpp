@@ -9,6 +9,14 @@ namespace SpeedPoint
 
 	// *******************************************************************************************
 
+	S_API SDirectX9IndexBuffer::~SDirectX9IndexBuffer()
+	{
+		// Make sure resources are freed
+		Clear();
+	}
+
+	// *******************************************************************************************
+
 	S_API BOOL SDirectX9IndexBuffer::IsInited ( void )
 	{
 		return
@@ -244,13 +252,10 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9IndexBuffer::Clear ( void )
 	{
-		if( IsInited() )
-		{
-			if( pHWIndexBuffer != NULL ) pHWIndexBuffer->Release(); pHWIndexBuffer = NULL;
-			if( pShadowBuffer != NULL ) free( pShadowBuffer );	
-			nIndices = 0;
-			nIndicesWritten = 0;
-		}
+		if( pHWIndexBuffer != NULL ) pHWIndexBuffer->Release(); pHWIndexBuffer = NULL;
+		if( pShadowBuffer != NULL ) free(pShadowBuffer); pShadowBuffer = 0;
+		nIndices = 0;
+		nIndicesWritten = 0;	
 	
 		return S_SUCCESS;
 	}

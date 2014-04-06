@@ -47,6 +47,9 @@ namespace SpeedPoint
 			bDynamic( o.bDynamic ),
 			bLocked( o.bLocked ) {};
 
+		// Default destructor
+		~SDirectX9VertexBuffer();
+
 		// Initialize the vertex buffer
 		SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEng, SRenderer* renderer );
 

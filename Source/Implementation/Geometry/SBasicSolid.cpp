@@ -8,6 +8,13 @@
 
 namespace SpeedPoint
 {
+	S_API SBasicSolid::~SBasicSolid()
+	{
+		// Make sure resources are freed
+		Clear();
+	}
+
+
 	// **********************************************************************************
 	//		GENERAL
 
