@@ -13,6 +13,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Render Pipeline State (abstract)
+	// There are some implementations like SDirectX9GeometryRenderSection, ~LightingRenderSection, ~PostRenderSection
 	class S_API SRenderPipelineState
 	{
 	public:

@@ -5,10 +5,15 @@
 // ******************************************************************************************
 
 #pragma once
-#include "SEventHandler.h"
+#include "SEventCallbackTable.h"
 
 namespace SpeedPoint
 {
+
+	// ******************************************************************************************
+
+	// Basic SpeedPoint Observed Pipeline Events
+#define S_E_DESTRUCT 99999
 
 	// ******************************************************************************************
 
@@ -16,7 +21,7 @@ namespace SpeedPoint
 	class SObservedObject
 	{
 	private:
-		SEventHandler m_DestructionHandler;
+		SEventCallbackTable m_EventCallbackTable;
 
 	public:
 		// Default constructor
