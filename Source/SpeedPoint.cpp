@@ -31,17 +31,34 @@ namespace SpeedPoint
 
 	S_API SResult SpeedPointEngine::Start( const SSettings& settings )
 	{
-		if( bRunning ) return S_ABORTED;
+		// Check if the Engine is already running
+		if (bRunning)
+		{
+			if (pLoggingStream)
+				pLoggingStream->Report(S_ERROR, "Tried to start SpeedPointEngine but it is already running.");
 
-		if( settings.hWnd == NULL ) return S_ABORTED;
+			return S_ABORTED;
+		}
 
-		if( settings.nXResolution < 600 || settings.nYResolution < 400 ) return S_ABORTED;		
-
-		sSettings = settings;
-
-		// Initialize default logging stream
-		if( !bCustomLoggingStream )
+		// Initialize default logging stream if SetCustomLoggingStream() hasnt been called yet
+		if (!bCustomLoggingStream)
 			pLoggingStream = new SLogStream();
+
+		// Validate the settings given
+		if (settings.hWnd == NULL)
+		{
+			LogE("Cannot start SpeedPointEngine: Given Window handle is not valid!");
+			return S_INVALIDPARAM;
+		}
+		else if (settings.nXResolution < 600 || settings.nYResolution < 400)
+		{
+			LogE("Cannot start SpeedPointEngine: Resolution less than 600x400 is not supported anymore!");
+			return S_INVALIDPARAM;
+		}
+		else
+		{
+			sSettings = settings;
+		}
 	
 		// Initialize the renderer and its resource pool
 		if( settings.tyRendererType == S_DIRECTX9 )
@@ -49,39 +66,42 @@ namespace SpeedPoint
 			pRenderer = (SRenderer*)new SDirectX9Renderer();
 			if( Failure( pRenderer->Initialize( this, settings.hWnd, settings.nXResolution, settings.nYResolution, false ) ) )
 			{
-				return LogReport( S_ERROR, "Failed initialize renderer" );
+				return LogReport( S_ERROR, "Failed to initialize DirectX9-Renderer!" );
 			}
 
 			pResourcePool = (SResourcePool*)new SDirectX9ResourcePool();
 			if( Failure( pResourcePool->Initialize( this, pRenderer ) ) )
 			{				
-				return LogReport( S_ERROR, "Failed initialize Resource Pool" );
+				return LogReport( S_ERROR, "Failed to initialize Resource Pool!" );
 			}
 
 			// Initialize the viewports array
 			pViewports = (SViewport**)( malloc( sizeof( SViewport* ) * SP_MAX_VIEWPORTS ) );			
 			if( pViewports == NULL )
 			{
-				return LogReport( S_ERROR, "Failed Initialize viewport storage" );
+				return LogReport( S_ERROR, "Failed to initialize viewport storage!" );
 			}
 
-			ZeroMemory( pViewports, sizeof( SViewport* ) * SP_MAX_VIEWPORTS );
-
-			// Set the default viewport of the renderer as the zero-viewport
-			pViewports[0] = pRenderer->GetDefaultViewport();
+			ZeroMemory( pViewports, sizeof( SViewport* ) * SP_MAX_VIEWPORTS );			
 		}
 		else
 		{
 			return LogReport( S_ABORTED, "This Renderer type is not supported yet" );
 		}
 
-		// Initialize the default viewport
+		// Initialize the default viewport		
+		pViewports[0] = pRenderer->GetDefaultViewport();
 		pViewports[0]->SetCamera( &camCamera );
 
-		// Initialize the solid system
+		// Initialize the root solid system
 		pSolidSystem = (SSolidSystem*)new SBasicSolidSystem();
-		pSolidSystem->Initialize( this );
+		pSolidSystem->Initialize(this);	
 
+//~~~~~~~
+// TODO: Initialize and start FramePipeline here
+//~~~~~~~
+
+		// Set the running flag of the SpeedPointEngine
 		bRunning = true;
 		return S_SUCCESS;
 	}
@@ -90,7 +110,9 @@ namespace SpeedPoint
 
 	S_API SResult SpeedPointEngine::SetCustomLogStream( SLogStream* pLogStream )
 	{
-		if( pLogStream == NULL || pLoggingStream == pLogStream ) return S_ABORTED;
+		if (pLogStream == NULL) return S_INVALIDPARAM;
+
+		if (pLogStream == pLoggingStream) return S_SUCCESS;
 
 		// Destroy old Logging stream instance if default log stream
 		if( !bCustomLoggingStream && pLoggingStream != NULL )
@@ -127,6 +149,27 @@ namespace SpeedPoint
 		wsprintf( sActualMsg.cString, "%s %s", cPrefix, msg.cString );
 
 		return pLoggingStream->Report( res, sActualMsg );
+	}
+
+	// ********************************************************************************************
+	
+	SResult SpeedPointEngine::LogE(SString msg)
+	{
+		return LogReport(S_ERROR, msg);
+	}
+
+	// ********************************************************************************************
+
+	SResult SpeedPointEngine::LogW(SString msg)
+	{
+		return LogReport(S_WARN, msg);
+	}
+
+	// ********************************************************************************************
+
+	SResult SpeedPointEngine::LogI(SString msg)
+	{
+		return LogReport(S_INFO, msg);
 	}
 
 	// ********************************************************************************************

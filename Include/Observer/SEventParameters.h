@@ -39,6 +39,8 @@ namespace SpeedPoint
 
 		// Add a new parameter to the buffer with given attributes
 		// The bytes pointed to by pData and the index are copied to the buffer then!
+		// ZSTRs are excepted to be given as Pointer to a Pointer of the char buffer (char**)
+		// PTRs are expected to be given as Pointer to the Pointer. Then the adress is copied. (void**)
 		SResult Add(char* pcIndex, SEventParameterType tType, void* pData);		
 
 		// Get a parameter by given index string

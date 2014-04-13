@@ -76,6 +76,15 @@ namespace SpeedPoint
 		// Report a log entry and return the result given as parameter
 		SResult LogReport( SResult res, SString msg );
 
+		// Report an error log entry and return S_ERROR
+		SResult LogE(SString msg);
+
+		// Report an warning log entry and return S_WARN
+		SResult LogW(SString msg);
+
+		// Report an info / success message and return S_INFO
+		SResult LogI(SString msg);
+
 		// Get the Renderer
 		SRenderer* GetRenderer( void );
 
