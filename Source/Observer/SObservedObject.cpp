@@ -40,6 +40,12 @@ namespace SpeedPoint
 	
 	void SObservedObject::SetDestructionCallback(SEventCallback pDestructionCallbackFunc)
 	{
-		m_DestructionHandler.Initialize(pDestructionCallbackFunc);
+		if (pDestructionCallbackFunc == 0) return;
+
+		if (Failure(m_EventCallbackTable.Clear(S_E_DESTRUCT)))
+			return;
+
+		if (Failure(m_EventCallbackTable.Add(S_E_DESTRUCT, pDestructionCallbackFunc)))
+			return;
 	}
 }
