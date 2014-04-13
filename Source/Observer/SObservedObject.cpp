@@ -26,13 +26,13 @@ namespace SpeedPoint
 
 	SObservedObject::~SObservedObject()
 	{
-		if (m_DestructionHandler.IsInitialized())
+		if (m_EventCallbackTable.IsInitialized())
 		{
 			bool bRes = true;
 			SEventParameters params;
 			if (bRes && Failure(params.Initialize(1))) bRes = false;
 			if (bRes && Failure(params.Add("sender", S_PARAMTYPE_PTR, this))) bRes = false;
-			if (bRes && Failure(m_DestructionHandler.Call(0))) bRes = false;
+			if (bRes && Failure(m_EventCallbackTable.Call(S_E_DESTRUCT, &params))) bRes = false;
 		}
 	}
 

@@ -12,7 +12,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	// Basic SpeedPoint Observed Pipeline Events
+	// Basic Destruction Event used for every Pipeline
 #define S_E_DESTRUCT 99999
 
 	// ******************************************************************************************
