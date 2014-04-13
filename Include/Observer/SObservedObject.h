@@ -37,5 +37,8 @@ namespace SpeedPoint
 
 		// Set the destruction handler manually		
 		void SetDestructionCallback(SEventCallback pDestructionCallbackFunc);
+
+		// Function to call an event by given index and parameters
+		SResult CallEvent(unsigned int iIndex, SEventParameters* pParams);
 	};
 }

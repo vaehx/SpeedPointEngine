@@ -48,4 +48,14 @@ namespace SpeedPoint
 		if (Failure(m_EventCallbackTable.Add(S_E_DESTRUCT, pDestructionCallbackFunc)))
 			return;
 	}
+
+	// ********************************************************************************************
+
+	SResult SObservedObject::CallEvent(unsigned int iIndex, SEventParameters* pParams)
+	{
+		if (iIndex > 99999 || pParams == 0)
+			return S_INVALIDPARAM;
+
+		return m_EventCallbackTable.Call(iIndex, pParams);
+	}
 }
