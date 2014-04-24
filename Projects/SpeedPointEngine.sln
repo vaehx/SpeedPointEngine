@@ -1,0 +1,88 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointAbstract", "SpeedPointAbstract\SpeedPointAbstract.vcxproj", "{94D549D6-E12E-40CE-814B-573C0C47FCF4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointCore", "SpeedPointCore\SpeedPointCore.vcxproj", "{6A802F58-8B42-46E9-A308-87ADE350A374}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointDirectX9Renderer", "SpeedPointDirectX9Renderer\SpeedPointDirectX9Renderer.vcxproj", "{B7C82D6C-D25D-47E7-A951-23148A74164D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointGeometry", "SpeedPointGeometry\SpeedPointGeometry.vcxproj", "{FACEAC68-301E-41D3-AA53-EBFDE139F192}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointPhysics", "SpeedPointPhysics\SpeedPointPhysics.vcxproj", "{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointDirectX10Renderer", "SpeedPointDirectX10Renderer\SpeedPointDirectX10Renderer.vcxproj", "{E475970E-80F1-442A-95F5-0CAC5F129CD0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointDirectX11Renderer", "SpeedPointDirectX11Renderer\SpeedPointDirectX11Renderer.vcxproj", "{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointOpenGLRenderer", "SpeedPointOpenGLRenderer\SpeedPointOpenGLRenderer.vcxproj", "{E4348F69-4370-42A5-8A6F-CEF292BCFC02}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointAI", "SpeedPointAI\SpeedPointAI.vcxproj", "{294E75A6-6C19-463B-969B-77197958994B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointEffects", "SpeedPointEffects\SpeedPointEffects.vcxproj", "{B95904EF-9EEC-40D6-9676-0288AACB6E93}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointEntities", "SpeedPointEntities\SpeedPointEntities.vcxproj", "{02AE6397-0589-4AE0-8020-1B4ACB506717}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointScripting", "SpeedPointScripting\SpeedPointScripting.vcxproj", "{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{94D549D6-E12E-40CE-814B-573C0C47FCF4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{94D549D6-E12E-40CE-814B-573C0C47FCF4}.Debug|Win32.Build.0 = Debug|Win32
+		{94D549D6-E12E-40CE-814B-573C0C47FCF4}.Release|Win32.ActiveCfg = Release|Win32
+		{94D549D6-E12E-40CE-814B-573C0C47FCF4}.Release|Win32.Build.0 = Release|Win32
+		{6A802F58-8B42-46E9-A308-87ADE350A374}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6A802F58-8B42-46E9-A308-87ADE350A374}.Debug|Win32.Build.0 = Debug|Win32
+		{6A802F58-8B42-46E9-A308-87ADE350A374}.Release|Win32.ActiveCfg = Release|Win32
+		{6A802F58-8B42-46E9-A308-87ADE350A374}.Release|Win32.Build.0 = Release|Win32
+		{B7C82D6C-D25D-47E7-A951-23148A74164D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B7C82D6C-D25D-47E7-A951-23148A74164D}.Debug|Win32.Build.0 = Debug|Win32
+		{B7C82D6C-D25D-47E7-A951-23148A74164D}.Release|Win32.ActiveCfg = Release|Win32
+		{B7C82D6C-D25D-47E7-A951-23148A74164D}.Release|Win32.Build.0 = Release|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Win32.Build.0 = Debug|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Win32.ActiveCfg = Release|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Win32.Build.0 = Release|Win32
+		{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}.Debug|Win32.Build.0 = Debug|Win32
+		{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}.Release|Win32.ActiveCfg = Release|Win32
+		{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}.Release|Win32.Build.0 = Release|Win32
+		{E475970E-80F1-442A-95F5-0CAC5F129CD0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E475970E-80F1-442A-95F5-0CAC5F129CD0}.Debug|Win32.Build.0 = Debug|Win32
+		{E475970E-80F1-442A-95F5-0CAC5F129CD0}.Release|Win32.ActiveCfg = Release|Win32
+		{E475970E-80F1-442A-95F5-0CAC5F129CD0}.Release|Win32.Build.0 = Release|Win32
+		{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}.Debug|Win32.Build.0 = Debug|Win32
+		{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}.Release|Win32.ActiveCfg = Release|Win32
+		{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}.Release|Win32.Build.0 = Release|Win32
+		{E4348F69-4370-42A5-8A6F-CEF292BCFC02}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E4348F69-4370-42A5-8A6F-CEF292BCFC02}.Debug|Win32.Build.0 = Debug|Win32
+		{E4348F69-4370-42A5-8A6F-CEF292BCFC02}.Release|Win32.ActiveCfg = Release|Win32
+		{E4348F69-4370-42A5-8A6F-CEF292BCFC02}.Release|Win32.Build.0 = Release|Win32
+		{294E75A6-6C19-463B-969B-77197958994B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{294E75A6-6C19-463B-969B-77197958994B}.Debug|Win32.Build.0 = Debug|Win32
+		{294E75A6-6C19-463B-969B-77197958994B}.Release|Win32.ActiveCfg = Release|Win32
+		{294E75A6-6C19-463B-969B-77197958994B}.Release|Win32.Build.0 = Release|Win32
+		{B95904EF-9EEC-40D6-9676-0288AACB6E93}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B95904EF-9EEC-40D6-9676-0288AACB6E93}.Debug|Win32.Build.0 = Debug|Win32
+		{B95904EF-9EEC-40D6-9676-0288AACB6E93}.Release|Win32.ActiveCfg = Release|Win32
+		{B95904EF-9EEC-40D6-9676-0288AACB6E93}.Release|Win32.Build.0 = Release|Win32
+		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Debug|Win32.ActiveCfg = Debug|Win32
+		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Debug|Win32.Build.0 = Debug|Win32
+		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Release|Win32.ActiveCfg = Release|Win32
+		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Release|Win32.Build.0 = Release|Win32
+		{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}.Debug|Win32.Build.0 = Debug|Win32
+		{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}.Release|Win32.ActiveCfg = Release|Win32
+		{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

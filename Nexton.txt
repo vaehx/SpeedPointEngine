@@ -1,0 +1,18 @@
+@subject: Next-On Todos
+@written on: 4/23/2014 4:51pm
+
+- Rewrite / Change existing SRenderPipeline to new RenderPipeline (inheriting from SObservedObject)
+	- Implement SDirectX9LightingRenderSection
+	- Implement missing methods in SDirectX9Shader
+	- Implement SDIrectX9PostRenderSection
+	- Implement functions of new SDirectX9RenderPipeline class
+		- properly call events
+		- properly call methods of render section (esp. Geometry Section!)
+
+- Finish Implementation of FramePipeline
+	- Call event and start Render Pipeline
+
+- IMplement Dynamics Pipeline
+	- skip Animation, Script, ... (including physics) for now.
+
+- Build.

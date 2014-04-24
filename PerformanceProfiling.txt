@@ -1,0 +1,23 @@
+// =====================================================================================
+struct STimePeriod
+{
+	unsigned int nBeginTimestamp;
+	unsigned int nEndTimestamp;
+
+	unsigned int GetDelay() { return nEndTimestamp - nBeginTimestamp; }
+};
+
+
+// =====================================================================================
+class SFramePipeline ...
+{
+	...
+
+private:	// Profiling
+	STimePeriod m_BeginDuration;
+	STimePeriod m_DynamicsDuration;
+	STimePeriod m_RenderDuration;
+	STimePeriod m_EndDuration;
+
+	...
+}

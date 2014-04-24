@@ -1,0 +1,207 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Headers\Util">
+      <UniqueIdentifier>{3803453e-89bb-4b3a-851e-092de1dea9cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Observer">
+      <UniqueIdentifier>{7afa045b-d99a-44d1-84cc-b39617b4b42f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Observer">
+      <UniqueIdentifier>{d16ba342-d085-43db-b7f4-cccd9d84d428}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Pipelines">
+      <UniqueIdentifier>{278fca6e-1635-4865-ad4c-d282df88d705}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Frontend">
+      <UniqueIdentifier>{edc1b2c1-40fb-4796-931e-24130fab8193}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Pipelines">
+      <UniqueIdentifier>{11463e6d-436c-477b-8195-9a1ba614068e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Util">
+      <UniqueIdentifier>{f6cbe5c8-7144-439c-8f5c-8e619e8af5f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Frontend">
+      <UniqueIdentifier>{0fc32499-9910-4a9f-9f00-0059e9ec0c3e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\SpeedPointAI.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointAnimations.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointCommon.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointGeometry.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointPhysics.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointRendering.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointScripting.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointSound.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPoint.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Observer\SEventParameter.h">
+      <Filter>Headers\Observer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Observer\SEventParameters.h">
+      <Filter>Headers\Observer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Observer\SEventHandler.h">
+      <Filter>Headers\Observer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Observer\SObservedObject.h">
+      <Filter>Headers\Observer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Observer\SEventCallbackTable.h">
+      <Filter>Headers\Observer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Observer\SEventCallbackTableEntry.h">
+      <Filter>Headers\Observer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Pipelines\SDynamicsPipeline.h">
+      <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Pipelines\SFramePipeline.h">
+      <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SAPI.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SBoundBox.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SCamera.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SColor.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SConfigFile.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SLogFile.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SLogStream.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SMaterial.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SMatrix.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SPlane.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SPool.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SPoolIndex.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SPrimitive.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SResult.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SString.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\STransformable.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SVector2.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SVector3.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SVector4.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SVertex.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SPrerequisites.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SSpeedPointEngine.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp">
+      <Filter>Sources\Observer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Observer\SEventParameters.cpp">
+      <Filter>Sources\Observer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Observer\SObservedObject.cpp">
+      <Filter>Sources\Observer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Observer\SEventCallbackTable.cpp">
+      <Filter>Sources\Observer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Pipelines\SDynamicsPipeline.cpp">
+      <Filter>Sources\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Pipelines\SFramePipeline.cpp">
+      <Filter>Sources\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Observer\SEventParameter.cpp">
+      <Filter>Sources\Observer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Util\SConfigFile.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Util\SLogFile.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Util\SLogStream.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Util\STransformable.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Util\SBoundBox.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Util\SString.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Util\SCamera.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SSpeedPoint.cpp">
+      <Filter>Sources\Frontend</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

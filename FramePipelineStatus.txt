@@ -1,0 +1,39 @@
+* SEventHandler.h
+* SEventParameter.h
+* SEventParameters.h
+* SEventCallbackTable.h
+* SEventCallbackTableEntry.h
+SObservedObject.h
+
+-> IFramePipeline.h
+-> IAnimationPipeline.h
+-> IPhysicsPipeline.h
+-> IRenderPipeline.h // should be already there
+
+* SEventHandler.cpp
+* SEventParameters.cpp
+SObservedObject.cpp
+
+-> SFramePipeline.cpp 
+
+
+
+
+--
+
+SObservedObject
+{
+	SEventHandler
+	{
+		FunctionPtr;
+
+		SEventParameters
+		{
+			Parameter1;
+			Parameter2;
+			...
+		}
+	}
+
+	SetHandler (functionptr);
+}

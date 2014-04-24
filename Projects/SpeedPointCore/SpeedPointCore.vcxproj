@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6A802F58-8B42-46E9-A308-87ADE350A374}</ProjectGuid>
+    <RootNamespace>SpeedPointCore</RootNamespace>
+    <ProjectName>SpeedPointCore</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>..\..\Dependencies\DirectX\Include;..\..\Include;$(IncludePath)</IncludePath>
+    <TargetExt>.lib</TargetExt>
+    <LibraryPath>..\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>SP_UNITTEST</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Observer\SEventCallbackTable.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventCallbackTableEntry.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventHandler.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventParameter.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventParameters.h" />
+    <ClInclude Include="..\..\Include\Observer\SObservedObject.h" />
+    <ClInclude Include="..\..\Include\Pipelines\SDynamicsPipeline.h" />
+    <ClInclude Include="..\..\Include\Pipelines\SFramePipeline.h" />
+    <ClInclude Include="..\..\Include\SpeedPoint.h" />
+    <ClInclude Include="..\..\Include\SSpeedPointEngine.h" />
+    <ClInclude Include="..\..\Include\SpeedPointAI.h" />
+    <ClInclude Include="..\..\Include\SpeedPointAnimations.h" />
+    <ClInclude Include="..\..\Include\SpeedPointCommon.h" />
+    <ClInclude Include="..\..\Include\SpeedPointGeometry.h" />
+    <ClInclude Include="..\..\Include\SpeedPointPhysics.h" />
+    <ClInclude Include="..\..\Include\SpeedPointRendering.h" />
+    <ClInclude Include="..\..\Include\SpeedPointScripting.h" />
+    <ClInclude Include="..\..\Include\SpeedPointSound.h" />
+    <ClInclude Include="..\..\Include\SPrerequisites.h" />
+    <ClInclude Include="..\..\Include\Util\SAPI.h" />
+    <ClInclude Include="..\..\Include\Util\SBoundBox.h" />
+    <ClInclude Include="..\..\Include\Util\SCamera.h" />
+    <ClInclude Include="..\..\Include\Util\SColor.h" />
+    <ClInclude Include="..\..\Include\Util\SConfigFile.h" />
+    <ClInclude Include="..\..\Include\Util\SLogFile.h" />
+    <ClInclude Include="..\..\Include\Util\SLogStream.h" />
+    <ClInclude Include="..\..\Include\Util\SMaterial.h" />
+    <ClInclude Include="..\..\Include\Util\SMatrix.h" />
+    <ClInclude Include="..\..\Include\Util\SPlane.h" />
+    <ClInclude Include="..\..\Include\Util\SPool.h" />
+    <ClInclude Include="..\..\Include\Util\SPoolIndex.h" />
+    <ClInclude Include="..\..\Include\Util\SPrimitive.h" />
+    <ClInclude Include="..\..\Include\Util\SResult.h" />
+    <ClInclude Include="..\..\Include\Util\SString.h" />
+    <ClInclude Include="..\..\Include\Util\STransformable.h" />
+    <ClInclude Include="..\..\Include\Util\SVector2.h" />
+    <ClInclude Include="..\..\Include\Util\SVector3.h" />
+    <ClInclude Include="..\..\Include\Util\SVector4.h" />
+    <ClInclude Include="..\..\Include\Util\SVertex.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Observer\SEventCallbackTable.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SEventParameter.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SEventParameters.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SObservedObject.cpp" />
+    <ClCompile Include="..\..\Source\Pipelines\SDynamicsPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Pipelines\SFramePipeline.cpp" />
+    <ClCompile Include="..\..\Source\SSpeedPoint.cpp" />
+    <ClCompile Include="..\..\Source\Util\SBoundBox.cpp" />
+    <ClCompile Include="..\..\Source\Util\SCamera.cpp" />
+    <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />
+    <ClCompile Include="..\..\Source\Util\SLogFile.cpp" />
+    <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />
+    <ClCompile Include="..\..\Source\Util\SString.cpp" />
+    <ClCompile Include="..\..\Source\Util\STransformable.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

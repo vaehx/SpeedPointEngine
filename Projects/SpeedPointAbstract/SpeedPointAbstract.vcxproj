@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{94D549D6-E12E-40CE-814B-573C0C47FCF4}</ProjectGuid>
+    <RootNamespace>SpeedPointAbstract</RootNamespace>
+    <ProjectName>SpeedPointAbstract</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>..\..\Include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Abstract\Pipelines\SRenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Abstract\Pipelines\SRenderPipelineSection.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationBundle.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationJoint.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationKey.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Abstract\SBot.h" />
+    <ClInclude Include="..\..\Include\Abstract\SCollisionShape.h" />
+    <ClInclude Include="..\..\Include\Abstract\SCommandBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SEntity.h" />
+    <ClInclude Include="..\..\Include\Abstract\SFrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SIndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SInteractive.h" />
+    <ClInclude Include="..\..\Include\Abstract\SOctree.h" />
+    <ClInclude Include="..\..\Include\Abstract\SOctreeNode.h" />
+    <ClInclude Include="..\..\Include\Abstract\SOutputPlane.h" />
+    <ClInclude Include="..\..\Include\Abstract\SParticle.h" />
+    <ClInclude Include="..\..\Include\Abstract\SParticleSystem.h" />
+    <ClInclude Include="..\..\Include\Abstract\SPhysical.h" />
+    <ClInclude Include="..\..\Include\Abstract\SRenderer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SRendererSettings.h" />
+    <ClInclude Include="..\..\Include\Abstract\SResourcePool.h" />
+    <ClInclude Include="..\..\Include\Abstract\SShader.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSolid.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSolidSystem.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSound.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSoundSystem.h" />
+    <ClInclude Include="..\..\Include\Abstract\STerrain.h" />
+    <ClInclude Include="..\..\Include\Abstract\STexture.h" />
+    <ClInclude Include="..\..\Include\Abstract\SVertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SViewport.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

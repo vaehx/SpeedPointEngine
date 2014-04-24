@@ -1,0 +1,69 @@
+RenderPipeline:
+
+// --------------------------------------------------------------------------------
+
+#include <Observer\SObservedObject.h>
+
+// SpeedPoint Pipeline Base class
+class SPipeline : public SObservedObject
+{
+private:
+	SpeedPointEngine* 	m_pEngine;
+
+public:
+	// Default constructor
+	SPipeline()
+		: m_pEngine(0)
+	{
+	}
+
+	// Default destructor
+	~SPipeline()
+	{
+		Clear();
+	}
+
+	// Initialize the Pipeline with the engine	
+	SResult Initialize(SpeedPointEngine* pEngine)	// can be overwritten or overloaded
+	{
+		m_pEngine = pEngine;
+	}
+
+	// Clear the Pipeline
+	SResult Clear()	// can be overwritten or overloaded
+	{
+		m_pEngine = 0;
+	}
+};
+
+
+// --------------------------------------------------------------------------------
+
+class SRenderPipeline : public IPipeline
+{
+private:
+	
+public:
+	
+};
+
+
+
+
+
+[Render::GEOMETRY]
+	- Render all objects in [Render Distance] and [camera space] using techniques:	==> G-Buffer(state1)
+		- simple passthrough
+		- Parrallax mapping
+	- Render all transclucent and add them to the current G-Buffer using techniques:	==> G-Buffer(state2)
+		- alpha / color blending
+[Render::LIGHTING]
+	- Render the G-Buffer data to the lighting buffer using different combinations of these techniques:
+		- simple albedo passthrough
+		- mirror mapping (sample G-Buffer-Albedo-component based on reflection direction (approximation!)
+
+
+
+
+
+

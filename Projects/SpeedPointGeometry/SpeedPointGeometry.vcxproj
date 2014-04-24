@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationJoint.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationKey.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationSequence.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctree.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicSolid.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicSolidSystem.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicTerrain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationBundle.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationJoint.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationKey.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicOctree.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicOctreeNode.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicSolid.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicSolidSystem.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicTerrain.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FACEAC68-301E-41D3-AA53-EBFDE139F192}</ProjectGuid>
+    <RootNamespace>SpeedPointGeometry</RootNamespace>
+    <ProjectName>SpeedPointGeometry</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>..\..\Dependencies\DirectX\Include;..\..\Include;$(IncludePath)</IncludePath>
+    <TargetExt>.lib</TargetExt>
+    <LibraryPath>..\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>SP_UNITTEST;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

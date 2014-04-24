@@ -1,0 +1,51 @@
+RenderScript Technology
+-----------------------------------------------------------------------------------------------------------------
+
+Render Script could be a part of the RunPowder Scripting Engine ?
+
+Provides a Buffer of a struct that handles following information:
+	- WHAT solid is to be drawn
+	- WHICH polygons of this solid are about to be drawn
+	- HOW shall this solid interact with (multiple) other specific RenderScriptEntries
+
+
+Implementation example:
+struct SRenderScriptEntry
+{
+	SSolid*				m_pSolid;
+	unsigned int 			m_iFirstPolygonIndex;	// Index of the first indexbuffer entry of the first polygon to be drawn in this renderscriptentry
+	unsigned int 			m_iLastPolygonIndex; 	// Index of the first indexbuffer entry of the last polygon to be drawn in this renderscriptentry
+	SRenderScriptFXTable		m_FXTable;		// Effects in interaction with other RenderScript entries	
+};
+
+Render Script Effect Table:
+struct SRenderScriptFX
+{
+	bool	m_bActive;
+};
+
+struct SRenderScriptFXBlend : public SRenderScriptFX	// Alpha Blend Effect
+{
+	float	m_fFactory; 	// Factor of the top-z object 
+};
+
+struct SRenderScriptFXRefract : public SRenderScriptFXBlend
+{
+};
+
+struct SRenderScriptFXShadow : public SRenderScriptFX
+{
+};
+
+struct SRenderScriptFXTableEntry
+{
+	SRenderScriptEntry*	m_pRenderScriptEntry;	// This is a ptr to the target entry. 0xffffffff -> All objects
+	SRenderScriptFXBlend	m_BlendEffect;
+	SRenderScriptFXRefract	m_RefractEffect;
+	SRenderScriptFXShadow	m_ShadowEffect;
+};
+
+class SRenderScriptFXTable
+{
+private:
+};
