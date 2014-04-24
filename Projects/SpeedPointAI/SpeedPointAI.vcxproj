@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -9,6 +9,16 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Implementation\AI\SBasicBot.h" />
+    <ClInclude Include="..\..\Include\Implementation\AI\SBasicWaynet.h" />
+    <ClInclude Include="..\..\Include\Implementation\AI\SBasicWaynode.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\AI\SBasicBot.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\AI\SBasicWaynet.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\AI\SBasicWaynode.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{294E75A6-6C19-463B-969B-77197958994B}</ProjectGuid>

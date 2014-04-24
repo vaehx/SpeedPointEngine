@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -9,6 +9,33 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10FrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10IndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10OutputPlane.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10RenderEffect.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Renderer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10RenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10ResourcePool.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Settings.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Shader.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Texture.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10VertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Viewport.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10FrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10IndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10OutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Renderer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10RenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10ResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Settings.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Shader.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Texture.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10VertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Viewport.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E475970E-80F1-442A-95F5-0CAC5F129CD0}</ProjectGuid>

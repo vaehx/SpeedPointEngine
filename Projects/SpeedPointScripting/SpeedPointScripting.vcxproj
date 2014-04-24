@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -9,6 +9,24 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowder.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderCommand.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderEnvironment.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderError.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderScript.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderScriptFile.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderVariable.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowder.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderCommand.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderEnvironment.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderError.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderScript.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderScriptFile.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderVariable.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}</ProjectGuid>

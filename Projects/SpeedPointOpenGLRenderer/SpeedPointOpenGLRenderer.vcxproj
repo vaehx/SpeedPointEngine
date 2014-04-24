@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -9,6 +9,33 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLFrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLIndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLOutputPlane.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLRenderEffect.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLRenderer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLRenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLResourcePool.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLSettings.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLShader.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLTexture.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLVertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLViewport.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLFrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLIndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLOutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLRenderer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLRenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLSettings.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLShader.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLTexture.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLVertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLViewport.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E4348F69-4370-42A5-8A6F-CEF292BCFC02}</ProjectGuid>

@@ -11,36 +11,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11FrameBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11IndexBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11OutputPlane.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11RenderEffect.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Renderer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11RenderPipeline.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11ResourcePool.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Settings.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Shader.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Texture.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11VertexBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Viewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\Particles\SBasicParticle.h" />
+    <ClInclude Include="..\..\Include\Implementation\Particles\SBasicParticleSystem.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11FrameBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11IndexBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11OutputPlane.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Renderer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11RenderPipeline.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11ResourcePool.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Settings.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Shader.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Texture.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11VertexBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Viewport.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Particles\SBasicParticle.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Particles\SBasicParticleSystem.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}</ProjectGuid>
+    <ProjectGuid>{E4980600-3BB0-4449-832D-A29C6D1E0114}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SpeedPointDirectX11Renderer</RootNamespace>
+    <RootNamespace>SpeedPointParticles</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -66,18 +47,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\..\Dependencies\DirectX\Include;..\..\Include;$(IncludePath)</IncludePath>
-    <TargetExt>.lib</TargetExt>
-    <LibraryPath>..\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SP_UNITTEST;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
