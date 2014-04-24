@@ -33,6 +33,12 @@
     <Filter Include="Sources\Frontend">
       <UniqueIdentifier>{0fc32499-9910-4a9f-9f00-0059e9ec0c3e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Lighting">
+      <UniqueIdentifier>{5e1dce57-e962-44bf-93e1-a72b8fd8589e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Lighting">
+      <UniqueIdentifier>{cd7a88ab-43e1-4b01-a500-2bea79bd3ab4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\SpeedPointAI.h">
@@ -152,6 +158,12 @@
     <ClInclude Include="..\..\Include\SSpeedPointEngine.h">
       <Filter>Headers\Frontend</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Lighting\SLight.h">
+      <Filter>Headers\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Lighting\SLightSystem.h">
+      <Filter>Headers\Lighting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp">
@@ -198,6 +210,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\SSpeedPoint.cpp">
       <Filter>Sources\Frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Lighting\SLight.cpp">
+      <Filter>Sources\Lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Lighting\SLightSystem.cpp">
+      <Filter>Sources\Lighting</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

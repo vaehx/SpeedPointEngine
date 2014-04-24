@@ -70,6 +70,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Lighting\SLight.h" />
+    <ClInclude Include="..\..\Include\Lighting\SLightSystem.h" />
     <ClInclude Include="..\..\Include\Observer\SEventCallbackTable.h" />
     <ClInclude Include="..\..\Include\Observer\SEventCallbackTableEntry.h" />
     <ClInclude Include="..\..\Include\Observer\SEventHandler.h" />
@@ -111,6 +113,8 @@
     <ClInclude Include="..\..\Include\Util\SVertex.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Lighting\SLight.cpp" />
+    <ClCompile Include="..\..\Source\Lighting\SLightSystem.cpp" />
     <ClCompile Include="..\..\Source\Observer\SEventCallbackTable.cpp" />
     <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp" />
     <ClCompile Include="..\..\Source\Observer\SEventParameter.cpp" />
