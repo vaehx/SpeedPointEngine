@@ -4,8 +4,9 @@
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
 #include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
-#include <SVertex.h>
+#include <Util\SVertex.h>
 #include <SpeedPoint.h>
+#include <SSpeedPointEngine.h>
 
 namespace SpeedPoint
 {

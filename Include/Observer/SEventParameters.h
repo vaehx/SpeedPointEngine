@@ -14,7 +14,7 @@ namespace SpeedPoint
 	// ******************************************************************************************
 
 	// SpeedPoint Event Handler Parameters class
-	class SEventParameters
+	class S_API SEventParameters
 	{
 	private:
 		SEventParameter*	m_pParameters;		// Parameters buffer
@@ -41,7 +41,13 @@ namespace SpeedPoint
 		// The bytes pointed to by pData and the index are copied to the buffer then!
 		// ZSTRs are excepted to be given as Pointer to a Pointer of the char buffer (char**)
 		// PTRs are expected to be given as Pointer to the Pointer. Then the adress is copied. (void**)
-		SResult Add(char* pcIndex, SEventParameterType tType, void* pData);		
+		SResult Add(char* pcIndex, SEventParameterType tType, void* pData);	
+
+		// Add a bunch of parameters to the buffer given by an array of SEventParameter
+		// The bytes pointed to by pData and the index are copied to the buffer then!
+		// ZSTRs are excepted to be given as Pointer to a Pointer of the char buffer (char**)
+		// PTRs are expected to be given as Pointer to the Pointer. Then the adress is copied. (void**)
+		SResult AddArray(SEventParameter* pParameterArray, unsigned int nCount);
 
 		// Get a parameter by given index string
 		SEventParameter* Get(char* pcIndex);

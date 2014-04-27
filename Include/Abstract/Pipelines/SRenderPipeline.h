@@ -2,80 +2,103 @@
 
 //	SpeedPoint Render Pipeline
 
-//	This is a virtual class. You cannot instantiate it.
-//	Please use Specific Implementation to instantiate.
-
 // ********************************************************************************************
 
 #pragma once
 
 #include <SPrerequisites.h>
-#include <SPool.h>
+#include <Util\SPool.h>
 
 namespace SpeedPoint
 {
+	// Default Render call stack (example for DirectX9 and PhysicalSolid (which inherits from BasicSolid)):
+	// Application::S_E_RENDER_GEOMETRY_CALLS-Handler()
+	//	SpeedPoint::SBasicSolid::RenderGeometry()
+	//		SpeedPoint::SDirectX9Renderer::RenderSolidGeometry(SSolid*, boolbTextured)
+	//			SpeedPoint::SDirectX9RenderPipeline::RenderSolidGeometry(SSolid*, bool bTextured)
+	//				SpeedPoint::SDirectX9GeometryRenderSection::RenderSolidGeometry(SSolid*, bool bTextured)
+
 	// SpeedPoint Render Pipeline (abstract)
+	// This is a pure virtual class. You cannot instantiate it.
+	// Please use Specific Implementation to instantiate.
 	class S_API SRenderPipeline
 	{
+	// Initialization / FramePipeline interaction
 	public:
 		// Initialize this render pipeline by given SpeedPoint Engine pointer and renderer
-		virtual SResult Initialize( SpeedPointEngine* pEngine, SRenderer* pRenderer ) = 0;
+		virtual SResult Initialize(SpeedPointEngine* pEngine, SRenderer* pRenderer) = 0;
 
-		// Get the current state the pipeline is running at
-		virtual S_RENDER_STATE GetState( void ) = 0;
+		// Check whether the pipeline is initialized
+		virtual inline bool IsInitialized() = 0;
 
-		// Switch the current state to the next state
-		virtual S_RENDER_STATE NextState( void ) = 0;
-
-		// Get the current target buffer. By default this is the backbuffer of this pipeline
-		virtual SViewport* GetTargetViewport( void ) = 0;
-
-		// Set the current target buffer. By default this is the backbuffer of this pipeline
-		virtual SResult SetTargetViewport( SViewport* pVP ) = 0;
+		// Set the Frame pipeline pointer (due to aggregation)
+		virtual SResult SetFramePipeline(SFramePipeline* pFramePipeline) = 0;
 
 		// Clearout the renderpipeline
-		virtual SResult Clear( void ) = 0;
+		virtual SResult Clear(void) = 0;
 
-		// -- BEGIN FRAME STATE --
+		// Get the current state the pipeline is running at
+		virtual S_FRAMEPIPELINE_STAGE GetCurrentStage(void) = 0;
 
-		// Begin a new frame
-		virtual SResult BeginFrameSection( void ) = 0;		
+		// Get the handling Renderer
+		virtual SRenderer* GetRenderer() = 0;
 
-		// -- GEOMETRY STATE --
 
-		// Render the geometry of a Primitive of a solid to the current G-Buffer
-		// Will abort if not in geometry state
-		virtual SResult RenderSolidGeometry( SSolid* pSolid ) = 0;		
+	// Viewport management
+	public:
+		// Get the current target buffer. By default this is the backbuffer of this pipeline
+		virtual SViewport* GetTargetViewport(void) = 0;
 
-		// Invokes the end of GBuffer creation
-		// This function is normally called by the CommandBuffer Playback when recognizing a
-		// S_RENDER_LIGHTING command after a S_RENDER_GEOMETRY command
-		virtual SResult StopGeometryRendering( void ) = 0;
+		// Set the current target buffer. By default this is the backbuffer of this pipeline
+		virtual SResult SetTargetViewport(SViewport* pVP) = 0;
 
-		// -- LIGHTING STATE --
+	// The Sections
+	public:
+		// Begin Rendering (S_RENDER_BEGIN)
+
+		// Begin rendering
+		// Prepares backbuffer, begins scene and does stuff like this...
+		virtual SResult DoBeginRendering() = 0;
+
+
+		// Geometry (S_RENDER_GEOMETRY)
+
+		// Do the Geometry Section (Draw calls)
+		// Will only call event, so client application can draw its stuff using calls to
+		// RenderSolidGeometry. After Event was raised, the function returns with result.
+		// Events:
+		//	- S_E_RENDER_GEOMETRY_BEGIN before BeginScene
+		//	- S_E_RENDER_GEOMETRY_CALLS shortly before return
+		virtual SResult DoGeometrySection() = 0;
+
+		// Renders the Geometry of a solid when in S_RENDER_GEOMETRY stage
+		// should normally called by SSolid Implementation!
+		// Events: Fires no events!
+		virtual SResult RenderSolidGeometry(SSolid* pSolid, bool bTextured) = 0;
+
+		// Tell the render pipeline that geometry rendering is finished, so we can go on now
+		// Events: Fires S_E_RENDER_GEOMETRY_EXIT before exiting geometry section
+		virtual SResult ExitGeometrySection() = 0;
+
 		
-		// Render the current corresponding Light Buffer to the current G-Buffer by given light pool
-		// Will abort if not in lighting state
-		virtual SResult RenderLighting( SPool<SLight>* pLightPool ) = 0;
+		// Lighting (S_RENDER_LIGHTING)
 
-		// Render the current corresponsing Light Buffer to the current G-Buffer by given light array
-		// Will abort if not in lighting state
-		virtual SResult RenderLighting( SLight* pLightArray ) = 0;	
+		// Generate lighting buffer and apply shading to G-Buffer.
+		// Will abort if not in lighting stage
+		// Events: Fires S_E_RENDER_LIGHTING_PREP
+		virtual SResult DoLightingSection() = 0;
 
-		// -- POST --
-
-		// Now merge and apply custom shaders (if given) and render to current target buffer
+		
+		// Post Effects (S_RENDER_POST)
+	
+		// Puts everything together and renders final OutputPlane. Calls
 		// Will abort if not in Post state
-		virtual SResult RenderPostEffects( SP_UNIQUE* pCustomPostShaders ) = 0;
+		virtual SResult DoPost() = 0;
 
-		// -- ENDFRAME --
 
-		// Ends a frame section
-		virtual SResult EndFrameSection( void ) = 0;
+		// End Rendering (S_RENDER_END)
 
-		// -- PRESENT --
-
-		// Present the recently created frame section to the current target viewport
-		virtual SResult Present( void ) = 0;		
+		// Ends a frame section and presents backbuffer
+		virtual SResult DoEndRendering(void) = 0;			
 	};
 }

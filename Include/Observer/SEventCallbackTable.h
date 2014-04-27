@@ -14,7 +14,7 @@ namespace SpeedPoint
 	// ******************************************************************************************	
 
 	// SpeedPoint Event Callback Table
-	class SEventCallbackTable
+	class S_API SEventCallbackTable
 	{
 	private:
 		SpeedPointEngine*		m_pEngine;

@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <STransformable.h>
+#include <Util\STransformable.h>
 
 namespace SpeedPoint
 {

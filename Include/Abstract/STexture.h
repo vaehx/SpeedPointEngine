@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <SColor.h>
+#include <Util\SColor.h>
 
 namespace SpeedPoint
 {

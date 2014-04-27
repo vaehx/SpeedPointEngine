@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <SVector3.h>
+#include <Util\SVector3.h>
 
 namespace SpeedPoint
 {

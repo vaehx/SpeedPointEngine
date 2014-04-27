@@ -4,6 +4,7 @@
 #include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <SpeedPoint.h>
+#include <Util\SMatrix.h>
 
 namespace SpeedPoint
 {
@@ -12,10 +13,21 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9Viewport::Initialize( SpeedPointEngine* eng )
 	{
-		Clear();
-		if( ( pEngine = eng ) == NULL ) return S_ERROR;
+		Clear(); // make sure to be cleared, before initialization a second time		
+		SP_ASSERTR(!(pEngine = eng));
 
 		return S_SUCCESS;
+	}
+	
+	// **********************************************************************************
+
+	S_API bool SDirectX9Viewport::IsAddition()
+	{
+		SP_ASSERTR(!pEngine, false);
+		
+		// if the swap chain is not null, it is initialized as a swapchain and
+		// thereby an additional viewport
+		return pSwapChain;
 	}
 
 	// **********************************************************************************
@@ -147,16 +159,16 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9Viewport::Clear( void )
+	S_API SResult SDirectX9Viewport::Clear(void)
 	{
-		if( pBackBuffer != NULL ) pBackBuffer->Release();
-		if( pSwapChain != NULL ) pSwapChain->Release();		
-		
-		pBackBuffer = NULL;
-		pSwapChain = NULL;
-		hWnd = NULL;
-		pCamera = NULL;
-		pEngine = NULL;
+		if (pBackBuffer) pBackBuffer->Release();
+		if (pSwapChain) pSwapChain->Release();
+
+		pBackBuffer = 0;
+		pSwapChain = 0;
+		hWnd = 0;
+		pCamera = 0;
+		pEngine = 0;
 		d3dDisplayMode = D3DDISPLAYMODE();
 		nXResolution = 0;
 		nYResolution = 0;
@@ -164,7 +176,7 @@ namespace SpeedPoint
 		fOrthoH = 20.0f;
 		fFOV = 100.0f;
 
-		SMatrixIdentity( &mProjection );
+		SMatrixIdentity(&mProjection);
 
 		return S_SUCCESS;
 	}

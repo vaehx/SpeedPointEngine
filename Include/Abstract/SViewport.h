@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <SVector2.h>
+#include <Util\SVector2.h>
 
 namespace SpeedPoint
 {
@@ -20,6 +20,9 @@ namespace SpeedPoint
 	public:
 		// Initialize this viewport with an Engine instance
 		virtual SResult Initialize( SpeedPointEngine* pEngine ) = 0;
+
+		// check whether this viewport is an additional one
+		virtual bool IsAddition() = 0;
 
 		// Get the size of this viewport
 		virtual SIZE GetSize( void ) = 0;
@@ -36,8 +39,14 @@ namespace SpeedPoint
 		// Recalculate the projection matrix of this viewport
 		virtual SResult Set3DProjection( S_PROJECTION_TYPE type, float fPerspDegFOV, float fOrthoW, float fOrthoH ) = 0;
 
-		// Recalculate the view matrix of this viewport
-		virtual SResult RecalculateViewMatrix( SCamera* tempCam ) = 0;
+		// Get the Projection matrix of this viewport
+		virtual SMatrix4 GetProjectionMatrix() = 0;
+
+		// Recalculate view matrix of the camera of this viewport
+		virtual SResult RecalculateCameraViewMatrix( SCamera* tempCam ) = 0;
+
+		// Get view matrix of the camera of this viewport
+		virtual SMatrix4 GetCameraViewMatrix() = 0;
 
 		/////// TODO: More viewport related settings
 

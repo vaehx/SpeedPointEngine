@@ -5,20 +5,16 @@
 // ******************************************************************************************
 
 #pragma once
+#include <SPrerequisites.h>
 #include "SEventCallbackTable.h"
 
 namespace SpeedPoint
-{
-
-	// ******************************************************************************************
-
-	// Basic Destruction Event used for every Pipeline
-#define S_E_DESTRUCT 99999
+{		
 
 	// ******************************************************************************************
 
 	// SpeedPoint Observed Pipeline Base class
-	class SObservedObject
+	class S_API SObservedObject
 	{
 	private:
 		SEventCallbackTable m_EventCallbackTable;
@@ -40,5 +36,8 @@ namespace SpeedPoint
 
 		// Function to call an event by given index and parameters
 		SResult CallEvent(unsigned int iIndex, SEventParameters* pParams);
+
+		// Function to call an event by given index and parameter array
+		SResult CallEvent(unsigned int iIndex, SEventParameter* pParamArray, unsigned int nParamCount);
 	};
 }

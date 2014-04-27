@@ -24,6 +24,9 @@ namespace SpeedPoint
 		// It will also select the first available technique as the default
 		virtual SResult Initialize( SpeedPointEngine* pEngine, char* cFilename ) = 0;
 
+		// Check if the shader is initialized
+		virtual bool IsInitialized() = 0;
+
 		// Setup the current technique to be used
 		virtual SResult SetTechnique( char* cTechnique ) = 0;
 

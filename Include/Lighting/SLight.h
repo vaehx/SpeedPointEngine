@@ -1,13 +1,13 @@
 // ********************************************************************************************
 
-//	SpeedPoint Light
+//	This file is part of the SpeedPoint Game Engine!
 
 // ********************************************************************************************
 
 #pragma once
-#include "SPrerequisites.h"
-#include "SVector3.h"
-#include "SColor.h"
+#include <SPrerequisites.h>
+#include <Util\SVector3.h>
+#include <Util\SColor.h>
 
 namespace SpeedPoint
 {
@@ -28,24 +28,28 @@ namespace SpeedPoint
 
 		// Default constructor
 		SLight()
-			: tyLightType( S_LIGHT_POINT ),			
-			fRadius( 1.0f ),
-			fLength( 2.0f ),
-			fShineRadius( 0.2f ),
-			colColor( 0.8f, 0.8f, 0.8f ) {};
+			: tyLightType(S_LIGHT_POINT),
+			fRadius(1.0f),
+			fLength(2.0f),
+			fShineRadius(0.2f),
+			colColor(0.8f, 0.8f, 0.8f)
+		{
+		}
 
 		// Copy constructor
-		SLight( const SLight& o )
-			: tyLightType( o.tyLightType ),
-			vPosition( o.vPosition ),
-			vDirection( o.vDirection ),
-			fRadius( o.fRadius ),
-			fLength( o.fLength ),
-			fShineRadius( o.fShineRadius ),
-			colColor( o.colColor ) {};
+		SLight(const SLight& o)
+			: tyLightType(o.tyLightType),
+			vPosition(o.vPosition),
+			vDirection(o.vDirection),
+			fRadius(o.fRadius),
+			fLength(o.fLength),
+			fShineRadius(o.fShineRadius),
+			colColor(o.colColor)
+		{
+		}		
 
 		// Check if this light is in a specified range
-		bool IsInRange( float fRange, const SVector3& pos );
+		bool IsInRange(float fRange, const SVector3& pos);
 	};
 
 }

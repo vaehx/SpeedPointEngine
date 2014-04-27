@@ -3,7 +3,7 @@
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9RenderPipeline.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
-#include <SpeedPoint.h>
+#include <SSpeedPointEngine.h>
 
 namespace SpeedPoint
 {
@@ -164,7 +164,7 @@ namespace SpeedPoint
 			ZeroMemory( &vpViewport.d3dPresentParameters, sizeof( vpViewport.d3dPresentParameters ) );
 	
 			// Decide whether Window- or Fullscreen mode.
-			vpViewport.d3dPresentParameters.Windowed		= pEngine->GetSettings()->bWindowed;
+			vpViewport.d3dPresentParameters.Windowed		= pEngine->GetSettings().bWindowed;
 			if( !vpViewport.d3dPresentParameters.Windowed )
 			{
 				vpViewport.d3dPresentParameters.FullScreen_RefreshRateInHz = vpViewport.d3dDisplayMode.RefreshRate;
@@ -196,7 +196,7 @@ namespace SpeedPoint
 				setSettings.iAdapterIndex,
 				setSettings.tyDeviceType,
 				vpViewport.d3dPresentParameters.BackBufferFormat,
-				pEngine->GetSettings()->bWindowed,
+				pEngine->GetSettings().bWindowed,
 				vpViewport.d3dPresentParameters.MultiSampleType,
 				&dwMaxQualityLevel ) ) )
 			{
@@ -297,7 +297,7 @@ namespace SpeedPoint
 				pd3dDevice = NULL;
 			}			
 						
-			DWORD dwDefFlags = (( pEngine->GetSettings()->bMultithreaded ) ? D3DCREATE_MULTITHREADED : 0);
+			DWORD dwDefFlags = (( pEngine->GetSettings().bMultithreaded ) ? D3DCREATE_MULTITHREADED : 0);
 	
 			// Predefine Params			
 			UINT iAdapter = ( ( setSettings.iAdapterIndex ) ? D3DADAPTER_DEFAULT : setSettings.iAdapterIndex );
@@ -310,7 +310,7 @@ namespace SpeedPoint
 			setSettings.tyDeviceType = D3DDEVTYPE_HAL;
 
 			if( FAILED( hr = pDirect3D->CheckDeviceType( setSettings.iAdapterIndex, D3DDEVTYPE_HAL,
-				vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings()->bWindowed ) ) )
+				vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings().bWindowed ) ) )
 			{				
 				// Check with lower backbuffer format
 				if( setSettings.iBackBufferFormat == S_BACKBUFFER16 )
@@ -322,7 +322,7 @@ namespace SpeedPoint
 				}
 
 				hr = pDirect3D->CheckDeviceType( setSettings.iAdapterIndex, D3DDEVTYPE_HAL,
-					vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings()->bWindowed );				
+					vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings().bWindowed );				
 			}
 
 			if( FAILED( hr ) )
@@ -332,7 +332,7 @@ namespace SpeedPoint
 				{
 					vpViewport.d3dDisplayMode.Format = D3DFMT_X1R5G5B5;
 					hr = pDirect3D->CheckDeviceType( setSettings.iAdapterIndex, D3DDEVTYPE_HAL,
-						vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings()->bWindowed );
+						vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings().bWindowed );
 				}
 			}
 			
@@ -345,7 +345,7 @@ namespace SpeedPoint
 				setSettings.iBackBufferFormat = iPreBackBufferFormat;
 
 				if( FAILED( hr = pDirect3D->CheckDeviceType( setSettings.iAdapterIndex, D3DDEVTYPE_REF,
-					vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings()->bWindowed ) ) )
+					vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings().bWindowed ) ) )
 				{
 					// go one step down
 					if( setSettings.iBackBufferFormat == S_BACKBUFFER32 )
@@ -359,7 +359,7 @@ namespace SpeedPoint
 					}
 
 					hr = pDirect3D->CheckDeviceType( setSettings.iAdapterIndex, D3DDEVTYPE_REF,
-						vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings()->bWindowed );
+						vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings().bWindowed );
 				}
 
 				if( FAILED( hr ) )
@@ -370,7 +370,7 @@ namespace SpeedPoint
 						vpViewport.d3dDisplayMode.Format = D3DFMT_X1R5G5B5;
 
 						hr = pDirect3D->CheckDeviceType( setSettings.iAdapterIndex, D3DDEVTYPE_REF,
-							vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings()->bWindowed );
+							vpViewport.d3dDisplayMode.Format, vpViewport.d3dDisplayMode.Format, pEngine->GetSettings().bWindowed );
 					}
 				}
 			}			
@@ -534,6 +534,8 @@ namespace SpeedPoint
 			return pEngine->LogReport( S_ERROR, "Could not initialize DX9 Render Pipeline" );
 		}
 
+		// !!! pRenderPipeline->SetFramePipeline() will be called by SFramePipeline::Initialize() !!!
+
 		if( Failure( pRenderPipeline->SetTargetViewport( (SViewport*)&vpViewport ) ) )
 		{
 			return pEngine->LogReport( S_ERROR, "Failed set Target Viewport!" );
@@ -672,47 +674,32 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9Renderer::BeginScene( void )
+	S_API SResult SDirectX9Renderer::BeginScene(void)
 	{
-		if( !IsInited() ) return S_ABORTED;
+		if (!IsInited()) return S_ABORTED;
 
-		// Check if currently not in scene
-		if( pRenderPipeline->GetState() == S_RENDER_NONE )
-		{
-			if( FAILED( pd3dDevice->BeginScene() ) )
-				return S_ERROR;
-
-			return S_SUCCESS;
-		}
-
-		return pEngine->LogReport( S_ERROR, "Failed Begin DX Scene!" );
-	}
-
-	// **********************************************************************************
-
-	S_API SResult SDirectX9Renderer::EndScene( void )
-	{
-		if( !IsInited() ) return S_ABORTED;
-
-		if( FAILED( pd3dDevice->EndScene() ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed End DX Scene!" );
-		}
+		if (Failure(pd3dDevice->BeginScene()))
+			return pEngine->LogE("Failed Begin DX Scene!");		
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9Renderer::RenderSolid( SSolid* pSolid )
+	S_API SResult SDirectX9Renderer::EndScene( void )
 	{
-		return pRenderPipeline->RenderSolidGeometry( pSolid );
+		if (!IsInited()) return S_ABORTED;
+
+		if (Failure(pd3dDevice->EndScene()))
+			return pEngine->LogReport(S_ERROR, "Failed End DX Scene!");
+
+		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API DWORD SDirectX9Renderer::GetFVF( void )
+	S_API SResult SDirectX9Renderer::RenderSolid(SSolid* pSolid, bool bTextured)
 	{
-		return D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2;
+		return pRenderPipeline->RenderSolidGeometry(pSolid, bTextured);
 	}
 }

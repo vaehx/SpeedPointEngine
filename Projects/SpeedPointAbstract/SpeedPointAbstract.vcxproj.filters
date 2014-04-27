@@ -58,9 +58,6 @@
     <ClInclude Include="..\..\Include\Abstract\SParticleSystem.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\SPhysical.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\SRenderer.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -102,6 +99,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\Pipelines\SRenderPipelineSection.h">
       <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\SPhysicalObject.h">
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

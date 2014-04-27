@@ -1,0 +1,44 @@
+//////////////////////////////////////////////////////////////////////////
+
+// Speedpoint Standard functions test
+
+//////////////////////////////////////////////////////////////////////////
+
+#include <iostream>
+#include "String.h"
+#include "Assert.h"
+
+//////////////////////////////////////////////////////////////////////////
+
+class CTest
+{
+public:
+	void DoSomething()
+	{
+		TEST_ASSERT(true);
+		TEST_ASSERT(true, "This is a test message");
+
+		int iTest = 5;
+		SpeedPoint::String sTest = "This is a test message";				
+		TEST_ASSERTD(true, "iTest=%d, cTest='%s'", iTest, (char*)sTest);
+	}
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+int main(void)
+{	
+	CTest test;
+	test.DoSomething();
+
+	int v[] = { 1, };
+	
+	std::cout << v[1];
+
+	SpeedPoint::String cStr;
+	std::cin >> cStr;
+
+	return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////

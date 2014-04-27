@@ -1,0 +1,910 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SpeedPoint::SRenderPipeline" Collapsed="true">
+    <Position X="5" Y="16.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAJQAQQAAAAQAAAAAAAAAAACAAACAAAIAgBABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\Pipelines\SRenderPipeline.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SRenderPipelineSection" Collapsed="true">
+    <Position X="4.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\Pipelines\SRenderPipelineSection.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SAnimationBundle" Collapsed="true">
+    <Position X="17" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAACAAAMEAAAAAAAAEAABASAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SAnimationBundle.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SAnimationJoint" Collapsed="true">
+    <Position X="8" Y="14.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgEAAAAAAAAAAAAAAACAAAQABABAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SAnimationJoint.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SAnimationKey" Collapsed="true">
+    <Position X="16" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAABAAAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SAnimationKey.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SAnimationSequence" Collapsed="true">
+    <Position X="15" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAIAQAAAAAAAAYAAAAAAAAAAAAAQABABAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SAnimationSequence.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBot" Collapsed="true">
+    <Position X="12.25" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SBot.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SCommandBufferEntry" Collapsed="true">
+    <Position X="27.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SCommandBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SCommandBuffer" Collapsed="true">
+    <Position X="26" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SCommandBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SEntity" Collapsed="true">
+    <Position X="11.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAAgAAAAAAAACAAAAACAAQAAABAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SEntity.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SFrameBuffer" Collapsed="true">
+    <Position X="11" Y="18.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SFrameBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SIndexBuffer" Collapsed="true">
+    <Position X="20" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAUAAAAABAAAQAQAAAAAAAAAgAACEAAAAAAAAFAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SIndexBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SInteractive" Collapsed="true">
+    <Position X="26" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SInteractive.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SOctree" Collapsed="true">
+    <Position X="5" Y="13.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQIAAAAAAAAAAAAAIAAAAAAAAABAEEA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SOctree.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SOctreeNode" Collapsed="true">
+    <Position X="2" Y="13.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAAABAAAAAAIAEAAAgAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SOctreeNode.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SOutputPlane" Collapsed="true">
+    <Position X="20" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAABAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SOutputPlane.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SParticle" Collapsed="true">
+    <Position X="11" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SParticle.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SParticleSystem" Collapsed="true">
+    <Position X="8" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SParticleSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPhysical" Collapsed="true">
+    <Position X="12.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACIAACAAAEAABAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SPhysical.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SRenderer" Collapsed="true">
+    <Position X="8" Y="17.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAGgAABAAAAAQAAAEAQAQAAACAAAAEABIAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SRenderer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SRendererSettings" Collapsed="true">
+    <Position X="2" Y="16.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAIAAAAAACAAAAAIAAAAAAAAAAAAAAAAAAAAAACAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SRendererSettings.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SResourcePool" Collapsed="true">
+    <Position X="18" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACACEAAAAQBRAAAAEAAAAAAAAAAAAAVAAAACAAI=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SResourcePool.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SShader" Collapsed="true">
+    <Position X="17" Y="15.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAIAABABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SShader.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SSolid" Collapsed="true">
+    <Position X="11.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAEACEEAJAQABAAAAQAACEAAEkAEECAAAAABAQAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SSolid.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SSolidSystem" Collapsed="true">
+    <Position X="3.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQIAAAAAAIAAAAAAAAAAAAAEAABAAQA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SSolidSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SSound" Collapsed="true">
+    <Position X="5" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAABAEAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SSound.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SSoundSystem" Collapsed="true">
+    <Position X="2" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABQAAAAAAAAkAAAAAAAAAAAAAAABAIAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SSoundSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::STerrain" Collapsed="true">
+    <Position X="13.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAQAAAAAAgAAAAAABAAAAAAAACABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\STerrain.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::STexture" Collapsed="true">
+    <Position X="14" Y="15.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAwCAAAAAAAAAAAABAAEAAAAAAABAEAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\STexture.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SVertexBuffer" Collapsed="true">
+    <Position X="17" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAUAAEAABAAAQAAAAAAAAAAAAAACEAAABAAAAFAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SVertexBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SViewport" Collapsed="true">
+    <Position X="11" Y="15.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAQAAQDAAAAqYAAAAAAAAQgAAAACAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Abstract\SViewport.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9FrameBuffer" Collapsed="true">
+    <Position X="11" Y="19.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAACAQAAAAAAAAAAAAAAAAAQAAAAAABgAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9FrameBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9GeometryRenderSection" Collapsed="true">
+    <Position X="4.5" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAICAGAEcAAEQAEAAAQABAIIAAAAQAAAAACCEBgDAI=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9GeometryRenderSection.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9IndexBuffer" Collapsed="true">
+    <Position X="20" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>oAAUQBAAABAEEQIQAAAAAAAAggAACEAQAAQAAAFgAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9IndexBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9LightingRenderSection" Collapsed="true">
+    <Position X="6.75" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EABAAAAAEAIEEQAEAAABAAAgJAAAAAAAAAgAAABAAAI=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9LightingRenderSection.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9OutputPlane" Collapsed="true">
+    <Position X="20" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQiAAAAAAAAQAAAAAAAAAAABAAAAAQABAAAFBAAQA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9OutputPlane.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9PostRenderSection" Collapsed="true">
+    <Position X="2.25" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAQAEAAAAAAAIIAAAAAAAAAAAAABABBE=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9PostRenderSection.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9Renderer" Collapsed="true">
+    <Position X="8" Y="18.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AwAGgAAJAAAAAQAAQEAQAwAAAGEAgAERBIoAAAACAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9Renderer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9RenderPipeline" Collapsed="true">
+    <Position X="5" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAJwASQAIAAQAEAQAAQACAECAAACIAgIAgBABAgAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9RenderPipeline.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9ResourcePool" Collapsed="true">
+    <Position X="18" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACCACEAAAAQBRAAAAEEAAAAgAAAASAAVAAAACAAI=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9ResourcePool.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9Settings" Collapsed="true">
+    <Position X="2" Y="17.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CACAKIAAABACAAACEIQAAAABAAAQAABAABACBAABCIA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9Settings.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9Shader" Collapsed="true">
+    <Position X="17" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAACAAAAAAAAQAEAAAAABAAAAAIAAAAAIAEBABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9Shader.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9Texture" Collapsed="true">
+    <Position X="14" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAICgwKAAAAAAAAAAAABAAEYAAAAAABAEAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9Texture.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9VertexBuffer" Collapsed="true">
+    <Position X="17" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>oAAUAAEAABAAAQIAEAAAEAAAgAAASGAQABQAAAFAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9VertexBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectX9Viewport" Collapsed="true">
+    <Position X="11" Y="16.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAECgAAAEARAAQDAAAUqYACCAAAAAQgQBAgCABBAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\DirectX9\SDirectX9Viewport.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicAnimationBundle" Collapsed="true">
+    <Position X="17" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAEAAACAAQAAAAAAACAAAMEAAAAAAACAQABQTCA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicAnimationBundle.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicAnimationJoint" Collapsed="true">
+    <Position X="8" Y="15.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAgEAAAAAAAAAAAAAAACAAAAARQAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicAnimationJoint.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicAnimationKey" Collapsed="true">
+    <Position X="16" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAQAAAAAAAAAAAAAABAAAIAAAARAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicAnimationKey.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicAnimationSequence" Collapsed="true">
+    <Position X="15" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAIAQAAACAAAAYAAAAAAAAAAAAAQAFABAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicAnimationSequence.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicOctree" Collapsed="true">
+    <Position X="5" Y="14.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQIAAAAAAAAAAAAAIBAAAAAAAABQEEA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicOctree.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicOctreeNode" Collapsed="true">
+    <Position X="2" Y="14.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEQAAAABBAACAAAIAEAAAgCAABAAAABAAAABAABA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicOctreeNode.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicSolid" Collapsed="true">
+    <Position X="10.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEBAEEACkEAJAQIBAAAAQABCEAAEkAEUCAABAQBgQJA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicSolid.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicSolidSystem" Collapsed="true">
+    <Position X="4.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQIEAAAAAIAAAAgAAAAAAAAEAABAAQA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicSolidSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicTerrain" Collapsed="true">
+    <Position X="10.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAABAQAAAAAAggAAAAABAAAAAAAACABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicTerrain.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SEventCallbackTable" Collapsed="true">
+    <Position X="29.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAQAAAAAAAAQAEAAAAAAEAAAAAIgAAAAAABADAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Observer\SEventCallbackTable.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SEventHandler" Collapsed="true">
+    <Position X="22.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAQAAAAAAAASgAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Observer\SEventHandler.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SEventParameters" Collapsed="true">
+    <Position X="24.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAQhhAAAAAAAAAAAAAAAAAAAAAABMAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Observer\SEventParameters.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SObservedObject" Collapsed="true">
+    <Position X="3.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAAAAAAFAQAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Observer\SObservedObject.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPhysicalSolid" Collapsed="true">
+    <Position X="10.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEyAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicalSolid.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPhysicalSolidSystem" Collapsed="true">
+    <Position X="2" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAAAAAAAQIEAAAAAIAAAAAAAAAAAAAEAABAAQA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicalSolidSystem.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="m_pEngine" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="SpeedPoint::SPhysicsEngine" Collapsed="true">
+    <Position X="27.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAEAAAAAAAAAAAAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsEngine.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPhysics2DIntersect" Collapsed="true">
+    <Position X="24.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gQQYAAIABBBAAAAAAAACAAQIFWCFAAAAAAAAAAAQAkA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPhysics3DIntersect" Collapsed="true">
+    <Position X="26" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAIBhYDQEAIJAQaGAAIAQEBBAYEAQgCAUIMaIAiGME=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPhysIntersectInfo" Collapsed="true">
+    <Position X="29.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysIntersectInfo.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDynamicsPipeline" Collapsed="true">
+    <Position X="0.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAoAAgAAEAQEEAAgAAAAAAAAAACAAAAACAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Pipelines\SDynamicsPipeline.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SFramePipeline" Collapsed="true">
+    <Position X="3.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AFCAFAAAIAABQQIEgAAAAAAAAACQgQAAAABRAABAEAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Pipelines\SFramePipeline.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SSpeedPointEngine" Collapsed="true">
+    <Position X="7" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gEgBMghAACAAAgsgAIAEQQiAAIgAgCEKIAgABCAgB0A=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\SSpeedPointEngine.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBoundBox" Collapsed="true">
+    <Position X="24.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAIACABAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SBoundBox.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SCamera" Collapsed="true">
+    <Position X="8.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAQAAgQAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SCamera.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SLogStream" Collapsed="true">
+    <Position X="22.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAARAAAAAAAAAAAAAAAAAAAAAAAABABAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SLogStream.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPlane" Collapsed="true">
+    <Position X="22.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAgQAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SPlane.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SPool&lt;SPoolType_&gt;" Collapsed="true">
+    <Position X="24.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AYBAAASEAAAAACCAAQABAAAAgCAAABQAAAAAACFADAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SPool.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::STransformable" Collapsed="true">
+    <Position X="10.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIEKCAgBCAAAICAQABEAAAAQBAAAAEAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\STransformable.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SLightSystem" Collapsed="true">
+    <Position X="29.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAABAACAABAAAAIAAAAAAAAAAAAEAAAMAAQAABBCAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Lighting\SLightSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SLight" Collapsed="true">
+    <Position X="27.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAEAAgAAAAAUAAAEAAAAAMACg=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Lighting\SLight.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicBot" Collapsed="true">
+    <Position X="12.25" Y="11.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAIAAAAgAAgAAAAACAAAAACAAQAAABAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\AI\SBasicBot.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicWaynet" Collapsed="true">
+    <Position X="22.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAAAQAAAAAAAAAAACAAAAAQAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\AI\SBasicWaynet.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicEntity" Collapsed="true">
+    <Position X="10" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAIAAAAgAAgAABAACAAAAACAAQAAADAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Entity\SBasicEntity.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SBasicParticleSystem" Collapsed="true">
+    <Position X="8" Y="12.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Particles\SBasicParticleSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectSoundResource" Collapsed="true">
+    <Position X="5" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAAQAAAAAAAAAAAAABAAAEAAAAAABAEAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Sound\SDirectSoundResource.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SDirectSoundSystem" Collapsed="true">
+    <Position X="2" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABQAAAAAAAAkAAAAAAAAQQAAAAABAIAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Sound\SDirectSoundSystem.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::IExceptionProxy" Collapsed="true">
+    <Position X="7" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\util\sresult.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpeedPoint::SString" Collapsed="true">
+    <Position X="26" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAAAAAAAAAAAAAABCAAAAEAAAAAAAAgAAQACQA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\util\sstring.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="SpeedPoint::SJointMovement" Collapsed="true">
+    <Position X="27.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAEAAABAACAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Geometry\SBasicAnimationKey.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SEventCallbackTableEntry" Collapsed="true">
+    <Position X="24.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAQAAAEAAAAAAAAQAAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Observer\SEventCallbackTableEntry.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SEventParameter" Collapsed="true">
+    <Position X="26" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAAAAAAAAAEAAAAAAAAAAABAAACgAAAAABAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Observer\SEventParameter.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SVector2" Collapsed="true">
+    <Position X="27.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAABgAAAAAQA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SVector3" Collapsed="true">
+    <Position X="29.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAEAAAEAAgAQBACAAAAAAAAADgAQAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OLine2" Collapsed="true">
+    <Position X="26" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAEAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OCircle" Collapsed="true">
+    <Position X="29.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OBox2" Collapsed="true">
+    <Position X="24.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAEAQAAAAAAg=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OCapsule2" Collapsed="true">
+    <Position X="27.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAEAAAAAAAAAAAAAEAFAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OSphere" Collapsed="true">
+    <Position X="29.5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAEAABAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OBox" Collapsed="true">
+    <Position X="22.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAKAAAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OCapsule" Collapsed="true">
+    <Position X="26" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAEAAAAAAAAAAAAAEAFAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OLine" Collapsed="true">
+    <Position X="24.25" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAEAAAAAAAAAAAAAAAAAAAAAAACAAFAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OPlane" Collapsed="true">
+    <Position X="27.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAACEEAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::OCylinder" Collapsed="true">
+    <Position X="22.5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAAAAAAAAAEAAAAAAAAAAAAAAAFAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SPhysicsMaterial" Collapsed="true">
+    <Position X="14" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAEAAAgAAAAgAEEAAAAAAAAgBAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsMaterial.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SColor" Collapsed="true">
+    <Position X="22.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAoAQABAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SColor.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SMaterial" Collapsed="true">
+    <Position X="14" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAFgAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SMaterial.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SMatrix" Collapsed="true">
+    <Position X="18.75" Y="21.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SMatrix.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SPrimitive" Collapsed="true">
+    <Position X="22.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAQAAABAEAAAAAAgABAAAEAAIAAAAAIAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SPrimitive.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SXYZ" Collapsed="true">
+    <Position X="27.75" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAQAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SVector3.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SVector4" Collapsed="true">
+    <Position X="22.5" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAhgBQAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SVector4.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SVertex" Collapsed="true">
+    <Position X="24.25" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SVertex.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SWayNode" Collapsed="true">
+    <Position X="26" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\AI\SBasicWaynode.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SBasicParticle" Collapsed="true">
+    <Position X="11" Y="13.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Implementation\Particles\SBasicParticle.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SResult" Collapsed="true">
+    <Position X="24.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAAAAAABAAAAQBIAAAAAQAAAAAAAAAAgAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\util\sresult.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SPoolIndex" Collapsed="true">
+    <Position X="29.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAACIAAAQAAAQAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\util\spoolindex.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="SpeedPoint::SSettings" Collapsed="true">
+    <Position X="26" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABQCAAIAEBEAAAIAAAAAIAAAAcABAAYIAAAAAAAAECU=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\ssettings.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Typedef Name="SpeedPoint::SResult" Collapsed="true">
+    <Position X="24.25" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Observer\SEventHandler.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::OPoint2" Collapsed="true">
+    <Position X="26" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::OPoint" Collapsed="true">
+    <Position X="24.25" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\OnionPhysics\SPhysicsIntersection.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::SFrameEngine" Collapsed="true">
+    <Position X="3.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Pipelines\SFramePipeline.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::SpeedPointEngine" Collapsed="true">
+    <Position X="21.5" Y="12.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\SSpeedPointEngine.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::SLogHandler" Collapsed="true">
+    <Position X="27.75" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SLogStream.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::SMatrix4" Collapsed="true">
+    <Position X="18.75" Y="19.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SMatrix.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::float2" Collapsed="true">
+    <Position X="27.75" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SVector2.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::float3" Collapsed="true">
+    <Position X="29.5" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SVector3.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::float4" Collapsed="true">
+    <Position X="22.5" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>D:\SpeedPoint\SpeedPointEngine\Include\Util\SVector4.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::usint32" Collapsed="true">
+    <Position X="14.75" Y="21.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\sprerequisites.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::usint64" Collapsed="true">
+    <Position X="26" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\sprerequisites.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::byte" Collapsed="true">
+    <Position X="22.5" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\sprerequisites.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::f32" Collapsed="true">
+    <Position X="24.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\sprerequisites.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::f64" Collapsed="true">
+    <Position X="26" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\sprerequisites.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::SP_UNIQUE" Collapsed="true">
+    <Position X="14.75" Y="19.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\sprerequisites.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="SpeedPoint::SP_ID" Collapsed="true">
+    <Position X="29.5" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\util\spoolindex.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Enum Name="SpeedPoint::SResultType" Collapsed="true">
+    <Position X="22.5" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AkAAAIAAAAAAAQAAAAAAAACAABAAAAEAFAAAABAAAAQ=</HashCode>
+      <FileName>d:\speedpoint\speedpointengine\include\util\sresult.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

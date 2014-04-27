@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <SPool.h>
+#include <Util\SPool.h>
 #include "SSolid.h"
 
 namespace SpeedPoint
@@ -21,12 +21,18 @@ namespace SpeedPoint
 	public:
 		// Initialize this system
 		virtual SResult Initialize( SpeedPointEngine* pEngine ) = 0;
+		
+		// Get pointer to the SpeedPoint Engine instance, this solidsystem is using
+		virtual SpeedPointEngine* GetEngine() = 0;
 
 		// Add a new solid and return id of it
 		virtual SP_ID AddSolid( void ) = 0;
 
 		// Get a pointer to a solid by its id
 		virtual SSolid* GetSolid( SP_ID id ) = 0;
+
+		// Get count of solids
+		virtual unsigned int GetSolidCount() = 0;
 
 		// Clearout this system including all stored solids
 		virtual SResult Clear( void ) = 0;

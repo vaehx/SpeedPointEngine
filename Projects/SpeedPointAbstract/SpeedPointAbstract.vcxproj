@@ -85,7 +85,7 @@
     <ClInclude Include="..\..\Include\Abstract\SOutputPlane.h" />
     <ClInclude Include="..\..\Include\Abstract\SParticle.h" />
     <ClInclude Include="..\..\Include\Abstract\SParticleSystem.h" />
-    <ClInclude Include="..\..\Include\Abstract\SPhysical.h" />
+    <ClInclude Include="..\..\Include\Abstract\SPhysicalObject.h" />
     <ClInclude Include="..\..\Include\Abstract\SRenderer.h" />
     <ClInclude Include="..\..\Include\Abstract\SRendererSettings.h" />
     <ClInclude Include="..\..\Include\Abstract\SResourcePool.h" />

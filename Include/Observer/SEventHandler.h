@@ -5,6 +5,7 @@
 // ******************************************************************************************
 
 #pragma once
+#include <SPrerequisites.h>
 #include "SEventParameters.h"
 
 namespace SpeedPoint
@@ -12,10 +13,10 @@ namespace SpeedPoint
 	// ******************************************************************************************
 
 	// SpeedPoint Event Handler callback function
-	typedef SResult(*SEventCallback)(SEventParameters*);
+	typedef S_API SResult(*SEventCallback)(SEventParameters*);
 
 	// SpeedPoint Event Handler class (part of the observer pattern)
-	class SEventHandler
+	class S_API SEventHandler
 	{
 	private:
 		SEventCallback m_pFunction;

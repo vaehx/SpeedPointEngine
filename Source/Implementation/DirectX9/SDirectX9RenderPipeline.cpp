@@ -1,4 +1,11 @@
-// SpeedPoint DirectX9 Render Pipeline
+// ********************************************************************************************
+
+//	This file is part of the SpeedPoint Game Engine
+
+//	(c) 2011-2014 Pascal R. aka iSmokiieZz
+//	All rights reserved.
+
+// ********************************************************************************************
 
 #include <Implementation\DirectX9\SDirectX9RenderPipeline.h>
 #include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
@@ -10,166 +17,136 @@
 #include <Implementation\DirectX9\SDirectX9GeometryRenderSection.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <Abstract\SSolid.h>
-#include <SVertex.h>
-#include <SPrimitive.h>
-#include <SMaterial.h>
-#include <SpeedPoint.h>
-#include <STransformable.h>
+#include <Util\SVertex.h>
+#include <Util\SPrimitive.h>
+#include <Util\SMaterial.h>
+#include <Util\STransformable.h>
+#include <SSpeedPointEngine.h>
 
 namespace SpeedPoint
 {
 
+	S_API SDirectX9RenderPipeline::SDirectX9RenderPipeline()
+		: m_pEngine(0),
+		m_pDXRenderer(0),
+		m_pTargetViewport(0),
+		m_pVertexDeclaration(0)
+	{
+	}
+
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::Initialize( SpeedPointEngine* eng, SRenderer* renderer )
+	S_API SDirectX9RenderPipeline::~SDirectX9RenderPipeline()
 	{
-		pEngine = eng;
-		pRenderer = (SDirectX9Renderer*)renderer;
+		Clear();
+	}
 
-		if( pEngine == NULL || pRenderer == NULL ) return S_ERROR;
+	// **********************************************************************************
+
+	S_API SResult SDirectX9RenderPipeline::Initialize(SpeedPointEngine* eng, SRenderer* renderer)
+	{
+		m_pEngine = eng;
+		m_pDXRenderer = (SDirectX9Renderer*)renderer;
+
+		SP_ASSERTR((!m_pEngine || !m_pDXRenderer), S_ERROR);
 
 		// Initialize backbuffer from default viewport of the renderer
-		pTargetViewport = &pRenderer->vpViewport;
+		m_pTargetViewport = &m_pDXRenderer->vpViewport;
 
-		// Now initialize the GBuffer and lighting buffer
-		pGBufferAlbedo = (SFrameBuffer*)new SDirectX9FrameBuffer();
-		if( Failure( pGBufferAlbedo->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
+		// Initialize the Geometry Render Section		
+		if (Failure(m_GeometryRenderSection.Initialize(m_pEngine, (SRenderPipeline*)this)))
 		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Albdeo GBuffer component" );
-		}		
-
-		pGBufferNormals = (SFrameBuffer*)new SDirectX9FrameBuffer();
-		if( Failure( pGBufferNormals->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Normal GBuffer component" );
+			return m_pEngine->LogE("Failed initialize Geometry render section of Render pipeline!");
 		}
 
-		pGBufferTangents = (SFrameBuffer*)new SDirectX9FrameBuffer();
-		if( Failure( pGBufferTangents->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
+		// Initialize Lighting render section
+		if (Failure(m_LightingRenderSection.Initialize(m_pEngine, (SRenderPipeline*)this)))
 		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Tangent GBuffer component" );		
+			return m_pEngine->LogE("Failed initialize lighting render section of render pipeline!");
 		}
 
-		pGBufferPosition = (SFrameBuffer*)new SDirectX9FrameBuffer();
-		if( Failure( pGBufferPosition->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
+		// INitialize post render section
+		if (Failure(m_PostRenderSection.Initialize(m_pEngine, (SRenderPipeline*)this)))
 		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Position GBuffer component" );		
+			return m_pEngine->LogE("Failed initilaize post render section of render pipeline!");
 		}
 
-//~~~~~~~~~
-// TODO: Check if lighting used at all
-		/*pseudo:
-		if (pEngine->GetSettings()->bLighting)
-		{
-		*/		
-		pLightingBuffer = (SFrameBuffer*)new SDirectX9FrameBuffer();
-		if( Failure( pLightingBuffer->Initialize( pEngine, pRenderer->vpViewport.nXResolution, pRenderer->vpViewport.nYResolution ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Light buffer component" );
-		}
-		/*pseudo:
-		}
-		*/
-//~~~~~~~~~
+		return S_SUCCESS; // seems like everything went well :)
+	}
 
-		// Initialize the gbuffer shader
-		if( Failure( gBufferShader.Initialize( pEngine, "Effects\\gbuffer.fx" ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed to load GBuffer creation effect" );
-		}
+	// **********************************************************************************
 
-		// Initialize the output plane
-		pOutputPlane = (SOutputPlane*)new SDirectX9OutputPlane();
-		SIZE szVPSize = pTargetViewport->GetSize();
-		if( Failure( pOutputPlane->Initialize( pEngine, pRenderer, szVPSize.cx, szVPSize.cy ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Output plane" );		
-		}
+	S_API bool SDirectX9RenderPipeline::IsInitialized()
+	{
+		return (m_pEngine && m_pDXRenderer && m_pTargetViewport);
+	}
 
-		// Initialize the Geometry Render Section
-		pGeometryRenderSection = new SDirectX9GeometryRenderSection();
-		if( Failure( pGeometryRenderSection->Initialize( pEngine, pRenderer ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed initialize Geometry render section of Render pipeline!" );
-		}
+	// **********************************************************************************
+
+	S_API SResult SDirectX9RenderPipeline::SetFramePipeline(SFramePipeline* pFramePipeline)
+	{		
+		SP_ASSERTR(!pFramePipeline, S_INVALIDPARAM);
+		
+		m_pFramePipeline = pFramePipeline;
+		return S_SUCCESS;
+	}
+
+	// **********************************************************************************
+
+	S_API SResult SDirectX9RenderPipeline::Clear(void)
+	{
+		if (m_pEngine) m_pEngine->LogReport(S_INFO, "Clearing DX9 Render Pipeline...");
+
+		m_GeometryRenderSection.Clear();
+		m_LightingRenderSection.Clear();
+		m_PostRenderSection.Clear();
+
+		m_pVertexDeclaration = 0;
+		m_pTargetViewport = 0;
+		m_pDXRenderer = 0;
+		m_pEngine = 0;
+		m_pFramePipeline = 0;
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API S_RENDER_STATE SDirectX9RenderPipeline::GetState( void )
+	S_API S_FRAMEPIPELINE_STAGE SDirectX9RenderPipeline::GetCurrentStage()
 	{
-		return iState;
+		if (m_pFramePipeline == 0)
+			return S_IDLE;
+
+		return m_pFramePipeline->GetCurrentStage();
 	}
 
 	// **********************************************************************************
 
-	S_API S_RENDER_STATE SDirectX9RenderPipeline::NextState( void )
+	S_API SRenderer* SDirectX9RenderPipeline::GetRenderer()
 	{
-		switch( iState )
-		{
-		case S_RENDER_BEGINFRAME: iState = S_RENDER_GEOMETRY; break;
-		case S_RENDER_GEOMETRY: iState = S_RENDER_LIGHTING; break;
-		case S_RENDER_LIGHTING: iState = S_RENDER_POST; break;
-		case S_RENDER_POST: iState = S_RENDER_ENDFRAME; break;
-		case S_RENDER_ENDFRAME: iState = S_RENDER_PRESENT; break;		
-		default:
-			iState = S_RENDER_NONE;
-		}
+		return (SRenderer*)m_pDXRenderer;
+	}	
 
-		return iState;
+	// **********************************************************************************
+
+	S_API SViewport* SDirectX9RenderPipeline::GetTargetViewport(void)
+	{
+		return m_pTargetViewport;
 	}
 
 	// **********************************************************************************
 
-	S_API SViewport* SDirectX9RenderPipeline::GetTargetViewport( void )
+	S_API SResult SDirectX9RenderPipeline::SetTargetViewport(SViewport* pVP)
 	{
-		return pTargetViewport;
-	}
+		SP_ASSERTR(!pVP, S_INVALIDPARAM);
 
-	// **********************************************************************************
-
-	S_API SResult SDirectX9RenderPipeline::SetTargetViewport( SViewport* pVP )
-	{
-		if( pVP == NULL )		
-			return pEngine->LogReport( S_ABORTED, "Tried to set target Viewport to NULL" );		
-
-		pTargetViewport = pVP;
+		m_pTargetViewport = pVP;
 		return S_SUCCESS;
-	}
+	}	
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::Clear( void )
-	{
-		if( pEngine )
-			pEngine->LogReport( S_INFO, "Clearing DX9 Render Pipeline" );
-
-		pTargetViewport = NULL;
-
-		if( pOutputPlane ) pOutputPlane->Clear(); delete pOutputPlane; pOutputPlane = NULL;
-		
-		if( pGBufferAlbedo ) pGBufferAlbedo->Clear(); delete pGBufferAlbedo; pGBufferAlbedo = NULL;		
-		
-		if( pGBufferNormals ) pGBufferNormals->Clear(); delete pGBufferNormals; pGBufferNormals = NULL;
-
-		if( pGBufferTangents ) pGBufferTangents->Clear(); delete pGBufferTangents; pGBufferTangents = NULL;
-
-		if( pGBufferPosition ) pGBufferPosition->Clear(); delete pGBufferPosition; pGBufferPosition = NULL;
-		
-		if( pLightingBuffer ) pLightingBuffer->Clear(); delete pLightingBuffer; pLightingBuffer = NULL;
-
-		if( pGeometryRenderSection ) pGeometryRenderSection->Clear(); delete pGeometryRenderSection; pGeometryRenderSection = NULL;
-		
-		pEngine = NULL;
-		pRenderer = NULL;
-
-		return S_SUCCESS;
-	}
-
-	// **********************************************************************************
-
+	/*
 	S_API SResult SDirectX9RenderPipeline::CalcViewTransformation( const STransformable* camera )
 	{
 		if( camera == NULL ) return S_ABORTED;
@@ -196,10 +173,10 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::CalcWorldTransformation( const STransformable* form )
 	{
-		if( pEngine == NULL ) return S_ABORTED;
+		if( m_pEngine == NULL ) return S_ABORTED;
 
 		if( form == NULL )
-			return pEngine->LogReport( S_ABORTED, "Tried calculate World transformation of not given form" );
+			return m_pEngine->LogReport( S_ABORTED, "Tried calculate World transformation of not given form" );
 
 		// World / Form matrix
 		D3DXMATRIX mTrans, mRot, mScale, mOrig;					
@@ -220,11 +197,11 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::CalcRenderingTransformations( const STransformable* form, const STransformable* camera )
 	{
-		if( pEngine == NULL ) return S_ABORTED;
+		if( m_pEngine == NULL ) return S_ABORTED;
 
 		if( form == NULL || camera == NULL )
 		{
-			return pEngine->LogReport( S_ABORTED, "Tried to calculate Rendering transformations without given form and camera" );
+			return m_pEngine->LogReport( S_ABORTED, "Tried to calculate Rendering transformations without given form and camera" );
 		}
 
 		if( Aborted( CalcViewTransformation( camera ) ) )
@@ -239,301 +216,197 @@ namespace SpeedPoint
 
 		return S_SUCCESS;
 	}
+	*/
 
 
 	// **********************************************************************************
-	//				R E N D E R     S T A T E S
+	//				R E N D E R     S E C T I O N S
 	// **********************************************************************************
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::BeginFrameSection( void )
+	S_API SResult SDirectX9RenderPipeline::DoBeginRendering()
 	{
-		if( iState != S_RENDER_BEGINFRAME && iState != S_RENDER_NONE ) return S_ABORTED;
+		HRESULT hRes;
+		SResult res;
 
-		if( pEngine == NULL || pRenderer == NULL ) return S_ABORTED;
+		SP_ASSERTR(!IsInitialized(), S_ERROR);
 
-		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)pRenderer;
-
-		// Clear the current buffers
+		// Clear the current backbuffer
+		// We assume that the RenderTarget is still the Backbuffer!
 		DWORD dwFlags = D3DCLEAR_TARGET;
-		if( pDXRenderer->setSettings.bAutoDepthStencil )
+		if (m_pDXRenderer->setSettings.bAutoDepthStencil)
 			dwFlags |= D3DCLEAR_ZBUFFER;
+		
+//~~~~~~~~
+// TODO: eliminate direct call to pd3dDevice
+		if (Failure(m_pDXRenderer->pd3dDevice->Clear(0, NULL, dwFlags, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0)))
+			return m_pEngine->LogE("Cannot DXDEVICE::Clear (backbuffer)!");
+//~~~~~~~~~
 
-		if( FAILED( pDXRenderer->pd3dDevice->Clear( 0, NULL, dwFlags, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0f, 0 ) ) )
+		// fire event
+		SEventParameters params;
+		params.AddArray(new SEventParameter[]
 		{
-			return S_ERROR;
-		}
+			SEventParameter("sender", this)
+		}, 1);
+		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params);
 
 		// Begin DX Scene
-		if( FAILED( pDXRenderer->BeginScene() ) )
-		{
-			return S_ERROR;
-		}
+		if (Failure(m_pDXRenderer->BeginScene()))
+			return m_pEngine->LogE("Cannot DXDEVICE::BeginScene!");
 
-		if( iState == S_RENDER_NONE ) iState = S_RENDER_BEGINFRAME;
-
-		NextState();
+		// fire event
+		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params);
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::RenderSolidGeometry( SSolid* pSolid )
+	S_API SResult SDirectX9RenderPipeline::DoGeometrySection()
 	{
-		if( pSolid == NULL ||
-			pGBufferAlbedo == NULL ||			
-			pGBufferNormals == NULL ||
-			pGBufferTangents == NULL ||
-			pGBufferPosition == NULL ||
-			gBufferShader.pEffect == NULL ||
-			pGeometryRenderSection == NULL ||
-			iState != S_RENDER_GEOMETRY )
+		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() != S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);
+
+		// fire event
+		SEventParameters params;
+		params.AddArray( new SEventParameter[]
 		{
-			return S_ABORTED;
-		}
+			SEventParameter("sender", this)
+		}, 1);
+		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params);		
 
+		// Setup Geometry render section
+		if (Failure(m_GeometryRenderSection.PrepareSection()))
+			return S_ERROR;	
 
-		// -----------------------------------------------------------------------------------------------------------------------
-		// Setup the geometry render section
+		// fire event
+		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params);
 
-		if( Failure( pGeometryRenderSection->PrepareSection( pSolid ) ) )
-			return pEngine->LogReport( S_ERROR, "Cannot prepare geometry render section" );
+		params.Clear();
+		return S_SUCCESS;
+	}
 
+	// **********************************************************************************
 
-		// -----------------------------------------------------------------------------------------------------------------------
-		// temporary buffer for untextured primitives
-		
-		UINT* pUntexturedPrimitives = new UINT[pSolid->GetPrimitiveCount()];
-		UINT nUntexturedPrimitives = 0;
+	S_API SResult SDirectX9RenderPipeline::RenderSolidGeometry(SSolid* pSolid, bool bTextured)
+	{
+		SResult res;
+		SP_ASSERTR(!IsInitialized(), S_NOTINIT);		
+		SP_ASSERTXR(GetCurrentStage() != S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);	
 
-
-		// -----------------------------------------------------------------------------------------------------------------------
-		// Render textured primitives and select untextured primitives
-
-		if( Failure( pGeometryRenderSection->PrepareGBufferCreationShader( true ) ) )
-			return pEngine->LogReport( S_ERROR, "Could not prepare GBuffer creation shader for textured primitives!" );
-
-		for( UINT iPass = 0; iPass < pGeometryRenderSection->nCurrentPasses; ++iPass )
-		{			
-
-			if( FAILED( gBufferShader.pEffect->BeginPass( iPass ) ) )			
-				return pEngine->LogReport( S_ERROR, "Failed Begin Pass of GBuffer Creation effect" );			
-
-			for( UINT iPrimitive = 0; iPrimitive < (UINT)pSolid->GetPrimitiveCount(); ++iPrimitive )
-			{
-
-//////////////////////////////////
-///////// TODO: Check if the primitive is inside the view volume, otherwise do not render it
-/////////	This will speed up rendering vastly!
-/////////////////////////////////
-
-				SPrimitive* pPrimitive = pSolid->GetPrimitive( iPrimitive );
-				if( !pPrimitive->bDraw ) continue;
-
-				// Check if this primitive is textured or not
-				if( pPrimitive->iTexture.iIndex == SP_TRIVIAL )
-				{
-					pUntexturedPrimitives[nUntexturedPrimitives] = iPrimitive;
-					nUntexturedPrimitives++;
-					continue;
-				}
-
-				// Render the primitive
-				if( Failure( pGeometryRenderSection->RenderTexturedPrimitive( iPrimitive ) ) )
-					return S_ERROR;
-
-			}
-
-			if( FAILED( gBufferShader.pEffect->EndPass() ) )			
-				return pEngine->LogReport( S_ERROR, "Could not properly End GBuffer creation shader pass" );			
-
-			// and go on with the next pass
-			continue;
-
-		}
-
-		if( Failure( pGeometryRenderSection->ExitGBufferCreationShader() ) )
+		// Render the solid geometry
+		if (Failure(m_GeometryRenderSection.RenderSolidGeometry(pSolid, false)))
 			return S_ERROR;
-
-		// -----------------------------------------------------------------------------------------------------------------------
-		// Now render untextured primitives
-		
-		if( nUntexturedPrimitives > 0 )
-		{
-			if( Failure( pGeometryRenderSection->PrepareGBufferCreationShader( false ) ) )
-				return pEngine->LogReport( S_ERROR, "Could not prepare GBuffer creation shader for not-textured primitives!" );
-
-			for( UINT iPass = 0; iPass < pGeometryRenderSection->nCurrentPasses; ++iPass )
-			{			
-
-				if( FAILED( gBufferShader.pEffect->BeginPass( iPass ) ) )			
-					return pEngine->LogReport( S_ERROR, "Failed Begin Pass of GBuffer Creation effect for untextured primitives" );			
-
-				for( UINT iPrimitive = 0; iPrimitive < nUntexturedPrimitives; ++iPrimitive )
-				{
-
-//////////////////////////////////
-///////// TODO: Check if the primitive is inside the view volume, otherwise do not render it
-/////////	This will speed up rendering vastly!
-/////////////////////////////////
-
-					SPrimitive* pPrimitive = pSolid->GetPrimitive( pUntexturedPrimitives[iPrimitive] );
-					if( !pPrimitive->bDraw ) continue;					
-
-					// Render the primitive
-					if( Failure( pGeometryRenderSection->RenderUntexturedPrimitive( iPrimitive ) ) )
-						return S_ERROR;
-
-				}
-
-				if( FAILED( gBufferShader.pEffect->EndPass() ) )			
-					return pEngine->LogReport( S_ERROR, "Could not properly End GBuffer creation shader pass for untextured primitives" );			
-
-				// and go on with the next pass
-				continue;
-
-			}
-
-			if( Failure( pGeometryRenderSection->ExitGBufferCreationShader() ) )
-				return S_ERROR;
-		}
-
-		// -----------------------------------------------------------------------------------------------------------------------
-		// Clearup temporary stuff
-
-		delete[] pUntexturedPrimitives;
-
-		
-		// -----------------------------------------------------------------------------------------------------------------------
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::StopGeometryRendering( void )
+	S_API SResult SDirectX9RenderPipeline::ExitGeometrySection()
 	{
-		if( pEngine == NULL || pRenderer == NULL || iState != S_RENDER_GEOMETRY )
-			return S_ABORTED;
+		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
+		SP_ASSERTDXR(GetCurrentStage() != S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine, "curstage: %d", (int)GetCurrentStage());
 
-		NextState();
+		// Fire event
+		SEventParameters params;
+		params.AddArray(new SEventParameter[] {
+			SEventParameter("sender", this)
+		}, 1);
+		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_EXIT, &params);
+
+		// Exit the Geometry section
+		if (Failure(m_GeometryRenderSection.EndSection()))
+			return S_ERROR;
 
 		return S_SUCCESS;
 	}
+
 
 	// **********************************************************************************
 	
-	S_API SResult SDirectX9RenderPipeline::RenderLighting( SPool<SLight>* pLightPool )
+	S_API SResult SDirectX9RenderPipeline::DoLightingSection()
 	{
-//////////////////////////////
-////// TODO
-//////////////////////////////
-		NextState();
+		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() != S_RENDER_LIGHTING, S_INVALIDSTAGE, m_pEngine);
+
+		// Setup the lighting section
+		if (Failure(m_LightingRenderSection.PrepareSection()))
+			return S_ERROR;
+
+		// Setup light source buffer
+		SPool<SLight*>* pLights = 0;
+
+		// fire preparation event
+		SEventParameters params;
+		params.AddArray(new SEventParameter[]
+		{
+			SEventParameter("sender", this),
+				SEventParameter("lights", (void*)&pLights)
+		}, 1);
+		m_pFramePipeline->CallEvent(S_E_RENDER_LIGHTING_PREPARE, &params);		
+
+		// prepare light sources, or assign custom lights buffer if SSettings::bCustomLightSources is true
+		if (Failure(m_LightingRenderSection.PrepareLightSources(&pLights)))
+			return S_ERROR;
+
+		// render the lighting
+		if (Failure(m_LightingRenderSection.RenderLighting(&m_GeometryRenderSection, m_PostRenderSection.GetOutputPlane())))
+			return S_ERROR;
+
+		// ... and exit the lighting section
+		if (Failure(m_LightingRenderSection.FreeLightSources()))
+			return S_ERROR;
+
+		if (Failure(m_LightingRenderSection.EndSection()))
+			return S_ERROR;
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::RenderLighting( SLight* pLightArray )
+	S_API SResult SDirectX9RenderPipeline::DoPost()
 	{
-//////////////////////////////
-////// TODO
-//////////////////////////////
-		NextState();
+		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() != S_RENDER_POST, S_INVALIDSTAGE, m_pEngine);
 
-		return S_SUCCESS;
-	}
-
-	// **********************************************************************************
-
-	S_API SResult SDirectX9RenderPipeline::RenderPostEffects( SP_UNIQUE* pCustomPostShaders )
-	{
-/////////////////////////////
-////// TODO
-////////////////////////////
-		NextState();
+		// Render the output plane to the backbuffer
+		if (Failure(m_PostRenderSection.RenderOutputPlane(&m_LightingRenderSection)))
+			return S_ERROR;		
 
 		return S_SUCCESS;
 	}	
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::EndFrameSection( void )		
+	S_API SResult SDirectX9RenderPipeline::DoEndRendering()
 	{
-/////// TODO: Add actually rendering all buffers together using a merge-shader
-////	For now, we will simply render the Albedo GBuffer component to the post plane
-		if( pEngine == NULL || pRenderer == NULL || pOutputPlane == NULL ) return S_ABORTED;
+		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() != S_RENDER_POST, S_INVALIDSTAGE, m_pEngine);		
 
-		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)pRenderer;
+		// exit the DX Scene
+		if (Failure(m_pDXRenderer->EndScene()))		
+			return S_ERROR;		
 
-		// Setup backbuffer (screen) as active RenderTarget now	
-		SDirectX9FrameBuffer* pDXTargetBackBuffer = (SDirectX9FrameBuffer*)pTargetViewport->GetBackBuffer();
-		if( NULL == pDXTargetBackBuffer )
+		// present the backbuffer
+		SDirectX9Viewport* pDXViewport = (SDirectX9Viewport*)m_pDXRenderer->GetTargetViewport();
+		SP_ASSERTR(!pDXViewport, S_NOTINIT, "pDXViewport is 0");
+		if (pDXViewport->pSwapChain)
 		{
-			return pEngine->LogReport( S_ERROR, "Failed to Get BackBuffer of current targetviewport of render pipeline" );
-		}
-		
-		pDXRenderer->pd3dDevice->SetRenderTarget( 1, NULL ); // was: Position
-		pDXRenderer->pd3dDevice->SetRenderTarget( 2, NULL ); // was: Normals
-		pDXRenderer->pd3dDevice->SetRenderTarget( 3, NULL ); // was: Tangents
-		if( FAILED( pDXRenderer->pd3dDevice->SetRenderTarget( 0, pDXTargetBackBuffer->pSurface ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed set target backbuffer render target inside render pipeline" );
-		}
-
-		// Now render the Output plane with the lighting effect
-//~~~~~~~~~
-// TODO: Implement Uber-Post-Effect (Lighting, MotionBlur, HDR, Ambient Occlusion, Shadow, ...) instead of Lighting effect only
-		if( Failure( pOutputPlane->Render( pGBufferAlbedo, pLightingBuffer ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed to render output plane inside render pipeline EndFrameSection()" );
-		}
-//~~~~~~~~
-
-		// And finally we'll end up the DirectX Scene
-		if( FAILED( pDXRenderer->EndScene() ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed End DX Scene in render pipeline" );
-		}
-
-		NextState();
-
-		return S_SUCCESS;
-	}
-
-	// **********************************************************************************
-
-	S_API SResult SDirectX9RenderPipeline::Present( void )
-	{
-		if( pEngine == NULL ) return S_ABORTED;
-
-		if( pTargetViewport == NULL || pTargetViewport->GetBackBuffer() == NULL || iState != S_RENDER_PRESENT )
-		{
-			return pEngine->LogReport( S_ABORTED, "Tried to present with not initialized target viewport or not in PRESENT RP State" );
-		}
-
-		// Now present
-		SDirectX9Viewport* pDXViewport = (SDirectX9Viewport*)pTargetViewport;
-		if( pDXViewport->pSwapChain != NULL && FAILED( pDXViewport->pSwapChain->Present( NULL, NULL, NULL, NULL, 0 ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed to present current target viewport (additional swapchain) Backbuffer!" );
+			if (Failure(pDXViewport->pSwapChain->Present(0, 0, 0, 0, /*flags*/0)))
+				return m_pEngine->LogE("Failed to present current target viewport (additional swapchain) Backbuffer!");
 		}
 		else
 		{
-			if( pDXViewport->pBackBuffer == NULL )
-				return pEngine->LogReport( S_ERROR, "Cannot present default viewport that has a null pointer as back buffer!" );
+			SP_ASSERTXR(!pDXViewport->GetBackBuffer(), S_ERROR, m_pEngine);
+						
+			if (Failure(m_pDXRenderer->pd3dDevice->Present(0, 0, 0, 0)))
+				return m_pEngine->LogE("Failed to present default viewport!");
+		}		
 
-			SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)pEngine->GetRenderer();						
-			if( FAILED( pDXRenderer->pd3dDevice->Present( NULL, NULL, NULL, NULL ) ) )
-				return pEngine->LogReport( S_ERROR, "Failed to present default viewport!" );
-		}
-
-		NextState();
-
-		return S_SUCCESS;
-	}
-
+		return S_SUCCESS; // okay, done.
+	}	
 }

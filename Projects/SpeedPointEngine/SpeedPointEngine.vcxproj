@@ -1,0 +1,349 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E7D18827-6CCA-4A5D-8C11-73E42890B45D}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>SpeedPointEngine</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEEDPOINTENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEEDPOINTENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Abstract\Pipelines\SRenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Abstract\Pipelines\SRenderPipelineSection.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationBundle.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationJoint.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationKey.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Abstract\SBot.h" />
+    <ClInclude Include="..\..\Include\Abstract\SCollisionShape.h" />
+    <ClInclude Include="..\..\Include\Abstract\SCommandBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SEntity.h" />
+    <ClInclude Include="..\..\Include\Abstract\SFrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SIndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SInteractive.h" />
+    <ClInclude Include="..\..\Include\Abstract\SOctree.h" />
+    <ClInclude Include="..\..\Include\Abstract\SOctreeNode.h" />
+    <ClInclude Include="..\..\Include\Abstract\SOutputPlane.h" />
+    <ClInclude Include="..\..\Include\Abstract\SParticle.h" />
+    <ClInclude Include="..\..\Include\Abstract\SParticleSystem.h" />
+    <ClInclude Include="..\..\Include\Abstract\SPhysical.h" />
+    <ClInclude Include="..\..\Include\Abstract\SRenderer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SRendererSettings.h" />
+    <ClInclude Include="..\..\Include\Abstract\SResourcePool.h" />
+    <ClInclude Include="..\..\Include\Abstract\SShader.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSolid.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSolidSystem.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSound.h" />
+    <ClInclude Include="..\..\Include\Abstract\SSoundSystem.h" />
+    <ClInclude Include="..\..\Include\Abstract\STerrain.h" />
+    <ClInclude Include="..\..\Include\Abstract\STexture.h" />
+    <ClInclude Include="..\..\Include\Abstract\SVertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\SViewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\AI\SBasicBot.h" />
+    <ClInclude Include="..\..\Include\Implementation\AI\SBasicWaynet.h" />
+    <ClInclude Include="..\..\Include\Implementation\AI\SBasicWaynode.h" />
+    <ClInclude Include="..\..\Include\Implementation\CommandBuffers\SCPUCommandBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\CommandBuffers\SGPUCommandBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10FrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10IndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10OutputPlane.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10RenderEffect.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Renderer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10RenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10ResourcePool.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Settings.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Shader.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Texture.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10VertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX10\SDirectX10Viewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11FrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11IndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11OutputPlane.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11RenderEffect.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Renderer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11RenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11ResourcePool.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Settings.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Shader.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Texture.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11VertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Viewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9FrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9GeometryRenderSection.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9IndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9LightingRenderSection.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9OutputPlane.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9PostRenderSection.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9RenderEffect.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9Renderer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9RenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9ResourcePool.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9Settings.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9Shader.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9Texture.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9Utilities.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9VertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9Viewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\Entity\SBasicEntity.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationBundle.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationJoint.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationKey.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicOctree.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicOctreeNode.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicSolid.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicSolidSystem.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicTerrain.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLFrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLIndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLOutputPlane.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLRenderEffect.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLRenderer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLRenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLResourcePool.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLSettings.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLShader.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLTexture.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLVertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\OpenGL\SOpenGLViewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\Particles\SBasicParticle.h" />
+    <ClInclude Include="..\..\Include\Implementation\Particles\SBasicParticleSystem.h" />
+    <ClInclude Include="..\..\Include\Implementation\Sound\SDirectSoundResource.h" />
+    <ClInclude Include="..\..\Include\Implementation\Sound\SDirectSoundSystem.h" />
+    <ClInclude Include="..\..\Include\Lighting\SLight.h" />
+    <ClInclude Include="..\..\Include\Lighting\SLightSystem.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventCallbackTable.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventCallbackTableEntry.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventHandler.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventParameter.h" />
+    <ClInclude Include="..\..\Include\Observer\SEventParameters.h" />
+    <ClInclude Include="..\..\Include\Observer\SObservedObject.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicalSolid.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicalSolidSystem.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsCollisionShape.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsEngine.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsIntersection.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsLiquid.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsMaterial.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsWind.h" />
+    <ClInclude Include="..\..\Include\OnionPhysics\SPhysIntersectInfo.h" />
+    <ClInclude Include="..\..\Include\Pipelines\SDynamicsPipeline.h" />
+    <ClInclude Include="..\..\Include\Pipelines\SFramePipeline.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowder.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderCommand.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderEnvironment.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderError.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderScript.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderScriptFile.h" />
+    <ClInclude Include="..\..\Include\RunPowderScripting\RunPowderVariable.h" />
+    <ClInclude Include="..\..\Include\SpeedPoint.h" />
+    <ClInclude Include="..\..\Include\SpeedPointAI.h" />
+    <ClInclude Include="..\..\Include\SpeedPointAnimations.h" />
+    <ClInclude Include="..\..\Include\SpeedPointCommon.h" />
+    <ClInclude Include="..\..\Include\SpeedPointGeometry.h" />
+    <ClInclude Include="..\..\Include\SpeedPointPhysics.h" />
+    <ClInclude Include="..\..\Include\SpeedPointRendering.h" />
+    <ClInclude Include="..\..\Include\SpeedPointScripting.h" />
+    <ClInclude Include="..\..\Include\SpeedPointSound.h" />
+    <ClInclude Include="..\..\Include\SPrerequisites.h" />
+    <ClInclude Include="..\..\Include\SSettings.h" />
+    <ClInclude Include="..\..\Include\SSpeedPointEngine.h" />
+    <ClInclude Include="..\..\Include\Util\SAPI.h" />
+    <ClInclude Include="..\..\Include\Util\SAssert.h" />
+    <ClInclude Include="..\..\Include\Util\SBoundBox.h" />
+    <ClInclude Include="..\..\Include\Util\SCamera.h" />
+    <ClInclude Include="..\..\Include\Util\SColor.h" />
+    <ClInclude Include="..\..\Include\Util\SConfigFile.h" />
+    <ClInclude Include="..\..\Include\Util\SLogFile.h" />
+    <ClInclude Include="..\..\Include\Util\SLogStream.h" />
+    <ClInclude Include="..\..\Include\Util\SMaterial.h" />
+    <ClInclude Include="..\..\Include\Util\SMatrix.h" />
+    <ClInclude Include="..\..\Include\Util\SPlane.h" />
+    <ClInclude Include="..\..\Include\Util\SPool.h" />
+    <ClInclude Include="..\..\Include\Util\SPoolIndex.h" />
+    <ClInclude Include="..\..\Include\Util\SPrimitive.h" />
+    <ClInclude Include="..\..\Include\Util\SResult.h" />
+    <ClInclude Include="..\..\Include\Util\SString.h" />
+    <ClInclude Include="..\..\Include\Util\STransformable.h" />
+    <ClInclude Include="..\..\Include\Util\SVector2.h" />
+    <ClInclude Include="..\..\Include\Util\SVector3.h" />
+    <ClInclude Include="..\..\Include\Util\SVector4.h" />
+    <ClInclude Include="..\..\Include\Util\SVertex.h" />
+    <ClInclude Include="..\..\Include\Util\SWindowsSpecific.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\AI\SBasicBot.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\AI\SBasicWaynet.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\AI\SBasicWaynode.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10FrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10IndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10OutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Renderer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10RenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10ResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Settings.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Shader.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Texture.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10VertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX10\SDirectX10Viewport.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11FrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11IndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11OutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Renderer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11RenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11ResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Settings.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Shader.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Texture.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11VertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Viewport.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9FrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9GeometryRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9IndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9LightingRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9OutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9PostRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9Renderer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9RenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9ResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9Settings.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9Shader.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9Texture.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9VertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9Viewport.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Entity\SBasicEntity.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationJoint.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationKey.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationSequence.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctree.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicSolid.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicSolidSystem.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicTerrain.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLFrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLIndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLOutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLRenderer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLRenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLSettings.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLShader.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLTexture.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLVertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\OpenGL\SOpenGLViewport.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Particles\SBasicParticle.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Particles\SBasicParticleSystem.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Sound\SDirectSoundResource.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Sound\SDirectSoundSystem.cpp" />
+    <ClCompile Include="..\..\Source\Lighting\SLight.cpp" />
+    <ClCompile Include="..\..\Source\Lighting\SLightSystem.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SEventCallbackTable.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SEventParameter.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SEventParameters.cpp" />
+    <ClCompile Include="..\..\Source\Observer\SObservedObject.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysics2DIntersect.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysics3DIntersect.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsBody.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsCollisionShape.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsLiquid.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsMaterial.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsSystem.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsWind.cpp" />
+    <ClCompile Include="..\..\Source\Pipelines\SDynamicsPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Pipelines\SFramePipeline.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowder.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderCommand.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderEnvironment.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderError.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderScript.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderScriptFile.cpp" />
+    <ClCompile Include="..\..\Source\RunPowderScripting\RunPowderVariable.cpp" />
+    <ClCompile Include="..\..\Source\SSettings.cpp" />
+    <ClCompile Include="..\..\Source\SSpeedPoint.cpp" />
+    <ClCompile Include="..\..\Source\Util\SBoundBox.cpp" />
+    <ClCompile Include="..\..\Source\Util\SCamera.cpp" />
+    <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />
+    <ClCompile Include="..\..\Source\Util\SLogFile.cpp" />
+    <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />
+    <ClCompile Include="..\..\Source\Util\SString.cpp" />
+    <ClCompile Include="..\..\Source\Util\STransformable.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

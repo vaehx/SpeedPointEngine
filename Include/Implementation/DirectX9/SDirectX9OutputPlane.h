@@ -26,15 +26,19 @@ namespace SpeedPoint
 		SMatrix				mView;		
 
 		// Default constructor
-		SDirectX9OutputPlane() : pEngine( NULL ), pDXRenderer( NULL ) {};		
+		SDirectX9OutputPlane()
+			: pEngine(NULL),
+			pDXRenderer(NULL)
+		{
+		}
 
 		// Initialize the output plane
-		SResult Initialize( SpeedPointEngine* eng, SRenderer* renderer, int nW, int nH );
+		SResult Initialize(SpeedPointEngine* eng, SRenderer* renderer, int nW, int nH);
 
 		// Render the output plane using the renderer specified when initializing
-		SResult Render( SFrameBuffer* pGBufferAlbedo, SFrameBuffer* pLightingBuffer );
+		SResult Render(SFrameBuffer* pGBufferAlbedo, SFrameBuffer* pLightingBuffer);
 
 		// Clearout the output plane
-		SResult Clear( void );
+		SResult Clear(void);
 	};
 }

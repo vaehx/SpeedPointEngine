@@ -6,46 +6,83 @@
 
 #pragma once
 #include <SPrerequisites.h>
+#include <Abstract\Pipelines\SRenderPipelineSection.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 Geometry Render Section
-	class S_API SDirectX9GeometryRenderSection
+	class S_API SDirectX9GeometryRenderSection : public SRenderPipelineSection
 	{
-	public:
-		SpeedPointEngine*	pEngine;
-		SDirectX9Renderer*	pDXRenderer;
-		UINT			nCurrentPasses;	// Count of passes of the current technique
-		SSolid*			pSolid;		// The solid to be rendered currently
+	private:
+		SpeedPointEngine*		m_pEngine;
+		SDirectX9RenderPipeline*	m_pDX9RenderPipeline;
+		usint32 			m_nCurrentPasses;	// Count of passes of the current technique		
+		SSolid*				m_pCurrentSolid;	// current solid for which the Shader inputs are configured
 
+		SDirectX9Shader			m_gBufferShader;
+		SDirectX9FrameBuffer		m_GBufferPosition;	// in world space
+		SDirectX9FrameBuffer		m_GBufferNormals;	// in world space
+		SDirectX9FrameBuffer		m_GBufferTangents;	// in world space		
+		SDirectX9FrameBuffer		m_GBufferAlbedo;
+
+	// Initialization / Destruction
+	public:
 		// Default constructor
-		SDirectX9GeometryRenderSection()
-			: pEngine( NULL ),
-			pDXRenderer( NULL ),
-			pSolid( NULL ) {};
+		SDirectX9GeometryRenderSection();
+
+		// Default Destructor
+		~SDirectX9GeometryRenderSection();
 
 		// Initialize
-		SResult Initialize( SpeedPointEngine* eng, SRenderer* pRenderer );
+		virtual SResult Initialize(SpeedPointEngine* eng, SRenderPipeline* pRenderPipeline);
 
-		// Prepare render data of a single solid
-		SResult PrepareSection( SSolid* pSolid );
+		// Clearout the section
+		virtual SResult Clear(void);
 
-		// Prepare the GBuffer creation shader for rendering textured or not-textured primitives
-		SResult PrepareGBufferCreationShader( bool bTextured );
-
-		// Render a textured Primitive
-		SResult RenderTexturedPrimitive( UINT iPrimitive );
-
-		// Render a not-textured Primitive
-		SResult RenderUntexturedPrimitive( UINT iPrimitive );
-
-		// Render the geometry of a single primitive
-		SResult RenderPrimitiveGeometry( SPrimitive* pPrimitive );
+		// Prepare render targets for the geometry section
+		SResult PrepareSection();
 
 		// Exit the GBuffer creation shader
-		SResult ExitGBufferCreationShader( void );
+		SResult EndSection(void);
 
-		// Clear
-		SResult Clear( void );
+	// Render calls
+	public:
+//~~~~~~~~~~~~
+// TODO: Support rendering of multiple solids with one call
+//~~~~~~~~~~~~
+
+		// Prepare the GBuffer creation shader for rendering textured or not-textured primitives of one solid
+		SResult PrepareShaderInput(SSolid* pSolid, bool bTextured);		
+
+		// Render the geometry of ALL primitives of a solid to the current G-Buffer
+		// Loops through all passes and calls Render(Un)TexturedPrimitive()
+		SResult RenderSolidGeometry(SSolid* pSolid, bool bTextured);
+
+		// Render a textured Primitive
+		SResult RenderTexturedPrimitive(UINT iPrimitive);
+
+		// Render a not-textured Primitive
+		SResult RenderUntexturedPrimitive(UINT iPrimitive);
+
+		// Render the geometry of a single primitive
+		// Normally called by RenderTexturedPrimitive() and RenderUntexturedPrimitive()
+		SResult RenderPrimitiveGeometry(SPrimitive* pPrimitive);		
+
+		// Free the shader from the current input
+		SResult FreeShaderInput();
+
+	// Getter / Setter
+	public:
+		SDirectX9FrameBuffer* GetAlbedoFBO() { return &m_GBufferAlbedo; }
+		
+		// Normals are in world space
+		SDirectX9FrameBuffer* GetNormalsFBO() { return &m_GBufferNormals; }
+
+		SDirectX9FrameBuffer* GetPositionsFBO() { return &m_GBufferPosition; }
+		
+		// Tangents are in world space
+		SDirectX9FrameBuffer* GetTangentsFBO() { return &m_GBufferTangents; }
+
+		usint32 GetCurrentPassCount() { return m_nCurrentPasses; }
 	};
 }

@@ -11,20 +11,20 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 	
-	SObservedObject::SObservedObject()		
+	S_API SObservedObject::SObservedObject()		
 	{
 	}
 
 	// ********************************************************************************************
 
-	SObservedObject::SObservedObject(SEventCallback pDestructionCallbackFunction)
+	S_API SObservedObject::SObservedObject(SEventCallback pDestructionCallbackFunction)
 	{
 		SetDestructionCallback(pDestructionCallbackFunction);
 	}
 
 	// ********************************************************************************************
 
-	SObservedObject::~SObservedObject()
+	S_API SObservedObject::~SObservedObject()
 	{
 		if (m_EventCallbackTable.IsInitialized())
 		{
@@ -38,7 +38,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 	
-	void SObservedObject::SetDestructionCallback(SEventCallback pDestructionCallbackFunc)
+	S_API void SObservedObject::SetDestructionCallback(SEventCallback pDestructionCallbackFunc)
 	{
 		if (pDestructionCallbackFunc == 0) return;
 
@@ -51,11 +51,27 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	SResult SObservedObject::CallEvent(unsigned int iIndex, SEventParameters* pParams)
+	S_API SResult SObservedObject::CallEvent(unsigned int iIndex, SEventParameters* pParams)
 	{
 		if (iIndex > 99999 || pParams == 0)
 			return S_INVALIDPARAM;
 
 		return m_EventCallbackTable.Call(iIndex, pParams);
 	}
+
+	// ********************************************************************************************
+
+	S_API SResult SObservedObject::CallEvent(unsigned int iIndex, SEventParameter* pParamArray, unsigned int nParamCount)
+	{
+		if (iIndex > 99999 || pParamArray == 0)
+			return S_INVALIDPARAM;
+
+		// Prepare Params
+		SEventParameters params;
+		if (Failure(params.AddArray(pParamArray, nParamCount)))
+			return S_ERROR;
+
+		return m_EventCallbackTable.Call(iIndex, &params);
+	}
+
 }

@@ -81,6 +81,7 @@
     <ClInclude Include="..\..\Include\Pipelines\SDynamicsPipeline.h" />
     <ClInclude Include="..\..\Include\Pipelines\SFramePipeline.h" />
     <ClInclude Include="..\..\Include\SpeedPoint.h" />
+    <ClInclude Include="..\..\Include\SSettings.h" />
     <ClInclude Include="..\..\Include\SSpeedPointEngine.h" />
     <ClInclude Include="..\..\Include\SpeedPointAI.h" />
     <ClInclude Include="..\..\Include\SpeedPointAnimations.h" />
@@ -92,6 +93,7 @@
     <ClInclude Include="..\..\Include\SpeedPointSound.h" />
     <ClInclude Include="..\..\Include\SPrerequisites.h" />
     <ClInclude Include="..\..\Include\Util\SAPI.h" />
+    <ClInclude Include="..\..\Include\Util\SAssert.h" />
     <ClInclude Include="..\..\Include\Util\SBoundBox.h" />
     <ClInclude Include="..\..\Include\Util\SCamera.h" />
     <ClInclude Include="..\..\Include\Util\SColor.h" />
@@ -111,6 +113,7 @@
     <ClInclude Include="..\..\Include\Util\SVector3.h" />
     <ClInclude Include="..\..\Include\Util\SVector4.h" />
     <ClInclude Include="..\..\Include\Util\SVertex.h" />
+    <ClInclude Include="..\..\Include\Util\SWindowsSpecific.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Lighting\SLight.cpp" />
@@ -122,6 +125,7 @@
     <ClCompile Include="..\..\Source\Observer\SObservedObject.cpp" />
     <ClCompile Include="..\..\Source\Pipelines\SDynamicsPipeline.cpp" />
     <ClCompile Include="..\..\Source\Pipelines\SFramePipeline.cpp" />
+    <ClCompile Include="..\..\Source\SSettings.cpp" />
     <ClCompile Include="..\..\Source\SSpeedPoint.cpp" />
     <ClCompile Include="..\..\Source\Util\SBoundBox.cpp" />
     <ClCompile Include="..\..\Source\Util\SCamera.cpp" />
@@ -130,6 +134,9 @@
     <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />
     <ClCompile Include="..\..\Source\Util\SString.cpp" />
     <ClCompile Include="..\..\Source\Util\STransformable.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

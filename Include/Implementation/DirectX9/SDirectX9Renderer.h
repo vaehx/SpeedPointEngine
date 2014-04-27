@@ -13,6 +13,16 @@
 
 namespace SpeedPoint
 {
+
+
+
+
+/// TODO: VIRTUALS ??????
+
+
+
+
+
 	// SpeedPoint DirectX 9 Renderer
 	class S_API SDirectX9Renderer : public SRenderer
 	{
@@ -72,8 +82,6 @@ namespace SpeedPoint
 		
 		SResult UpdateViewportMatrices( SViewport* pViewport );
 		
-		SResult RenderSolid( SSolid* pSolid );
-		
-		DWORD GetFVF( void );
+		SResult RenderSolid(SSolid* pSolid, bool bTextured);
 	};
 }

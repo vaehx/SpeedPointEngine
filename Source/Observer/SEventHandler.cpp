@@ -10,14 +10,14 @@ namespace SpeedPoint
 {
 	// ******************************************************************************************
 
-	SEventHandler::SEventHandler()
+	S_API SEventHandler::SEventHandler()
 		: m_pFunction(0)
 	{		
 	}
 
 	// ******************************************************************************************
 
-	SEventHandler::SEventHandler(SEventCallback pFunction)
+	S_API SEventHandler::SEventHandler(SEventCallback pFunction)
 		: m_pFunction(pFunction)
 	{
 	}
@@ -25,14 +25,14 @@ namespace SpeedPoint
 	
 	// ******************************************************************************************
 
-	SEventHandler::~SEventHandler()		
+	S_API SEventHandler::~SEventHandler()		
 	{
 		m_pFunction(0);
 	}
 
 	// ******************************************************************************************
 
-	SResult SEventHandler::Initialize(SEventCallback pFunction)
+	S_API SResult SEventHandler::Initialize(SEventCallback pFunction)
 	{
 		if (pFunction == 0)
 		{
@@ -49,14 +49,14 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	bool SEventHandler::IsInitialized()
+	S_API bool SEventHandler::IsInitialized()
 	{
 		return m_pFunction;
 	}
 
 	// ******************************************************************************************
 
-	SResult SEventHandler::Call(SEventParameters* pParameters)
+	S_API SResult SEventHandler::Call(SEventParameters* pParameters)
 	{
 		if (IsInitialized())
 		{

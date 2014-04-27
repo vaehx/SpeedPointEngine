@@ -10,9 +10,9 @@
 #include <SMatrix.h>
 
 namespace SpeedPoint
-{
+{	
 	// Convert DirectX Matrix to SpeedPoint Matrix
-	inline SMatrix DXMatrixToSMatrix(const D3DXMATRIX& mat)
+	inline S_API SMatrix DXMatrixToSMatrix(const D3DXMATRIX& mat)
 	{
 		return SMatrix(
 			SVector4(mat._11, mat._12, mat._13, mat._14),
@@ -23,7 +23,7 @@ namespace SpeedPoint
 	}
 
 	// Convert SpeedPoint Matrix to DirectX Matrix
-	inline D3DXMATRIX SMatrixToDXMatrix(const SMatrix& mat)
+	inline S_API D3DXMATRIX SMatrixToDXMatrix(const SMatrix& mat)
 	{
 		return D3DXMATRIX(
 			mat._11, mat._12, mat._13, mat._14,
@@ -34,7 +34,7 @@ namespace SpeedPoint
 	}
 
 	// Convert D3DXMATRIX to D3DMATRIX
-	inline D3DMATRIX DXMatrixToDMatrix(const D3DXMATRIX& mat)
+	inline S_API D3DMATRIX DXMatrixToDMatrix(const D3DXMATRIX& mat)
 	{
 		D3DMATRIX out;
 		out._11 = mat._11; out._12 = mat._12; out._13 = mat._13; out._14 = mat._14;

@@ -54,13 +54,6 @@ namespace SpeedPoint
 		virtual SResult BeginScene( void ) = 0;
 
 		// End the current Scene
-		virtual SResult EndScene( void ) = 0;		
-
-		// Get the Renderer specific Vertex Format
-		virtual DWORD GetFVF( void ) = 0;
-
-		///// TODO
-		// Add a new Task to render a solid
-		//virtual SResult RenderSolid
+		virtual SResult EndScene( void ) = 0;	
 	};
 }

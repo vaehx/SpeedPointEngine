@@ -10,7 +10,7 @@ namespace SpeedPoint
 {
 	// ********************************************************************************************		
 
-	SResult SEventParameters::Initialize(const unsigned int nParameterCount)
+	S_API SResult SEventParameters::Initialize(const unsigned int nParameterCount)
 	{
 		// Check arguments
 		if (nParameterCount == 0)
@@ -34,7 +34,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	SResult SEventParameters::Add(char* pcIndex, SEventParameterType tType, void* pData)
+	S_API SResult SEventParameters::Add(char* pcIndex, SEventParameterType tType, void* pData)
 	{
 		unsigned int nIndexLength;
 
@@ -44,7 +44,7 @@ namespace SpeedPoint
 // TODO: Implement logging
 			// LogW("Tried to add parameter to not-yet-initialized event parameters buffer. Initializing it now...");
 //~~~~~~~~~
-			if (Failure(Initialize(0))) return S_ABORTED;
+			if (Failure(Initialize(1))) return S_ABORTED;
 		}
 
 		if (pcIndex == 0 || (nIndexLength = strlen(pcIndex)) == 0)
@@ -119,7 +119,67 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	SEventParameter* SEventParameters::Get(char* pcIndex)
+	S_API SResult SEventParameters::AddArray(SEventParameter* pParameterArray, unsigned int nCount)
+	{
+		if (nCount == 0) return S_SUCCESS;
+
+		if (m_pParameters == 0)
+		{
+			Initialize(nCount);
+		}
+
+		// check if there is anough space left for the parameters
+		bool bEnoughSlotsLeft = (m_nMaxParameters >= nCount);
+		unsigned int nFreeSlots = 0;		
+		if (bEnoughSlotsLeft)
+		{
+			// if nMaxParameters seems to be enough, check if there are enough empty slots			
+			for (unsigned int i = 0; i < m_nMaxParameters; ++i)
+			{
+				if (m_pParameters[i].m_pcIndex == 0)
+				{
+					// to be efficient, already copy first parameters of the array
+					SEventParameter* pParam = &pParameterArray[nFreeSlots];
+					if (pParam->m_tType == S_PARAMTYPE_PTR || pParam->m_tType == S_PARAMTYPE_ZTSTR)
+						m_pParameters[i] = SEventParameter(pParam->m_pcIndex, pParam->m_tType, &pParam->m_pValue);
+					else
+						m_pParameters[i] = SEventParameter(pParam->m_pcIndex, pParam->m_tType, pParam->m_pValue);
+
+					++nFreeSlots;
+				}
+			}
+
+			if (nFreeSlots < nCount)
+				bEnoughSlotsLeft = false;
+		}
+
+		if (!bEnoughSlotsLeft)
+		{
+			// add missing count of free slots
+			SEventParameter* pTempParams = new SEventParameter[nCount - nFreeSlots];
+			memcpy(pTempParams, m_pParameters, m_nMaxParameters);
+			delete[] m_pParameters;
+			m_pParameters = pTempParams;
+
+			bEnoughSlotsLeft = true;
+		}				
+
+		// Copy remaining parameters
+		for (unsigned int i = nFreeSlots; i < nCount; ++i)
+		{
+			SEventParameter* pParam = &pParameterArray[i];
+			if (pParam->m_tType == S_PARAMTYPE_PTR || pParam->m_tType == S_PARAMTYPE_ZTSTR)
+				m_pParameters[i] = SEventParameter(pParam->m_pcIndex, pParam->m_tType, &pParam->m_pValue);
+			else
+				m_pParameters[i] = SEventParameter(pParam->m_pcIndex, pParam->m_tType, pParam->m_pValue);
+		}
+
+		return S_SUCCESS;
+	}
+
+	// ********************************************************************************************
+
+	S_API SEventParameter* SEventParameters::Get(char* pcIndex)
 	{
 		// check if the buffer is initialized at all
 		if (m_pParameters == 0 || m_nMaxParameters == 0)
@@ -158,7 +218,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	SResult SEventParameters::Clear()
+	S_API SResult SEventParameters::Clear()
 	{
 		if (m_pParameters != 0)
 			delete[] m_pParameters;

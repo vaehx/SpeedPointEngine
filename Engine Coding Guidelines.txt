@@ -1,0 +1,42 @@
+-------------------------------------------------------------------
+
+	SpeedPoint Engine Coding Guidelines
+
+	written by Pascal R. aka iSmokiieZz
+	(c) 2011 - 2014, All rights reserved.
+
+-------------------------------------------------------------------
+
+TOC:
+
+1. Assertions / Loggings
+
+-------------------------------------------------------------------
+
+1. Assertions / Loggings
+
+- Do NOT put log-call IF you call member functions of SpeedPoint classes!
+Wrong example:
+
+SResult SDirectX9RenderPipeline::DoSomething()
+{
+	if (Failure(pd3dDevice->DoSomething()))
+		return m_pEngine->LogE("Failed do something!");	
+}
+
+SResult SFramePipeline::DoSomething()
+{
+	if (Failure(m_pRenderPipeline->DoSomething()))
+		/// WRONG !!!!!!
+		return m_pEngine->LogE("Failed do something!");
+
+	if (iPrimitive > m_pCurrentSolid->GetPrimitiveCount())
+		/// ALSO WRONG HERE !!! Use Assertion instead!
+		return m_pEngine->LogReport( ... );
+
+	// BETTER:
+	SP_ASSERTXR(iPrimitive > m_pCurrentSolid->GetPrimitiveCount(), m_pEngine);
+	// OR IF YOU NEED DUMP OUTPUT:
+	SP_ASSERTDXR(iPrimitive > m_pCurrentSolid->GetPrimitiveCount(), m_pEngine, "iPrimitive=%d", iPrimitive);
+}
+

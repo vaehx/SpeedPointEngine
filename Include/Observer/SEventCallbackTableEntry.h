@@ -14,7 +14,7 @@ namespace SpeedPoint
 	// ******************************************************************************************
 
 	// Entry of a SpeedPoint Callback Table
-	struct SEventCallbackTableEntry
+	struct S_API SEventCallbackTableEntry
 	{
 		unsigned int 			m_iIndex;
 		SEventHandler			m_Handler;

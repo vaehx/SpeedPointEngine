@@ -1,6 +1,9 @@
 // ******************************************************************************************
 
-// SpeedPoint Geometry Component
+//	This file is part of the SpeedPoint Game Engine
+
+//	(c) 2011 - 2014 Pascal Rosenkranz aka. iSmokiieZz
+//	All rights reserved.
 
 // ******************************************************************************************
 
@@ -16,7 +19,7 @@
 
 // Include abstract geometry component classes
 
-#include <STransformable.h>
+#include <Util\STransformable.h>
 #include <Abstract\STexture.h>
 #include <Abstract\SOctreeNode.h>
 #include <Abstract\SOctree.h>
@@ -26,7 +29,7 @@
 #include <Abstract\SParticleSystem.h>
 #endif
 
-#include <SVertex.h>
+#include <Util\SVertex.h>
 #include <Abstract\SSolid.h>
 #include <Abstract\STerrain.h>
 
