@@ -10,9 +10,16 @@ namespace SpeedPoint
 	{
 		if( engine == NULL ) return S_ERROR;
 
-		pEngine = engine;
+		m_pEngine = engine;
 
 		return S_SUCCESS;
+	}
+
+	// **********************************************************************************
+
+	S_API SSpeedPointEngine* SBasicSolidSystem::GetEngine()
+	{
+		return m_pEngine;
 	}
 
 	// **********************************************************************************
@@ -20,7 +27,7 @@ namespace SpeedPoint
 	S_API SP_ID SBasicSolidSystem::AddSolid( void )
 	{
 		SP_ID id;
-		plSolids.AddItem( SBasicSolid(), &id );
+		m_plSolids.AddItem( SBasicSolid(), &id );
 
 		return id;
 	}
@@ -29,24 +36,31 @@ namespace SpeedPoint
 
 	S_API SSolid* SBasicSolidSystem::GetSolid( SP_ID id )
 	{
-		SBasicSolid* pBasicSolid = plSolids.GetItemByUID( id );
+		SBasicSolid* pBasicSolid = m_plSolids.GetItemByUID( id );
 		
 		return (SSolid*)pBasicSolid;
 	}
 
 	// **********************************************************************************
 
+	S_API unsigned int SBasicSolidSystem::GetSolidCount()
+	{
+		return m_plSolids.GetUsageSize();
+	}
+
+	// **********************************************************************************
+
 	S_API SResult SBasicSolidSystem::Clear( void )
 	{
-		for( UINT iSolid = 0; iSolid < plSolids.GetSize(); iSolid++ )
+		for( usint32 iSolid = 0; iSolid < m_plSolids.GetSize(); iSolid++ )
 		{
-			SBasicSolid* pBasicSolid = plSolids.GetItemByIndirectionIndex( iSolid );
+			SBasicSolid* pBasicSolid = m_plSolids.GetItemByIndirectionIndex( iSolid );
 			if( pBasicSolid )			
 				pBasicSolid->Clear();							
 		}
 
-		plSolids.Clear();
-		plSolids.ResetCounts();
+		m_plSolids.Clear();
+		m_plSolids.ResetCounts();
 		
 		return S_SUCCESS;
 	}

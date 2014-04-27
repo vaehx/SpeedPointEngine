@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <SString.h>
+#include <Util\SString.h>
 #include <Abstract\SEntity.h>
 
 #define S_DEFAULT_INTERACTIONRADIUS 20.0f

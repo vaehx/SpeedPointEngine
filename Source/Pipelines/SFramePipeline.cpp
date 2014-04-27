@@ -16,9 +16,15 @@ namespace SpeedPoint
 	S_API SResult SFramePipeline::Initialize(SpeedPointEngine* pEngine)
 	{
 		SP_ASSERTR(m_pEngine, S_INVALIDPARAM);
-		
+			
 		m_pEngine = pEngine;
 		m_bStartedFPSTimer = false;
+
+		// Initialize the timestamp pointers		
+		m_pFrameBeginTimestamp = new std::chrono::time_point<std::chrono::high_resolution_clock>();
+		m_pFrameEndTimestamp = new std::chrono::time_point<std::chrono::high_resolution_clock>();
+		m_pFPSBeginTimestamp = new std::chrono::time_point<std::chrono::high_resolution_clock>();
+		m_pdLastFrameDuration = new std::chrono::duration<double>();
 
 		// Initialize the Dynamics pipeline
 		if (Failure(m_DynamicsPipeline.Initialize(pEngine, this)))
@@ -39,6 +45,16 @@ namespace SpeedPoint
 	S_API SResult SFramePipeline::Clear()
 	{
 		SResult res = S_SUCCESS;
+
+		// Clear the FPS timer timestamps
+		if (m_pFrameBeginTimestamp) delete m_pFrameBeginTimestamp;
+		if (m_pFrameEndTimestamp) delete m_pFrameEndTimestamp;
+		if (m_pdLastFrameDuration) delete m_pdLastFrameDuration;
+		if (m_pFPSBeginTimestamp) delete m_pFPSBeginTimestamp;
+		m_pFrameBeginTimestamp = 0;
+		m_pFrameEndTimestamp = 0;
+		m_pdLastFrameDuration = 0;
+		m_pFPSBeginTimestamp = 0;		
 
 		// Clear dynamics pipeline
 		if (Failure(m_DynamicsPipeline.Clear()))		
@@ -71,26 +87,27 @@ namespace SpeedPoint
 
 	S_API SResult SFramePipeline::BeginFrame(unsigned int iSkipStages)
 	{
-		SResult res = S_SUCCESS, tempRes = S_SUCCESS;
-
+		SResult res = S_SUCCESS;
+		SResult tempRes = S_SUCCESS;
+		
 		// Capture current timestamps
-		m_FrameBeginTimestamp = m_HighResClock.now();
+		*m_pFrameBeginTimestamp = m_HighResClock.now();
 		if (!m_bStartedFPSTimer)
 		{
-			m_FPSBeginTimestamp = m_FrameBeginTimestamp;
+			*m_pFPSBeginTimestamp = *m_pFrameBeginTimestamp;
 			m_bStartedFPSTimer = true;			
 		}
-
+		
 		// store skip stages
 		m_iCurrentSkipStages = iSkipStages;
 
 		// Call the BeginFrame event, as timestamp has now been captured				
-		CallEvent(S_E_BEGINFRAME, new SEventParameter[]{
-			SEventParameter("sender", (void*)this)
-		}, 1);		
-
+		SEventParameters params;
+		params.Add("sender", S_PARAMTYPE_PTR, this);
+		CallEvent(S_E_BEGINFRAME, &params);		
+		
 		// Go on with Dynamics Pipeline
-		if (m_iCurrentSkipStages & ~S_DYNAMICS)
+		if ((m_iCurrentSkipStages & S_DYNAMICS) == 0)
 		{
 			tempRes = DoDynamics(); // will throw specific errors		
 			if (res == S_SUCCESS && res != tempRes)
@@ -98,14 +115,14 @@ namespace SpeedPoint
 		}
 
 		// Go on with Render Pipeline
-		if (m_iCurrentSkipStages & ~S_RENDER)
+		if ((m_iCurrentSkipStages & S_RENDER) == 0)
 		{
 			tempRes = DoRender(); // will throw specific errors
 			if (res == S_SUCCESS && res != tempRes)
 				res = tempRes;
-		}
-
-		// return gathered result
+		}					
+		
+		// return gathered result		
 		return res;
 	}
 
@@ -121,7 +138,7 @@ namespace SpeedPoint
 		CallEvent(S_E_DYNAMICS, &params);				
 
 		// Do the animation part of the dynamics pipeline		
-		if (m_iCurrentSkipStages & ~S_DYNAMICS_ANIM)
+		if ((m_iCurrentSkipStages & S_DYNAMICS_ANIM) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoAnimation();
 			if (res == S_SUCCESS && res != tempRes)
@@ -129,7 +146,7 @@ namespace SpeedPoint
 		}
 
 		// Do the physics part of the dynamics pipeline
-		if (m_iCurrentSkipStages & ~S_DYNAMICS_PHYSICS)
+		if ((m_iCurrentSkipStages & S_DYNAMICS_PHYSICS) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoPhysics();
 			if (res == S_SUCCESS && res != tempRes)
@@ -137,7 +154,7 @@ namespace SpeedPoint
 		}
 
 		// Do the input part of the dynamics pipeline
-		if (m_iCurrentSkipStages & ~S_DYNAMICS_INPUT)
+		if ((m_iCurrentSkipStages & S_DYNAMICS_INPUT) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoInteraction();
 			if (res == S_SUCCESS && res != tempRes)
@@ -145,7 +162,7 @@ namespace SpeedPoint
 		}
 
 		// Do the Script part of the dynamics pipeline
-		if (m_iCurrentSkipStages & ~S_DYNAMICS_SCRIPT)
+		if ((m_iCurrentSkipStages & S_DYNAMICS_SCRIPT) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoScriptExecution();
 			if (res == S_SUCCESS && res != tempRes)
@@ -153,7 +170,7 @@ namespace SpeedPoint
 		}
 
 		// Do the RenderScript part of the dynamics pipeline
-		if (m_iCurrentSkipStages & ~S_DYNAMICS_RENDERSCRIPT)
+		if ((m_iCurrentSkipStages & S_DYNAMICS_RENDERSCRIPT) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoRecalcRenderscript();
 			if (res == S_SUCCESS && res != tempRes)
@@ -177,7 +194,7 @@ namespace SpeedPoint
 		CallEvent(S_E_RENDER, &params);
 
 		// Begin the rendering (Clear backbuffers, ...)
-		if (m_iCurrentSkipStages & ~S_RENDER_BEGIN)
+		if ((m_iCurrentSkipStages & S_RENDER_BEGIN) == 0)
 		{			
 			tempRes = m_pRenderPipeline->DoBeginRendering();
 			if (res == S_SUCCESS && res != tempRes)
@@ -185,7 +202,7 @@ namespace SpeedPoint
 		}
 
 		// Begin the Draw-Calls for solids GeometrySection
-		if (m_iCurrentSkipStages & ~S_RENDER_GEOMETRY)
+		if ((m_iCurrentSkipStages & S_RENDER_GEOMETRY) == 0)
 		{
 			tempRes = m_pRenderPipeline->DoGeometrySection();
 			if (res == S_SUCCESS && res != tempRes)
@@ -200,7 +217,7 @@ namespace SpeedPoint
 		}				
 
 		// Do the lighting section
-		if (m_iCurrentSkipStages & ~S_RENDER_LIGHTING)
+		if ((m_iCurrentSkipStages & S_RENDER_LIGHTING) == 0)
 		{
 			tempRes = m_pRenderPipeline->DoLightingSection();
 			if (res == S_SUCCESS && res != tempRes)
@@ -208,7 +225,7 @@ namespace SpeedPoint
 		}
 
 		// Do the post section
-		if (m_iCurrentSkipStages & ~S_RENDER_POST)
+		if ((m_iCurrentSkipStages & S_RENDER_POST) == 0)
 		{
 			tempRes = m_pRenderPipeline->DoPost();
 			if (res == S_SUCCESS && res != tempRes)
@@ -216,7 +233,7 @@ namespace SpeedPoint
 		}
 
 		// Do end rendering
-		if (m_iCurrentSkipStages & ~S_RENDER_PRESENT)
+		if ((m_iCurrentSkipStages & S_RENDER_PRESENT) == 0)
 		{
 			tempRes = m_pRenderPipeline->DoEndRendering();
 			if (res == S_SUCCESS && res != tempRes)
@@ -230,15 +247,22 @@ namespace SpeedPoint
 	
 	S_API SResult SFramePipeline::EndFrame()
 	{
+		SP_ASSERTR(!m_pEngine
+			|| !m_pFrameBeginTimestamp
+			|| !m_pFrameEndTimestamp
+			|| !m_pdLastFrameDuration
+			|| !m_pFPSBeginTimestamp,
+			S_NOTINIT);
+
 		// capture current timestamp and calculate FPS
-		m_FrameEndTimestamp = m_HighResClock.now();
+		*m_pFrameEndTimestamp = m_HighResClock.now();
 		if (m_bStartedFPSTimer)
 		{			
-			m_dLastFrameDuration =
-				std::chrono::duration_cast<std::chrono::duration<double>>(m_FrameEndTimestamp - m_FrameBeginTimestamp);
+			*m_pdLastFrameDuration =
+				std::chrono::duration_cast<std::chrono::duration<double>>(*m_pFrameEndTimestamp - *m_pFrameBeginTimestamp);
 
 			std::chrono::duration<double> fpsTimerDuration =
-				std::chrono::duration_cast<std::chrono::duration<double>>(m_FrameEndTimestamp - m_FPSBeginTimestamp);
+				std::chrono::duration_cast<std::chrono::duration<double>>(*m_pFrameEndTimestamp - *m_pFPSBeginTimestamp);
 
 			m_nFPSTimerFrameCount++;
 			if (fpsTimerDuration.count() >= 1.0)

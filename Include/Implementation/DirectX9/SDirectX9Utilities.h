@@ -7,7 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <d3dx9.h>
-#include <SMatrix.h>
+#include <Util\SMatrix.h>
 
 namespace SpeedPoint
 {	

@@ -226,8 +226,7 @@ namespace SpeedPoint
 	// **********************************************************************************
 
 	S_API SResult SDirectX9RenderPipeline::DoBeginRendering()
-	{
-		HRESULT hRes;
+	{		
 		SResult res;
 
 		SP_ASSERTR(!IsInitialized(), S_ERROR);
@@ -246,18 +245,17 @@ namespace SpeedPoint
 
 		// fire event
 		SEventParameters params;
-		params.AddArray(new SEventParameter[]
-		{
-			SEventParameter("sender", this)
-		}, 1);
-		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params);
+		params.Add("sender", S_PARAMTYPE_PTR, this);
+		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params)))
+			return S_ERROR;
 
 		// Begin DX Scene
 		if (Failure(m_pDXRenderer->BeginScene()))
-			return m_pEngine->LogE("Cannot DXDEVICE::BeginScene!");
+			return S_ERROR;
 
 		// fire event
-		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params);
+		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params)))
+			return S_ERROR;
 
 		return S_SUCCESS;
 	}
@@ -271,11 +269,9 @@ namespace SpeedPoint
 
 		// fire event
 		SEventParameters params;
-		params.AddArray( new SEventParameter[]
-		{
-			SEventParameter("sender", this)
-		}, 1);
-		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params);		
+		params.Add("sender", S_PARAMTYPE_PTR, this);
+		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params)))
+			return S_ERROR;
 
 		// Setup Geometry render section
 		if (Failure(m_GeometryRenderSection.PrepareSection()))
@@ -312,10 +308,9 @@ namespace SpeedPoint
 
 		// Fire event
 		SEventParameters params;
-		params.AddArray(new SEventParameter[] {
-			SEventParameter("sender", this)
-		}, 1);
-		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_EXIT, &params);
+		params.Add("sender", S_PARAMTYPE_PTR, this);
+		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_EXIT, &params)))
+			return S_ERROR;
 
 		// Exit the Geometry section
 		if (Failure(m_GeometryRenderSection.EndSection()))
@@ -341,12 +336,10 @@ namespace SpeedPoint
 
 		// fire preparation event
 		SEventParameters params;
-		params.AddArray(new SEventParameter[]
-		{
-			SEventParameter("sender", this),
-				SEventParameter("lights", (void*)&pLights)
-		}, 1);
-		m_pFramePipeline->CallEvent(S_E_RENDER_LIGHTING_PREPARE, &params);		
+		params.Add("sender", S_PARAMTYPE_PTR, this);
+		params.Add("lights", S_PARAMTYPE_PTR, (void*)&pLights);
+		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_LIGHTING_PREPARE, &params)))
+			return S_ERROR;
 
 		// prepare light sources, or assign custom lights buffer if SSettings::bCustomLightSources is true
 		if (Failure(m_LightingRenderSection.PrepareLightSources(&pLights)))

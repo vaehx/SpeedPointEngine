@@ -27,12 +27,12 @@ namespace SpeedPoint
 							
 		SpeedPointEngine*			m_pEngine;
 
-		bool					m_bStartedFPSTimer;
-		std::chrono::high_resolution_clock	m_HighResClock;
-		std::chrono::high_resolution_clock::time_point	m_FPSBeginTimestamp;
-		std::chrono::high_resolution_clock::time_point	m_FrameBeginTimestamp;
-		std::chrono::high_resolution_clock::time_point	m_FrameEndTimestamp;
-		std::chrono::duration<double>		m_dLastFrameDuration;
+		bool					m_bStartedFPSTimer;		
+		std::chrono::high_resolution_clock	m_HighResClock;		
+		std::chrono::time_point<std::chrono::high_resolution_clock>* m_pFPSBeginTimestamp; // is a ptr due to STL. DO NEVER make this variable public!
+		std::chrono::time_point<std::chrono::high_resolution_clock>* m_pFrameBeginTimestamp; // is a ptr due to STL. DO NEVER make this variable public!
+		std::chrono::time_point<std::chrono::high_resolution_clock>* m_pFrameEndTimestamp; // is a ptr due to STL. DO NEVER make this variable public!
+		std::chrono::duration<double>*		m_pdLastFrameDuration; // is a ptr due to STL. DO NEVER make this variable public!
 		unsigned int				m_nFPSTimerFrameCount;
 		double					m_dLastFPS;
 		float					m_fLastFPS;			// extra variable due to possible information loss with float
@@ -50,8 +50,10 @@ namespace SpeedPoint
 		}
 
 		// Default destructor
-		~SFramePipeline()
+		~SFramePipeline()			
 		{
+			Clear(); // important due to STL timestamps (chrono)
+
 			SObservedObject::~SObservedObject();
 		}
 
@@ -75,7 +77,5 @@ namespace SpeedPoint
 
 		// Executes the End Frame pipeline
 		SResult EndFrame();
-	};
-
-	typedef class SFramePipeline SFrameEngine;
+	};	
 }

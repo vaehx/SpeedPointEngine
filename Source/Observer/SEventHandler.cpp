@@ -51,7 +51,7 @@ namespace SpeedPoint
 
 	S_API bool SEventHandler::IsInitialized()
 	{
-		return m_pFunction;
+		return (m_pFunction != 0);
 	}
 
 	// ******************************************************************************************

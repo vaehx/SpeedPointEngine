@@ -4,7 +4,7 @@
 #include <SpeedPoint.h>
 #include <Abstract\SVertexBuffer.h>
 #include <Abstract\SIndexBuffer.h>
-#include <SVertex.h>
+#include <Util\SVertex.h>
 
 namespace SpeedPoint
 {
@@ -205,7 +205,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API int SBasicSolid::GetPrimitiveCount( void )
+	S_API usint32 SBasicSolid::GetPrimitiveCount( void )
 	{
 		return plPrimitives.GetSize();
 	}

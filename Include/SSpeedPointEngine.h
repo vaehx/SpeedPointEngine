@@ -173,9 +173,7 @@ namespace SpeedPoint
 		// TODO: Function to get renderer type
 
 		SResourcePool* GetResourcePool() { return m_pResourcePool; }
-	};
-
-	typedef class S_API SSpeedPointEngine SpeedPointEngine;
+	};	
 
 
 }

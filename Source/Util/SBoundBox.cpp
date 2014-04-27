@@ -4,7 +4,7 @@
 
 // ********************************************************************************************
 
-#include <SBoundBox.h>
+#include <Util\SBoundBox.h>
 
 namespace SpeedPoint
 {

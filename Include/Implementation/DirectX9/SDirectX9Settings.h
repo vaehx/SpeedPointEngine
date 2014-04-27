@@ -7,7 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\SRendererSettings.h>
-#include <SColor.h>
+#include <Util\SColor.h>
 #include <d3d9.h>
 
 namespace SpeedPoint

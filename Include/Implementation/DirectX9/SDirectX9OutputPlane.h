@@ -10,6 +10,7 @@
 #include "SDirectX9IndexBuffer.h"
 #include "SDirectX9Shader.h"
 #include <d3d9.h>
+#include <Util\SMatrix.h>
 
 namespace SpeedPoint
 {

@@ -10,6 +10,7 @@
 // ********************************************************************************************
 
 #pragma once
+#include "SResult.h"
 #include "SAPI.h"
 #include "SAssert.h"
 #include <cstring>
@@ -41,11 +42,8 @@ namespace SpeedPoint
 		SString(const char* str)
 		{						
 			if (!str)
-			{				
-				SpeedPoint::SResult::ThrowException(
-					SpeedPoint::SResult::eEX_ASSERTION,
-					__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
-
+			{								
+				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
 				return;
 			}
 
@@ -80,9 +78,7 @@ namespace SpeedPoint
 		{
 			if (!str)
 			{
-				SpeedPoint::SResult::ThrowException(
-					SpeedPoint::SResult::eEX_ASSERTION,
-					__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
+				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
 
 				return 0;
 			}
@@ -98,7 +94,7 @@ namespace SpeedPoint
 			} while (nCurrentLen <= nMaxLen); // catch endless loop
 
 			if (nCurrentLen > nMaxLen)
-				SResult::ThrowException(SResult::eEX_ASSERTION, __FUNCTION__, __LINE__, __FILE__, "Char buf length exceeded 2 MB");
+				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Char buf length exceeded 2 MB");
 
 			return nCurrentLen;
 		}
@@ -110,9 +106,7 @@ namespace SpeedPoint
 		{			
 			if (!Dst || !nSize || !Src)
 			{
-				SpeedPoint::SResult::ThrowException(
-					SpeedPoint::SResult::eEX_ASSERTION,
-					__FUNCTION__, __LINE__, __FILE__, "Given parameters are invalid!");
+				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given parameters are invalid!");
 
 				return 0;
 			}
@@ -139,9 +133,7 @@ namespace SpeedPoint
 		{		
 			if (!Dst || !nSize)
 			{
-				SpeedPoint::SResult::ThrowException(
-					SpeedPoint::SResult::eEX_ASSERTION,
-					__FUNCTION__, __LINE__, __FILE__, "Given parameters are invalid!");
+				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given parameters are invalid!");
 
 				return 0;
 			}
@@ -157,7 +149,7 @@ namespace SpeedPoint
 		operator char*() const
 		{
 			return pBuffer;
-		}
+		}		
 
 		// Assignment to char-Array
 		// This will copy the buffer!
@@ -169,6 +161,12 @@ namespace SpeedPoint
 			return tempRes;
 		}		
 	};	 
+
+	// check if string buffer pointer againt integer	
+	inline bool operator == (const SString& sa, const int& i)
+	{
+		return ((char*)sa == (char*)i);
+	}
 
 	// compare two SString's
 	inline bool operator == (const SString& sa, const SString& sb)
@@ -191,8 +189,7 @@ namespace SpeedPoint
 
 		if (i > nMaxLen)
 		{
-			SResult::ThrowException(SResult::eEX_ASSERTION,
-				__FUNCTION__, __LINE__, __FILE__, "Exceeded 2MB data to compare!");
+			SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Exceeded 2MB data to compare!");
 
 			return false;
 		}

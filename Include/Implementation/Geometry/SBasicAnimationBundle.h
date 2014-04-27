@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <SPool.h>
+#include <Util\SPool.h>
 #include <Abstract\SAnimationBundle.h>
 #include "SBasicAnimationSequence.h"
 

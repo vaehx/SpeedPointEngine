@@ -8,11 +8,11 @@
 #include <SPrerequisites.h>
 #include <Abstract\SSolid.h>
 #include <Abstract\SOctree.h>
-#include <STransformable.h>
-#include <SBoundBox.h>
-#include <SMaterial.h>
-#include <SPool.h>
-#include <SPrimitive.h>
+#include <Util\STransformable.h>
+#include <Util\SBoundBox.h>
+#include <Util\SMaterial.h>
+#include <Util\SPool.h>
+#include <Util\SPrimitive.h>
 
 namespace SpeedPoint
 {
@@ -56,7 +56,7 @@ namespace SpeedPoint
 		SP_ID AddPrimitive( const SPrimitive& primitive );
 		SPrimitive* GetPrimitive( SP_ID id );
 		SPrimitive* GetPrimitive( SP_UNIQUE index );
-		int GetPrimitiveCount( void );
+		usint32 GetPrimitiveCount( void );
 
 		// -- Material --
 		void SetMaterial( const SMaterial& mat );

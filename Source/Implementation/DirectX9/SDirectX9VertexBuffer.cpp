@@ -2,7 +2,7 @@
 
 #include <Implementation\DirectX9\SDirectX9VertexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
-#include <SVertex.h>
+#include <Util\SVertex.h>
 #include <SpeedPoint.h>
 
 namespace SpeedPoint
@@ -60,7 +60,7 @@ namespace SpeedPoint
 
 		if( FAILED( pDXRenderer->pd3dDevice->CreateVertexBuffer( nVertices * sizeof( SVertex ),
 						      ((bDynamic) ? D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY : D3DUSAGE_WRITEONLY),
-						      pDXRenderer->GetFVF(),
+						      pDXRenderer->GetDirectXFVF(),
 						      ((bDynamic) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED),
 						      &pHWVertexBuffer,
 						      NULL ) ) )
@@ -95,7 +95,7 @@ namespace SpeedPoint
 		PDIRECT3DVERTEXBUFFER9 pVBTemp;
 		if( FAILED( pDXRenderer->pd3dDevice->CreateVertexBuffer( nVertices * sizeof( SVertex ),
 						      (bDynamic) ? D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY : D3DUSAGE_WRITEONLY,
-						      pRenderer->GetFVF(),
+						      pDXRenderer->GetDirectXFVF(),
 						      (bDynamic) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED,
 						      &pVBTemp,
 						      NULL ) ) )

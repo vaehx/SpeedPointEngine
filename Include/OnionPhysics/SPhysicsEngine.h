@@ -27,7 +27,10 @@ namespace SpeedPoint
 		// Initialize the Physics Engine
 		SResult Initialize(SpeedPointEngine* pEngine)
 		{
+			if (!pEngine) return S_INVALIDPARAM;
+
 			m_pEngine = pEngine;
+			return S_SUCCESS;
 		}
 
 		// Handle Physics of all solids with each solid in a solid system

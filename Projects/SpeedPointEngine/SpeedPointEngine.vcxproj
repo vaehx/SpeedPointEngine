@@ -41,6 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)\..\Dependencies\DirectX\Include;$(SolutionDir)\..\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -51,12 +53,15 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEEDPOINTENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>SP_EXPORT;WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEEDPOINTENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3dx9d.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -319,7 +324,7 @@
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsCollisionShape.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsLiquid.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsMaterial.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsSystem.cpp" />
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicalSolidSystem.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsWind.cpp" />
     <ClCompile Include="..\..\Source\Pipelines\SDynamicsPipeline.cpp" />
     <ClCompile Include="..\..\Source\Pipelines\SFramePipeline.cpp" />

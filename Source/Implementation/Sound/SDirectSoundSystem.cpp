@@ -1,7 +1,7 @@
 // SpeedPoint DirectSound-SoundSystem
 
 #include <Implementation\Sound\SDirectSoundSystem.h>
-#include <SVector3.h>
+#include <Util\SVector3.h>
 
 namespace SpeedPoint
 {

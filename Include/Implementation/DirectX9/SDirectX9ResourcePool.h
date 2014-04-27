@@ -10,7 +10,7 @@
 #include "SDirectX9VertexBuffer.h"
 #include "SDirectX9Shader.h"
 #include "SDirectX9Texture.h"
-#include <SPool.h>
+#include <Util\SPool.h>
 
 namespace SpeedPoint
 {

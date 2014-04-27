@@ -83,5 +83,12 @@ namespace SpeedPoint
 		SResult UpdateViewportMatrices( SViewport* pViewport );
 		
 		SResult RenderSolid(SSolid* pSolid, bool bTextured);
+
+		// Get the DirectX9 Specific Fixed Vertex Format
+		// normally used for CreateVertexBuffer
+		static DWORD GetDirectXFVF()
+		{
+			return D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2;
+		}
 	};
 }

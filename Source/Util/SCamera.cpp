@@ -4,7 +4,7 @@
 
 // ********************************************************************************************
 
-#include <SCamera.h>
+#include <Util\SCamera.h>
 
 namespace SpeedPoint
 {	
@@ -15,5 +15,6 @@ namespace SpeedPoint
 //~~~~~~~~~~~~~~~~~~
 // TODO !!!!!!!
 //~~~~~~~~~~~~~~~~~~
+		return SMatrix4();
 	}
 }

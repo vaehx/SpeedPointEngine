@@ -8,8 +8,8 @@
 // ********************************************************************************************
 
 #pragma once
-
 #include "SAPI.h"
+#include "SWindowsSpecific.h"
 #include <cstdio> // for assertion
 
 namespace SpeedPoint
@@ -44,7 +44,9 @@ namespace SpeedPoint
 		S_WARNING = S_WARN,
 		S_INVALIDPARAM,
 		S_INVALIDSTAGE,
-		S_NOTINIT	
+		S_NOTIMPLEMENTED,
+		S_NOTINIT,
+		S_NOTINITED = S_NOTINIT
 	};
 
 	// Required conversion functions from other types to ResultType
@@ -73,13 +75,14 @@ namespace SpeedPoint
 	};
 
 	// New SpeedPoint Result class
-	struct S_API SResult
+	class S_API SResult
 	{
+	public:
 		enum SExceptionType
 		{
 			eEX_ASSERTION
 		};
-
+		
 		SResultType result;
 
 		SResult()
@@ -109,6 +112,15 @@ namespace SpeedPoint
 		}
 
 		// throw an exception with given parameters and output information useful for debugging
+		static void ThrowExceptionAssertion(const char* function,
+			int line,
+			const char* file,
+			const char* msg)
+		{
+			return ThrowExceptionEng(0, SResult::eEX_ASSERTION, function, line, file, msg);
+		}
+
+		// throw an exception with given parameters and output information useful for debugging
 		static void ThrowException(const SResult::SExceptionType& type,
 			const char* function,
 			int line,
@@ -129,7 +141,7 @@ namespace SpeedPoint
 		{
 			char* pOutput = new char[500];
 
-			sprintf(pOutput, "Assertion failed!\n" \
+			sprintf_s(pOutput, 500, "Assertion failed!\n" \
 				"  File: %s\n" \
 				"  Function: %s\n" \
 				"  Line: %d\n" \
@@ -173,7 +185,7 @@ namespace SpeedPoint
 		{
 			char* pOutput = new char[500];
 
-			sprintf(pOutput, "Assertion failed!\n" \
+			sprintf_s(pOutput, 500, "Assertion failed!\n" \
 				"  File: %s\n" \
 				"  Function: %s\n" \
 				"  Line: %d\n" \
@@ -196,6 +208,6 @@ namespace SpeedPoint
 
 	// Support HRESULT
 
-	static bool Failure(const HRESULT& r) { return FAILED(r); }
+	static bool Failure(const HRESULT& r) { return r < 0; }
 
 } // namespace SpeedPoint

@@ -8,6 +8,7 @@
 
 #include <SPrerequisites.h>
 #include <Implementation\Geometry\SBasicSolid.h>
+#include "SPhysIntersectInfo.h"
 
 namespace SpeedPoint
 {
@@ -25,7 +26,7 @@ namespace SpeedPoint
 		SVector3 ApplyMomentum(SVector3 momentum);
 
 		// Check collision between this and another Physical Solid
-		SPhysCollisionInfo CheckCollision(SPhysicalSolid* pOtherPhysicalSolid, float fTimeDiff);
+		SPhysIntersectInfo CheckCollision(SPhysicalSolid* pOtherPhysicalSolid, float fTimeDiff);
 
 		//~~~~~~~
 		// TODO: Further methods

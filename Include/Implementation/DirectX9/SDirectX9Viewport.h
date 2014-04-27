@@ -7,10 +7,10 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\SViewport.h>
-#include <SVector2.h>
+#include <Util\SVector2.h>
 #include <d3d9.h>
 #include <d3dx9.h>
-#include <SMatrix.h>
+#include <Util\SMatrix.h>
 
 namespace SpeedPoint
 {

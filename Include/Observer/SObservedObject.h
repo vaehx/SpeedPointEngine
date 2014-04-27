@@ -21,9 +21,7 @@ namespace SpeedPoint
 
 	public:
 		// Default constructor
-		SObservedObject()
-		{
-		}
+		SObservedObject();
 
 		// constructor with destruction handler pointer
 		SObservedObject(SEventCallback pDestructionCallbackFunction);

@@ -7,6 +7,7 @@
 #include <iostream>
 #include "String.h"
 #include "Assert.h"
+#include "Result.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -26,14 +27,18 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 
-int main(void)
-{	
-	CTest test;
-	test.DoSomething();
+SResult MyTestFunc()
+{
+	int i = 0;
 
-	int v[] = { 1, };
-	
-	std::cout << v[1];
+	return S_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+int main(void)
+{
+	MyTestFunc();
 
 	SpeedPoint::String cStr;
 	std::cin >> cStr;

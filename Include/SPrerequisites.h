@@ -62,19 +62,19 @@ namespace SpeedPoint
 	// --------------------------- COMPONENTS --------------------------------
 
 	class	S_API SSpeedPointEngine;	
-	class	S_API SpeedPointEngine;	// same as SSpeedPointEngine (typedef)
+	typedef class S_API SSpeedPointEngine SpeedPointEngine;
 	class	S_API SPhysicsEngine;
 	
 	class	S_API SFramePipeline;
-	class	S_API SFrameEngine;	// same as SFramePipeline (typedef)
+	typedef class S_API SFramePipeline SFrameEngine;
 	class	S_API SDynamicsPipeline;
 
 	// --------------------- Observing / Event handling -----------------------
 
 	class	S_API SEventCallbackTable;
-	class	S_API SEventCallbackTableEntry;
+	struct	S_API SEventCallbackTableEntry;
 	class	S_API SEventHandler;
-	class	S_API SEventParameter;
+	struct	S_API SEventParameter;
 	class	S_API SEventParameters;
 	class	S_API SObservedObject;	// the class, all pipelines should inherit from
 
@@ -84,7 +84,7 @@ namespace SpeedPoint
 	struct	S_API SVector3;
 	struct	S_API SVector2;
 	struct	S_API SMatrix;
-	struct	S_API SMatrix4;
+	typedef struct S_API SMatrix SMatrix4;
 	class	S_API SPlane;	
 	class	S_API STransformable;
 	class	S_API SCamera;		
@@ -237,6 +237,7 @@ namespace SpeedPoint
 /*abs*/ class	S_API SPhysicalCollection;
 	class	S_API SPhysicsSystem;
 	struct	S_API SPhysicsMaterial;
+	class	S_API SPhysIntersectInfo;
 
 	// ---------------------------- Scripting --------------------------------
 	class	S_API RunPowderCommand;

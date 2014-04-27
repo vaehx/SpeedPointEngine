@@ -8,27 +8,50 @@
 
 namespace SpeedPoint
 {
+	S_API SResult SDynamicsPipeline::Initialize(SpeedPointEngine* m_pEngine, SFramePipeline* pFramePipeline)
+	{
+		return S_NOTIMPLEMENTED;
+	}
+
 	// ******************************************************************************************
 
 	S_API SResult SDynamicsPipeline::DoAnimation()
 	{
+		return S_NOTIMPLEMENTED;
 	}
 
 	// ******************************************************************************************
 
 	S_API SResult SDynamicsPipeline::DoPhysics()
 	{
+		return S_NOTIMPLEMENTED;
 	}
 
 	// ******************************************************************************************
 	
 	S_API SResult SDynamicsPipeline::DoInteraction()
 	{
+		return S_NOTIMPLEMENTED;
 	}
 
 	// ******************************************************************************************
 	
 	S_API SResult SDynamicsPipeline::DoScriptExecution()
 	{
+		return S_NOTIMPLEMENTED;
+	}	
+
+	// ******************************************************************************************
+
+	S_API SResult SDynamicsPipeline::Clear()
+	{
+		return S_NOTIMPLEMENTED;
+	}
+
+	// ******************************************************************************************
+	
+	S_API SResult SDynamicsPipeline::DoRecalcRenderscript()
+	{
+		return S_NOTIMPLEMENTED;
 	}
 }

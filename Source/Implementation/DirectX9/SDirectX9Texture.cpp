@@ -41,19 +41,19 @@ namespace SpeedPoint
 		tType = S_TEXTURE_FILE;
 
 		// Now create the texture
-		if( FAILED( D3DXCreateTextureFromFileEx( 
+		if (FAILED(D3DXCreateTextureFromFileExA(
 			pDXRenderer->pd3dDevice,
 			cFileName,
 			w, h, 5,
-			( bDynamic ) ? D3DUSAGE_DYNAMIC : 0,
+			(bDynamic) ? D3DUSAGE_DYNAMIC : 0,
 			D3DFMT_UNKNOWN,
-			( bDynamic ) ? D3DPOOL_MANAGED : D3DPOOL_DEFAULT,
+			(bDynamic) ? D3DPOOL_MANAGED : D3DPOOL_DEFAULT,
 			D3DX_FILTER_NONE,
 			D3DX_DEFAULT,
 			0,
 			NULL,
 			NULL,
-			&pTexture ) ) )			
+			&pTexture)))
 		{
 			return S_ERROR;
 		}

@@ -125,7 +125,7 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9ResourcePool::AddTexture( SString src, UINT w, UINT h, SString spec, STexture** pTexture, SP_ID* pUID )
 	{
-		if( pDXRenderer == NULL || src.cString == NULL || w <= 64 || h <= 64 || spec.cString == NULL )
+		if( pDXRenderer == NULL || (char*)src == NULL || w <= 64 || h <= 64 || (char*)spec == NULL )
 		{
 			return S_ABORTED;
 		}
@@ -143,7 +143,7 @@ namespace SpeedPoint
 			return S_ERROR;
 		}
 
-		if( Failure( pdxTexture->LoadFromFile( w, h, 5, src.cString ) ) )
+		if( Failure( pdxTexture->LoadFromFile( w, h, 5, src ) ) )
 		{
 			return S_ERROR;
 		}
@@ -157,7 +157,7 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9ResourcePool::AddTexture( UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, STexture** pTexture, SP_ID* pUID )
 	{
-		if( pDXRenderer == NULL || w <= 0 || h <= 0 || spec.cString == NULL )
+		if( pDXRenderer == NULL || w <= 0 || h <= 0 || (char*)spec == 0 )
 		{
 			return S_ABORTED;
 		}
@@ -237,11 +237,11 @@ namespace SpeedPoint
 		}
 
 		SString sSpec = pdxTexture->GetSpecification();
-		if( sSpec.cString == 0 || sSpec.GetLength() == 0 ) return pRes;
+		if( sSpec == 0 || sSpec.GetLength() == 0 ) return pRes;
 
 		delete[] pRes;
 		pRes = new char[sSpec.GetLength()];
-		strcpy_s( pRes, sSpec.GetLength(), sSpec.cString );
+		strcpy_s( pRes, sSpec.GetLength(), sSpec );
 		return pRes;
 	}
 

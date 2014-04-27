@@ -7,6 +7,8 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\Pipelines\SRenderPipelineSection.h>
+#include "SDirectX9Shader.h"
+#include "SDirectX9FrameBuffer.h"
 
 namespace SpeedPoint
 {

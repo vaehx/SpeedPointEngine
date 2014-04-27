@@ -7,7 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\SOctreeNode.h>
-#include <SBoundBox.h>
+#include <Util\SBoundBox.h>
 
 namespace SpeedPoint
 {

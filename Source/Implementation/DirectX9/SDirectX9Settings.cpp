@@ -2,7 +2,7 @@
 
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9Settings.h>
-#include <SColor.h>
+#include <Util\SColor.h>
 
 namespace SpeedPoint
 {

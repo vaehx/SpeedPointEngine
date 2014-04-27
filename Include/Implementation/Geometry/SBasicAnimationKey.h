@@ -6,9 +6,9 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <SPool.h>
+#include <Util\SPool.h>
 #include <Abstract\SAnimationKey.h>
-#include <SVector3.h>
+#include <Util\SVector3.h>
 
 namespace SpeedPoint
 {

@@ -51,7 +51,7 @@ namespace SpeedPoint
 		virtual SP_ID AddPrimitive( const SPrimitive& primitive ) = 0;
 
 		// Get Primitive count
-		virtual int GetPrimitiveCount( void ) = 0;		
+		virtual usint32 GetPrimitiveCount( void ) = 0;		
 
 		// -- Material --
 

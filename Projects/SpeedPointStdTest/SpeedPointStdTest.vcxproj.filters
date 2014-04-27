@@ -26,5 +26,8 @@
     <ClInclude Include="Assert.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Result.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

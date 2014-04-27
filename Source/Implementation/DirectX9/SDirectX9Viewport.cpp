@@ -14,7 +14,7 @@ namespace SpeedPoint
 	S_API SResult SDirectX9Viewport::Initialize( SpeedPointEngine* eng )
 	{
 		Clear(); // make sure to be cleared, before initialization a second time		
-		SP_ASSERTR(!(pEngine = eng));
+		SP_ASSERTR(!(pEngine = eng), S_ERROR);
 
 		return S_SUCCESS;
 	}
@@ -27,7 +27,7 @@ namespace SpeedPoint
 		
 		// if the swap chain is not null, it is initialized as a swapchain and
 		// thereby an additional viewport
-		return pSwapChain;
+		return pSwapChain != 0;
 	}
 
 	// **********************************************************************************
@@ -79,6 +79,7 @@ namespace SpeedPoint
 
 		D3DXMATRIX mProj;
 
+		SSettings engineSettings = pEngine->GetSettings();
 		switch( type )
 		{
 		case S_PROJECTION_PERSPECTIVE:
@@ -87,15 +88,15 @@ namespace SpeedPoint
 					&mProj,
 					fFOV,
 					(float)nXResolution / (float)nYResolution,
-					pEngine->GetSettings()->fClipNear,
-					pEngine->GetSettings()->fClipFar );				
+					engineSettings.fClipNear,
+					engineSettings.fClipFar );				
 
 				break;
 			}
 		case S_PROJECTION_ORTHOGRAPHIC:
 			{
 				D3DXMatrixOrthoRH( &mProj, fOrthoW, fOrthoH,
-					pEngine->GetSettings()->fClipNear, pEngine->GetSettings()->fClipFar );
+					engineSettings.fClipNear, engineSettings.fClipFar );
 
 				break;
 			}
@@ -109,26 +110,40 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9Viewport::RecalculateViewMatrix( SCamera* tempCam )
+	S_API SMatrix4 SDirectX9Viewport::GetProjectionMatrix()
+	{
+		return mProjection;
+	}
+
+	// **********************************************************************************
+
+	S_API SResult SDirectX9Viewport::RecalculateCameraViewMatrix(SCamera* tempCam)
 	{
 		SCamera* c = pCamera;
-		if( tempCam )
+		if (tempCam)
 		{
 			c = tempCam;
 		}
 
-		D3DXVECTOR3 vEyePt( c->vPosition.x, c->vPosition.y, c->vPosition.z );
-		D3DXVECTOR3 vLookAt( c->vPosition.x + sin(c->vRotation.y)*cos(c->vRotation.x),
-				     c->vPosition.y + sin(c->vRotation.x),
-				     c->vPosition.z + cos(c->vRotation.y)*cos(c->vRotation.x));
-		D3DXVECTOR3 vUpVec( 0.0f, 1.0f, 0.0f );
-	
-		D3DXMATRIX mCam;
-		D3DXMatrixLookAtRH( &mCam, &vEyePt, &vLookAt, &vUpVec );		
+		D3DXVECTOR3 vEyePt(c->vPosition.x, c->vPosition.y, c->vPosition.z);
+		D3DXVECTOR3 vLookAt(c->vPosition.x + sin(c->vRotation.y)*cos(c->vRotation.x),
+			c->vPosition.y + sin(c->vRotation.x),
+			c->vPosition.z + cos(c->vRotation.y)*cos(c->vRotation.x));
+		D3DXVECTOR3 vUpVec(0.0f, 1.0f, 0.0f);
 
-		mView = DXMatrixToSMatrix( mCam );
+		D3DXMATRIX mCam;
+		D3DXMatrixLookAtRH(&mCam, &vEyePt, &vLookAt, &vUpVec);
+
+		mView = DXMatrixToSMatrix(mCam);
 
 		return S_SUCCESS;
+	}
+
+	// **********************************************************************************
+
+	S_API SMatrix4 SDirectX9Viewport::GetCameraViewMatrix()
+	{
+		return mView;
 	}
 
 	// **********************************************************************************

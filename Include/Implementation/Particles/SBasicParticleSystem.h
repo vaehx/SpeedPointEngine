@@ -7,7 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\SParticleSystem.h>
-#include <SPool.h>
+#include <Util\SPool.h>
 #include "SBasicParticle.h"
 
 namespace SpeedPoint

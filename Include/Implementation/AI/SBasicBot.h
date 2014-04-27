@@ -19,7 +19,7 @@ namespace SpeedPoint
 
 		// --
 
-		void InitScriptAttributes( void );
+		virtual SResult InitScriptAttributes( void );
 		void InitScriptEnvironment( RunPowderEnvironment* pEnv );		
 		
 		void SetInteractionRadius( float fRadius );

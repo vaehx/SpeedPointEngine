@@ -103,7 +103,7 @@ namespace SpeedPoint
 
 		// Returns count of whole pool (including free items)
 		// To get actual count use GetUsageSize()
-		int GetSize(void);
+		unsigned int GetSize(void);
 
 		// Return the count of used slots
 		unsigned int GetUsageSize();
@@ -370,9 +370,9 @@ namespace SpeedPoint
 
 	// Get the size the whole memory (including reserved and free cells)
 	// To get the actual size of reserved slots, subtract by GetFreeCount()
-	template <class T> int SPool<T>::GetSize(void)
+	template <class T> unsigned int SPool<T>::GetSize(void)
 	{
-		return nSize;
+		return (unsigned int)nSize;
 	}
 
 	// ******************************************************************************************

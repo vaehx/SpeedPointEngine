@@ -395,9 +395,10 @@ namespace SpeedPoint
 		default: cPrefix = "[SpeedPoint:??]"; break;
 		}
 		
-		SString sActualMsg(new char[msg.GetLength() + strlen(cPrefix) + 2]);
+		usint32 nActualMsgLen = msg.GetLength() + strlen(cPrefix) + 2;
+		SString sActualMsg(new char[nActualMsgLen]);
 		
-		wsprintf((char*)sActualMsg, "%s %s", cPrefix, (char*)msg);
+		sprintf_s((char*)sActualMsg, nActualMsgLen, "%s %s", cPrefix, (char*)msg);
 
 		return m_pLoggingStream->Report( res, sActualMsg );
 	}

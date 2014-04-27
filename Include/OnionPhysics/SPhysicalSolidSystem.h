@@ -5,12 +5,13 @@
 // *****************************************************************************************
 
 #include <SPrerequisites.h>
+#include "SPhysicalSolid.h"
 #include <Abstract\SSolidSystem.h>
 
 namespace SpeedPoint
 {
 	// SPhysicalSolidSystem - another implementation of the abstract SSolidSystem class
-	class SPhysicalSolidSystem : public SSolidSystem
+	class S_API SPhysicalSolidSystem : public SSolidSystem
 	{
 	private:
 		SPool<SPhysicalSolid>	m_PhysicalSolids;

@@ -7,7 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\SSolidSystem.h>
-#include <SPool.h>
+#include <Util\SPool.h>
 #include "SBasicSolid.h"
 
 namespace SpeedPoint
