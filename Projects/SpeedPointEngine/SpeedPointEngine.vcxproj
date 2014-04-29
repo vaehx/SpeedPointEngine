@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E7D18827-6CCA-4A5D-8C11-73E42890B45D}</ProjectGuid>
+    <ProjectGuid>{054E8253-E6C1-4063-B65A-090736E00DCF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SpeedPointEngine</RootNamespace>
   </PropertyGroup>

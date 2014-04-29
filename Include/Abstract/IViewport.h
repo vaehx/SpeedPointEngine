@@ -51,7 +51,7 @@ namespace SpeedPoint
 		/////// TODO: More viewport related settings
 
 		// Get a pointer to the backbuffer framebuffer object
-		virtual SFrameBuffer* GetBackBuffer( void ) = 0;
+		virtual IFrameBuffer* GetBackBuffer( void ) = 0;
 
 		// Set the pointer of the camera.
 		virtual SResult SetCamera( SCamera* pCamera ) = 0;
