@@ -21,13 +21,13 @@ namespace SpeedPoint
 		virtual SResult Initialize( SpeedPointEngine* pEngine ) = 0;
 
 		// Load a sound resource from file freely positionable in the world
-		virtual SResult AddSound( char* cFileName, char* cSpecification, bool bLooped, SVector3 vPosition, SSound* pSound, SP_ID* pUID ) = 0;
+		virtual SResult AddSound( char* cFileName, char* cSpecification, bool bLooped, SVector3 vPosition, ISound* pSound, SP_ID* pUID ) = 0;
 
 		// Get a sound by its id
-		virtual SSound* GetSound( SP_ID id ) = 0;
+		virtual ISound* GetSound( SP_ID id ) = 0;
 
 		// Get a sound by its specification
-		virtual SSound* GetSound( SString cSpec ) = 0;
+		virtual ISound* GetSound( SString cSpec ) = 0;
 
 		// Play a sound by specification
 		virtual SResult PlaySound( SString cSpec ) = 0;

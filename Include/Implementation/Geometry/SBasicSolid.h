@@ -6,8 +6,8 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SSolid.h>
-#include <Abstract\SOctree.h>
+#include <Abstract\ISolid.h>
+#include <Abstract\IOctree.h>
 #include <Util\STransformable.h>
 #include <Util\SBoundBox.h>
 #include <Util\SMaterial.h>
@@ -17,7 +17,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Solid
-	class S_API SBasicSolid : public SSolid
+	class S_API SBasicSolid : public ISolid
 	{
 	public:
 		bool			bInitialized;
@@ -29,7 +29,7 @@ namespace SpeedPoint
 		SMaterial		matMaterial;
 		SPool<SPrimitive>	plPrimitives;
 		bool			bDynamic;
-		SOctree*		pOctree;
+		IOctree*		pOctree;
 
 		// Default constructor
 		SBasicSolid()
@@ -68,7 +68,7 @@ namespace SpeedPoint
 		SBoundBox* SetBoundBox( const SBoundBox& bb );
 
 		// -- Octree --
-		SOctree* GetOctree( void );
+		IOctree* GetOctree( void );
 
 		// -- Animations --
 		void SetAnimationBundle( SP_ID iBundle );

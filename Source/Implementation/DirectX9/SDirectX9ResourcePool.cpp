@@ -16,7 +16,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 	
-	S_API SResult SDirectX9ResourcePool::Initialize( SpeedPointEngine* eng, SRenderer* renderer )
+	S_API SResult SDirectX9ResourcePool::Initialize( SpeedPointEngine* eng, IRenderer* renderer )
 	{
 		if( eng == NULL || renderer == NULL ) return S_ABORTED;
 
@@ -32,7 +32,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 	
-	S_API SResult SDirectX9ResourcePool::AddVertexBuffer( SVertexBuffer** pVBuffer, SP_ID* pUID )
+	S_API SResult SDirectX9ResourcePool::AddVertexBuffer( IVertexBuffer** pVBuffer, SP_ID* pUID )
 	{
 		if( pEngine == NULL ) return S_ABORTED;
 
@@ -46,20 +46,20 @@ namespace SpeedPoint
 			return S_ERROR;
 
 		if( pVBuffer != NULL )
-			*pVBuffer = (SVertexBuffer*)pdxVertexBuffer;
+			*pVBuffer = (IVertexBuffer*)pdxVertexBuffer;
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API SVertexBuffer* SDirectX9ResourcePool::GetVertexBuffer( SP_ID iUID )
+	S_API IVertexBuffer* SDirectX9ResourcePool::GetVertexBuffer( SP_ID iUID )
 	{
 		if( pEngine == NULL ) return NULL;
 
 		SDirectX9VertexBuffer* pdxVertexBuffer = plVertexBuffers.GetItemByUID( iUID );
 
-		return (SVertexBuffer*)pdxVertexBuffer;
+		return (IVertexBuffer*)pdxVertexBuffer;
 	}
 
 	// **********************************************************************************
@@ -77,7 +77,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9ResourcePool::AddIndexBuffer( SIndexBuffer** pIBuffer, SP_ID* pUID )
+	S_API SResult SDirectX9ResourcePool::AddIndexBuffer( IIndexBuffer** pIBuffer, SP_ID* pUID )
 	{
 		if( pEngine == NULL ) return S_ABORTED;
 
@@ -90,20 +90,20 @@ namespace SpeedPoint
 		}
 
 		if( pIBuffer != NULL )
-			*pIBuffer = (SIndexBuffer*)pdxIndexBuffer;
+			*pIBuffer = (IIndexBuffer*)pdxIndexBuffer;
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API SIndexBuffer* SDirectX9ResourcePool::GetIndexBuffer( SP_ID iUID )	
+	S_API IIndexBuffer* SDirectX9ResourcePool::GetIndexBuffer( SP_ID iUID )	
 	{
 		if( pDXRenderer == NULL || plIndexBuffers.GetSize() == 0 ) return NULL;
 
 		SDirectX9IndexBuffer* pdxIndexBuffer = plIndexBuffers.GetItemByUID( iUID );
 		
-		return (SIndexBuffer*)pdxIndexBuffer;
+		return (IIndexBuffer*)pdxIndexBuffer;
 	}
 
 	// **********************************************************************************
@@ -123,7 +123,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9ResourcePool::AddTexture( SString src, UINT w, UINT h, SString spec, STexture** pTexture, SP_ID* pUID )
+	S_API SResult SDirectX9ResourcePool::AddTexture( SString src, UINT w, UINT h, SString spec, ITexture** pTexture, SP_ID* pUID )
 	{
 		if( pDXRenderer == NULL || (char*)src == NULL || w <= 64 || h <= 64 || (char*)spec == NULL )
 		{
@@ -148,14 +148,14 @@ namespace SpeedPoint
 			return S_ERROR;
 		}
 
-		if( pTexture != NULL ) *pTexture = (STexture*)pdxTexture;
+		if( pTexture != NULL ) *pTexture = (ITexture*)pdxTexture;
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9ResourcePool::AddTexture( UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, STexture** pTexture, SP_ID* pUID )
+	S_API SResult SDirectX9ResourcePool::AddTexture( UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, ITexture** pTexture, SP_ID* pUID )
 	{
 		if( pDXRenderer == NULL || w <= 0 || h <= 0 || (char*)spec == 0 )
 		{
@@ -179,25 +179,25 @@ namespace SpeedPoint
 			return S_ERROR;
 		}
 
-		if( pTexture != NULL ) *pTexture = (STexture*)pdxTexture;
+		if( pTexture != NULL ) *pTexture = (ITexture*)pdxTexture;
 
 		return S_SUCCESS;
 	}
 
 	// **********************************************************************************
 
-	S_API STexture* SDirectX9ResourcePool::GetTexture( SP_ID iUID )
+	S_API ITexture* SDirectX9ResourcePool::GetTexture( SP_ID iUID )
 	{
 		if( pDXRenderer == NULL || plTextures.GetSize() <= 0 ) return NULL;
 
 		SDirectX9Texture* pdxTexture = plTextures.GetItemByUID( iUID );
 
-		return (STexture*)pdxTexture;
+		return (ITexture*)pdxTexture;
 	}
 
 	// **********************************************************************************
 
-	S_API STexture* SDirectX9ResourcePool::GetTexture( SString spec )
+	S_API ITexture* SDirectX9ResourcePool::GetTexture( SString spec )
 	{
 		if( pDXRenderer == NULL || plTextures.GetSize() <= 0 ) return NULL;
 
@@ -214,7 +214,7 @@ namespace SpeedPoint
 			}
 		}
 
-		return (STexture*)pdxTexture;
+		return (ITexture*)pdxTexture;
 	}
 
 	// **********************************************************************************
@@ -286,7 +286,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9ResourcePool::ForEachTexture( void (*pIterationFunc)(STexture*, const SP_ID&) )
+	S_API SResult SDirectX9ResourcePool::ForEachTexture( void (*pIterationFunc)(ITexture*, const SP_ID&) )
 	{
 		if( pDXRenderer == NULL || plTextures.GetSize() <= 0 ) return S_ABORTED;
 
@@ -300,7 +300,7 @@ namespace SpeedPoint
 			iCurrent.iIndex = pDXPoolObject->iIndirectionIndex;
 			iCurrent.iVersion = pDXPoolObject->iVersion;
 
-			pIterationFunc( (STexture*)&pDXPoolObject->tInstance, iCurrent );
+			pIterationFunc( (ITexture*)&pDXPoolObject->tInstance, iCurrent );
 		}
 
 		return S_SUCCESS;

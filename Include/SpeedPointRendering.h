@@ -9,16 +9,16 @@
 
 #pragma once
 
-#include <Abstract\Pipelines\SRenderPipeline.h>
-#include <Abstract\Pipelines\SRenderPipelineSection.h>
-#include <Abstract\SRenderer.h>
-#include <Abstract\SRendererSettings.h>
-#include <Abstract\SFrameBuffer.h>
-#include <Abstract\SShader.h>
+#include <Abstract\Pipelines\IRenderPipeline.h>
+#include <Abstract\Pipelines\IRenderPipelineSection.h>
+#include <Abstract\IRenderer.h>
+#include <Abstract\IRendererSettings.h>
+#include <Abstract\IFrameBuffer.h>
+#include <Abstract\IShader.h>
 
 // we also want to light our scene....
 #include <Lighting\SLight.h>
 #include <Lighting\SLightSystem.h>
 
 // of course we want to render solids...
-#include <Abstract\SSolid.h>
+#include <Abstract\ISolid.h>

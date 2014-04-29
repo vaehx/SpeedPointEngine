@@ -18,7 +18,7 @@ namespace SpeedPoint
 	{
 	public:
 		// Set the renderer belonging to these settings
-		virtual SResult SetRenderer( SRenderer* pRenderer ) = 0;
+		virtual SResult SetRenderer( IRenderer* pRenderer ) = 0;
 
 		// --
 

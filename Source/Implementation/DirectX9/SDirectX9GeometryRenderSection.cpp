@@ -12,7 +12,7 @@
 #include <Implementation\DirectX9\SDirectX9IndexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Texture.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
-#include <Abstract\SSolid.h>
+#include <Abstract\ISolid.h>
 #include <Util\SMaterial.h>
 #include <Util\SVertex.h>
 #include <Util\SPrimitive.h>
@@ -37,7 +37,7 @@ namespace SpeedPoint
 
 	// **************************************************************************************************************************
 
-	S_API SResult SDirectX9GeometryRenderSection::Initialize( SpeedPointEngine* eng, SRenderPipeline* pRenderPipeline )
+	S_API SResult SDirectX9GeometryRenderSection::Initialize( SpeedPointEngine* eng, IRenderPipeline* pRenderPipeline )
 	{
 		if(eng == 0) return S_INVALIDPARAM;
 
@@ -58,25 +58,25 @@ namespace SpeedPoint
 		SSettings settings = m_pEngine->GetSettings();
 		SResult res = S_SUCCESS, tempRes;
 
-		if (Failure(tempRes = m_GBufferAlbedo.Initialize(m_pEngine, settings.nXResolution, settings.nYResolution)))
+		if (Failure(tempRes = m_GBufferAlbedo.Initialize(m_pEngine, settings.app.nXResolution, settings.app.nYResolution)))
 		{
 			m_pEngine->LogE("Cannot initialize Geometry Render Section: Failed to Initialize Albedo GBuffer component!");
 			if (res == S_SUCCESS) res = tempRes;
 		}
 
-		if (Failure(tempRes = m_GBufferPosition.Initialize(m_pEngine, settings.nXResolution, settings.nYResolution)))
+		if (Failure(tempRes = m_GBufferPosition.Initialize(m_pEngine, settings.app.nXResolution, settings.app.nYResolution)))
 		{
 			m_pEngine->LogE("Cannot intialize Geometry Render Section: Failed to Initialize Position GBuffer component!");
 			if (res == S_SUCCESS) res = tempRes;
 		}
 
-		if (Failure(tempRes = m_GBufferNormals.Initialize(m_pEngine, settings.nXResolution, settings.nYResolution)))
+		if (Failure(tempRes = m_GBufferNormals.Initialize(m_pEngine, settings.app.nXResolution, settings.app.nYResolution)))
 		{
 			m_pEngine->LogE("Cannot initialize Geometry Render Section: Failed to Initialize normals GBuffer component!");
 			if (res == S_SUCCESS) res = tempRes;
 		}
 
-		if (Failure(tempRes = m_GBufferTangents.Initialize(m_pEngine, settings.nXResolution, settings.nYResolution)))
+		if (Failure(tempRes = m_GBufferTangents.Initialize(m_pEngine, settings.app.nXResolution, settings.app.nYResolution)))
 		{
 			m_pEngine->LogE("Cannot initialize Geometry Render Section: Failed to Initialize tangents GBuffer component!");
 			if (res == S_SUCCESS) res = tempRes;
@@ -185,7 +185,7 @@ namespace SpeedPoint
 
 	// **************************************************************************************************************************
 
-	S_API SResult SDirectX9GeometryRenderSection::PrepareShaderInput(SSolid* pSolid, bool bTextured)
+	S_API SResult SDirectX9GeometryRenderSection::PrepareShaderInput(ISolid* pSolid, bool bTextured)
 	{
 		HRESULT hRes;		
 		SDirectX9Renderer* pDXRenderer;
@@ -269,7 +269,7 @@ namespace SpeedPoint
 
 	// **************************************************************************************************************************
 
-	S_API SResult SDirectX9GeometryRenderSection::RenderSolidGeometry(SSolid* pSolid, bool bTextured)
+	S_API SResult SDirectX9GeometryRenderSection::RenderSolidGeometry(ISolid* pSolid, bool bTextured)
 	{		
 		SPrimitive* pPrimitive;
 
@@ -425,7 +425,7 @@ namespace SpeedPoint
 		// --------------------------------------------------------------------------------------------
 		// Setup the texture
 
-		STexture* pTexture;
+		ITexture* pTexture;
 
 		if (0 == (pTexture = m_pEngine->GetResourcePool()->GetTexture(pPrimitive->iTexture)))
 			return m_pEngine->LogE("Failed to retrieve texture of textured primitive!");

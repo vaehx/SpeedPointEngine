@@ -6,13 +6,13 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SFrameBuffer.h>
+#include <Abstract\IFrameBuffer.h>
 #include <d3d9.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 Framebuffer Object
-	class S_API SDirectX9FrameBuffer : public SFrameBuffer		 
+	class S_API SDirectX9FrameBuffer : public IFrameBuffer		 
 	{
 	public:
 		SpeedPointEngine*	pEngine;

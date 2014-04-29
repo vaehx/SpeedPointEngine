@@ -7,7 +7,7 @@ namespace SpeedPoint
 	
 	// **********************************************************************************
 
-	S_API SResult SDirectSoundResource::Initialize( SSoundSystem* pSystem ) 
+	S_API SResult SDirectSoundResource::Initialize( ISoundSystem* pSystem ) 
 	{
 		return S_ERROR;
 	}

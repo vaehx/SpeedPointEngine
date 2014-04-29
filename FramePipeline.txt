@@ -1,63 +1,59 @@
-Frame Pipeline:
+---------------------------------------------------------------------------------------------------------------------
+
+	SpeedPoint Game Engine
+
+	F r a m e   P i p e l i n e   C o n c e p t
+
+
+	written by iSmokiieZz
+	(c) 2011-2014, All rights reserved.
+
+---------------------------------------------------------------------------------------------------------------------
+
+##
+## Hint: Pay attention to the explicit symbol:
+## {  !?  } = something needs to be more clear
+## {  ??  } = an idea how to implement this is missing
+## {  !!  } = its not implemented yet
+##
 
 [Frame::BEGIN] (take frame start timer timestamp = last frame start timestamp, take beginning second timer timestamp)
-  --> [Frame::DYNAMICS] (only starts the dynamics pipeline and fires event)
-    --> [Dynamics::ANIMATION] (takes time passed for last frame -> calculates keyframe movements)
-    --> [Dynamics::PHYSICS] (takes time passed for last frame -> calculates physics movement for differential time element dt)
-    --> [Dynamics::INPUT] (only calls the event, passes time passed for last frame as parameter)
-    --> [Dynamics::SCRIPT] (takes time passed for last frame -> calculates AI movement, executes user scripts)
-  --> [Frame::RENDER] (only starts the deferred rendering pipeline and fires event)
-    --> [Render::BEGIN] (Clear current BackBuffer)
-    --> [Render::GEOMETRY]
-      --> Per Object: (Draw calls / G-Buffer & Stencil buffer creation)
-    --> [Render::LIGHTING]
-      --> Once (with all light objects passed):  (Coloring & shading)
-    --> [Render::POST-FXs] (DOF, MotionBlur, HDR, Color Grading, ...)
-      --> 
-    --> [Render::END] = [Render::PRESENT] (Swap back- with frontbuffer, nothing more)
+
+	--> [Frame::DYNAMICS]
+		- only starts the dynamics pipeline and fires event
+
+		--> [Dynamics::INPUT]
+			- {  !!  } only calls the event, passes time passed for last frame as parameter
+
+		--> [Dynamics::SCRIPT]
+			- executes user scripts on which output the upcoming events depend
+
+		--> [Dynamics::ANIMATION]
+			- calculates keyframe movements)
+
+		--> [Dynamics::PHYSICS]
+			- calculates physics movement for differential time element dt
+			- after animation due to animation based physics (e.g. when ducking, the collshape changes sizes)
+
+		--> [Dynamics::LOD]
+			- checks something like bUpdateLODNecessary and then updates Lightsourcebuffers, Visible scene nodes -> Instancing buffer, ...
+
+	--> [Frame::RENDER]
+		- only starts the deferred rendering pipeline and fires event
+
+		--> [Render::BEGIN]
+			- Clear current BackBuffer, BeginScene
+
+		--> [Render::GEOMETRY]
+			--> Per Object: (Draw calls / G-Buffer & Stencil buffer creation)
+
+		--> [Render::LIGHTING]
+			--> Once (with all light objects passed):  (Coloring & shading)
+
+		--> [Render::POST-FXs] (DOF, MotionBlur, HDR, Color Grading, ...)
+			-->
+
+		--> [Render::END] = [Render::PRESENT]
+			- Swap back- with frontbuffer, nothing more
+
 [Frame::END] (Increase frame (per second) counter, take end second timer timestamp, calc fLastFrameTime, Check if second has passed, then calc fps and reset frame counter)
-
-
----------------------------------------------------------------------------------------------------------
-
-
----------------------------------------------------------------------------------------------------------
-// This is a partially abstract class and can not be instantiated
-// Use specific Renderer Implementations instead
-class SRenderPipeline : public SObservedObject
-{
-public:
-	// Default constructor
-	SRenderPipeline()
-	{
-	}
-
-	// Default destructor
-	~SRenderPipeline()
-	{
-		SObservedObject::~SObservedObject();
-	}
-
-	// Prepare Backbuffer
-	SResult DoBeginRender()	
-	{
-		SEventParameters params;
-		params.Add(...);
-		CallEvent(S_E_RENDER_BEGIN, &params);
-		params.Clear();
-
-		return Begin();
-	}
-	virtual SResult Begin();
-
-	// Start the Geometry Section
-	SResult DoGeometrySection()
-	{
-		SEventParameters params;
-		params.Add(...);
-		CallEvent(S_E_RENDER_GEOMETRY, &params);
-		params.Clear();
-
-		
-	}
-};

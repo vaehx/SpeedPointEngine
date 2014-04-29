@@ -19,7 +19,7 @@ namespace SpeedPoint
 	{
 	public:
 		// Define which solid the vertex indices belong to
-		virtual void SetSolid( SSolid* pSolid ) = 0;
+		virtual void SetSolid( ISolid* pSolid ) = 0;
 
 		// Assign a vertex index to this Joint
 		virtual void AssignVertex( SP_UNIQUE iVertex ) = 0; 

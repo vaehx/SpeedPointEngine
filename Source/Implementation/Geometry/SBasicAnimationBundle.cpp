@@ -6,7 +6,7 @@ namespace SpeedPoint
 {
 	// **********************************************************************************
 
-	S_API SResult SBasicAnimationBundle::Initialize( SSolid* pSolid )
+	S_API SResult SBasicAnimationBundle::Initialize( ISolid* pSolid )
 	{
 		if( pSolid == NULL ) return S_ABORTED;
 
@@ -35,28 +35,28 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SAnimationJoint* SBasicAnimationBundle::AddJoint( SP_ID* pID )
+	S_API IAnimationJoint* SBasicAnimationBundle::AddJoint( SP_ID* pID )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API SAnimationJoint* SBasicAnimationBundle::GetJoint( SP_ID id )
+	S_API IAnimationJoint* SBasicAnimationBundle::GetJoint( SP_ID id )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API SAnimationSequence* SBasicAnimationBundle::AddAnimationSequence( SP_ID* pID )
+	S_API IAnimationSequence* SBasicAnimationBundle::AddAnimationSequence( SP_ID* pID )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API SAnimationSequence* SBasicAnimationBundle::GetAnimationSequence( SP_ID id )
+	S_API IAnimationSequence* SBasicAnimationBundle::GetAnimationSequence( SP_ID id )
 	{
 		return NULL;
 	}

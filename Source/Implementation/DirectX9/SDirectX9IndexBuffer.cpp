@@ -28,7 +28,7 @@ namespace SpeedPoint
 	
 	// *******************************************************************************************
 
-	S_API SResult SDirectX9IndexBuffer::Initialize( int nSize, bool bDyn, SpeedPointEngine* engine, SRenderer* renderer, S_INDEXBUFFER_FORMAT format )
+	S_API SResult SDirectX9IndexBuffer::Initialize( int nSize, bool bDyn, SpeedPointEngine* engine, IRenderer* renderer, S_INDEXBUFFER_FORMAT format )
 	{
 		if( IsInited() )
 			Clear();

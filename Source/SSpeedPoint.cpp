@@ -8,7 +8,7 @@
 // *******************************************************************************************************
 
 #include <SSpeedPointEngine.h>
-#include <Abstract\Pipelines\SRenderPipeline.h>
+#include <Abstract\Pipelines\IRenderPipeline.h>
 
 //~~~~~~~~~
 // TODO: Try to eliminate implementations from the SCore Project
@@ -17,7 +17,7 @@
 //~~~~~~~~~
 
 #include <Lighting\SLightSystem.h>
-#include <Abstract\SSolidSystem.h>
+#include <Abstract\ISolidSystem.h>
 
 //~~~~~~~~~
 // TODO: Try to eliminate implementations from the SCore Project
@@ -34,14 +34,14 @@ namespace SpeedPoint
 
 	S_API bool SSpeedPointEngine::IsValidSettings(const SSettings& settings)
 	{
-		if (settings.hWnd == 0)
+		if (settings.app.hWnd == 0)
 		{
 			if (m_pLoggingStream)
 				m_pLoggingStream->Report(S_INVALIDPARAM, "Invalid settings given: Window handle is zero.");
 
 			return false;
 		}
-		else if (settings.nXResolution < 600 || settings.nYResolution < 400)
+		else if (settings.app.nXResolution < 600 || settings.app.nYResolution < 400)
 		{
 			if (m_pLoggingStream)
 				m_pLoggingStream->Report(S_INVALIDPARAM, "Invalid settings given: Resolution lower than 600x400 not supported!");
@@ -66,8 +66,8 @@ namespace SpeedPoint
 				{
 					// Update viewport size
 					SIZE szTargetViewport = m_pRenderer->GetTargetViewport()->GetSize();
-					if (szTargetViewport.cx != m_Settings.nXResolution || szTargetViewport.cy != m_Settings.nYResolution)						
-						m_pRenderer->GetTargetViewport()->SetSize(customSettings.nXResolution, customSettings.nYResolution);
+					if (szTargetViewport.cx != m_Settings.app.nXResolution || szTargetViewport.cy != m_Settings.app.nYResolution)						
+						m_pRenderer->GetTargetViewport()->SetSize(customSettings.app.nXResolution, customSettings.app.nYResolution);
 // ~~~~~~~
 // TODO: Update device size
 // ~~~~~~~
@@ -92,28 +92,28 @@ namespace SpeedPoint
 		SP_ASSERTX(!IsValidSettings(m_Settings), this, "Invalid settings!");		
 	
 		// Initialize the renderer and its resource pool
-		if (m_Settings.tyRendererType == S_DIRECTX9)
+		if (m_Settings.render.tyRendererType == S_DIRECTX9)
 		{
-			m_pRenderer = (SRenderer*)new SDirectX9Renderer();
-			if (Failure(m_pRenderer->Initialize(this, m_Settings.hWnd, m_Settings.nXResolution, m_Settings.nYResolution, false)))
+			m_pRenderer = (IRenderer*)new SDirectX9Renderer();
+			if (Failure(m_pRenderer->Initialize(this, m_Settings.app.hWnd, m_Settings.app.nXResolution, m_Settings.app.nYResolution, false)))
 			{
 				return LogReport(S_ERROR, "Failed to initialize DirectX9-Renderer!");
 			}
 
-			m_pResourcePool = (SResourcePool*)new SDirectX9ResourcePool();
+			m_pResourcePool = (IResourcePool*)new SDirectX9ResourcePool();
 			if (Failure(m_pResourcePool->Initialize(this, m_pRenderer)))
 			{				
 				return LogReport(S_ERROR, "Failed to initialize Resource Pool!");
 			}
 
 			// Initialize the viewports array
-			m_pViewports = (SViewport**)(malloc(sizeof(SViewport*)* SP_MAX_VIEWPORTS));
+			m_pViewports = (IViewport**)(malloc(sizeof(IViewport*)* SP_MAX_VIEWPORTS));
 			if (m_pViewports == NULL)
 			{
 				return LogReport(S_ERROR, "Failed to initialize viewport storage!");
 			}
 
-			ZeroMemory(m_pViewports, sizeof(SViewport*)* SP_MAX_VIEWPORTS);
+			ZeroMemory(m_pViewports, sizeof(IViewport*)* SP_MAX_VIEWPORTS);
 		}
 		else
 		{
@@ -209,7 +209,7 @@ namespace SpeedPoint
 			}
 		}
 
-		memset((void*)m_pViewports, 0, sizeof(SViewport*) * SP_MAX_VIEWPORTS);
+		memset((void*)m_pViewports, 0, sizeof(IViewport*) * SP_MAX_VIEWPORTS);
 		free(m_pViewports);
 
 		SP_ASSERTX(bFailed, this, "Could not clear viewports!");		
@@ -263,7 +263,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API SViewport* SSpeedPointEngine::GetViewport(UINT index)
+	S_API IViewport* SSpeedPointEngine::GetViewport(UINT index)
 	{
 		SP_ASSERTXR(!m_pViewports, 0, this);
 		return m_pViewports[index];
@@ -271,7 +271,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API SViewport* SSpeedPointEngine::AddViewport(void)
+	S_API IViewport* SSpeedPointEngine::AddViewport(void)
 	{
 		SP_ASSERTXR(!m_pViewports, 0, "Viewports array is zero!");		
 
@@ -307,7 +307,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API SSolid* SSpeedPointEngine::AddSolid(SP_ID* pUID, SResult* pResult)
+	S_API ISolid* SSpeedPointEngine::AddSolid(SP_ID* pUID, SResult* pResult)
 	{		
 		SP_ID id = m_PhysWorld.AddSolid();		
 		if (pUID) *pUID = id;
@@ -323,7 +323,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API SSolid* SSpeedPointEngine::GetSolid(const SP_ID& id)
+	S_API ISolid* SSpeedPointEngine::GetSolid(const SP_ID& id)
 	{
 		return m_PhysWorld.GetSolid(id);
 	}
@@ -353,10 +353,10 @@ namespace SpeedPoint
 			return LogW("Tried to Render solid, but frame pipeline didnt reach Render-Geometry already!");		
 
 		// Get the solid and throw DrawCalls
-		SSolid* pSolid = m_PhysWorld.GetSolid(iSolid);
+		ISolid* pSolid = m_PhysWorld.GetSolid(iSolid);
 		SP_ASSERTXRD(!pSolid, S_ERROR, this, "Cannot GetSolid. pSolid=%02x", pSolid);
 
-		return m_pRenderer->GetRenderPipeline()->RenderSolidGeometry(pSolid, m_Settings.bEnableTextures);
+		return m_pRenderer->GetRenderPipeline()->RenderSolidGeometry(pSolid, m_Settings.render.bRenderTextures);
 	}
 
 	// ********************************************************************************************
@@ -386,7 +386,7 @@ namespace SpeedPoint
 		if( m_pLoggingStream == NULL ) return S_ABORTED;		
 
 		char* cPrefix;
-		switch( m_Settings.tyRendererType )
+		switch( m_Settings.render.tyRendererType )
 		{
 		case S_DIRECTX9: cPrefix = "[SpeedPoint:DX9]"; break;
 		case S_DIRECTX10: cPrefix = "[SpeedPoint:DX10]"; break;

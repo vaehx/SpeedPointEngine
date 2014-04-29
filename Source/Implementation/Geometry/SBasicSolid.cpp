@@ -2,8 +2,8 @@
 
 #include <Implementation\Geometry\SBasicSolid.h>
 #include <SpeedPoint.h>
-#include <Abstract\SVertexBuffer.h>
-#include <Abstract\SIndexBuffer.h>
+#include <Abstract\IVertexBuffer.h>
+#include <Abstract\IIndexBuffer.h>
 #include <Util\SVertex.h>
 
 namespace SpeedPoint
@@ -33,7 +33,7 @@ namespace SpeedPoint
 		bDynamic = dyn;			
 
 		// Create the vertex- and indexbuffer
-		SResourcePool* pResourcePool;
+		IResourcePool* pResourcePool;
 		if( NULL == ( pResourcePool = pEngine->GetResourcePool()) )
 		{
 			return pEngine->LogReport( S_ERROR, "Could not get Engine Resource pool while initializing basic solid" );
@@ -59,7 +59,7 @@ namespace SpeedPoint
 	{
 		if( bInitialized )
 		{
-			SVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
+			IVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
 			if( pVertexBuffer )
 			{
 				pVertexBuffer->Clear();
@@ -67,7 +67,7 @@ namespace SpeedPoint
 				iVertexBuffer = SP_ID();
 			}
 
-			SIndexBuffer* pIndexBuffer = pEngine->GetResourcePool()->GetIndexBuffer( iIndexBuffer );
+			IIndexBuffer* pIndexBuffer = pEngine->GetResourcePool()->GetIndexBuffer( iIndexBuffer );
 			if( pIndexBuffer )
 			{
 				pIndexBuffer->Clear();
@@ -99,7 +99,7 @@ namespace SpeedPoint
 
 		
 		// Fill Vertices
-		SVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
+		IVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
 		
 		if( pVertexBuffer == NULL )		
 			return pEngine->LogReport( S_ERROR, "BasicSolid seems not to be initialized yet (invalid Vertexbuffer)!" );
@@ -115,7 +115,7 @@ namespace SpeedPoint
 
 
 		// Fill Indices
-		SIndexBuffer* pIndexBuffer = pEngine->GetResourcePool()->GetIndexBuffer( iIndexBuffer );		
+		IIndexBuffer* pIndexBuffer = pEngine->GetResourcePool()->GetIndexBuffer( iIndexBuffer );		
 
 		if( pIndexBuffer == NULL )
 			return pEngine->LogReport( S_ERROR, "BasicSolid seems not to be initialized yet (invalid Indexbuffer)!" );
@@ -248,7 +248,7 @@ namespace SpeedPoint
 	{
 		if( pEngine == NULL ) return NULL;
 
-		SVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
+		IVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
 		
 		if( pVertexBuffer == NULL || pVertexBuffer->GetVertexCount() < 0 ) return NULL;		
 
@@ -311,7 +311,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SOctree* SBasicSolid::GetOctree( void )
+	S_API IOctree* SBasicSolid::GetOctree( void )
 	{
 		return pOctree;
 	}

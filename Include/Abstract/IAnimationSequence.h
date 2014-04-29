@@ -18,10 +18,10 @@ namespace SpeedPoint
 	{
 	public:	
 		// Initialize by its holding animation bundle
-		virtual SResult Initialize( SAnimationBundle* pBundle ) = 0;
+		virtual SResult Initialize( IAnimationBundle* pBundle ) = 0;
 
 		// Get the holding animation bundke
-		virtual SAnimationBundle* GetBundle( void ) = 0;
+		virtual IAnimationBundle* GetBundle( void ) = 0;
 
 		// Set the name of this sequence
 		virtual void SetName( const SString& name ) = 0;
@@ -33,7 +33,7 @@ namespace SpeedPoint
 		virtual SP_ID AddKey( float fTimecode, SVector3 vPosition ) = 0;
 
 		// Get a key by its id
-		virtual SAnimationKey* GetKey( SP_ID id ) = 0;
+		virtual IAnimationKey* GetKey( SP_ID id ) = 0;
 
 		// Clear all keys + their data as they are stored here
 		virtual void Clear( void ) = 0;

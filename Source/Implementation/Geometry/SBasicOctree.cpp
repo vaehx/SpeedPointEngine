@@ -6,14 +6,14 @@ namespace SpeedPoint
 {
 	// **********************************************************************************
 
-	S_API SResult SBasicOctree::Initialize( SSolid* pSolid )
+	S_API SResult SBasicOctree::Initialize( ISolid* pSolid )
 	{
 		return S_ERROR;
 	}
 
 	// **********************************************************************************
 
-	S_API SSolid* SBasicOctree::GetSolid( void )
+	S_API ISolid* SBasicOctree::GetSolid( void )
 	{
 		return NULL;
 	}
@@ -27,14 +27,14 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SOctreeNode* SBasicOctree::GetRootNode( void )
+	S_API IOctreeNode* SBasicOctree::GetRootNode( void )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API int SBasicOctree::GetCollidingNodes( const SBoundBox& bb, SOctreeNode** nodes )
+	S_API int SBasicOctree::GetCollidingNodes( const SBoundBox& bb, IOctreeNode** nodes )
 	{
 		return -1;
 	}

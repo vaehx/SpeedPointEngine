@@ -6,12 +6,12 @@
 
 #include <SPrerequisites.h>
 #include "SPhysicalSolid.h"
-#include <Abstract\SSolidSystem.h>
+#include <Abstract\ISolidSystem.h>
 
 namespace SpeedPoint
 {
-	// SPhysicalSolidSystem - another implementation of the abstract SSolidSystem class
-	class S_API SPhysicalSolidSystem : public SSolidSystem
+	// SPhysicalSolidSystem - another implementation of the abstract ISolidSystem class
+	class S_API SPhysicalSolidSystem : public ISolidSystem
 	{
 	private:
 		SPool<SPhysicalSolid>	m_PhysicalSolids;
@@ -28,7 +28,7 @@ namespace SpeedPoint
 		virtual SP_ID AddSolid(void);
 
 		// Get a pointer to a solid by its id
-		virtual SSolid* GetSolid(SP_ID id);
+		virtual ISolid* GetSolid(SP_ID id);
 
 		// Get count of solids
 		virtual unsigned int GetSolidCount();

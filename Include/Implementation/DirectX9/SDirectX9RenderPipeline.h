@@ -8,7 +8,7 @@
 #include <SPrerequisites.h>
 #include <d3dx9.h>
 
-#include <Abstract\Pipelines\SRenderPipeline.h>
+#include <Abstract\Pipelines\IRenderPipeline.h>
 
 #include "SDirectX9GeometryRenderSection.h"
 #include "SDirectX9LightingRenderSection.h"
@@ -17,12 +17,12 @@
 namespace SpeedPoint
 {
 	// DirectX9 Implementation of the SpeedPoint Render Pipeline
-	class S_API SDirectX9RenderPipeline : public SRenderPipeline
+	class S_API SDirectX9RenderPipeline : public IRenderPipeline
 	{
 	private:
 		SpeedPointEngine*		m_pEngine;
 		SDirectX9Renderer*		m_pDXRenderer;
-		SViewport*			m_pTargetViewport;
+		IViewport*			m_pTargetViewport;
 		SFramePipeline*			m_pFramePipeline;	// the handling frame pipeline
 
 		// Deferred Rendering:
@@ -42,7 +42,7 @@ namespace SpeedPoint
 		~SDirectX9RenderPipeline();
 
 		// Initialize this render pipeline by given SpeedPoint Engine pointer and renderer
-		virtual SResult Initialize(SpeedPointEngine* pEngine, SRenderer* pRenderer);
+		virtual SResult Initialize(SpeedPointEngine* pEngine, IRenderer* pRenderer);
 		
 		// Check whether the pipeline is initialized
 		virtual inline bool IsInitialized();
@@ -57,15 +57,15 @@ namespace SpeedPoint
 		virtual S_FRAMEPIPELINE_STAGE GetCurrentStage(void);
 
 		// Get the handling Renderer
-		virtual SRenderer* GetRenderer();
+		virtual IRenderer* GetRenderer();
 	
 	// Viewport management
 	public:
 		// Get the current target buffer. By default this is the backbuffer of this pipeline
-		virtual SViewport* GetTargetViewport(void);
+		virtual IViewport* GetTargetViewport(void);
 
 		// Set the current target buffer. By default this is the backbuffer of this pipeline
-		virtual SResult SetTargetViewport(SViewport* pVP);
+		virtual SResult SetTargetViewport(IViewport* pVP);
 
 	// The RenderPipeline Sections
 	public:
@@ -86,8 +86,8 @@ namespace SpeedPoint
 		virtual SResult DoGeometrySection();
 
 		// Renders the Geometry of a solid when in S_RENDER_GEOMETRY stage
-		// should normally called by SSolid Implementation!
-		virtual SResult RenderSolidGeometry(SSolid* pSolid, bool bTextured);
+		// should normally called by ISolid Implementation!
+		virtual SResult RenderSolidGeometry(ISolid* pSolid, bool bTextured);
 
 		// Tell the render pipeline that geometry rendering is finished, so we can go on now
 		virtual SResult ExitGeometrySection();

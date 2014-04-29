@@ -28,7 +28,7 @@ namespace SpeedPoint
 	
 	// *******************************************************************************************
 
-	S_API SResult SDirectX9VertexBuffer::Initialize( int nSize, bool bDyn, SpeedPointEngine* engine, SRenderer* renderer )
+	S_API SResult SDirectX9VertexBuffer::Initialize( int nSize, bool bDyn, SpeedPointEngine* engine, IRenderer* renderer )
 	{
 		if( IsInited() )
 			Clear();

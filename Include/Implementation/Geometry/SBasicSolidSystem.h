@@ -6,14 +6,14 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SSolidSystem.h>
+#include <Abstract\ISolidSystem.h>
 #include <Util\SPool.h>
 #include "SBasicSolid.h"
 
 namespace SpeedPoint
 {
 	// SpeedPoint Solid System
-	class S_API SBasicSolidSystem : public SSolidSystem
+	class S_API SBasicSolidSystem : public ISolidSystem
 	{
 	private:
 		SpeedPointEngine*	m_pEngine;
@@ -30,7 +30,7 @@ namespace SpeedPoint
 		virtual SP_ID AddSolid(void);
 
 		// Get a pointer to a solid by its id
-		virtual SSolid* GetSolid(SP_ID id);
+		virtual ISolid* GetSolid(SP_ID id);
 
 		// Get solid count
 		virtual unsigned int GetSolidCount();

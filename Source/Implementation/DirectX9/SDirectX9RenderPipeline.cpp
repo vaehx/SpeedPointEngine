@@ -16,7 +16,7 @@
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
 #include <Implementation\DirectX9\SDirectX9GeometryRenderSection.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
-#include <Abstract\SSolid.h>
+#include <Abstract\ISolid.h>
 #include <Util\SVertex.h>
 #include <Util\SPrimitive.h>
 #include <Util\SMaterial.h>
@@ -43,7 +43,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::Initialize(SpeedPointEngine* eng, SRenderer* renderer)
+	S_API SResult SDirectX9RenderPipeline::Initialize(SpeedPointEngine* eng, IRenderer* renderer)
 	{
 		m_pEngine = eng;
 		m_pDXRenderer = (SDirectX9Renderer*)renderer;
@@ -54,19 +54,19 @@ namespace SpeedPoint
 		m_pTargetViewport = &m_pDXRenderer->vpViewport;
 
 		// Initialize the Geometry Render Section		
-		if (Failure(m_GeometryRenderSection.Initialize(m_pEngine, (SRenderPipeline*)this)))
+		if (Failure(m_GeometryRenderSection.Initialize(m_pEngine, (IRenderPipeline*)this)))
 		{
 			return m_pEngine->LogE("Failed initialize Geometry render section of Render pipeline!");
 		}
 
 		// Initialize Lighting render section
-		if (Failure(m_LightingRenderSection.Initialize(m_pEngine, (SRenderPipeline*)this)))
+		if (Failure(m_LightingRenderSection.Initialize(m_pEngine, (IRenderPipeline*)this)))
 		{
 			return m_pEngine->LogE("Failed initialize lighting render section of render pipeline!");
 		}
 
 		// INitialize post render section
-		if (Failure(m_PostRenderSection.Initialize(m_pEngine, (SRenderPipeline*)this)))
+		if (Failure(m_PostRenderSection.Initialize(m_pEngine, (IRenderPipeline*)this)))
 		{
 			return m_pEngine->LogE("Failed initilaize post render section of render pipeline!");
 		}
@@ -122,21 +122,21 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SRenderer* SDirectX9RenderPipeline::GetRenderer()
+	S_API IRenderer* SDirectX9RenderPipeline::GetRenderer()
 	{
-		return (SRenderer*)m_pDXRenderer;
+		return (IRenderer*)m_pDXRenderer;
 	}	
 
 	// **********************************************************************************
 
-	S_API SViewport* SDirectX9RenderPipeline::GetTargetViewport(void)
+	S_API IViewport* SDirectX9RenderPipeline::GetTargetViewport(void)
 	{
 		return m_pTargetViewport;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::SetTargetViewport(SViewport* pVP)
+	S_API SResult SDirectX9RenderPipeline::SetTargetViewport(IViewport* pVP)
 	{
 		SP_ASSERTR(!pVP, S_INVALIDPARAM);
 
@@ -286,7 +286,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::RenderSolidGeometry(SSolid* pSolid, bool bTextured)
+	S_API SResult SDirectX9RenderPipeline::RenderSolidGeometry(ISolid* pSolid, bool bTextured)
 	{
 		SResult res;
 		SP_ASSERTR(!IsInitialized(), S_NOTINIT);		

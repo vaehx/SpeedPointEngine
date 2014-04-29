@@ -8,7 +8,7 @@
 
 #include "SPrerequisites.h"
 
-#include "Abstract\SResourcePool.h"
+#include "Abstract\IResourcePool.h"
 #include "SSettings.h"
 #include "Util\SCamera.h"
 #include "Util\SLogStream.h"
@@ -49,17 +49,17 @@ namespace SpeedPoint
 		SSettings		m_Settings;		// Main Settings of the Game Engine	
 
 		SFrameEngine		m_FrameEngine;		// Frame Engine Component	
-		SRenderer*		m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX10/11, OpenGL)
+		IRenderer*		m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX10/11, OpenGL)
 
 		SPhysicsEngine		m_PhysicsEngine;	// Default Physics Engine Component
 		SPhysicalSolidSystem	m_PhysWorld;		// global system of physical objects (terrain, cow, rocks, barrels, ...)	
 
 		SLightSystem		m_GlobalLightSystem;	// global (default) system of light sources
 
-		SViewport**		m_pViewports;		// Viewport Buffer
-		SViewport*		m_pDefaultViewport;	// Pointer to the Default viewport	
+		IViewport**		m_pViewports;		// Viewport Buffer
+		IViewport*		m_pDefaultViewport;	// Pointer to the Default viewport	
 
-		SResourcePool*		m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
+		IResourcePool*		m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
 
 		SLogStream*		m_pLoggingStream;	// Logging stream used in this Game Engine
 		bool			m_bCustomLogStream;	// Is a custom logging stream used?
@@ -96,10 +96,10 @@ namespace SpeedPoint
 	// Viewport Management
 	public:
 		// Get an existing viewport
-		SViewport* GetViewport(unsigned int index);
+		IViewport* GetViewport(unsigned int index);
 
 		// Add an additional viewport and retrieve pointer to it
-		SViewport* AddViewport();
+		IViewport* AddViewport();
 
 
 	// Global physical solids management
@@ -112,10 +112,10 @@ namespace SpeedPoint
 		// Add a new physical solid and return temporary pointer of it
 		// (We assume there is no non-physical object in the world, water is physical, particles have
 		// their own ParticleSystem and an extra System for Billboards would overdo it)
-		SSolid* AddSolid(SP_ID* pUID, SResult* pResult = 0);
+		ISolid* AddSolid(SP_ID* pUID, SResult* pResult = 0);
 
 		// Get an existing physical solid by its unique id
-		SSolid* GetSolid(const SP_ID& id);
+		ISolid* GetSolid(const SP_ID& id);
 
 	// Frame pipeline control-methods
 	public:
@@ -169,10 +169,10 @@ namespace SpeedPoint
 
 		SLightSystem* GetGlobalLightSystem() { return &m_GlobalLightSystem; }
 
-		SRenderer* GetRenderer() { return m_pRenderer; }
+		IRenderer* GetRenderer() { return m_pRenderer; }
 		// TODO: Function to get renderer type
 
-		SResourcePool* GetResourcePool() { return m_pResourcePool; }
+		IResourcePool* GetResourcePool() { return m_pResourcePool; }
 	};	
 
 

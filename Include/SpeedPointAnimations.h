@@ -11,10 +11,10 @@
 // ******************************************************************************************
 
 // Include abstract animation component classes
-#include <Abstract\SAnimationBundle.h>
-#include <Abstract\SAnimationJoint.h>
-#include <Abstract\SAnimationKey.h>
-#include <Abstract\SAnimationSequence.h>
+#include <Abstract\IAnimationBundle.h>
+#include <Abstract\IAnimationJoint.h>
+#include <Abstract\IAnimationKey.h>
+#include <Abstract\IAnimationSequence.h>
 
 // ******************************************************************************************
 

@@ -6,23 +6,23 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SOctree.h>
+#include <Abstract\IOctree.h>
 #include "SBasicOctreeNode.h"
 
 namespace SpeedPoint
 {
 	// SpeedPoint Octree
-	class S_API SBasicOctree : public SOctree
+	class S_API SBasicOctree : public IOctree
 	{
 	public:
 		SBasicOctreeNode	ndRootNode;
-		SSolid*			pSolid;
+		ISolid*			pSolid;
 
-		SResult Initialize( SSolid* pSolid );
-		SSolid* GetSolid( void );
+		SResult Initialize( ISolid* pSolid );
+		ISolid* GetSolid( void );
 		SResult Compile( int nMaxDepth, int nMinPolys );
-		SOctreeNode* GetRootNode( void );
-		int GetCollidingNodes( const SBoundBox& bb, SOctreeNode** nodes );
+		IOctreeNode* GetRootNode( void );
+		int GetCollidingNodes( const SBoundBox& bb, IOctreeNode** nodes );
 		void Clear( void );
 	};
 }

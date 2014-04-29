@@ -7,14 +7,14 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Util\SString.h>
-#include <Abstract\SEntity.h>
+#include <Abstract\IEntity.h>
 
 #define S_DEFAULT_INTERACTIONRADIUS 20.0f
 
 namespace SpeedPoint
 {
 	// SpeedPoint Entity
-	class S_API SBasicEntity : public SEntity
+	class S_API SBasicEntity : public IEntity
 	{
 	public:
 		SString			cName;

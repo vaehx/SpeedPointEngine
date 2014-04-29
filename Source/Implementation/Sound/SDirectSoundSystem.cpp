@@ -14,21 +14,21 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectSoundSystem::AddSound( char* cFileName, char* cSpecification, bool bLooped, SVector3 vPosition, SSound* pSound, SP_ID* pID )
+	S_API SResult SDirectSoundSystem::AddSound( char* cFileName, char* cSpecification, bool bLooped, SVector3 vPosition, ISound* pSound, SP_ID* pID )
 	{
 		return S_ERROR;
 	}
 
 	// **********************************************************************************
 
-	S_API SSound* SDirectSoundSystem::GetSound( SP_ID id )
+	S_API ISound* SDirectSoundSystem::GetSound( SP_ID id )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API SSound* SDirectSoundSystem::GetSound( SString cSpec )
+	S_API ISound* SDirectSoundSystem::GetSound( SString cSpec )
 	{
 		return NULL;
 	}

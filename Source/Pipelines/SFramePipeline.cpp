@@ -4,8 +4,8 @@
 
 // ******************************************************************************************
 
-#include <Abstract\Pipelines\SRenderPipeline.h>
-#include <Abstract\SRenderer.h>
+#include <Abstract\Pipelines\IRenderPipeline.h>
+#include <Abstract\IRenderer.h>
 #include <Pipelines\SFramePipeline.h>
 #include <SSpeedPointEngine.h>
 

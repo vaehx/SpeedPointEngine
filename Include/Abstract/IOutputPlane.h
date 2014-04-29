@@ -18,10 +18,10 @@ namespace SpeedPoint
 	{
 	public:
 		// Initialize the output plane
-		virtual SResult Initialize( SpeedPointEngine* pEngine, SRenderer* pRenderer, int nW, int nH ) = 0;
+		virtual SResult Initialize( SpeedPointEngine* pEngine, IRenderer* pRenderer, int nW, int nH ) = 0;
 
 		// Render the output plane
-		virtual SResult Render( SFrameBuffer* pGBufferAlbedo, SFrameBuffer* pLightingBuffer ) = 0;
+		virtual SResult Render( IFrameBuffer* pGBufferAlbedo, IFrameBuffer* pLightingBuffer ) = 0;
 
 		// Clearout the output plane
 		virtual SResult Clear( void ) = 0;

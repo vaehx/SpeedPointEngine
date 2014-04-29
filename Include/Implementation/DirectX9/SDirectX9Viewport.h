@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SViewport.h>
+#include <Abstract\IViewport.h>
 #include <Util\SVector2.h>
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -14,8 +14,8 @@
 
 namespace SpeedPoint
 {
-	// DirectX9 specific implementation of the SpeedPoint Viewport (SViewport abstr)
-	class S_API SDirectX9Viewport : public SViewport
+	// DirectX9 specific implementation of the SpeedPoint Viewport (IViewport abstr)
+	class S_API SDirectX9Viewport : public IViewport
 	{
 	public:
 		SCamera*		pCamera;
@@ -89,7 +89,7 @@ namespace SpeedPoint
 		/////// TODO: More viewport related settings
 
 		// Get a pointer to the backbuffer framebuffer object
-		virtual SFrameBuffer* GetBackBuffer( void );
+		virtual IFrameBuffer* GetBackBuffer( void );
 
 		// Set the pointer of the camera.
 		virtual SResult SetCamera( SCamera* pCamera );

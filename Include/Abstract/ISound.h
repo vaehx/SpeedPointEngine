@@ -18,7 +18,7 @@ namespace SpeedPoint
 	{
 	public:	
 		// Initialize with a soundsystem
-		virtual SResult Initialize( SSoundSystem* pSystem ) = 0;		
+		virtual SResult Initialize( ISoundSystem* pSystem ) = 0;		
 
 		// Load the sound from a file and set specification
 		virtual SResult LoadFromFile( char* cFilename, char* specification ) = 0;

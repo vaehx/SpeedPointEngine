@@ -15,7 +15,7 @@ namespace SpeedPoint
 {
 	// SpeedPoint HLSL Shader Effect (abstract)
 //~~~~~~~~~~~~~~
-// TODO: Refactor this class to SRendererEffect. See implementations also!
+// TODO: Refactor this class to IRendererEffect. See implementations also!
 	class S_API IShader
 //~~~~~~~~~~~~~~~
 	{
@@ -31,7 +31,7 @@ namespace SpeedPoint
 		virtual SResult SetTechnique( char* cTechnique ) = 0;
 
 		// Apply this shader to the current state of the render pipeline
-		//virtual SResult ApplyToRenderPipeline( SRenderPipeline* pPipeline ) = 0;	
+		//virtual SResult ApplyToRenderPipeline( IRenderPipeline* pPipeline ) = 0;	
 
 		// Clearout this shader
 		virtual SResult Clear( void ) = 0;

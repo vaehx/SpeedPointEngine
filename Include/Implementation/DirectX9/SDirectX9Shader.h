@@ -9,13 +9,13 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SShader.h>
+#include <Abstract\IShader.h>
 #include <d3dx9.h>
 
 namespace SpeedPoint
 {
 	// DirectX9-Specific implementation of the Shader interface
-	class S_API SDirectX9Shader : public SShader
+	class S_API SDirectX9Shader : public IShader
 	{
 	private:
 		SpeedPointEngine*	m_pEngine;

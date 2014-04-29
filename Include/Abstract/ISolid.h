@@ -75,7 +75,7 @@ namespace SpeedPoint
 		// -- Octree --
 
 		// Get the octree
-		virtual SOctree* GetOctree( void ) = 0;
+		virtual IOctree* GetOctree( void ) = 0;
 
 		// -- Animations --
 

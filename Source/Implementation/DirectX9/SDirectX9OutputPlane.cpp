@@ -12,7 +12,7 @@ namespace SpeedPoint
 {
 	// **********************************************************************************
 
-	S_API SResult SDirectX9OutputPlane::Initialize( SpeedPointEngine* eng, SRenderer* renderer, int nW, int nH )
+	S_API SResult SDirectX9OutputPlane::Initialize( SpeedPointEngine* eng, IRenderer* renderer, int nW, int nH )
 	{
 		if( eng == NULL ) return S_ABORTED;
 		
@@ -117,7 +117,7 @@ namespace SpeedPoint
 
 	// This function should only be called by the Render Pipeline!
 	// The target buffers should be set properly already!
-	S_API SResult SDirectX9OutputPlane::Render( SFrameBuffer* pGBufferAlbedo, SFrameBuffer* pLightingBuffer )
+	S_API SResult SDirectX9OutputPlane::Render( IFrameBuffer* pGBufferAlbedo, IFrameBuffer* pLightingBuffer )
 	{
 		return S_NOTIMPLEMENTED;
 	}

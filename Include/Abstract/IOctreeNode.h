@@ -20,7 +20,7 @@ namespace SpeedPoint
 		virtual bool IsLeaf( void ) = 0;
 
 		// Get a child by its id (0-7)
-		virtual SOctreeNode* GetChild( SP_UNIQUE id ) = 0;
+		virtual IOctreeNode* GetChild( SP_UNIQUE id ) = 0;
 
 		// Get Pologyon count
 		virtual int GetPolygonCount( void ) = 0;

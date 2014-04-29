@@ -18,19 +18,19 @@ namespace SpeedPoint
 	{
 	public:
 		// Initialize the animation bundle with its parent solid
-		virtual SResult Initialize( SSolid* pSolid ) = 0;
+		virtual SResult Initialize( ISolid* pSolid ) = 0;
 
 		// Add a new empty joint to this animation bundle
-		virtual SAnimationJoint* AddJoint( SP_ID* pID ) = 0;
+		virtual IAnimationJoint* AddJoint( SP_ID* pID ) = 0;
 
 		// Get a joint by its id
-		virtual SAnimationJoint* GetJoint( SP_ID id ) = 0;
+		virtual IAnimationJoint* GetJoint( SP_ID id ) = 0;
 
 		// Add an Animation Sequence to this bundle
-		virtual SAnimationSequence* AddAnimationSequence( SP_ID* pID ) = 0;
+		virtual IAnimationSequence* AddAnimationSequence( SP_ID* pID ) = 0;
 
 		// Get an animation sequence by its id
-		virtual SAnimationSequence* GetAnimationSequence( SP_ID id ) = 0;
+		virtual IAnimationSequence* GetAnimationSequence( SP_ID id ) = 0;
 
 		// Stop current animation seq. and run a specific Animation sequence
 		// Restarts current animation sequence if it already runs

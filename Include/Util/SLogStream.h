@@ -10,9 +10,9 @@
 // ******************************************************************************************
 
 #pragma once
-#include <SAPI.h>
-#include "SResult.h"
-#include "SString.h"
+#include <SPrerequisites.h>
+//#include "SResult.h"
+//#include "SString.h"
 
 #define SP_MAX_LOGSTREAM_HANDLERS 5
 

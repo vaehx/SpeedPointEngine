@@ -9,5 +9,5 @@
 
 #pragma once
 
-#include <Abstract\SSound.h>
-#include <Abstract\SSoundSystem.h>
+#include <Abstract\ISound.h>
+#include <Abstract\ISoundSystem.h>

@@ -7,25 +7,25 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Util\SPool.h>
-#include <Abstract\SAnimationSequence.h>
+#include <Abstract\IAnimationSequence.h>
 #include "SBasicAnimationKey.h"
 
 namespace SpeedPoint
 {
 	// SpeedPoint Basic Animation Sequence
-	class S_API SBasicAnimationSequence : public SAnimationSequence
+	class S_API SBasicAnimationSequence : public IAnimationSequence
 	{
 	public:
 		SPool<SBasicAnimationKey>	plKeys;
-		SAnimationBundle*		pBundle;
+		IAnimationBundle*		pBundle;
 		SString				cName;
 
-		SResult Initialize( SAnimationBundle* bundle );
-		SAnimationBundle* GetBundle( void );
+		SResult Initialize( IAnimationBundle* bundle );
+		IAnimationBundle* GetBundle( void );
 		void SetName( const SString& name );
 		SString* GetName( void );
 		SP_ID AddKey( float fTimecode, SVector3 vPosition );
-		SAnimationKey* GetKey( SP_ID id );
+		IAnimationKey* GetKey( SP_ID id );
 		void Clear( void );
 	};
 }

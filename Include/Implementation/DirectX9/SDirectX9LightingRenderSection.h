@@ -7,15 +7,15 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Abstract\Pipelines\SRenderPipelineSection.h>
+#include <Abstract\Pipelines\IRenderPipelineSection.h>
 #include "SDirectX9FrameBuffer.h"
 #include "SDirectX9Shader.h"
 #include <Util\SPool.h>
 
 namespace SpeedPoint
 {
-	// DirectX9 Implementation of SRenderPipelineSection for Lighting and Shading
-	class S_API SDirectX9LightingRenderSection : public SRenderPipelineSection
+	// DirectX9 Implementation of IRenderPipelineSection for Lighting and Shading
+	class S_API SDirectX9LightingRenderSection : public IRenderPipelineSection
 	{
 	private:
 		SpeedPointEngine*		m_pEngine;		// Ptr to the SpeedPoint Game Engine instance
@@ -35,7 +35,7 @@ namespace SpeedPoint
 		~SDirectX9LightingRenderSection();
 
 		// Initialize the Render Pipeline State
-		virtual SResult Initialize(SpeedPointEngine* pEngine, SRenderPipeline* pRenderPipeline);
+		virtual SResult Initialize(SpeedPointEngine* pEngine, IRenderPipeline* pRenderPipeline);
 
 		// Clear the Render Pipeline state
 		virtual SResult Clear(void);

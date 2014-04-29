@@ -32,7 +32,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API SSolid* SPhysicalSolidSystem::GetSolid(SP_ID id)
+	S_API ISolid* SPhysicalSolidSystem::GetSolid(SP_ID id)
 	{
 		return 0;
 	}

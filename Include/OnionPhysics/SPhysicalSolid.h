@@ -12,7 +12,7 @@
 
 namespace SpeedPoint
 {
-	// Implementation of the SSolid for Physics based on the Basic Implementation
+	// Implementation of the ISolid for Physics based on the Basic Implementation
 	class SPhysicalSolid : public SBasicSolid
 	{
 	private:

@@ -6,12 +6,12 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SBot.h>
+#include <Abstract\IBot.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint Bot
-	class S_API SBasicBot : public SBot
+	class S_API SBasicBot : public IBot
 	{
 	public:
 		SString	cName;

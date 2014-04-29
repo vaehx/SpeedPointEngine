@@ -23,7 +23,7 @@ namespace SpeedPoint
 		unsigned int				m_iCurrentSkipStages;		// the stages to be skipped for current frame
 
 		SDynamicsPipeline			m_DynamicsPipeline;		// instance of the dynamics Pipeline
-		SRenderPipeline*			m_pRenderPipeline;		// pointer to an implemented instance of SRenderPipeline (abstr.)
+		IRenderPipeline*			m_pRenderPipeline;		// pointer to an implemented instance of IRenderPipeline (abstr.)
 							
 		SpeedPointEngine*			m_pEngine;
 

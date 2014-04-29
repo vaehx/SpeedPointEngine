@@ -5,7 +5,7 @@
 // ********************************************************************************************
 
 #pragma once
-#include <Abstract\SOutputPlane.h>
+#include <Abstract\IOutputPlane.h>
 #include "SDirectX9VertexBuffer.h"
 #include "SDirectX9IndexBuffer.h"
 #include "SDirectX9Shader.h"
@@ -15,7 +15,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 Output Plane
-	class S_API SDirectX9OutputPlane : public SOutputPlane
+	class S_API SDirectX9OutputPlane : public IOutputPlane
 	{
 	public:		
 		SpeedPointEngine*		pEngine;
@@ -34,10 +34,10 @@ namespace SpeedPoint
 		}
 
 		// Initialize the output plane
-		SResult Initialize(SpeedPointEngine* eng, SRenderer* renderer, int nW, int nH);
+		SResult Initialize(SpeedPointEngine* eng, IRenderer* renderer, int nW, int nH);
 
 		// Render the output plane using the renderer specified when initializing
-		SResult Render(SFrameBuffer* pGBufferAlbedo, SFrameBuffer* pLightingBuffer);
+		SResult Render(IFrameBuffer* pGBufferAlbedo, IFrameBuffer* pLightingBuffer);
 
 		// Clearout the output plane
 		SResult Clear(void);

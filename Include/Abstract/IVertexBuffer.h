@@ -18,7 +18,7 @@ namespace SpeedPoint
 	{
 	public:
 		// Initialize the vertex buffer
-		virtual SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEng, SRenderer* renderer ) = 0;
+		virtual SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer ) = 0;
 
 		// Create the Hardware Vertex Buffer
 		virtual SResult Create( int nSize, bool bDynamic_ ) = 0;

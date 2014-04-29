@@ -8,7 +8,7 @@ namespace SpeedPoint
 {
 	// **********************************************************************************
 	
-	S_API SResult SDirectX9Settings::SetRenderer( SRenderer* pRenderer )
+	S_API SResult SDirectX9Settings::SetRenderer( IRenderer* pRenderer )
 	{
 		if( pRenderer == NULL ) return S_ABORTED;
 

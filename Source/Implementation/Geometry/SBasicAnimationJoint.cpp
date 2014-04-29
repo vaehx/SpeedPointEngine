@@ -6,7 +6,7 @@ namespace SpeedPoint
 {
 	// **********************************************************************************
 
-	S_API void SBasicAnimationJoint::SetSolid( SSolid* psol )
+	S_API void SBasicAnimationJoint::SetSolid( ISolid* psol )
 	{
 	}
 

@@ -7,17 +7,17 @@
 
 #pragma once
 
-#include <Abstract\SVertexBuffer.h>
+#include <Abstract\IVertexBuffer.h>
 #include <d3d9.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint VertexBuffer Resource
-	class S_API SDirectX9VertexBuffer : public SVertexBuffer
+	class S_API SDirectX9VertexBuffer : public IVertexBuffer
 	{
 	public:
 		SpeedPointEngine*		pEngine;
-		SRenderer*			pRenderer;
+		IRenderer*			pRenderer;
 		LPDIRECT3DVERTEXBUFFER9		pHWVertexBuffer;
 		SVertex*			pShadowBuffer;
 		int				nVertices;	
@@ -51,7 +51,7 @@ namespace SpeedPoint
 		~SDirectX9VertexBuffer();
 
 		// Initialize the vertex buffer
-		SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEng, SRenderer* renderer );
+		SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer );
 
 		// Create the Hardware Vertex Buffer
 		SResult Create( int nSize, bool bDynamic_ );

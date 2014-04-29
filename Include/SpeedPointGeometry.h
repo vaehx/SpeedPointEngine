@@ -20,18 +20,18 @@
 // Include abstract geometry component classes
 
 #include <Util\STransformable.h>
-#include <Abstract\STexture.h>
-#include <Abstract\SOctreeNode.h>
-#include <Abstract\SOctree.h>
+#include <Abstract\ITexture.h>
+#include <Abstract\IOctreeNode.h>
+#include <Abstract\IOctree.h>
 
 #ifndef SP_NO_PARTICLES
-#include <Abstract\SParticle.h>
-#include <Abstract\SParticleSystem.h>
+#include <Abstract\IParticle.h>
+#include <Abstract\IParticleSystem.h>
 #endif
 
 #include <Util\SVertex.h>
-#include <Abstract\SSolid.h>
-#include <Abstract\STerrain.h>
+#include <Abstract\ISolid.h>
+#include <Abstract\ITerrain.h>
 
 // ******************************************************************************************
 

@@ -11,7 +11,7 @@
 
 #include <SPrerequisites.h>
 #include <Util\SPool.h>
-#include "SSolid.h"
+#include "ISolid.h"
 
 namespace SpeedPoint
 {
@@ -29,7 +29,7 @@ namespace SpeedPoint
 		virtual SP_ID AddSolid( void ) = 0;
 
 		// Get a pointer to a solid by its id
-		virtual SSolid* GetSolid( SP_ID id ) = 0;
+		virtual ISolid* GetSolid( SP_ID id ) = 0;
 
 		// Get count of solids
 		virtual unsigned int GetSolidCount() = 0;

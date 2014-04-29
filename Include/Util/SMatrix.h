@@ -89,7 +89,7 @@ namespace SpeedPoint
 				);
 		}
 
-		SVector4& operator * (const SVector4& v)
+		SVector4 operator * (const SVector4& v)
 		{
 			return SVector4(
 				m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3] * v.w,

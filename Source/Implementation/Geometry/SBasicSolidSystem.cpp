@@ -34,11 +34,11 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SSolid* SBasicSolidSystem::GetSolid( SP_ID id )
+	S_API ISolid* SBasicSolidSystem::GetSolid( SP_ID id )
 	{
 		SBasicSolid* pBasicSolid = m_plSolids.GetItemByUID( id );
 		
-		return (SSolid*)pBasicSolid;
+		return (ISolid*)pBasicSolid;
 	}
 
 	// **********************************************************************************

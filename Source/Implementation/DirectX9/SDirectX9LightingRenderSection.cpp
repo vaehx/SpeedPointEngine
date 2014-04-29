@@ -9,8 +9,8 @@
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
-#include <Abstract\Pipelines\SRenderPipeline.h>
-#include <Abstract\SRenderer.h>
+#include <Abstract\Pipelines\IRenderPipeline.h>
+#include <Abstract\IRenderer.h>
 #include <SSpeedPointEngine.h>
 #include <Util\SVertex.h>
 
@@ -34,7 +34,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 	
-	S_API SResult SDirectX9LightingRenderSection::Initialize(SpeedPointEngine* pEngine, SRenderPipeline* pRenderPipeline)
+	S_API SResult SDirectX9LightingRenderSection::Initialize(SpeedPointEngine* pEngine, IRenderPipeline* pRenderPipeline)
 	{
 		if (pEngine == 0 || pRenderPipeline == 0)
 			return S_INVALIDPARAM;
@@ -49,7 +49,7 @@ namespace SpeedPoint
 
 		// Prepare Lighting buffer
 		SSettings settings = pEngine->GetSettings();
-		if (Failure(m_LightingBuffer.Initialize(m_pEngine, settings.nXResolution, settings.nYResolution)))
+		if (Failure(m_LightingBuffer.Initialize(m_pEngine, settings.app.nXResolution, settings.app.nYResolution)))
 			return m_pEngine->LogE("Cannot initialize lighting render section: failed to initialize lighting output buffer");
 
 		return S_SUCCESS;
@@ -149,7 +149,7 @@ namespace SpeedPoint
 		// -----------------------------------------------------------------------------------
 		// Load all default lights if full custom lighting is not requested
 
-		if (!m_pEngine->GetSettings().bCustomLighting)
+		if (!m_pEngine->GetSettings().render.bCustomLighting)
 		{					
 			SLightSystem* pLightSystem = m_pEngine->GetGlobalLightSystem();
 			usint32 nLightSources = pLightSystem->GetLightCount();

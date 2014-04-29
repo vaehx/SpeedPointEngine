@@ -6,20 +6,20 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\Pipelines\SRenderPipelineSection.h>
+#include <Abstract\Pipelines\IRenderPipelineSection.h>
 #include "SDirectX9Shader.h"
 #include "SDirectX9FrameBuffer.h"
 
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 Geometry Render Section
-	class S_API SDirectX9GeometryRenderSection : public SRenderPipelineSection
+	class S_API SDirectX9GeometryRenderSection : public IRenderPipelineSection
 	{
 	private:
 		SpeedPointEngine*		m_pEngine;
 		SDirectX9RenderPipeline*	m_pDX9RenderPipeline;
 		usint32 			m_nCurrentPasses;	// Count of passes of the current technique		
-		SSolid*				m_pCurrentSolid;	// current solid for which the Shader inputs are configured
+		ISolid*				m_pCurrentSolid;	// current solid for which the Shader inputs are configured
 
 		SDirectX9Shader			m_gBufferShader;
 		SDirectX9FrameBuffer		m_GBufferPosition;	// in world space
@@ -36,7 +36,7 @@ namespace SpeedPoint
 		~SDirectX9GeometryRenderSection();
 
 		// Initialize
-		virtual SResult Initialize(SpeedPointEngine* eng, SRenderPipeline* pRenderPipeline);
+		virtual SResult Initialize(SpeedPointEngine* eng, IRenderPipeline* pRenderPipeline);
 
 		// Clearout the section
 		virtual SResult Clear(void);
@@ -54,11 +54,11 @@ namespace SpeedPoint
 //~~~~~~~~~~~~
 
 		// Prepare the GBuffer creation shader for rendering textured or not-textured primitives of one solid
-		SResult PrepareShaderInput(SSolid* pSolid, bool bTextured);		
+		SResult PrepareShaderInput(ISolid* pSolid, bool bTextured);		
 
 		// Render the geometry of ALL primitives of a solid to the current G-Buffer
 		// Loops through all passes and calls Render(Un)TexturedPrimitive()
-		SResult RenderSolidGeometry(SSolid* pSolid, bool bTextured);
+		SResult RenderSolidGeometry(ISolid* pSolid, bool bTextured);
 
 		// Render a textured Primitive
 		SResult RenderTexturedPrimitive(UINT iPrimitive);

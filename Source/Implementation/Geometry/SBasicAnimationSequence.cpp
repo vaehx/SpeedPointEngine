@@ -7,14 +7,14 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SBasicAnimationSequence::Initialize( SAnimationBundle* bundle )
+	S_API SResult SBasicAnimationSequence::Initialize( IAnimationBundle* bundle )
 	{
 		return S_ERROR;
 	}
 
 	// **********************************************************************************
 
-	S_API SAnimationBundle* SBasicAnimationSequence::GetBundle( void )
+	S_API IAnimationBundle* SBasicAnimationSequence::GetBundle( void )
 	{
 		return NULL;
 	}
@@ -41,7 +41,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SAnimationKey* SBasicAnimationSequence::GetKey( SP_ID id )
+	S_API IAnimationKey* SBasicAnimationSequence::GetKey( SP_ID id )
 	{
 		return NULL;
 	}

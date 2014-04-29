@@ -18,7 +18,7 @@ namespace SpeedPoint
 	{
 	public:
 		// Initialize the Index Buffer
-		virtual SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEngine, SRenderer* pRenderer, S_INDEXBUFFER_FORMAT format ) = 0;
+		virtual SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEngine, IRenderer* pRenderer, S_INDEXBUFFER_FORMAT format ) = 0;
 
 		// Create the Hardware Index Buffer
 		virtual SResult Create( int nIndices_, bool bDynamic_, S_INDEXBUFFER_FORMAT ) = 0;

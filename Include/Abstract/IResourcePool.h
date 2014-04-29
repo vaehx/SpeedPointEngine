@@ -22,17 +22,17 @@ namespace SpeedPoint
 		// **************************************************************************
 
 		// Initialize the Resource pool
-		virtual SResult Initialize( SpeedPointEngine* pEngine, SRenderer* pRenderer ) = 0;
+		virtual SResult Initialize( SpeedPointEngine* pEngine, IRenderer* pRenderer ) = 0;
 
 		// **************************************************************************
 		//				VertexBuffer
 		// **************************************************************************
 
 		// Add a new VertexBuffer
-		virtual SResult	AddVertexBuffer( SVertexBuffer** pVBuffer, SP_ID* pUID ) = 0;
+		virtual SResult	AddVertexBuffer( IVertexBuffer** pVBuffer, SP_ID* pUID ) = 0;
 
 		// Get a pointer to a VertexBuffer by id
-		virtual SVertexBuffer* GetVertexBuffer( SP_ID iUID ) = 0;
+		virtual IVertexBuffer* GetVertexBuffer( SP_ID iUID ) = 0;
 
 		// Remove a VertexBuffer by id from the pool
 		virtual SResult RemoveVertexBuffer( SP_ID iUID ) = 0;		
@@ -42,10 +42,10 @@ namespace SpeedPoint
 		// **************************************************************************
 
 		// Add a new IndexBuffer
-		virtual SResult	AddIndexBuffer( SIndexBuffer** pIBuffer, SP_ID* pUID ) = 0;
+		virtual SResult	AddIndexBuffer( IIndexBuffer** pIBuffer, SP_ID* pUID ) = 0;
 
 		// Get a pointer to a IndexBuffer by id
-		virtual SIndexBuffer* GetIndexBuffer( SP_ID iUID ) = 0;
+		virtual IIndexBuffer* GetIndexBuffer( SP_ID iUID ) = 0;
 
 		// Remove a IndexBuffer by id from the pool
 		virtual SResult RemoveIndexBuffer( SP_ID iUID ) = 0;		
@@ -55,15 +55,15 @@ namespace SpeedPoint
 		// **************************************************************************
 
 		// Add a new Texture
-		virtual SResult AddTexture( SString src, UINT w, UINT h, SString spec, STexture** pTex, SP_ID* pUID ) = 0;
+		virtual SResult AddTexture( SString src, UINT w, UINT h, SString spec, ITexture** pTex, SP_ID* pUID ) = 0;
 
-		virtual SResult AddTexture( UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, STexture** pTex, SP_ID* pUID ) = 0;
+		virtual SResult AddTexture( UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, ITexture** pTex, SP_ID* pUID ) = 0;
 
 		// Get a Texture Instance by its id
-		virtual STexture* GetTexture( SP_ID iUID ) = 0;
+		virtual ITexture* GetTexture( SP_ID iUID ) = 0;
 
 		// Get a Texture Instance by its specification
-		virtual STexture* GetTexture( SString spec ) = 0;
+		virtual ITexture* GetTexture( SString spec ) = 0;
 
 		// Get Texture Specification
 		virtual char* GetTextureSpecification( SP_ID iUID ) = 0;
@@ -75,7 +75,7 @@ namespace SpeedPoint
 		virtual SResult RemoveTexture( SP_ID iUID ) = 0;
 
 		// ForEach Texture
-		virtual SResult ForEachTexture( void (*iterationFunc)(STexture*, const SP_ID&) ) = 0;
+		virtual SResult ForEachTexture( void (*iterationFunc)(ITexture*, const SP_ID&) ) = 0;
 
 		// **************************************************************************
 		//				All

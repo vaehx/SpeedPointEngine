@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SRenderer.h>
+#include <Abstract\IRenderer.h>
 #include "SDirectX9Settings.h"
 #include "SDirectX9Viewport.h"
 #include <d3d9.h>
@@ -24,7 +24,7 @@ namespace SpeedPoint
 
 
 	// SpeedPoint DirectX 9 Renderer
-	class S_API SDirectX9Renderer : public SRenderer
+	class S_API SDirectX9Renderer : public IRenderer
 	{
 	public:
 		SpeedPointEngine*	pEngine;
@@ -33,7 +33,7 @@ namespace SpeedPoint
 		LPDIRECT3DDEVICE9	pd3dDevice;
 		D3DCAPS9		cpsDeviceCaps;
 		D3DDISPLAYMODE		m_AutoSelectedDisplayMode;	// automatically selected in AutoSelectAdapter()
-		SRenderPipeline*	pRenderPipeline;
+		IRenderPipeline*	pRenderPipeline;
 		SDirectX9Viewport	vpViewport;
 
 		// Default constructor
@@ -62,27 +62,27 @@ namespace SpeedPoint
 		
 		SResult Initialize( SpeedPointEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter );
 		
-		SResult CreateAdditionalViewport( SViewport** pViewport );
+		SResult CreateAdditionalViewport( IViewport** pViewport );
 		
 		SResult Shutdown( void );
 		
 		bool IsInited( void );
 		
-		SRenderPipeline* GetRenderPipeline( void );
+		IRenderPipeline* GetRenderPipeline( void );
 		
 		SResult BeginScene( void );
 		
 		SResult EndScene( void );
 		
-		SResult SetTargetViewport( SViewport* pViewport );
+		SResult SetTargetViewport( IViewport* pViewport );
 		
-		SViewport* GetTargetViewport( void );
+		IViewport* GetTargetViewport( void );
 		
-		SViewport* GetDefaultViewport( void );
+		IViewport* GetDefaultViewport( void );
 		
-		SResult UpdateViewportMatrices( SViewport* pViewport );
+		SResult UpdateViewportMatrices( IViewport* pViewport );
 		
-		SResult RenderSolid(SSolid* pSolid, bool bTextured);
+		SResult RenderSolid(ISolid* pSolid, bool bTextured);
 
 		// Get the DirectX9 Specific Fixed Vertex Format
 		// normally used for CreateVertexBuffer

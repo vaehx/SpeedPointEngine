@@ -94,7 +94,7 @@ namespace SpeedPoint
 	struct	S_API SVertex;
 	struct	S_API SMaterial;			// derives from SPhysicsMaterial
 	class	S_API SBoundBox;
-	struct	S_API SSettings;			// contains SRendererSettings
+	struct	S_API SSettings;			// contains IRendererSettings
 
 	// ---------------------------- Logging ---------------------------------	
 	class	S_API SLogStream;
@@ -236,7 +236,7 @@ namespace SpeedPoint
 /*abs*/	class	S_API IPhysical;
 	class	S_API SPhysicsBody;
 /*abs*/ class	S_API ICollisionShape;
-	class	S_API SPhysicsCollisionShape;
+	class	S_API SPhysicICollisionShape;
 	class	S_API SPhysicsLiquid;
 	class	S_API SPhysicsWind;
 /*abs*/ class	S_API IPhysicalCollection;

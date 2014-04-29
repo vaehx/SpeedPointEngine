@@ -11,9 +11,9 @@
 #include <Implementation\DirectX9\SDirectX9LightingRenderSection.h>
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
-#include <Abstract\Pipelines\SRenderPipeline.h>
-#include <Abstract\SViewport.h>
-#include <Abstract\SRenderer.h>
+#include <Abstract\Pipelines\IRenderPipeline.h>
+#include <Abstract\IViewport.h>
+#include <Abstract\IRenderer.h>
 #include <SSpeedPointEngine.h>
 #include <Util\SVertex.h>
 
@@ -28,7 +28,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API SResult SDirectX9PostRenderSection::Initialize(SpeedPointEngine* pEngine, SRenderPipeline* pRenderPipeline)
+	S_API SResult SDirectX9PostRenderSection::Initialize(SpeedPointEngine* pEngine, IRenderPipeline* pRenderPipeline)
 	{
 		if ((m_pEngine = pEngine) == 0) return S_INVALIDPARAM;		
 
@@ -90,13 +90,13 @@ namespace SpeedPoint
 			|| !m_OutputPlane.indexBuffer.IsInited()),
 			S_NOTINIT, m_pEngine, "Light buffer not initialized!");
 
-		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)((SRenderPipeline*)m_pDX9RenderPipeline)->GetRenderer();
+		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)((IRenderPipeline*)m_pDX9RenderPipeline)->GetRenderer();
 		SP_ASSERTXR(!pDXRenderer, S_NOTINIT, m_pEngine, "Renderer is zero!");
 
 		// -----------------------------------------------------------------------------------
 
 		// Set the backbuffer or swap chain as render target
-		SViewport* pViewport = pDXRenderer->GetTargetViewport();		
+		IViewport* pViewport = pDXRenderer->GetTargetViewport();		
 		IDirect3DSurface9* pSurface;
 		bool bIsAddition;
 		if ((bIsAddition = pViewport->IsAddition()))

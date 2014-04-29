@@ -1,15 +1,31 @@
 @subject: Next-On Todos
 @written on: 4/23/2014 4:51pm
 
-- Rewrite / Change existing SRenderPipeline to new RenderPipeline (inheriting from SObservedObject)
-	- Implement functions of new SDirectX9RenderPipeline class
-		- properly call events
-		- properly call methods of render section (esp. Geometry Section!)
+* Refactor implementing code to use I-prefixed interfaces
+- Refactor code to use new SSettings structure
+- swap assert condition
+- overwrite cpp assert macro
+- overwrite new and delete:
+void * operator new(std::size_t n) throw(std::bad_alloc)
+{
+  //...
+}
+void operator delete(void * p) throw()
+{
+  //...
+}
 
-- Finish Implementation of FramePipeline
-	- Call event and start Render Pipeline
+and
 
-- IMplement Dynamics Pipeline
-	- skip Animation, Script, ... (including physics) for now.
+void * operator new[](std::size_t n) throw(std::bad_alloc)
+{
+  //...
+}
+void operator delete[](void * p) throw()
+{
+  //...
+}
 
-- Build.
+- build prototype
+- create test application, load engine
+- display first, single triangle with the new pipe

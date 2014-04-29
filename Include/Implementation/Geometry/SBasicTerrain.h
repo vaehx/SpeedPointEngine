@@ -6,13 +6,13 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\STerrain.h>
+#include <Abstract\ITerrain.h>
 #include "SBasicSolid.h"
 
 namespace SpeedPoint
 {
 	// SpeedPoint Terrain
-	class S_API SBasicTerrain : public STerrain, public SBasicSolid
+	class S_API SBasicTerrain : public ITerrain, public SBasicSolid
 	{
 	public:
 		int		nXResolution;

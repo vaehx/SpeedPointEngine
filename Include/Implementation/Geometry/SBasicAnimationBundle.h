@@ -7,35 +7,35 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Util\SPool.h>
-#include <Abstract\SAnimationBundle.h>
+#include <Abstract\IAnimationBundle.h>
 #include "SBasicAnimationSequence.h"
 
 namespace SpeedPoint
 {
 	// SpeedPoint Animation Bundle
-	class S_API SBasicAnimationBundle : public SAnimationBundle
+	class S_API SBasicAnimationBundle : public IAnimationBundle
 	{
 	public:
 		SPool<SBasicAnimationSequence*> plSequences;		
-		SSolid*				pSolid;
+		ISolid*				pSolid;
 		SP_ID				iRunningAnimationSequence;
 		SString				cName;
 
 		// Default constructor
 		SBasicAnimationBundle() : pSolid( NULL ) {}
 
-		SResult Initialize( SSolid* pSolid );
+		SResult Initialize( ISolid* pSolid );
 
 		SResult Tick( float fTimeFactor );
 
 		void SetName( const SString& name );
 		SString* GetName( void );
 
-		SAnimationJoint* AddJoint( SP_ID* pID );
-		SAnimationJoint* GetJoint( SP_ID id );		
+		IAnimationJoint* AddJoint( SP_ID* pID );
+		IAnimationJoint* GetJoint( SP_ID id );		
 
-		SAnimationSequence* AddAnimationSequence( SP_ID* pID );
-		SAnimationSequence* GetAnimationSequence( SP_ID id );
+		IAnimationSequence* AddAnimationSequence( SP_ID* pID );
+		IAnimationSequence* GetAnimationSequence( SP_ID id );
 		SResult RunAnimationSequence( SP_ID id );
 		SP_ID GetRunningAnimationSequence( void );
 		void Clear( void );

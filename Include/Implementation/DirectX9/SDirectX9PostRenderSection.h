@@ -10,14 +10,14 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Abstract\Pipelines\SRenderPipelineSection.h>
+#include <Abstract\Pipelines\IRenderPipelineSection.h>
 #include <Implementation\DirectX9\SDirectX9Shader.h>
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
 
 namespace SpeedPoint
 {
-	// DirectX9 Implementation of SRenderPipelineSection for Post Effects
-	class S_API SDirectX9PostRenderSection : public SRenderPipelineSection
+	// DirectX9 Implementation of IRenderPipelineSection for Post Effects
+	class S_API SDirectX9PostRenderSection : public IRenderPipelineSection
 	{
 	private:
 		SpeedPointEngine*		m_pEngine;		// Ptr to the SpeedPoint Game Engine instance
@@ -32,7 +32,7 @@ namespace SpeedPoint
 		~SDirectX9PostRenderSection();
 
 		// Initialize the Render Pipeline State
-		virtual SResult Initialize(SpeedPointEngine* pEngine, SRenderPipeline* pRenderPipeline);
+		virtual SResult Initialize(SpeedPointEngine* pEngine, IRenderPipeline* pRenderPipeline);
 
 		// Clear the Render Pipeline state
 		virtual SResult Clear(void);

@@ -13,7 +13,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 	
-	S_API SOctreeNode* SBasicOctreeNode::GetChild( SP_UNIQUE id )
+	S_API IOctreeNode* SBasicOctreeNode::GetChild( SP_UNIQUE id )
 	{
 		return NULL;
 	}

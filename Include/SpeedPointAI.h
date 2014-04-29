@@ -11,7 +11,7 @@
 // ******************************************************************************************
 
 // Include abstract AI component classes
-#include <Abstract\SBot.h>
+#include <Abstract\IBot.h>
 
 // TODO: Add Waynet, waypath, ...
 

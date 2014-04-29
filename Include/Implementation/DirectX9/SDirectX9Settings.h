@@ -6,14 +6,14 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SRendererSettings.h>
+#include <Abstract\IRendererSettings.h>
 #include <Util\SColor.h>
 #include <d3d9.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 Settings
-	class S_API SDirectX9Settings : public SRendererSettings
+	class S_API SDirectX9Settings : public IRendererSettings
 	{
 	public:
 		SDirectX9Renderer*	pDXRenderer;
@@ -60,7 +60,7 @@ namespace SpeedPoint
 			cAlphaColorKey( o.cAlphaColorKey ) {}
 
 		// Initialize
-		SResult SetRenderer( SRenderer* pRenderer );
+		SResult SetRenderer( IRenderer* pRenderer );
 
 		// Set the alpha color key for textures
 		SResult SetAlphaColorKey( SColor colKey );

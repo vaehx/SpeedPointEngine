@@ -6,20 +6,20 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SSound.h>
+#include <Abstract\ISound.h>
 #include "SDirectSoundSystem.h"
 
 namespace SpeedPoint
 {
 	// SpeedPoint DirectSound Sound resource
-	class S_API SDirectSoundResource : public SSound
+	class S_API SDirectSoundResource : public ISound
 	{
 	public:
 		SString			cSpecification;
 		SDirectSoundSystem*	pDirectSoundSystem;
 		// LPDIRECTSOUND9 pDirectSound???
 
-		SResult Initialize( SSoundSystem* pSystem );
+		SResult Initialize( ISoundSystem* pSystem );
 		SResult LoadFromFile( char* cFileName, char* specification );
 		SString GetSpecification( void );
 		SResult Clear( void );

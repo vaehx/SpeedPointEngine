@@ -7,7 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Util\SPool.h>
-#include <Abstract\SAnimationKey.h>
+#include <Abstract\IAnimationKey.h>
 #include <Util\SVector3.h>
 
 namespace SpeedPoint
@@ -28,7 +28,7 @@ namespace SpeedPoint
 	};
 
 	// SpeedPoint Basic Animation Key
-	class S_API SBasicAnimationKey : public SAnimationKey
+	class S_API SBasicAnimationKey : public IAnimationKey
 	{
 	public:
 		float			fTimeCode;

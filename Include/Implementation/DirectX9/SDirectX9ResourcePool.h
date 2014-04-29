@@ -5,7 +5,7 @@
 // ********************************************************************************************
 
 #pragma once
-#include <Abstract\SResourcePool.h>
+#include <Abstract\IResourcePool.h>
 #include "SDirectX9IndexBuffer.h"
 #include "SDirectX9VertexBuffer.h"
 #include "SDirectX9Shader.h"
@@ -15,7 +15,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 Resource Pool
-	class S_API SDirectX9ResourcePool : public SResourcePool
+	class S_API SDirectX9ResourcePool : public IResourcePool
 	{
 	public:
 		SpeedPointEngine*		pEngine;
@@ -31,17 +31,17 @@ namespace SpeedPoint
 		// **************************************************************************
 
 		// Initialize the Resource pool
-		SResult Initialize( SpeedPointEngine* pEngine, SRenderer* pRenderer );
+		SResult Initialize( SpeedPointEngine* pEngine, IRenderer* pRenderer );
 
 		// **************************************************************************
 		//				VertexBuffer
 		// **************************************************************************
 
 		// Add a new VertexBuffer
-		SResult	AddVertexBuffer( SVertexBuffer** pVBuffer, SP_ID* pUID );
+		SResult	AddVertexBuffer( IVertexBuffer** pVBuffer, SP_ID* pUID );
 
 		// Get a pointer to a VertexBuffer by id
-		SVertexBuffer* GetVertexBuffer( SP_ID iUID );
+		IVertexBuffer* GetVertexBuffer( SP_ID iUID );
 
 		// Remove a VertexBuffer by id from the pool
 		SResult RemoveVertexBuffer( SP_ID iUID );		
@@ -51,10 +51,10 @@ namespace SpeedPoint
 		// **************************************************************************
 
 		// Add a new IndexBuffer
-		SResult	AddIndexBuffer( SIndexBuffer** pIBuffer, SP_ID* pUID );
+		SResult	AddIndexBuffer( IIndexBuffer** pIBuffer, SP_ID* pUID );
 
 		// Get a pointer to a IndexBuffer by id
-		SIndexBuffer* GetIndexBuffer( SP_ID iUID );
+		IIndexBuffer* GetIndexBuffer( SP_ID iUID );
 
 		// Remove a IndexBuffer by id from the pool
 		SResult RemoveIndexBuffer( SP_ID iUID );		
@@ -64,15 +64,15 @@ namespace SpeedPoint
 		// **************************************************************************
 
 		// Add a new Texture
-		SResult AddTexture( SString src, UINT w, UINT h, SString spec, STexture** pTex, SP_ID* pUID );
+		SResult AddTexture( SString src, UINT w, UINT h, SString spec, ITexture** pTex, SP_ID* pUID );
 
-		SResult AddTexture( UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, STexture** pTex, SP_ID* pUID );
+		SResult AddTexture( UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, ITexture** pTex, SP_ID* pUID );
 
 		// Get a Texture Instance by its id
-		STexture* GetTexture( SP_ID iUID );
+		ITexture* GetTexture( SP_ID iUID );
 
 		// Get a Texture Instance by its specification
-		STexture* GetTexture( SString spec );
+		ITexture* GetTexture( SString spec );
 
 		// Get Texture Specification
 		char* GetTextureSpecification( SP_ID iUID );
@@ -84,7 +84,7 @@ namespace SpeedPoint
 		SResult RemoveTexture( SP_ID iUID );
 
 		// ForEach Texture
-		SResult ForEachTexture( void (*iterationFunc)(STexture*, const SP_ID&) );
+		SResult ForEachTexture( void (*iterationFunc)(ITexture*, const SP_ID&) );
 
 		// **************************************************************************
 		//				All

@@ -1,16 +1,16 @@
 
 #pragma once
-#include <Abstract\SIndexBuffer.h>
+#include <Abstract\IIndexBuffer.h>
 #include <d3d9.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 IndexBuffer
-	class S_API SDirectX9IndexBuffer : public SIndexBuffer
+	class S_API SDirectX9IndexBuffer : public IIndexBuffer
 	{
 	public:
 		SpeedPointEngine*		pEngine;
-		SRenderer*			pRenderer;
+		IRenderer*			pRenderer;
 		LPDIRECT3DINDEXBUFFER9		pHWIndexBuffer;
 		DWORD*				pShadowBuffer;
 		D3DFORMAT			fmtHWIndexBufferFormat;	// we need to save this due to the resize function creating a new one
@@ -47,7 +47,7 @@ namespace SpeedPoint
 		~SDirectX9IndexBuffer();
 
 		// Initialize the Index Buffer
-		SResult Initialize( int nSize, bool bDyn, SpeedPointEngine* pEng, SRenderer* pRenderer, S_INDEXBUFFER_FORMAT format );
+		SResult Initialize( int nSize, bool bDyn, SpeedPointEngine* pEng, IRenderer* pRenderer, S_INDEXBUFFER_FORMAT format );
 
 		// Create the Hardware Index Buffer
 		SResult Create( int nIndices_, bool bDynamic_, S_INDEXBUFFER_FORMAT );

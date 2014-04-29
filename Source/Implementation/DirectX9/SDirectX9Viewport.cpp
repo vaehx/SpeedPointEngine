@@ -88,15 +88,15 @@ namespace SpeedPoint
 					&mProj,
 					fFOV,
 					(float)nXResolution / (float)nYResolution,
-					engineSettings.fClipNear,
-					engineSettings.fClipFar );				
+					engineSettings.render.fClipNear,
+					engineSettings.render.fClipFar );				
 
 				break;
 			}
 		case S_PROJECTION_ORTHOGRAPHIC:
 			{
 				D3DXMatrixOrthoRH( &mProj, fOrthoW, fOrthoH,
-					engineSettings.fClipNear, engineSettings.fClipFar );
+					engineSettings.render.fClipNear, engineSettings.render.fClipFar );
 
 				break;
 			}
@@ -148,13 +148,13 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 				
-	S_API SFrameBuffer* SDirectX9Viewport::GetBackBuffer( void )
+	S_API IFrameBuffer* SDirectX9Viewport::GetBackBuffer( void )
 	{
 		SDirectX9FrameBuffer* pDXRes = new SDirectX9FrameBuffer();
 		pDXRes->pEngine = pEngine;
 		pDXRes->pSurface = pBackBuffer;
 		pDXRes->pTexture = NULL;		
-		return (SFrameBuffer*)pDXRes;
+		return (IFrameBuffer*)pDXRes;
 	}
 
 	// **********************************************************************************

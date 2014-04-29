@@ -6,13 +6,13 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\SOctreeNode.h>
+#include <Abstract\IOctreeNode.h>
 #include <Util\SBoundBox.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint Octree Node
-	class S_API SBasicOctreeNode : public SOctreeNode
+	class S_API SBasicOctreeNode : public IOctreeNode
 	{
 	public:
 		SBasicOctreeNode*	pChilds[8];	// preserve 8 OctreeNode childs
@@ -26,7 +26,7 @@ namespace SpeedPoint
 		SBasicOctreeNode() : bIsLeaf(false), nPolys(0), pOctree(NULL), pTriangles(NULL) {};
 
 		bool IsLeaf( void );
-		SOctreeNode* GetChild( SP_UNIQUE id );
+		IOctreeNode* GetChild( SP_UNIQUE id );
 		int GetPolygonCount( void );
 		SBoundBox GetBoundBox( void );
 		DWORD* GetTriangles( void );

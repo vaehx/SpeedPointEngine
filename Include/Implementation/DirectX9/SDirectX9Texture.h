@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include <Abstract\STexture.h>
+#include <Abstract\ITexture.h>
 #include <d3d9.h>
 
 namespace SpeedPoint
 {
 	// SpeedPoint DirectX9 Texture Resource
-	class S_API SDirectX9Texture : public STexture
+	class S_API SDirectX9Texture : public ITexture
 	{
 	public:
 		SString			sSpecification;
