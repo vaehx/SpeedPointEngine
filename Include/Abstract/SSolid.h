@@ -15,7 +15,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Solid (abstract)
-	class S_API SSolid : public STransformable
+	class S_API ISolid : public STransformable
 	{
 	public:
 		// -- General --

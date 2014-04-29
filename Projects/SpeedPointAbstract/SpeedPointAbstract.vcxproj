@@ -67,6 +67,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Abstract\IEngine.h" />
     <ClInclude Include="..\..\Include\Abstract\Pipelines\SRenderPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\Pipelines\SRenderPipelineSection.h" />
     <ClInclude Include="..\..\Include\Abstract\SAnimationBundle.h" />

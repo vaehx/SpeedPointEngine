@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Animation Sequence of Animation Keys (abstract)
-	class S_API SAnimationSequence
+	class S_API IAnimationSequence
 	{
 	public:	
 		// Initialize by its holding animation bundle

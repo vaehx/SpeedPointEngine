@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Particle System (abstract)
-	class S_API SParticleSystem
+	class S_API IParticleSystem
 	{
 	public:
 		//// TODO

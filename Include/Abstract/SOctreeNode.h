@@ -13,7 +13,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Octree Node (abstract)
-	class S_API SOctreeNode
+	class S_API IOctreeNode
 	{
 	public:
 		// Check if this node is a leaf

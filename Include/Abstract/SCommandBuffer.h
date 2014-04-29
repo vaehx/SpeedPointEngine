@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Command Buffer Task (abstract)
-	class S_API SCommandBufferEntry
+	class S_API ICommandBufferEntry
 	{	
 	public:
 		// Initialize
@@ -25,7 +25,7 @@ namespace SpeedPoint
 	};
 
 	// SpeedPoint Command Buffer (abstract)
-	class S_API SCommandBuffer
+	class S_API ICommandBuffer
 	{
 	public:
 		// Get the latest task that has been added

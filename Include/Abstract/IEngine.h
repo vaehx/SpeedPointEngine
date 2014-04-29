@@ -133,7 +133,7 @@ namespace SpeedPoint
 		//	Initialize the Resource Pool.
 		// Description:
 		//	The ResourcePool handles all resources like textures, scripts, sounds, ...		
-		//	The ResourcePool is Renderer-specific, as DX uses other texture buffer as GL
+		//	The ResourcePool is Renderer-specific, as DX uses other texture buffer classes than GL
 		virtual SResult InitializeResourcePool() = 0;	// no custom resource pool allowed yet
 
 		// Summary:
@@ -145,8 +145,26 @@ namespace SpeedPoint
 
 	// Logging		
 	public:
+		// Summary:
+		//	Initialize the Logger
+		// Arguments:
+		//	pCustomLogStream - Set this to a valid pointer to use your own Logging stream instance. THIS MUST ALREADY BE INITIALIZED!
+		// Return Value:
+		//	S_INVALIDPARAM - pCustomLogStream is an invalid ptr or points to an uninitialized Logging Stream
 		virtual SResult InitializeLogger(SLogStream* pCustomLogStream = 0) = 0;		
+
+		// Summary:
+		//	Get the registered logging stream
+		// Return Value:
+		//	Pointer to the registered logging stream (either the default or the custom one)
 		virtual SLogStream* GetLogStream() = 0;
+
+		// Summary:
+		//	Registers a LogHandler function to the registered logging stream
+		// Arguments:
+		//	pHandler - Valid ptr to a LogHandler function (!= EventHandler)
+		// Return Value:
+		//	S_NOTINIT - No initialized logger is registered in this engine. Use InitializeLogger()
 		virtual SResult AddLogHandler(SLogHandler pHandler) = 0;
 	};
 }

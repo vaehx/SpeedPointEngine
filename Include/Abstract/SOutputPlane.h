@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Renderer specific Output Plane (abstract)
-	class S_API SOutputPlane
+	class S_API IOutputPlane
 	{
 	public:
 		// Initialize the output plane

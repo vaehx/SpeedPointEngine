@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Entity (abstract)
-	class S_API SEntity
+	class S_API IEntity
 	{
 	public:
 		// Set the name of this entity

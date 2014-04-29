@@ -15,7 +15,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Animation Joint (abstract)
-	class S_API SAnimationJoint
+	class S_API IAnimationJoint
 	{
 	public:
 		// Define which solid the vertex indices belong to

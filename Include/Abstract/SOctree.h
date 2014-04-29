@@ -13,7 +13,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Octree (abstract)
-	class S_API SOctree
+	class S_API IOctree
 	{
 	public:
 		// Initialize this octree with its holding solid

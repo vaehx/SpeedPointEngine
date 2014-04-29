@@ -16,7 +16,7 @@
 namespace SpeedPoint
 {
 	// A SpeedPoint Object with Physical properties
-	class S_API SPhysicalObject
+	class S_API IPhysicalObject
 	{
 	public:
 		// Enable the physics calculation

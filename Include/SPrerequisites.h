@@ -18,15 +18,18 @@
 
 #pragma once
 
+///////////////
+// Important core headers. DO NOT CHANGE if you do not know why! Many things depend on it!
 #include "Util\SAPI.h" // __declspec macro S_API
 
 #include "Util\SWindowsSpecific.h"
 
-#include "Util\SResult.h"	// SResult, IExceptionProxy and Assertion
+#include "Util\SResult.h"	// SResult, IExceptionProxy
 #include "Util\SAssert.h"
 
 #include "Util\SPoolIndex.h"
 #include "Util\SString.h"
+//////////////
 
 // ------------------------------------------------------------------------------------------
 // Structure of this file:
@@ -94,10 +97,11 @@ namespace SpeedPoint
 	struct	S_API SSettings;			// contains SRendererSettings
 
 	// ---------------------------- Logging ---------------------------------	
-	//class	S_API SLogStream;
+	class	S_API SLogStream;
+	typedef S_API void(*SLogHandler)(SResult, SString);
 
 	// --------------------------- Settings ---------------------------------
-/*abs*/ class	S_API SRendererSettings;
+	class	S_API IRendererSettings;
 	class	S_API SDirectX9Settings;
 	class	S_API SDirectX10Settings;
 	class	S_API SDirectX11Settings;
@@ -109,22 +113,22 @@ namespace SpeedPoint
 	class	S_API SLightSystem;	
 
 	// ---------------------------- Animation -------------------------------
-/*abs*/	class	S_API SAnimationBundle;
+/*abs*/	class	S_API IAnimationBundle;
 	class	S_API SBasicAnimationBundle;
-/*abs*/ class	S_API SAnimationSequence;
+/*abs*/ class	S_API IAnimationSequence;
 	class	S_API SBasicAnimationSequence;
-/*abs*/ class	S_API SAnimationKey;
+/*abs*/ class	S_API IAnimationKey;
 	class	S_API SBasicAnimationKey;
-/*abs*/ class	S_API SAnimationJoint;
+/*abs*/ class	S_API IAnimationJoint;
 	class	S_API SBasicAnimationJoint;
 	
 	// --------------------------- Geometry ---------------------------------
-/*abs*/	class	S_API SSolid;
-/*abs*/ class	S_API SSolidSystem;
-/*abs*/	class	S_API STerrain;
-/*abs*/	class	S_API SModel; // IS THIS ACTUALLY AN ABSTRACT??
-/*abs*/	class	S_API SEntity; // IS THIS ACTuALLY AN ABSTRACT?
-/*abs*/	class	S_API SInteractive; // IS THIS AACTuALLLY AN ABSTRACt??
+/*abs*/	class	S_API ISolid;
+/*abs*/ class	S_API ISolidSystem;
+/*abs*/	class	S_API ITerrain;
+/*abs*/	class	S_API IModel; // IS THIS ACTUALLY AN ABSTRACT??
+/*abs*/	class	S_API IEntity; // IS THIS ACTuALLY AN ABSTRACT?
+/*abs*/	class	S_API IInteractive; // IS THIS AACTuALLLY AN ABSTRACt??
 	
 	// ----
 	// Basic Implementation of the Geometry classes, For Physical implementation see below!
@@ -134,43 +138,44 @@ namespace SpeedPoint
 	class	S_API SBasicTerrain;
 
 	// --------------------------- Octree ----------------------------------
-/*abs*/ class	S_API SOctree;
-/*abs*/ class	S_API SOctreeNode;
+/*abs*/ class	S_API IOctree;
+/*abs*/ class	S_API IOctreeNode;
 
 	class	S_API SBasicOctree;
 	class	S_API SBasicOctreeNode;
 	
 	// ------------------------------- AI -----------------------------------
-/*abs*/ class	S_API SBot;
+/*abs*/ class	S_API IAI;	// AI Engine
+/*abs*/ class	S_API IBot;
 	class	S_API SBasicBot;
 	class	S_API SWaynode;
-/*abs*/ class	S_API SWaynet;
+/*abs*/ class	S_API IWaynet;
 	class	S_API SBasicWaynet;
 
 	// ----------------------------- Sound ----------------------------------
-/*abs*/ class	S_API SSoundSystem;
+/*abs*/ class	S_API ISoundSystem;
 	class	S_API SDirectSoundSystem;
-/*abs*/ class	S_API SSound;			// This is purely a sound resource!
+/*abs*/ class	S_API ISound;			// This is purely a sound resource!
 	class	S_API SDirectSoundResource;
 
 	// ---------------------------- Resources -------------------------------
-/*abs*/	class	S_API SResourcePool;		// Update notice: combined with SResourceAccess in SPv2.0
+/*abs*/	class	S_API IResourcePool;		// Update notice: combined with SResourceAccess in SPv2.0
 	class	S_API SDirectX9ResourcePool;
 	class	S_API SDirectX10ResourcePool;
 	class	S_API SDirectX11ResourcePool;
 	class	S_API SOpenGLResourcePool;
-/*abs*/ class	S_API SIndexBuffer;
+/*abs*/ class	S_API IIndexBuffer;
 	class	S_API SDirectX9IndexBuffer;
 	class	S_API SDirectX10IndexBuffer;
 	class	S_API SDirectX11IndexBuffer;
 	class	S_API SOpenGLIndexBuffer;
-/*abs*/ class	S_API SVertexBuffer;
+/*abs*/ class	S_API IVertexBuffer;
 	class	S_API SDirectX9VertexBuffer;
 	class	S_API SDirectX10VertexBuffer;
 	class	S_API SDirectX11VertexBuffer;
 	class	S_API SOpenGLVertexBuffer;
 	enum	S_API S_TEXTURE_TYPE;
-/*abs*/ class	S_API STexture;
+/*abs*/ class	S_API ITexture;
 	class	S_API SDirectX9Texture;
 	class	S_API SDirectX10Texture;
 	class	S_API SDirectX11Texture;
@@ -178,68 +183,69 @@ namespace SpeedPoint
 
 	// --------------------------- Renderer --------------------------------
 	enum	S_API S_RENDERER_TYPE;
-/*abs*/ class	S_API SRenderer;	// holds the render pipeline
+/*abs*/ class	S_API IRenderer;	// holds the render pipeline
 	class	S_API SDirectX9Renderer;
 	class	S_API SDirectX10Renderer;
 	class	S_API SDirectX11Renderer;
 	class	S_API SOpenGLRenderer;	
-/*abs*/ class	S_API SRenderPipeline;
+/*abs*/ class	S_API IRenderPipeline;
 	class	S_API SDirectX9RenderPipeline;
 	class	S_API SDirectX10RenderPipeline;
 	class	S_API SDirectX11RenderPipeline;
 	class	S_API SOpenGLRenderPipeline;
-/*abs*/ class	S_API SOutputPlane;
+/*abs*/ class	S_API IOutputPlane;
 	class	S_API SDirectX9OutputPlane;
 	class	S_API SDirectX10OutputPlane;
 	class	S_API SDirectX11OutputPlane;
 	class	S_API SOpenGLOutputPlane;
 
-/*abs*/ class	S_API SRenderPipelineSection;
+/*abs*/ class	S_API IRenderPipelineSection;
 	class	S_API SDirectX9GeometryRenderSection;	
 	class	S_API SDirectX9LightingRenderSection;
 	class	S_API SDirectX9PostRenderSection;
 
 	// --------------------------- Effects ---------------------------------
-/*abs*/ class	S_API SShader;
+/*abs*/ class	S_API IShader;
 	class	S_API SDirectX9Shader;	
 	class	S_API SDirectX10Shader;	
 	class	S_API SDirectX11Shader;	
 	class	S_API SOpenGLShader;	
 
 	// -------------------------- Viewport ---------------------------------
-/*abs*/ class	S_API SViewport;
+/*abs*/ class	S_API IViewport;
 	class	S_API SDirectX9Viewport;
 	class	S_API SDirectX10Viewport;
 	class	S_API SDirectX11Viewport;
 	class	S_API SOpenGLViewport;
 
 	// -------------------------- FrameBuffers -----------------------------
-/*abs*/ class	S_API SFrameBuffer;
+/*abs*/ class	S_API IFrameBuffer;
 	class	S_API SDirectX9FrameBuffer;
 	class	S_API SDirectX10FrameBuffer;
 	class	S_API SDirectX11FrameBuffer;
 	class	S_API SOpenGLFrameBuffer;
 
 	// --------------------------- Particles -------------------------------
-/*abs*/ class	S_API SParticle;
+/*abs*/ class	S_API IParticle;
 	struct	S_API SBasicParticle;
-/*abs*/ class	S_API SParticleSystem;
+/*abs*/ class	S_API IParticleSystem;
 	class	S_API SBasicParticleSystem;
 
 	// ---------------------------- Physics --------------------------------
 	enum	S_API S_PHYSICSMATERIAL_PRESET;
-/*abs*/	class	S_API SPhysical;
+/*abs*/	class	S_API IPhysical;
 	class	S_API SPhysicsBody;
-/*abs*/ class	S_API SCollisionShape;
+/*abs*/ class	S_API ICollisionShape;
 	class	S_API SPhysicsCollisionShape;
 	class	S_API SPhysicsLiquid;
 	class	S_API SPhysicsWind;
-/*abs*/ class	S_API SPhysicalCollection;
+/*abs*/ class	S_API IPhysicalCollection;
 	class	S_API SPhysicsSystem;
 	struct	S_API SPhysicsMaterial;
 	class	S_API SPhysIntersectInfo;
 
 	// ---------------------------- Scripting --------------------------------
+/*abs*/ class	S_API IScriptEngine;	// Scripting Engine
 	class	S_API RunPowderCommand;
 	class	S_API RunPowderEnvironment;
 	class	S_API RunPowderError;

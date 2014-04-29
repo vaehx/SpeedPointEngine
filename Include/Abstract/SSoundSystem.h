@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Sound System (abstract)
-	class S_API SSoundSystem
+	class S_API ISoundSystem
 	{
 	public:
 		// Initialize this sound system with the engine

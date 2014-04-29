@@ -103,5 +103,8 @@
     <ClInclude Include="..\..\Include\Abstract\SPhysicalObject.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IEngine.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

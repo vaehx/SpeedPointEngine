@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Animation Bundle (abstract)
-	class S_API SAnimationBundle
+	class S_API IAnimationBundle
 	{
 	public:
 		// Initialize the animation bundle with its parent solid

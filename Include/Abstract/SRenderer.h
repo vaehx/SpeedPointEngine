@@ -17,7 +17,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Renderer (abstract)
-	class S_API SRenderer
+	class S_API IRenderer
 	{
 	public:
 		// Get the type of this renderer

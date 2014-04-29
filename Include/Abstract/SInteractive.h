@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Interactive Object (abstract)
-	class S_API SInteractive
+	class S_API IInteractive
 	{
 	public:
 		////// TODO

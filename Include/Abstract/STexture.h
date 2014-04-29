@@ -15,7 +15,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Texture Resource (abstract)
-	class S_API STexture
+	class S_API ITexture
 	{
 	public:
 		// -- Initialize --

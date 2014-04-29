@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint VertexBuffer Resource (abstract)
-	class S_API SVertexBuffer
+	class S_API IVertexBuffer
 	{
 	public:
 		// Initialize the vertex buffer

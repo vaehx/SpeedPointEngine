@@ -16,7 +16,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Solid Collection (abstract)
-	class S_API SSolidSystem
+	class S_API ISolidSystem
 	{
 	public:
 		// Initialize this system

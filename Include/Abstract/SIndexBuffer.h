@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint IndexBuffer Resource (abstract)
-	class S_API SIndexBuffer
+	class S_API IIndexBuffer
 	{
 	public:
 		// Initialize the Index Buffer

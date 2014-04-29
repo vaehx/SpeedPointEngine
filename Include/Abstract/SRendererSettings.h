@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Renderer Settings (abstract)
-	class S_API SRendererSettings
+	class S_API IRendererSettings
 	{
 	public:
 		// Set the renderer belonging to these settings

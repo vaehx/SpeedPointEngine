@@ -15,7 +15,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Renderer Viewport (abstract)
-	class S_API SViewport
+	class S_API IViewport
 	{
 	public:
 		// Initialize this viewport with an Engine instance

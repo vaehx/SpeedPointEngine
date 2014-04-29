@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Resource Pool (abstract)
-	class S_API SResourcePool
+	class S_API IResourcePool
 	{
 	public:
 		// **************************************************************************

@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint FrameBufferObject (abstract)
-	class S_API SFrameBuffer
+	class S_API IFrameBuffer
 	{
 	public:
 		// initialize with given engine

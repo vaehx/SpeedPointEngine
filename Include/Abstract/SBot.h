@@ -15,7 +15,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Bot with Artificial Intelligence (abstract)
-	class S_API SBot : public SEntity
+	class S_API IBot : public IEntity
 	{
 	public:
 		///// TODO

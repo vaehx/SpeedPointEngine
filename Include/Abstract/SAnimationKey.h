@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Animation Key (abstract)
-	class S_API SAnimationKey
+	class S_API IAnimationKey
 	{
 	public:
 		// Set Timecode for this animation key.

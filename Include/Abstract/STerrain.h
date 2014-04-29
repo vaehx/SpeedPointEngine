@@ -14,7 +14,7 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Terrain Solid (abstract)
-	class S_API STerrain
+	class S_API ITerrain
 	{
 	public:
 		// Initialize with the engine
