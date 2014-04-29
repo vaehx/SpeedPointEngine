@@ -14,7 +14,7 @@ namespace SpeedPoint
 	S_API SResult SDirectX9Viewport::Initialize( SpeedPointEngine* eng )
 	{
 		Clear(); // make sure to be cleared, before initialization a second time		
-		SP_ASSERTR(!(pEngine = eng), S_ERROR);
+		SP_ASSERTR((pEngine = eng), S_ERROR);
 
 		return S_SUCCESS;
 	}
@@ -23,7 +23,7 @@ namespace SpeedPoint
 
 	S_API bool SDirectX9Viewport::IsAddition()
 	{
-		SP_ASSERTR(!pEngine, false);
+		SP_ASSERTR(pEngine, false);
 		
 		// if the swap chain is not null, it is initialized as a swapchain and
 		// thereby an additional viewport

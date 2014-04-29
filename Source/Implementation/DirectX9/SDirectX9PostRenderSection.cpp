@@ -76,22 +76,22 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9PostRenderSection::RenderOutputPlane(SDirectX9LightingRenderSection* pLightingSection)
 	{
-		SP_ASSERTR(!m_pEngine, S_NOTINIT);
-		SP_ASSERTXR(!pLightingSection, S_INVALIDPARAM, m_pEngine, "Given lighting section is invalid!");							
-		SP_ASSERTXR(!m_pDX9RenderPipeline, S_NOTINIT, m_pEngine);
+		SP_ASSERTR(m_pEngine, S_NOTINIT);
+		SP_ASSERTXR(pLightingSection, S_INVALIDPARAM, m_pEngine, "Given lighting section is invalid!");							
+		SP_ASSERTXR(m_pDX9RenderPipeline, S_NOTINIT, m_pEngine);
 
 		if (!m_PostShader.IsInitialized())
 			return m_pEngine->LogReport(S_NOTINIT, "Cannot render post output plane: post shader is not initialized!");
 
 		SDirectX9FrameBuffer* pLightBuffer = pLightingSection->GetLightingBuffer();
-		SP_ASSERTXR((pLightBuffer == 0
-			|| pLightBuffer->pTexture == 0
-			|| !m_OutputPlane.vertexBuffer.IsInited()
-			|| !m_OutputPlane.indexBuffer.IsInited()),
+		SP_ASSERTXR((pLightBuffer
+			&& pLightBuffer->pTexture
+			&& m_OutputPlane.vertexBuffer.IsInited()
+			&& m_OutputPlane.indexBuffer.IsInited()),
 			S_NOTINIT, m_pEngine, "Light buffer not initialized!");
 
 		SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)((IRenderPipeline*)m_pDX9RenderPipeline)->GetRenderer();
-		SP_ASSERTXR(!pDXRenderer, S_NOTINIT, m_pEngine, "Renderer is zero!");
+		SP_ASSERTXR(pDXRenderer, S_NOTINIT, m_pEngine, "Renderer is zero!");
 
 		// -----------------------------------------------------------------------------------
 
@@ -104,7 +104,7 @@ namespace SpeedPoint
 		else
 			pSurface = ((SDirectX9FrameBuffer*)pDXRenderer->GetTargetViewport()->GetBackBuffer())->pSurface;
 
-		SP_ASSERTDXR(!pSurface, S_ERROR, m_pEngine, "Failed get Surface! IsAddition=%d", (int)bIsAddition);
+		SP_ASSERTDXR(pSurface, S_ERROR, m_pEngine, "Failed get Surface! IsAddition=%d", (int)bIsAddition);
 
 		if (FAILED(pDXRenderer->pd3dDevice->SetRenderTarget(0, pSurface)))
 			return m_pEngine->LogE("Cannot render post output plane: Failed to set backbuffer as render target 0!");

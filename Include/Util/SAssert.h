@@ -19,13 +19,13 @@
 
 // X: Logging handled by proxy
 // R: Return value given
-// D: Dump format and vars given instead of possible message
+// D: Dump sprintf-format and vars given instead of possible message
 // -> possible combinations: X, XR, XD, R, RD, D, XRD
 
 // Introduce exception proxy
 #define SP_ASSERTX(cond, eng, ...) \
 	do { \
-		if ((cond) && eng) { \
+		if (!(cond) && eng) { \
 			char* _pAssertMsg = new char[256]; \
 			SpeedPoint::SString::CopyCharS(_pAssertMsg, 256, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionEng( \
@@ -37,7 +37,7 @@
 	} while (0)
 #define SP_ASSERT(cond, ...) \
 	do { \
-		if ((cond)) { \
+		if (!(cond)) { \
 			char* _pAssertMsg = new char[256]; \
 			SpeedPoint::SString::CopyCharS(_pAssertMsg, 256, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionEng( \
@@ -53,7 +53,7 @@
 // Introduce Return value
 #define SP_ASSERTXR(cond, ret, eng, ...) \
 	do { \
-		if ((cond) && eng) { \
+		if (!(cond) && eng) { \
 			char* _pAssertMsg = new char[256]; \
 			SpeedPoint::SString::CopyCharS(_pAssertMsg, 256, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionEng( \
@@ -70,7 +70,7 @@
 #define SP_ASSERTR(cond, ret, ...) \
 	/*SP_ASSERTR_INTERNAL(cond, 1, ret, __VA_ARGS__) // 1 is just a placeholder, that the args array is not empty*/ \
 	do { \
-		if ((cond)) { \
+		if (!(cond)) { \
 			char* _pAssertMsg = new char[256]; \
 			SpeedPoint::SString::CopyCharS(_pAssertMsg, 256, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionEng( \
@@ -87,7 +87,7 @@
 // Introduce dump
 #define SP_ASSERTXRD(cond, ret, eng, format, ...) \
 	do { \
-		if ((cond) && eng) { \
+		if (!(cond) && eng) { \
 			char* _pAssertMsg = new char[256]; \
 			sprintf_s(_pAssertMsg, 256, format, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionDumpEng( \
@@ -102,7 +102,7 @@
 #define SP_ASSERTDXR(cond, ret, eng, format, ...) SP_ASSERTXRD(cond, ret, eng, format, __VA_ARGS__)
 #define SP_ASSERTRD(cond, ret, format, ...) \
 	do { \
-		if ((cond)) { \
+		if (!(cond)) { \
 			char* _pAssertMsg = new char[256]; \
 			sprintf_s(_pAssertMsg, 256, format, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionDumpEng( \
@@ -116,7 +116,7 @@
 	} while (0)
 #define SP_ASSERTXD(cond, eng, format, ...) \
 	do { \
-		if ((cond) && eng) { \
+		if (!(cond) && eng) { \
 			char* _pAssertMsg = new char[256]; \
 			sprintf_s(_pAssertMsg, 256, format, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionDumpEng( \
@@ -130,7 +130,7 @@
 #define SP_ASSERTDX(cond, eng, format, ...) SP_ASSERTXD(cond, eng, format, __VA_ARGS__)
 #define SP_ASSERTD(cond, format, ...) \
 	do { \
-		if ((cond)) { \
+		if (!(cond)) { \
 			char* _pAssertMsg = new char[256]; \
 			sprintf_s(_pAssertMsg, 256, format, __VA_ARGS__); \
 			SpeedPoint::SResult::ThrowExceptionDump( \
@@ -139,3 +139,7 @@
 			delete[] _pAssertMsg; \
 		} \
 	} while (0)
+
+
+#undef assert	// make sure no header already defined assert / included vc's assert.h
+#define assert SP_ASSERT

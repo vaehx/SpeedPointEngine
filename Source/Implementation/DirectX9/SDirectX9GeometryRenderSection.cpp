@@ -192,9 +192,9 @@ namespace SpeedPoint
 		SDirectX9VertexBuffer* pDXVertexBuffer;
 		SDirectX9IndexBuffer* pDXIndexBuffer;		
 
-		SP_ASSERTR(!m_pEngine, S_NOTINIT);		
-		SP_ASSERTXR(m_pDX9RenderPipeline == 0 || !m_pDX9RenderPipeline->IsInitialized(), S_NOTINIT, m_pEngine, "Renderer not initialized!");
-		SP_ASSERTXR(!pSolid, S_INVALIDPARAM, m_pEngine, "Cannot Prepare GBuffer Creation shader: The given solid ptr is zero.");		
+		SP_ASSERTR(m_pEngine, S_NOTINIT);		
+		SP_ASSERTXR(m_pDX9RenderPipeline && m_pDX9RenderPipeline->IsInitialized(), S_NOTINIT, m_pEngine, "Renderer not initialized!");
+		SP_ASSERTXR(pSolid, S_INVALIDPARAM, m_pEngine, "Cannot Prepare GBuffer Creation shader: The given solid ptr is zero.");		
 
 		// Assign the current solid for which the shader inputs are going to be configured
 		m_pCurrentSolid = pSolid;
@@ -214,8 +214,8 @@ namespace SpeedPoint
 		if (!pDXIndexBuffer) return S_ERROR;
 
 		// Setup data streams
-		SP_ASSERTXR(Failure(pDXRenderer->pd3dDevice->SetStreamSource(0, pDXVertexBuffer->pHWVertexBuffer, 0, sizeof(SVertex))), S_ERROR, m_pEngine, "Failed SetStreamSource of DX!");
-		SP_ASSERTXR(Failure(pDXRenderer->pd3dDevice->SetIndices(pDXIndexBuffer->pHWIndexBuffer)), S_ERROR, m_pEngine, "Failed SetIndices of DX!");
+		SP_ASSERTXR(!Failure(pDXRenderer->pd3dDevice->SetStreamSource(0, pDXVertexBuffer->pHWVertexBuffer, 0, sizeof(SVertex))), S_ERROR, m_pEngine, "Failed SetStreamSource of DX!");
+		SP_ASSERTXR(!Failure(pDXRenderer->pd3dDevice->SetIndices(pDXIndexBuffer->pHWIndexBuffer)), S_ERROR, m_pEngine, "Failed SetIndices of DX!");
 
 		// -----------------------------------------------------------------------------------------------------------------
 		// Retrieve pointer to the effect
@@ -226,13 +226,13 @@ namespace SpeedPoint
 		// Set the proper technique matching bTextured flag
 
 		hRes = pGBufferEffect->SetTechnique((bTextured) ? "GBufferTechniqueTex" : "GBufferTechniqueDiffuse");
-		SP_ASSERTXR(Failure(hRes), S_ERROR, m_pEngine, "Failed set Technique!");
+		SP_ASSERTXR(!Failure(hRes), S_ERROR, m_pEngine, "Failed set Technique!");
 		
 		// --------------------------------------------------------------------------------------------
 		// Begin the shader
 
 		hRes = pGBufferEffect->Begin(&m_nCurrentPasses, 0);
-		SP_ASSERTXR(Failure(hRes), S_ERROR, m_pEngine, "Failed Begin Shader!");
+		SP_ASSERTXR(!Failure(hRes), S_ERROR, m_pEngine, "Failed Begin Shader!");
 
 		// --------------------------------------------------------------------------------------------
 		// Setup shader input variables
@@ -273,9 +273,9 @@ namespace SpeedPoint
 	{		
 		SPrimitive* pPrimitive;
 
-		SP_ASSERTR(!m_pEngine, S_NOTINIT);
-		SP_ASSERTXR(m_pDX9RenderPipeline == 0 || !m_pDX9RenderPipeline->IsInitialized(), S_NOTINIT, m_pEngine, "Renderer not initialized!");			
-		SP_ASSERTXR(!(m_pCurrentSolid = pSolid), S_NOTINIT, m_pEngine, "Current solid is empty!");
+		SP_ASSERTR(m_pEngine, S_NOTINIT);
+		SP_ASSERTXR(m_pDX9RenderPipeline && m_pDX9RenderPipeline->IsInitialized(), S_NOTINIT, m_pEngine, "Renderer not initialized!");			
+		SP_ASSERTXR((m_pCurrentSolid = pSolid), S_NOTINIT, m_pEngine, "Current solid is empty!");
 
 		// -----------------------------------------------------------------------------------------------------------------------
 		// Check if solid has to be rendered
@@ -297,7 +297,7 @@ namespace SpeedPoint
 		// -----------------------------------------------------------------------------------------------------------------------
 		// temporary buffer for untextured primitives
 
-		SP_ASSERTXR(m_pCurrentSolid->GetPrimitiveCount() <= 0, S_INVALIDPARAM, m_pEngine, "Primitive count of solid equals 0!");
+		SP_ASSERTXR(m_pCurrentSolid->GetPrimitiveCount() > 0, S_INVALIDPARAM, m_pEngine, "Primitive count of solid equals 0!");
 
 		usint32* pUntexturedPrimitives = new UINT[m_pCurrentSolid->GetPrimitiveCount()];
 		usint32 nUntexturedPrimitives = 0;
@@ -317,7 +317,7 @@ namespace SpeedPoint
 				/////////////////////////////////
 
 				pPrimitive = m_pCurrentSolid->GetPrimitive(iPrimitive);
-				SP_ASSERTXR(!pPrimitive, S_ERROR, "Got Nullpointer as primitive to be drawn!");
+				SP_ASSERTXR(pPrimitive, S_ERROR, "Got Nullpointer as primitive to be drawn!");
 				
 				if (!pPrimitive->bDraw) continue;				
 
@@ -553,8 +553,8 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9GeometryRenderSection::FreeShaderInput(void)
 	{
-		SP_ASSERTR(!m_pEngine, S_ERROR);
-		SP_ASSERTXR(m_pDX9RenderPipeline == 0 || !m_pDX9RenderPipeline->IsInitialized(), S_NOTINIT, "Renderer not initialized!");						
+		SP_ASSERTR(m_pEngine, S_ERROR);
+		SP_ASSERTXR(m_pDX9RenderPipeline && m_pDX9RenderPipeline->IsInitialized(), S_NOTINIT, "Renderer not initialized!");						
 
 		// --------------------------------------------------------------------------------------------
 		// Exit the shader

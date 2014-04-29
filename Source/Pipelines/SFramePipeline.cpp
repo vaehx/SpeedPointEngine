@@ -15,7 +15,7 @@ namespace SpeedPoint
 
 	S_API SResult SFramePipeline::Initialize(SpeedPointEngine* pEngine)
 	{
-		SP_ASSERTR(m_pEngine, S_INVALIDPARAM);
+		SP_ASSERTR(pEngine, S_INVALIDPARAM);
 			
 		m_pEngine = pEngine;
 		m_bStartedFPSTimer = false;
@@ -32,7 +32,7 @@ namespace SpeedPoint
 
 		// Initialize the render pipeline
 		m_pRenderPipeline = m_pEngine->GetRenderer()->GetRenderPipeline();
-		SP_ASSERTXR(!m_pRenderPipeline, S_NOTINIT, m_pEngine, "Render Pipeline is zero!");
+		SP_ASSERTXR(m_pRenderPipeline, S_NOTINIT, m_pEngine, "Render Pipeline is zero!");
 
 		if (Failure(m_pRenderPipeline->SetFramePipeline(this)))
 			return S_ERROR;
@@ -247,11 +247,11 @@ namespace SpeedPoint
 	
 	S_API SResult SFramePipeline::EndFrame()
 	{
-		SP_ASSERTR(!m_pEngine
-			|| !m_pFrameBeginTimestamp
-			|| !m_pFrameEndTimestamp
-			|| !m_pdLastFrameDuration
-			|| !m_pFPSBeginTimestamp,
+		SP_ASSERTR(m_pEngine
+			&& m_pFrameBeginTimestamp
+			&& m_pFrameEndTimestamp
+			&& m_pdLastFrameDuration
+			&& m_pFPSBeginTimestamp,
 			S_NOTINIT);
 
 		// capture current timestamp and calculate FPS

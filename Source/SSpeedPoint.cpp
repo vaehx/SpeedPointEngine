@@ -83,13 +83,13 @@ namespace SpeedPoint
 	S_API SResult SSpeedPointEngine::Start()
 	{
 		// Check if the Engine is already running
-		SP_ASSERTX(m_bRunning, this, "Tried to start SpeedPointEngine but it is already running.");
+		SP_ASSERTX(!m_bRunning, this, "Tried to start SpeedPointEngine but it is already running.");
 
 		// Initialize default logging stream if SetCustomLoggingStream() hasnt been called yet
 		if (!m_bCustomLogStream) m_pLoggingStream = new SLogStream();
 
 		// Check if settings have been set properly
-		SP_ASSERTX(!IsValidSettings(m_Settings), this, "Invalid settings!");		
+		SP_ASSERTX(IsValidSettings(m_Settings), this, "Invalid settings!");		
 	
 		// Initialize the renderer and its resource pool
 		if (m_Settings.render.tyRendererType == S_DIRECTX9)
@@ -192,7 +192,7 @@ namespace SpeedPoint
 			delete m_pResourcePool;
 			m_pResourcePool = NULL;
 
-			SP_ASSERTX(bFailed, this, "Could not clear ResourcePool!");
+			SP_ASSERTX(!bFailed, this, "Could not clear ResourcePool!");
 		}
 
 		// Clear Viewports
@@ -212,10 +212,10 @@ namespace SpeedPoint
 		memset((void*)m_pViewports, 0, sizeof(IViewport*) * SP_MAX_VIEWPORTS);
 		free(m_pViewports);
 
-		SP_ASSERTX(bFailed, this, "Could not clear viewports!");		
+		SP_ASSERTX(!bFailed, this, "Could not clear viewports!");		
 
 		// Clear Physical Solid System
-		SP_ASSERTX(Failure(m_PhysWorld.Clear()), this);
+		SP_ASSERTX(Success(m_PhysWorld.Clear()), this);
 
 		// Clear Lighting System
 		bFailed = false;
@@ -238,7 +238,7 @@ namespace SpeedPoint
 			delete m_pRenderer;
 			m_pRenderer = NULL;
 
-			SP_ASSERTX(bFailed, this, "Failed shutdown Renderer!");
+			SP_ASSERTX(!bFailed, this, "Failed shutdown Renderer!");
 		}
 
 		// Clear Frame Pipeline
@@ -246,7 +246,7 @@ namespace SpeedPoint
 		if (Failure(m_FrameEngine.Clear()))
 			bFailed = true;
 
-		SP_ASSERTX(bFailed, this, "Failed clear frame pipeline!");
+		SP_ASSERTX(!bFailed, this, "Failed clear frame pipeline!");
 
 		// Clear logging stream		
 		if (!m_bCustomLogStream && m_pLoggingStream)
@@ -265,7 +265,7 @@ namespace SpeedPoint
 
 	S_API IViewport* SSpeedPointEngine::GetViewport(UINT index)
 	{
-		SP_ASSERTXR(!m_pViewports, 0, this);
+		SP_ASSERTXR(m_pViewports, 0, this);
 		return m_pViewports[index];
 	}
 
@@ -273,7 +273,7 @@ namespace SpeedPoint
 
 	S_API IViewport* SSpeedPointEngine::AddViewport(void)
 	{
-		SP_ASSERTXR(!m_pViewports, 0, "Viewports array is zero!");		
+		SP_ASSERTXR(m_pViewports, 0, "Viewports array is zero!");		
 
 		// Check for a free viewport slot
 		UINT iFreeSlot = 99999999;
@@ -354,7 +354,7 @@ namespace SpeedPoint
 
 		// Get the solid and throw DrawCalls
 		ISolid* pSolid = m_PhysWorld.GetSolid(iSolid);
-		SP_ASSERTXRD(!pSolid, S_ERROR, this, "Cannot GetSolid. pSolid=%02x", pSolid);
+		SP_ASSERTXRD(pSolid, S_ERROR, this, "Cannot GetSolid. pSolid=%02x", pSolid);
 
 		return m_pRenderer->GetRenderPipeline()->RenderSolidGeometry(pSolid, m_Settings.render.bRenderTextures);
 	}

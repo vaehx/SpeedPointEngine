@@ -48,7 +48,7 @@ namespace SpeedPoint
 		m_pEngine = eng;
 		m_pDXRenderer = (SDirectX9Renderer*)renderer;
 
-		SP_ASSERTR((!m_pEngine || !m_pDXRenderer), S_ERROR);
+		SP_ASSERTR((m_pEngine && m_pDXRenderer), S_ERROR);
 
 		// Initialize backbuffer from default viewport of the renderer
 		m_pTargetViewport = &m_pDXRenderer->vpViewport;
@@ -85,7 +85,7 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::SetFramePipeline(SFramePipeline* pFramePipeline)
 	{		
-		SP_ASSERTR(!pFramePipeline, S_INVALIDPARAM);
+		SP_ASSERTR(pFramePipeline, S_INVALIDPARAM);
 		
 		m_pFramePipeline = pFramePipeline;
 		return S_SUCCESS;
@@ -138,7 +138,7 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::SetTargetViewport(IViewport* pVP)
 	{
-		SP_ASSERTR(!pVP, S_INVALIDPARAM);
+		SP_ASSERTR(pVP, S_INVALIDPARAM);
 
 		m_pTargetViewport = pVP;
 		return S_SUCCESS;
@@ -229,7 +229,7 @@ namespace SpeedPoint
 	{		
 		SResult res;
 
-		SP_ASSERTR(!IsInitialized(), S_ERROR);
+		SP_ASSERTR(IsInitialized(), S_ERROR);
 
 		// Clear the current backbuffer
 		// We assume that the RenderTarget is still the Backbuffer!
@@ -264,8 +264,8 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::DoGeometrySection()
 	{
-		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
-		SP_ASSERTXR(GetCurrentStage() != S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);
+		SP_ASSERTR(IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() == S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);
 
 		// fire event
 		SEventParameters params;
@@ -289,8 +289,8 @@ namespace SpeedPoint
 	S_API SResult SDirectX9RenderPipeline::RenderSolidGeometry(ISolid* pSolid, bool bTextured)
 	{
 		SResult res;
-		SP_ASSERTR(!IsInitialized(), S_NOTINIT);		
-		SP_ASSERTXR(GetCurrentStage() != S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);	
+		SP_ASSERTR(IsInitialized(), S_NOTINIT);		
+		SP_ASSERTXR(GetCurrentStage() == S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);	
 
 		// Render the solid geometry
 		if (Failure(m_GeometryRenderSection.RenderSolidGeometry(pSolid, false)))
@@ -303,8 +303,8 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::ExitGeometrySection()
 	{
-		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
-		SP_ASSERTDXR(GetCurrentStage() != S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine, "curstage: %d", (int)GetCurrentStage());
+		SP_ASSERTR(IsInitialized(), S_NOTINIT);
+		SP_ASSERTDXR(GetCurrentStage() == S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine, "curstage: %d", (int)GetCurrentStage());
 
 		// Fire event
 		SEventParameters params;
@@ -324,8 +324,8 @@ namespace SpeedPoint
 	
 	S_API SResult SDirectX9RenderPipeline::DoLightingSection()
 	{
-		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
-		SP_ASSERTXR(GetCurrentStage() != S_RENDER_LIGHTING, S_INVALIDSTAGE, m_pEngine);
+		SP_ASSERTR(IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() == S_RENDER_LIGHTING, S_INVALIDSTAGE, m_pEngine);
 
 		// Setup the lighting section
 		if (Failure(m_LightingRenderSection.PrepareSection()))
@@ -363,8 +363,8 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::DoPost()
 	{
-		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
-		SP_ASSERTXR(GetCurrentStage() != S_RENDER_POST, S_INVALIDSTAGE, m_pEngine);
+		SP_ASSERTR(IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() == S_RENDER_POST, S_INVALIDSTAGE, m_pEngine);
 
 		// Render the output plane to the backbuffer
 		if (Failure(m_PostRenderSection.RenderOutputPlane(&m_LightingRenderSection)))
@@ -377,8 +377,8 @@ namespace SpeedPoint
 
 	S_API SResult SDirectX9RenderPipeline::DoEndRendering()
 	{
-		SP_ASSERTR(!IsInitialized(), S_NOTINIT);
-		SP_ASSERTXR(GetCurrentStage() != S_RENDER_POST, S_INVALIDSTAGE, m_pEngine);		
+		SP_ASSERTR(IsInitialized(), S_NOTINIT);
+		SP_ASSERTXR(GetCurrentStage() == S_RENDER_POST, S_INVALIDSTAGE, m_pEngine);		
 
 		// exit the DX Scene
 		if (Failure(m_pDXRenderer->EndScene()))		
@@ -386,7 +386,7 @@ namespace SpeedPoint
 
 		// present the backbuffer
 		SDirectX9Viewport* pDXViewport = (SDirectX9Viewport*)m_pDXRenderer->GetTargetViewport();
-		SP_ASSERTR(!pDXViewport, S_NOTINIT, "pDXViewport is 0");
+		SP_ASSERTR(pDXViewport, S_NOTINIT, "pDXViewport is 0");
 		if (pDXViewport->pSwapChain)
 		{
 			if (Failure(pDXViewport->pSwapChain->Present(0, 0, 0, 0, /*flags*/0)))
@@ -394,7 +394,7 @@ namespace SpeedPoint
 		}
 		else
 		{
-			SP_ASSERTXR(!pDXViewport->GetBackBuffer(), S_ERROR, m_pEngine);
+			SP_ASSERTXR(pDXViewport->GetBackBuffer(), S_ERROR, m_pEngine);
 						
 			if (Failure(m_pDXRenderer->pd3dDevice->Present(0, 0, 0, 0)))
 				return m_pEngine->LogE("Failed to present default viewport!");
