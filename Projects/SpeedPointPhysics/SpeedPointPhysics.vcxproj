@@ -88,13 +88,13 @@
     <ClInclude Include="..\..\Include\OnionPhysics\SPhysIntersectInfo.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicalSolidSystem.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysics2DIntersect.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysics3DIntersect.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsBody.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsCollisionShape.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsLiquid.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsMaterial.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsSystem.cpp" />
     <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsWind.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
