@@ -206,6 +206,7 @@
     <ClInclude Include="..\..\Include\Abstract\IRenderer.h" />
     <ClInclude Include="..\..\Include\Abstract\IRendererSettings.h" />
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
+    <ClInclude Include="..\..\Include\Abstract\IScene.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
     <ClInclude Include="..\..\Include\Abstract\ISolid.h" />
     <ClInclude Include="..\..\Include\Abstract\ISolidSystem.h" />

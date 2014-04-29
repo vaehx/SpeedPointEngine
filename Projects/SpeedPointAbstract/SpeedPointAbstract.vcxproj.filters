@@ -106,7 +106,7 @@
     <ClInclude Include="..\..\Include\Abstract\IViewport.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="IScene.h">
+    <ClInclude Include="..\..\Include\Abstract\IScene.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

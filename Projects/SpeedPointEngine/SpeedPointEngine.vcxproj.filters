@@ -800,5 +800,8 @@
     <ClInclude Include="..\..\Include\Pipelines\SFramePipeline.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IScene.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

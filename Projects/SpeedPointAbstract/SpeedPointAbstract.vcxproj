@@ -88,6 +88,7 @@
     <ClInclude Include="..\..\Include\Abstract\IRenderer.h" />
     <ClInclude Include="..\..\Include\Abstract\IRendererSettings.h" />
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
+    <ClInclude Include="..\..\Include\Abstract\IScene.h" />
     <ClInclude Include="..\..\Include\Abstract\Pipelines\IRenderPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\Pipelines\IRenderPipelineSection.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
@@ -99,7 +100,6 @@
     <ClInclude Include="..\..\Include\Abstract\ITexture.h" />
     <ClInclude Include="..\..\Include\Abstract\IVertexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IViewport.h" />
-    <ClInclude Include="IScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
