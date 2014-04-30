@@ -85,7 +85,15 @@ namespace SpeedPoint
 		// --------------------------------------------------------------------------------------------
 		// Initialize the GBuffer shader
 
-		if (Failure(m_gBufferShader.Initialize(m_pEngine, "Effects\\gbuffer.fx")))		
+		char* pGBufferFXFile = 0;
+#ifdef _DEBUG
+		pGBufferFXFile = new char[500];
+		sprintf_s(pGBufferFXFile, 500, "%s..\\Effects\\gbuffer.fx", SOL_DIR);
+#else
+		pGBufferFXFile = "Effects\\gbuffer.fx";
+#endif
+
+		if (Failure(m_gBufferShader.Initialize(m_pEngine, pGBufferFXFile)))		
 			return m_pEngine->LogE("Failed to load GBuffer creation effect");		
 
 		return res;

@@ -52,6 +52,19 @@ namespace SpeedPoint
 		if (Failure(m_LightingBuffer.Initialize(m_pEngine, settings.app.nXResolution, settings.app.nYResolution)))
 			return m_pEngine->LogE("Cannot initialize lighting render section: failed to initialize lighting output buffer");
 
+		// Load and compile lighting shader
+		char* pLightingFXFile;
+#ifdef _DEBUG
+		pLightingFXFile = new char[500];
+		sprintf_s(pLightingFXFile, 500, "%s..\\Effects\\light.fx", SOL_DIR);
+#else
+		pLightingFXFile = "Effects\\light.fx";
+#endif
+
+		if (Failure(m_LightingShader.Initialize(m_pEngine, pLightingFXFile)))
+			return m_pEngine->LogE("Failed to load lighting creation effect");
+
+
 		return S_SUCCESS;
 	}
 

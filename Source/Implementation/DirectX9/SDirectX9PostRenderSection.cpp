@@ -43,14 +43,22 @@ namespace SpeedPoint
 		// -----------------------------------------------------------------------------------
 		// Initialize the effect
 
-		if (Failure(m_PostShader.Initialize(m_pEngine, "Effects\\post.fx")))
+		char* pPostFXFile = 0;
+#ifdef _DEBUG
+		pPostFXFile = new char[500];
+		sprintf_s(pPostFXFile, 500, "%s..\\Effects\\post.fx", SOL_DIR);
+#else
+		pPostFXFile = "Effects\\post.fx";
+#endif
+
+		if (Failure(m_PostShader.Initialize(m_pEngine, pPostFXFile)))
 		{
 			return m_pEngine->LogE("Failed initialize post render section: Could not initialize post shader!");
 		}
 
 		// -----------------------------------------------------------------------------------
 		// Initialize output plane
-		
+	
 		SIZE szVPSize = pRenderPipeline->GetTargetViewport()->GetSize();		
 		if (Failure(m_OutputPlane.Initialize(pEngine, pRenderPipeline->GetRenderer(), szVPSize.cx, szVPSize.cy)))
 		{

@@ -13,7 +13,11 @@ namespace SpeedPoint
 {
 	S_API SResult SPhysicalSolidSystem::Initialize(SpeedPointEngine* pEngine)
 	{
-		return S_NOTIMPLEMENTED;
+		SP_ASSERTR(pEngine, S_INVALIDPARAM, "Given engine is zero!");
+
+		m_pEngine = pEngine;
+
+		return S_SUCCESS;
 	}
 
 	// ********************************************************************************************
@@ -27,27 +31,42 @@ namespace SpeedPoint
 	
 	S_API SP_ID SPhysicalSolidSystem::AddSolid(void)
 	{
-		return SP_ID();
+		SP_ID id;
+		m_PhysicalSolids.AddItem(SPhysicalSolid(), &id);		
+
+		return id;
 	}
 
 	// ********************************************************************************************
 
 	S_API ISolid* SPhysicalSolidSystem::GetSolid(SP_ID id)
 	{
-		return 0;
+		SBasicSolid* pBasicSolid = m_PhysicalSolids.GetItemByUID(id);
+
+		return (ISolid*)pBasicSolid;
 	}
 
 	// ********************************************************************************************
 	
 	S_API unsigned int SPhysicalSolidSystem::GetSolidCount()
 	{
-		return 0;
+		return m_PhysicalSolids.GetUsageSize();
 	}
 	
 	// ********************************************************************************************
 
 	S_API SResult SPhysicalSolidSystem::Clear(void)
 	{
-		return S_NOTIMPLEMENTED;
+		for (usint32 iSolid = 0; iSolid < m_PhysicalSolids.GetSize(); iSolid++)
+		{
+			SBasicSolid* pBasicSolid = m_PhysicalSolids.GetItemByIndirectionIndex(iSolid);
+			if (pBasicSolid)
+				pBasicSolid->Clear();
+		}
+
+		m_PhysicalSolids.Clear();
+		m_PhysicalSolids.ResetCounts();
+
+		return S_SUCCESS;
 	}
 }

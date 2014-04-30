@@ -38,6 +38,33 @@ namespace SpeedPoint
 		{
 		}
 
+		// Copy constructor
+		// does a real copy!
+		SString(const SString& s)
+		{
+			char* pS = (char*)s;
+			if (pS)
+			{
+				// we assume the length is correct, we can save a lot of time doing so!
+				unsigned int nLen = s.nLength;
+
+				pBuffer = new char[nLen + 1];	// +1 due to terminated 0			
+				nLength = nLen + 1;
+
+				// copy memory
+				memcpy(pBuffer, pS, nLen);
+				pBuffer[nLen] = 0;
+			}
+		}
+
+		// intialize with size
+		SString(unsigned int size)
+		{
+			pBuffer = new char[size];
+			nLength = size;
+			memset(pBuffer, 0, nLength);
+		}
+
 		// assignment
 		SString(const char* str)
 		{						
@@ -64,6 +91,7 @@ namespace SpeedPoint
 				if (nLength == 1) delete pBuffer;
 				else delete[] pBuffer;
 				pBuffer = 0;
+				nLength = 0; // !
 			}
 		}
 
@@ -88,7 +116,7 @@ namespace SpeedPoint
 			do
 			{
 				if (str[nCurrentLen] == 0)
-					return nCurrentLen;
+					return nCurrentLen + 1;
 
 				++nCurrentLen;
 			} while (nCurrentLen <= nMaxLen); // catch endless loop

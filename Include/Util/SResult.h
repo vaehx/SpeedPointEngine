@@ -150,8 +150,7 @@ namespace SpeedPoint
 				file, function, line, msg, (unsigned int)resType);
 
 			if (pExProxy) pExProxy->HandleException(pOutput);
-
-			printf(pOutput);
+			else printf(pOutput);
 		}
 
 		// Throw an exception message with dump instead of msg
@@ -193,9 +192,8 @@ namespace SpeedPoint
 				"  Return Value: %d\n",
 				file, function, line, dump, (unsigned int)resType);
 
-			if (pExProxy) pExProxy->HandleException(pOutput);
-
-			printf(pOutput);
+			if (pExProxy) pExProxy->HandleException(pOutput);			
+			else printf(pOutput);
 		}
 	};
 

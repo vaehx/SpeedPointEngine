@@ -2,30 +2,9 @@
 @written on: 4/23/2014 4:51pm
 
 * Refactor implementing code to use I-prefixed interfaces
-- Refactor code to use new SSettings structure
-- swap assert condition
-- overwrite cpp assert macro
-- overwrite new and delete:
-void * operator new(std::size_t n) throw(std::bad_alloc)
-{
-  //...
-}
-void operator delete(void * p) throw()
-{
-  //...
-}
-
-and
-
-void * operator new[](std::size_t n) throw(std::bad_alloc)
-{
-  //...
-}
-void operator delete[](void * p) throw()
-{
-  //...
-}
-
-- build prototype
+* Refactor code to use new SSettings structure
+* swap assert condition
+* overwrite cpp assert macro
+* build prototype
 - create test application, load engine
 - display first, single triangle with the new pipe

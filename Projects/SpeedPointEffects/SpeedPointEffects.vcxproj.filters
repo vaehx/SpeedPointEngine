@@ -9,7 +9,10 @@
     <FxCompile Include="..\..\Effects\gbuffer.fx">
       <Filter>Effects</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Effects\merge.fx">
+    <FxCompile Include="..\..\Effects\light.fx">
+      <Filter>Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Effects\post.fx">
       <Filter>Effects</Filter>
     </FxCompile>
   </ItemGroup>

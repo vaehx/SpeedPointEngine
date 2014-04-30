@@ -12,7 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Effects\gbuffer.fx" />
-    <FxCompile Include="..\..\Effects\merge.fx" />
+    <FxCompile Include="..\..\Effects\light.fx" />
+    <FxCompile Include="..\..\Effects\post.fx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B95904EF-9EEC-40D6-9676-0288AACB6E93}</ProjectGuid>

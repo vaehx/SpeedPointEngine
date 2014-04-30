@@ -26,17 +26,6 @@ namespace SpeedPoint
 		
 		pDXRenderer = (SDirectX9Renderer*)renderer;
 
-		// Initialize the shader
-		if( Failure( mergeShader.Initialize( pEngine, "Effects\\merge.fx" ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed to load Output merge shader!" );
-		}
-
-		if( Failure( mergeShader.SetTechnique( "MergeTechnique" ) ) )
-		{
-			return pEngine->LogReport( S_ERROR, "Failed Set Merge technique when creating OutputPlane" );
-		}
-
 		// Initialize the matrices
 		float fWidth = (float)nW * 0.1f;
 		float fHeight = (float)nH * 0.1f;

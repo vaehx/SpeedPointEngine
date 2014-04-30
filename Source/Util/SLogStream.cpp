@@ -22,6 +22,7 @@ namespace SpeedPoint
 	S_API SResult SLogStream::Report( SResult res, SString msg )
 	{
 		// Notify all listeners
+		bool bFoundLogHandler = false;
 		if( pLogHandlers )
 		{
 			for( int i = 0; i < SP_MAX_LOGSTREAM_HANDLERS; i++ )
@@ -30,7 +31,14 @@ namespace SpeedPoint
 
 				// Call the log handler listener function
 				(*pLogHandlers[i])( res, msg );
+				bFoundLogHandler = true;
 			}
+		}
+
+		if (!bFoundLogHandler)
+		{
+			// simply throw it into standard output stream
+			std::printf("%s\n", msg);
 		}
 
 		return res;

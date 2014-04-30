@@ -11,6 +11,7 @@
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <SpeedPoint.h>
 #include <SSpeedPointEngine.h>
+#include <DxErr.h>
 
 namespace SpeedPoint
 {
@@ -28,10 +29,14 @@ namespace SpeedPoint
 		// Create Effect
 //~~~~~~~~~~~~
 // TODO: Setup custom compilation and catch errors and throw them into the Logging Stream!
+// TODO: Check if the shader file given exists.
+// TODO: Improve management of the directory of the effect file
 		LPD3DXBUFFER pErrorBuffer = 0;
-		if (FAILED(D3DXCreateEffectFromFileA(pDXRenderer->pd3dDevice, cFilename, 0, 0, D3DXSHADER_DEBUG, 0, &m_pEffect, &pErrorBuffer)))
+		HRESULT hRes;
+		if (FAILED(hRes = D3DXCreateEffectFromFileA(pDXRenderer->pd3dDevice, cFilename, 0, 0, D3DXSHADER_DEBUG, 0, &m_pEffect, &pErrorBuffer)))
 		{
-#ifdef _DEBUG
+#ifdef _DEBUG			
+			SP_ASSERTXRD(pErrorBuffer, S_ERROR, m_pEngine, "Failed D3DX Create shader! Err=%s, File='%s'", DXGetErrorDescription(hRes), cFilename);
 			char* cErrorText = (char*)pErrorBuffer->GetBufferPointer();
 			MessageBoxA(0, cErrorText, "Shader Error", MB_ICONERROR | MB_OK);
 #endif
