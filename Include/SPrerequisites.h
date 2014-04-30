@@ -296,9 +296,9 @@ namespace SpeedPoint
 	// Flag values for variable storing framepipeline stages to be skipped
 	enum S_API S_FRAMEPIPELINE_STAGE_SKIP_FLAGS
 	{	
-		S_SKIP_IDLE = 0x00,	// frame pipeline waits for next BeginFrame()-Call
+		S_SKIP_IDLE = 0x01,	// frame pipeline waits for next BeginFrame()-Call
 
-		S_SKIP_BEGINFRAME = 0x01,
+		S_SKIP_BEGINFRAME = 0x02,
 
 		S_SKIP_DYNAMICS = 0x100,
 		S_SKIP_DYNAMICS_ANIM = 0x200,

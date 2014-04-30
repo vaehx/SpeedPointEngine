@@ -28,14 +28,14 @@ namespace SpeedPoint
 
 		// Initialize the Dynamics pipeline
 		if (Failure(m_DynamicsPipeline.Initialize(pEngine, this)))
-			return S_ERROR;
+			return m_pEngine->LogE("Failed initialize dynamics pipeline!");
 
 		// Initialize the render pipeline
 		m_pRenderPipeline = m_pEngine->GetRenderer()->GetRenderPipeline();
 		SP_ASSERTXR(m_pRenderPipeline, S_NOTINIT, m_pEngine, "Render Pipeline is zero!");
 
 		if (Failure(m_pRenderPipeline->SetFramePipeline(this)))
-			return S_ERROR;
+			return m_pEngine->LogE("Failed initialize dynamics pipeline!");
 
 		return S_SUCCESS;
 	}

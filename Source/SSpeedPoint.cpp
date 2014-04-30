@@ -137,28 +137,29 @@ namespace SpeedPoint
 
 		// Check for disabled FramePipeline Stages		
 #ifdef SP_DEFAULT_SKIPSTAGES
-		if (SP_DEFAULT_SKIPSTAGES & S_BEGINFRAME) LogReport(S_INFO, "Will skip S_BEGINFRAME stage as it is currently disabled!");
-		if (SP_DEFAULT_SKIPSTAGES & S_DYNAMICS) LogReport(S_INFO, "Will skip all S_DYNAMICS stages as it they are currently disabled!");
+		unsigned int skipstages = SP_DEFAULT_SKIPSTAGES;
+		if (skipstages & S_SKIP_BEGINFRAME) LogReport(S_INFO, "Will skip S_BEGINFRAME stage as it is currently disabled!");
+		if (skipstages & S_SKIP_DYNAMICS) LogReport(S_INFO, "Will skip all S_DYNAMICS stages as it they are currently disabled!");
 		else
 		{
-			if (SP_DEFAULT_SKIPSTAGES & S_DYNAMICS_ANIM) LogReport(S_INFO, "Will skip S_DYNAMICS_ANIM stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_DYNAMICS_INPUT) LogReport(S_INFO, "Will skip S_DYNAMICS_INPUT stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_DYNAMICS_PHYSICS) LogReport(S_INFO, "Will skip S_DYNAMICS_PHYSICS stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_DYNAMICS_SCRIPT) LogReport(S_INFO, "Will skip S_DYNAMICS_SCRIPT stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_DYNAMICS_RENDERSCRIPT) LogReport(S_INFO, "Will skip S_DYNAMICS_RENDERSCRIPT stage as it is currently disabled!");
+			if (skipstages & S_SKIP_DYNAMICS_ANIM) LogReport(S_INFO, "Will skip S_DYNAMICS_ANIM stage as it is currently disabled!");
+			if (skipstages & S_SKIP_DYNAMICS_INPUT) LogReport(S_INFO, "Will skip S_DYNAMICS_INPUT stage as it is currently disabled!");
+			if (skipstages & S_SKIP_DYNAMICS_PHYSICS) LogReport(S_INFO, "Will skip S_DYNAMICS_PHYSICS stage as it is currently disabled!");
+			if (skipstages & S_SKIP_DYNAMICS_SCRIPT) LogReport(S_INFO, "Will skip S_DYNAMICS_SCRIPT stage as it is currently disabled!");
+			if (skipstages & S_SKIP_DYNAMICS_RENDERSCRIPT) LogReport(S_INFO, "Will skip S_DYNAMICS_RENDERSCRIPT stage as it is currently disabled!");
 		}
 
-		if (SP_DEFAULT_SKIPSTAGES & S_RENDER) LogReport(S_INFO, "Will skip all S_RENDER stages as they are currently disabled!");
+		if (skipstages & S_SKIP_RENDER) LogReport(S_INFO, "Will skip all S_RENDER stages as they are currently disabled!");
 		else
 		{
-			if (SP_DEFAULT_SKIPSTAGES & S_RENDER_BEGIN) LogReport(S_INFO, "Will skip S_RENDER_BEGIN stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_RENDER_GEOMETRY) LogReport(S_INFO, "Will skip S_RENDER_GEOMETRY stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_RENDER_LIGHTING) LogReport(S_INFO, "Will skip S_RENDER_LIGHTING stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_RENDER_POST) LogReport(S_INFO, "Will skip S_RENDER_POST stage as it is currently disabled!");
-			if (SP_DEFAULT_SKIPSTAGES & S_RENDER_PRESENT) LogReport(S_INFO, "Will skip S_RENDER_PRESENT stage as it is currently disabled!");
+			if (skipstages & S_SKIP_RENDER_BEGIN) LogReport(S_INFO, "Will skip S_RENDER_BEGIN stage as it is currently disabled!");
+			if (skipstages & S_SKIP_RENDER_GEOMETRY) LogReport(S_INFO, "Will skip S_RENDER_GEOMETRY stage as it is currently disabled!");
+			if (skipstages & S_SKIP_RENDER_LIGHTING) LogReport(S_INFO, "Will skip S_RENDER_LIGHTING stage as it is currently disabled!");
+			if (skipstages & S_SKIP_RENDER_POST) LogReport(S_INFO, "Will skip S_RENDER_POST stage as it is currently disabled!");
+			if (skipstages & S_SKIP_RENDER_PRESENT) LogReport(S_INFO, "Will skip S_RENDER_PRESENT stage as it is currently disabled!");
 		}
 
-		if (SP_DEFAULT_SKIPSTAGES & S_ENDFRAME) LogReport(S_INFO, "Will skip S_ENDFRAME stage as it is currently disabled!");
+		if (skipstages & S_SKIP_ENDFRAME) LogReport(S_INFO, "Will skip S_ENDFRAME stage as it is currently disabled!");
 #endif
 
 		// Set the running flag of the SpeedPointEngine

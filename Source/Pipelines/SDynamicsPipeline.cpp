@@ -10,7 +10,7 @@ namespace SpeedPoint
 {
 	S_API SResult SDynamicsPipeline::Initialize(SpeedPointEngine* m_pEngine, SFramePipeline* pFramePipeline)
 	{
-		return S_NOTIMPLEMENTED;
+		return S_SUCCESS;
 	}
 
 	// ******************************************************************************************
@@ -45,7 +45,7 @@ namespace SpeedPoint
 
 	S_API SResult SDynamicsPipeline::Clear()
 	{
-		return S_NOTIMPLEMENTED;
+		return S_SUCCESS;
 	}
 
 	// ******************************************************************************************
