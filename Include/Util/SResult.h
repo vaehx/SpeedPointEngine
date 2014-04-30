@@ -111,6 +111,21 @@ namespace SpeedPoint
 			return res.result != result;
 		}
 
+		// WARNING: out needs to be initialized with a minimum of 16 chars!
+		static void GetResultTypeDesc(const SResultType& type, char* out)
+		{
+			if (!out) return;			
+			switch (type)
+			{
+			case S_ERROR: sprintf_s(out, 16, "S_ERROR"); break;
+			case S_INVALIDPARAM: sprintf_s(out, 16, "S_INVALIDPARAM"); break;
+			case S_ABORTED: sprintf_s(out, 16, "S_ABORTED"); break;
+			case S_NOTIMPLEMENTED: sprintf_s(out, 16, "S_NOTIMPL"); break;
+			case S_NOTFOUND: sprintf_s(out, 16, "S_NOTFOUND"); break;
+			case S_NOTINIT: sprintf_s(out, 16, "S_NOTINIT"); break;
+			}
+		}
+
 		// throw an exception with given parameters and output information useful for debugging
 		static void ThrowExceptionAssertion(const char* function,
 			int line,
@@ -139,18 +154,20 @@ namespace SpeedPoint
 			const char* msg,
 			const SResultType resType = S_ERROR)
 		{
-			char* pOutput = new char[500];
+			char* pOutput = new char[500];			
 
 			sprintf_s(pOutput, 500, "Assertion failed!\n" \
 				"  File: %s\n" \
 				"  Function: %s\n" \
 				"  Line: %d\n" \
 				"  Message: %s\n" \
-				"  Return Value: %d\n",
-				file, function, line, msg, (unsigned int)resType);
+				"  Return Value: S_ERROR\n",
+				file, function, line, msg);
 
 			if (pExProxy) pExProxy->HandleException(pOutput);
 			else printf(pOutput);
+
+			delete[] pOutput;
 		}
 
 		// Throw an exception message with dump instead of msg
@@ -182,18 +199,23 @@ namespace SpeedPoint
 			const char* dump,
 			const SResultType resType)
 		{
-			char* pOutput = new char[500];
+			char* pOutput = new char[500];			
+			char* resDesc = new char[16];
+			GetResultTypeDesc(resType, resDesc);
 
 			sprintf_s(pOutput, 500, "Assertion failed!\n" \
 				"  File: %s\n" \
 				"  Function: %s\n" \
 				"  Line: %d\n" \
 				"  Dump: %s\n" \
-				"  Return Value: %d\n",
-				file, function, line, dump, (unsigned int)resType);
+				"  Return Value: %s\n",
+				file, function, line, dump, resDesc);
 
 			if (pExProxy) pExProxy->HandleException(pOutput);			
 			else printf(pOutput);
+
+			delete[] pOutput;
+			delete[] resDesc;
 		}
 	};
 
