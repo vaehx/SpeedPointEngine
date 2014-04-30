@@ -149,20 +149,17 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::RenderSolid( SpeedPointEngine* pEngineReplacement )
+	S_API SResult SBasicSolid::RenderSolid(SpeedPointEngine* pEngineReplacement)
 	{
-		SpeedPointEngine* pFinalEngine = 0;
-
-		if ( pEngineReplacement != 0 || pEngine == 0 )
-			pFinalEngine = pEngineReplacement;
+		SpeedPointEngine* pFinalEngine = pEngine;
 		
-		if ( pFinalEngine )
-			return S_ABORTED;
+		if (pEngineReplacement != 0)		
+			pFinalEngine = pEngineReplacement;
 
-//~~~~~~~~~~~
-// TODO: Call pFinalEngine->RenderSolid() and get id using this->GetSolidID()
-		return pFinalEngine->LogReport( S_ABORTED, "Tried not implemented SBasicSolid::RenderSolid!" );
-//~~~~~~~~~~~
+		SP_ASSERTR(pFinalEngine, S_ABORTED, "Engine is zero! Not initialized?");
+		SP_ASSERTR(pFinalEngine->GetRenderer() && pFinalEngine->GetRenderer()->GetRenderPipeline(), S_ABORTED, "Renderer or Render pipeline of engine is zero!");
+
+		return pFinalEngine->GetRenderer()->GetRenderPipeline()->RenderSolidGeometry((ISolid*)this, false);
 	}
 
 
