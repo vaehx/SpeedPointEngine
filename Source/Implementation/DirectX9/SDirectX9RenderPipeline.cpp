@@ -320,7 +320,7 @@ namespace SpeedPoint
 	{
 		SResult res;
 		SP_ASSERTR(IsInitialized(), S_NOTINIT);		
-		SP_ASSERTXR(GetCurrentStage() == S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);	
+		SP_ASSERTXR(GetCurrentStage() == S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine, "curstage: %d", (int)GetCurrentStage());	
 
 		// Render the solid geometry
 		if (Failure(m_GeometryRenderSection.RenderSolidGeometry(pSolid, false)))

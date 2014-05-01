@@ -124,6 +124,7 @@ namespace SpeedPoint
 			case S_NOTIMPLEMENTED: sprintf_s(out, 16, "S_NOTIMPL"); break;
 			case S_NOTFOUND: sprintf_s(out, 16, "S_NOTFOUND"); break;
 			case S_NOTINIT: sprintf_s(out, 16, "S_NOTINIT"); break;
+			case S_INVALIDSTAGE: sprintf_s(out, 16, "S_INVSTAGE"); break;
 			}
 		}
 
@@ -155,20 +156,23 @@ namespace SpeedPoint
 			const char* msg,
 			const SResultType resType = S_ERROR)
 		{
-			char* pOutput = new char[500];			
+			char* pOutput = new char[500];
+			char* pErrDesc = new char[16];
+			GetResultTypeDesc(resType, pErrDesc);
 
 			sprintf_s(pOutput, 500, "Assertion failed!\n" \
 				"  File: %s\n" \
 				"  Function: %s\n" \
 				"  Line: %d\n" \
 				"  Message: %s\n" \
-				"  Return Value: S_ERROR\n",
-				file, function, line, msg);
+				"  Return Value: %s\n",
+				file, function, line, msg, pErrDesc);
 
 			if (pExProxy) pExProxy->HandleException(pOutput);
 			else printf(pOutput);
 
 			delete[] pOutput;
+			delete[] pErrDesc;
 		}
 
 		// Throw an exception message with dump instead of msg
