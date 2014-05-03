@@ -33,6 +33,9 @@ namespace SpeedPoint
 		SDirectX9LightingRenderSection	m_LightingRenderSection;
 		SDirectX9PostRenderSection	m_PostRenderSection;			
 
+		// Command buffering:		
+
+
 	// Initialization / Interaction with Frame pipeline
 	public:
 		// Default constructor

@@ -9,6 +9,7 @@
 #include <Abstract\IRenderer.h>
 #include "SDirectX9Settings.h"
 #include "SDirectX9Viewport.h"
+#include <Util\SQueue.h>
 #include <d3d9.h>
 
 namespace SpeedPoint
@@ -18,8 +19,6 @@ namespace SpeedPoint
 
 
 /// TODO: VIRTUALS ??????
-
-
 
 
 
@@ -34,14 +33,16 @@ namespace SpeedPoint
 		D3DCAPS9		cpsDeviceCaps;
 		D3DDISPLAYMODE		m_AutoSelectedDisplayMode;	// automatically selected in AutoSelectAdapter()
 		IRenderPipeline*	pRenderPipeline;
-		SDirectX9Viewport	vpViewport;
+		SDirectX9Viewport	vpViewport;		
 
 		// Default constructor
 		SDirectX9Renderer() :
-			pEngine( NULL ),
-			pDirect3D( NULL ),
-			pd3dDevice( NULL ),
-			pRenderPipeline( NULL ) {};
+			pEngine(NULL),
+			pDirect3D(NULL),
+			pd3dDevice(NULL),
+			pRenderPipeline(NULL)
+		{
+		};
 
 		// --
 

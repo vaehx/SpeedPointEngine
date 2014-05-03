@@ -18,6 +18,7 @@ namespace SpeedPoint
 	// Lock type
 	enum S_API Lock
 	{
+		eLOCK_NONE = 0x0,
 		eLOCK_PRESERVE = 0x01
 	};
 

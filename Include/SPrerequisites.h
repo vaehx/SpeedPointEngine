@@ -358,6 +358,14 @@ namespace SpeedPoint
 		S_OPENGL
 	};
 
+	// Render command types used for the command buffering
+	enum S_API S_RENDER_COMMAND_TYPE
+	{
+		eSRCMD_NONE,
+		eSRCMD_DRAWSOLID,
+		eSRCMD_DRAWPRIMITIVE
+	};
+
 	// Present Quality (Present Interval)
 	enum S_API S_PRESENT_QUALITY
 	{
