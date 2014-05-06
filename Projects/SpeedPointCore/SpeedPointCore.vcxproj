@@ -78,6 +78,7 @@
     <ClInclude Include="..\..\Include\Observer\SEventParameter.h" />
     <ClInclude Include="..\..\Include\Observer\SEventParameters.h" />
     <ClInclude Include="..\..\Include\Observer\SObservedObject.h" />
+    <ClInclude Include="..\..\Include\Pipelines\SCommandBuffering.h" />
     <ClInclude Include="..\..\Include\Pipelines\SDynamicsPipeline.h" />
     <ClInclude Include="..\..\Include\Pipelines\SFramePipeline.h" />
     <ClInclude Include="..\..\Include\SpeedPoint.h" />
@@ -106,6 +107,7 @@
     <ClInclude Include="..\..\Include\Util\SPool.h" />
     <ClInclude Include="..\..\Include\Util\SPoolIndex.h" />
     <ClInclude Include="..\..\Include\Util\SPrimitive.h" />
+    <ClInclude Include="..\..\Include\Util\SQueue.h" />
     <ClInclude Include="..\..\Include\Util\SResult.h" />
     <ClInclude Include="..\..\Include\Util\SString.h" />
     <ClInclude Include="..\..\Include\Util\STransformable.h" />

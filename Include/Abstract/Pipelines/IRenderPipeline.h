@@ -1,6 +1,9 @@
 // ********************************************************************************************
 
-//	SpeedPoint Render Pipeline
+//	This file is part of the SpeedPoint Game Engine
+
+//	(c) 2011-2014 Pascal R. aka iSmokiieZz
+//	All rights reserved.
 
 // ********************************************************************************************
 
@@ -58,7 +61,21 @@ namespace SpeedPoint
 
 		// Begin rendering
 		// Prepares backbuffer, begins scene and does stuff like this...
-		virtual SResult DoBeginRendering() = 0;
+		virtual SResult DoBeginRendering(S_GEOMETRY_RENDER_INTERACTION_STRATEGY geomRenderStrategy = eGEOMRENDER_STRATEGY_EVENTS) = 0;
+
+		// Summary:
+		//	Examine the renderqueue
+		// Description:
+		//	Pops through the whole render commmand queue, if in hybrid or pure command geom input strategy mode
+		virtual SResult ExamineRenderCommandQueue() = 0;
+
+		// Summary:
+		//	Examine a single render command
+		virtual SResult ExamineRenderCommandHybrid(SCommandDescription* pDesc) = 0;
+
+		// Summary:
+		//	Examine a single render command
+		virtual SResult ExamineRenderCommand(SCommandDescription* pDesc) = 0;
 
 
 		// Geometry (S_RENDER_GEOMETRY)

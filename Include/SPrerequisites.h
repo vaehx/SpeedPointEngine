@@ -19,7 +19,7 @@
 #pragma once
 
 ///////////////
-// Important core headers. DO NOT CHANGE if you do not know why! Many things depend on it!
+// Important core headers.
 #include "Util\SAPI.h" // __declspec macro S_API
 
 #include "Util\SWindowsSpecific.h"
@@ -29,7 +29,11 @@
 
 #include "Util\SPoolIndex.h"
 #include "Util\SString.h"
+// DO NOT ADD ANY HEADER HERE if you do not know why!Many things depend on it!
 //////////////
+
+
+
 
 // ------------------------------------------------------------------------------------------
 // Structure of this file:
@@ -49,10 +53,17 @@
 // Please keep this structure!
 // ------------------------------------------------------------------------------------------
 
+
+
+
+
 #define SP_TRIVIAL -1
 
 namespace SpeedPoint
 {	
+
+	// Basic datatypes
+
 	typedef unsigned __int32 usint32; // Unsigned 32bit integer
 	typedef unsigned __int64 usint64; // Unsigned 64bit integer
 	typedef unsigned __int8 byte; // 1 Byte
@@ -61,6 +72,8 @@ namespace SpeedPoint
 
 	// SpeedPoint unique identifier index (unsigned)
 	typedef usint32 SP_UNIQUE;
+
+
 
 	// --------------------------- COMPONENTS --------------------------------
 
@@ -204,6 +217,22 @@ namespace SpeedPoint
 	class	S_API SDirectX9LightingRenderSection;
 	class	S_API SDirectX9PostRenderSection;
 
+	// -------------------------- Command Buffering -------------------------
+
+	// Render command types used for the command buffering
+	enum S_API S_RENDER_COMMAND_TYPE
+	{
+		eSRCMD_NONE,
+		eSRCMD_DRAWSOLID,
+		eSRCMD_DRAWPRIMITIVE
+	};
+
+	class S_API SCommandQueue;
+	struct S_API SCommandDescription;
+
+	struct S_API SDrawSolidData;
+	struct S_API SDrawPrimitiveData;
+
 	// --------------------------- Effects ---------------------------------
 /*abs*/ class	S_API IShader;
 	class	S_API SDirectX9Shader;	
@@ -334,6 +363,8 @@ namespace SpeedPoint
 		S_E_RENDER_GEOMETRY = 0x12000,
 		S_E_RENDER_GEOMETRY_BEGIN = 0x12100,
 		S_E_RENDER_GEOMETRY_CALLS = 0x12200,
+		S_E_RENDER_GEOMETRY_DRAWSOLID = 0x12201,
+		S_E_RENDER_GEOMETRY_DRAWPRIMITIVE = 0x12202,
 		S_E_RENDER_GEOMETRY_END = 0x12300,
 		S_E_RENDER_GEOMETRY_EXIT = S_E_RENDER_GEOMETRY_END,
 		S_E_RENDER_LIGHTING = 0x13000,
@@ -358,12 +389,12 @@ namespace SpeedPoint
 		S_OPENGL
 	};
 
-	// Render command types used for the command buffering
-	enum S_API S_RENDER_COMMAND_TYPE
+	// how are the geometry drawcalls handled
+	enum S_API S_GEOMETRY_RENDER_INTERACTION_STRATEGY
 	{
-		eSRCMD_NONE,
-		eSRCMD_DRAWSOLID,
-		eSRCMD_DRAWPRIMITIVE
+		eGEOMRENDER_STRATEGY_COMMANDS,
+		eGEOMRENDER_STRATEGY_EVENTS,
+		eGEOMRENDER_STRATEGY_HYBRID
 	};
 
 	// Present Quality (Present Interval)

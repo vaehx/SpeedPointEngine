@@ -37,6 +37,8 @@ namespace SpeedPoint
 		double					m_dLastFPS;
 		float					m_fLastFPS;			// extra variable due to possible information loss with float
 
+		void*					m_pCustomEventParamData;
+
 	public:
 		// Default constructor
 		SFramePipeline()
@@ -77,5 +79,11 @@ namespace SpeedPoint
 
 		// Executes the End Frame pipeline
 		SResult EndFrame();
+
+		// Get ptr to the custom event parameter data
+		void* GetCustomEventParameterData()
+		{
+			return m_pCustomEventParamData;
+		}
 	};	
 }

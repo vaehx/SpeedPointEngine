@@ -19,7 +19,21 @@ namespace SpeedPoint
 		, S_PARAMTYPE_FLOAT
 		, S_PARAMTYPE_ZTSTR // = Zero-Terminated string
 		, S_PARAMTYPE_BOOL
-		,S_PARAMTYPE_PTR
+		, S_PARAMTYPE_PTR
+	};
+
+	// ******************************************************************************************
+
+	// Index of the Parameter
+	// At first, we wanted to offer most flexibility, but quickly it turned out to be the crappiest
+	// idea we ever had! - Don't do this, use this enum instead!
+	enum S_API SEventParameterIndex
+	{
+		ePARAM_NONE,
+		ePARAM_SENDER,
+		ePARAM_LIGHTSOURCES,
+		ePARAM_DRAW_DESC,
+		ePARAM_CUSTOM_DATA
 	};
 
 	// ******************************************************************************************
@@ -27,36 +41,36 @@ namespace SpeedPoint
 	// Structure of a single SpeedPoint Event Handler Parameter
 	struct S_API SEventParameter
 	{
-		char* m_pcIndex;
-		void* m_pValue;
-		SEventParameterType m_tType;
+		SEventParameterIndex	m_Index;
+		void*			m_pValue;
+		SEventParameterType	m_tType;
 
 		// Default constructor
 		SEventParameter();
 
 		// Constructor with given values
-		SEventParameter(char* pcIndex, SEventParameterType tType, void* pValue);
+		SEventParameter(SEventParameterIndex index, SEventParameterType tType, void* pValue);
 
 		// Constructor with direct value (int)
-		SEventParameter(char* pcIndex, const int& iValue);
+		SEventParameter(SEventParameterIndex index, const int& iValue);
 
 		// Constructor with direct value (float)
-		SEventParameter(char* pcIndex, const float& fValue);
+		SEventParameter(SEventParameterIndex index, const float& fValue);
 
 		// Constructor with direct value (char*)
-		SEventParameter(char* pcIndex, char* cValue);
+		SEventParameter(SEventParameterIndex index, char* cValue);
 
 		// Constructor with direct value (bool)
-		SEventParameter(char* pcIndex, const bool& bValue);
+		SEventParameter(SEventParameterIndex index, const bool& bValue);
 
 		// Constructor with direct value (void*-Pointer)
-		SEventParameter(char* pcIndex, void* pPointerValue);		
+		SEventParameter(SEventParameterIndex index, void* pPointerValue);		
 
 		// Default destructor
 		~SEventParameter();
 
 		// Assign the index
-		bool AssignIndex(char* pcIndex);
+		bool AssignIndex(SEventParameterIndex index);
 	};
 
 }

@@ -121,6 +121,19 @@ namespace SpeedPoint
 		//	Returns false if SQueue is locked
 		bool Clear();
 
+		// Summary:
+		//	Checks if popping reached its end
+		// Return Value:
+		//	Returns true if there is still something in the queue to be popped or
+		//	reference is not equal index of last slot yet
+		bool ReachedEnd();
+
+		// Summary:
+		//	Calculate and return the amount of used slots
+		// Return Value:
+		//	Returns amount of used slots
+		unsigned int GetUsageCount();
+
 	private:
 		// Summary:
 		//	Resize SQueue slot buffer
@@ -452,5 +465,24 @@ namespace SpeedPoint
 		m_Length = 0;
 		m_LockingFlags = 0;
 		return true;
+	}
+
+	template<class T> inline bool SQueue<T>::ReachedEnd()
+	{
+		if (m_bLocked && (m_LockingFlags & eLOCK_PRESERVE))
+			return (m_Ref == m_LastSlot);
+
+		return (GetUsageCount() == 0);
+	}
+
+	template<class T> inline unsigned int SQueue<T>::GetUsageCount()
+	{
+		unsigned int usageSize = 0;
+		if (m_FirstSlot > m_LastSlot)
+			usageSize = (m_FirstSlot + 1) + m_LastSlot;
+		else
+			usageSize = (m_LastSlot + 1) - m_FirstSlot; // 0 if equal
+
+		return usageSize;
 	}
 }

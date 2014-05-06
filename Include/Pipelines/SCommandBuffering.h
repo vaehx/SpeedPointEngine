@@ -211,5 +211,15 @@ namespace SpeedPoint
 
 			return S_SUCCESS;
 		}
+
+		// Summary:
+		//	Checks if whether the popping of the queue reached its end
+		bool ReachedEnd()
+		{
+			if (m_pQueue)
+				return m_pQueue->ReachedEnd();
+
+			return false;
+		}
 	};
 }

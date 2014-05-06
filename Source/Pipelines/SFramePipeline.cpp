@@ -103,7 +103,8 @@ namespace SpeedPoint
 
 		// Call the BeginFrame event, as timestamp has now been captured				
 		SEventParameters params;
-		params.Add("sender", S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pCustomEventParamData);
 		CallEvent(S_E_BEGINFRAME, &params);		
 		
 		// Go on with Dynamics Pipeline
@@ -134,7 +135,8 @@ namespace SpeedPoint
 
 		// Call the Event
 		SEventParameters params;
-		params.Add("sender", S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pCustomEventParamData);
 		CallEvent(S_E_DYNAMICS, &params);				
 
 		// Do the animation part of the dynamics pipeline		
@@ -190,7 +192,8 @@ namespace SpeedPoint
 
 		// fire event
 		SEventParameters params;
-		params.Add("sender", S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pCustomEventParamData);
 		CallEvent(S_E_RENDER, &params);
 
 		// Begin the rendering (Clear backbuffers, ...)

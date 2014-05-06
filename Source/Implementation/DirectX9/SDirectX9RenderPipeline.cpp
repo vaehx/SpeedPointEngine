@@ -65,10 +65,17 @@ namespace SpeedPoint
 			return m_pEngine->LogE("Failed initialize lighting render section of render pipeline!");
 		}
 
-		// INitialize post render section
+		// Initialize post render section
 		if (Failure(m_PostRenderSection.Initialize(m_pEngine, (IRenderPipeline*)this)))
 		{
 			return m_pEngine->LogE("Failed initilaize post render section of render pipeline!");
+		}
+
+		// Initialize the render queue
+		// we are currently using default initial approximated queue size
+		if (Failure(m_Queue.Init()))
+		{
+			return m_pEngine->LogE("Failed initialize render command queue!");
 		}
 
 		return S_SUCCESS; // seems like everything went well :)
@@ -96,6 +103,8 @@ namespace SpeedPoint
 	S_API SResult SDirectX9RenderPipeline::Clear(void)
 	{
 		if (m_pEngine) m_pEngine->LogReport(S_INFO, "Clearing DX9 Render Pipeline...");
+
+		m_Queue.Clear();
 
 		m_GeometryRenderSection.Clear();
 		m_LightingRenderSection.Clear();
@@ -225,11 +234,11 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SDirectX9RenderPipeline::DoBeginRendering()
+	S_API SResult SDirectX9RenderPipeline::DoBeginRendering(S_GEOMETRY_RENDER_INTERACTION_STRATEGY geomRenderStrategy)
 	{		
 		SResult res;
 
-		SP_ASSERTR(IsInitialized(), S_ERROR);
+		SP_ASSERTR(IsInitialized(), S_ERROR);		
 
 		// Clear the current backbuffer
 		// We assume that the RenderTarget is still the Backbuffer!
@@ -238,24 +247,24 @@ namespace SpeedPoint
 			dwFlags |= D3DCLEAR_ZBUFFER;
 		
 //~~~~~~~~
-// TODO: eliminate direct call to pd3dDevice
+// TODO: eliminate direct call to pd3dDevice outside SDirectX9Renderer
 		if (Failure(m_pDXRenderer->pd3dDevice->Clear(0, NULL, dwFlags, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0)))
 			return m_pEngine->LogE("Cannot DXDEVICE::Clear (backbuffer)!");
 //~~~~~~~~~
 
 		// fire event
 		SEventParameters params;
-		params.Add("sender", S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
 		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params)))
-			return S_ERROR;
+			return S_ERROR;		
 
 		// Begin DX Scene
 		if (Failure(m_pDXRenderer->BeginScene()))
 			return S_ERROR;
 
-		// fire event
-		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params)))
-			return S_ERROR;
+		// store Geometry Render strategy for interaction with the application
+		m_GeometryRenderStrategy = geomRenderStrategy;		
 
 		return S_SUCCESS;
 	}
@@ -269,7 +278,8 @@ namespace SpeedPoint
 
 		// fire event
 		SEventParameters params;
-		params.Add("sender", S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
 		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params)))
 			return S_ERROR;
 
@@ -277,11 +287,105 @@ namespace SpeedPoint
 		if (Failure(m_GeometryRenderSection.PrepareSection()))
 			return S_ERROR;	
 
-		// fire event
-		m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params);
+		// fire calls event or examine Render command queue
+		// in order to access m_GeometryRenderStrategy you HAVE to call DoBeginRendering first!
+		if (m_GeometryRenderStrategy == eGEOMRENDER_STRATEGY_EVENTS)
+		{
+			// using same params like above, as they do not change
+			if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params)))
+				return S_ERROR;
+		}
+		else
+		{
+			// go through queue
+			// SDirectX9RenderPipeline::ExamineRenderCommandQueue()
+			if (Failure(ExamineRenderCommandQueue()))
+				return S_ERROR;
+		}
 
 		params.Clear();
 		return S_SUCCESS;
+	}
+
+	// **********************************************************************************
+
+	S_API inline SResult SDirectX9RenderPipeline::ExamineRenderCommand(SCommandDescription* pDesc)
+	{
+		switch (pDesc->commandType)
+		{
+		case eSRCMD_DRAWPRIMITIVE:
+			//SDrawPrimitiveData* pData = (SDrawPrimitiveData*)pDesc->pData;
+/// TODO
+			break;
+
+		case eSRCMD_DRAWSOLID:
+			//SDrawSolidData* pData = (SDrawSolidData*)pDesc->pData;
+/// TODO
+			break;
+
+		default:
+			return S_INVALIDPARAM;
+		}
+
+		return S_SUCCESS;
+	}
+
+	// **********************************************************************************
+
+	S_API inline SResult SDirectX9RenderPipeline::ExamineRenderCommandHybrid(SCommandDescription* pDesc)
+	{
+		SEventParameters params;
+		if (pDesc->commandType == eSRCMD_DRAWPRIMITIVE || pDesc->commandType == eSRCMD_DRAWSOLID)
+		{
+			params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+			params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
+			params.Add(ePARAM_DRAW_DESC, S_PARAMTYPE_PTR, pDesc);
+			m_pFramePipeline->CallEvent((pDesc->commandType == eSRCMD_DRAWPRIMITIVE) ? S_E_RENDER_GEOMETRY_DRAWPRIMITIVE : S_E_RENDER_GEOMETRY_DRAWSOLID, &params);
+
+			params.Clear();
+		}
+
+		return S_SUCCESS;
+	}
+
+	// **********************************************************************************
+
+	S_API inline SResult SDirectX9RenderPipeline::ExamineRenderCommandQueue()
+	{
+		SP_ASSERTR(m_pEngine, S_NOTINIT);
+		SP_ASSERTR(m_GeometryRenderStrategy != eGEOMRENDER_STRATEGY_EVENTS, S_INVALIDGEOMSTRATEGY, "geomStrategy=%d", m_GeometryRenderStrategy);
+
+		SResult res = S_SUCCESS;
+
+		if (Failure(m_Queue.Lock(false)))
+		{
+			return m_pEngine->LogE("Failed lock render command queue!");
+		}
+
+		SCommandDescription* pDesc;
+		while (!m_Queue.ReachedEnd())
+		{
+			m_Queue.Pop(&pDesc);
+			if (pDesc)
+			{
+				if (m_GeometryRenderStrategy = eGEOMRENDER_STRATEGY_HYBRID)
+				{
+					// SDirectX9RenderPipeline::ExamineRenderCommandHybrid()
+					if (Failure(ExamineRenderCommandHybrid(pDesc)))
+						res = m_pEngine->LogE("ExamineRenderCommandHybrid failed!");
+				}
+				else // eGEOMRENDER_STRATEGY_COMMANDS
+				{
+					// SDirectX9RenderPipeline::ExamineRenderCommand()
+					if (Failure(ExamineRenderCommand(pDesc)))
+						res = m_pEngine->LogE("ExamineRenderCommand failed!");
+				}
+			}
+		}
+
+		m_Queue.Unlock();
+
+		return res;
 	}
 
 	// **********************************************************************************
@@ -308,7 +412,8 @@ namespace SpeedPoint
 
 		// Fire event
 		SEventParameters params;
-		params.Add("sender", S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
 		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_EXIT, &params)))
 			return S_ERROR;
 
@@ -336,8 +441,9 @@ namespace SpeedPoint
 
 		// fire preparation event
 		SEventParameters params;
-		params.Add("sender", S_PARAMTYPE_PTR, this);
-		params.Add("lights", S_PARAMTYPE_PTR, (void*)&pLights);
+		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.Add(ePARAM_LIGHTSOURCES, S_PARAMTYPE_PTR, (void*)&pLights);
+		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
 		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_LIGHTING_PREPARE, &params)))
 			return S_ERROR;
 

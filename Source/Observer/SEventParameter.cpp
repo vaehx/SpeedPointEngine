@@ -11,7 +11,7 @@ namespace SpeedPoint
 	// ******************************************************************************************
 	
 	S_API SEventParameter::SEventParameter()
-		: m_pcIndex(0),
+		: m_Index(ePARAM_NONE),
 		m_tType(S_PARAMTYPE_PTR),
 		m_pValue(0)
 	{
@@ -19,52 +19,36 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API bool SEventParameter::AssignIndex(char* pcIndex)
+	S_API bool SEventParameter::AssignIndex(SEventParameterIndex index)
 	{
-		if (pcIndex)
-		{
-			unsigned int nStringLen = strlen(pcIndex);
-			m_pcIndex = new char[nStringLen];
-			if (nStringLen > 0)
-			{
-				strcpy_s(m_pcIndex, nStringLen, pcIndex);
-			}
-			else
-			{
-				m_pcIndex = 0;
-				return false;
-			}
-
-			return true;
-		}
-		
-		return false;		
+		m_Index = index;
+		return true;
 	}
 
 	// ******************************************************************************************
 	
-	S_API SEventParameter::SEventParameter(char* pcIndex, SEventParameterType tType, void* pValue)
+	S_API SEventParameter::SEventParameter(SEventParameterIndex index, SEventParameterType tType, void* pValue)
 	{		
 		switch (m_tType = tType)
 		{
 		case S_PARAMTYPE_INT:
-			SEventParameter(pcIndex, *(int*)pValue);
+			SEventParameter(index, *(int*)pValue);
 			break;
 
 		case S_PARAMTYPE_BOOL:
-			SEventParameter(pcIndex, *(bool*)pValue);
+			SEventParameter(index, *(bool*)pValue);
 			break;
 
 		case S_PARAMTYPE_FLOAT:
-			SEventParameter(pcIndex, *(float*)pValue);
+			SEventParameter(index, *(float*)pValue);
 			break;
 
 		case S_PARAMTYPE_PTR:
-			SEventParameter(pcIndex, *(void**)pValue);
+			SEventParameter(index, *(void**)pValue);
 			break;
 
 		case S_PARAMTYPE_ZTSTR:
-			SEventParameter(pcIndex, *(char**)pValue);			
+			SEventParameter(index, *(char**)pValue);			
 			break;
 
 		default:
@@ -74,27 +58,27 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API SEventParameter::SEventParameter(char* pcIndex, const int& iValue)
+	S_API SEventParameter::SEventParameter(SEventParameterIndex index, const int& iValue)
 	{
-		if (!AssignIndex(pcIndex)) return;
+		if (!AssignIndex(index)) return;
 		
 		m_pValue = new int(iValue);
 	}
 
 	// ******************************************************************************************
 
-	S_API SEventParameter::SEventParameter(char* pcIndex, const float& fValue)
+	S_API SEventParameter::SEventParameter(SEventParameterIndex index, const float& fValue)
 	{
-		if (!AssignIndex(pcIndex)) return;
+		if (!AssignIndex(index)) return;
 
 		m_pValue = new float(fValue);
 	}
 
 	// ******************************************************************************************
 
-	S_API SEventParameter::SEventParameter(char* pcIndex, char* cValue)
+	S_API SEventParameter::SEventParameter(SEventParameterIndex index, char* cValue)
 	{
-		if (!AssignIndex(pcIndex)) return;
+		if (!AssignIndex(index)) return;
 
 		if (cValue)
 		{
@@ -111,18 +95,18 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API SEventParameter::SEventParameter(char* pcIndex, const bool& bValue)
+	S_API SEventParameter::SEventParameter(SEventParameterIndex index, const bool& bValue)
 	{
-		if (!AssignIndex(pcIndex)) return;
+		if (!AssignIndex(index)) return;
 
 		m_pValue = new bool(bValue);
 	}
 
 	// ******************************************************************************************
 
-	S_API SEventParameter::SEventParameter(char* pcIndex, void* pPointerValue)
+	S_API SEventParameter::SEventParameter(SEventParameterIndex index, void* pPointerValue)
 	{
-		if (!AssignIndex(pcIndex)) return;
+		if (!AssignIndex(index)) return;
 
 		m_pValue = new void*(pPointerValue);
 	}
@@ -132,8 +116,8 @@ namespace SpeedPoint
 	S_API SEventParameter::~SEventParameter()
 	{
 		if (m_pValue) delete m_pValue;
-		if (m_pcIndex) delete m_pcIndex;
 		m_pValue = 0;
-		m_pcIndex = 0;
+
+		m_Index = ePARAM_NONE;
 	}
 }

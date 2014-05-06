@@ -14,6 +14,8 @@
 #include "SDirectX9LightingRenderSection.h"
 #include "SDirectX9PostRenderSection.h"
 
+#include <Pipelines\SCommandBuffering.h>
+
 namespace SpeedPoint
 {
 	// DirectX9 Implementation of the SpeedPoint Render Pipeline
@@ -33,7 +35,11 @@ namespace SpeedPoint
 		SDirectX9LightingRenderSection	m_LightingRenderSection;
 		SDirectX9PostRenderSection	m_PostRenderSection;			
 
-		// Command buffering:		
+		// Command buffering:
+
+		SCommandQueue			m_Queue;
+
+		S_GEOMETRY_RENDER_INTERACTION_STRATEGY	m_GeometryRenderStrategy;
 
 
 	// Initialization / Interaction with Frame pipeline
@@ -78,7 +84,21 @@ namespace SpeedPoint
 		// prepares backbuffer, begins scene and does stuff like this...
 		// WARNING: This functions assumes that the render target is still the backbuffer,
 		// as this is the last render target used in Post Render Section!
-		virtual SResult DoBeginRendering();
+		virtual SResult DoBeginRendering(S_GEOMETRY_RENDER_INTERACTION_STRATEGY geomRenderStrategy = eGEOMRENDER_STRATEGY_EVENTS);
+
+		// Summary:
+		//	Examine the renderqueue
+		// Description:
+		//	Pops through the whole render commmand queue, if in hybrid or pure command geom input strategy mode
+		virtual SResult ExamineRenderCommandQueue();
+
+		// Summary:
+		//	Examine a single render command
+		virtual SResult ExamineRenderCommandHybrid(SCommandDescription* pDesc);
+
+		// Summary:
+		//	Examine a single render command
+		virtual SResult ExamineRenderCommand(SCommandDescription* pDesc);
 
 
 		// Geometry (S_RENDER_GEOMETRY)

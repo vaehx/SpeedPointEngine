@@ -173,6 +173,12 @@
     <ClInclude Include="..\..\Include\SSettings.h">
       <Filter>Headers\Frontend</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SQueue.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Pipelines\SCommandBuffering.h">
+      <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp">

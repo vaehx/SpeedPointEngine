@@ -31,7 +31,7 @@ namespace SpeedPoint
 			bool bRes = true;
 			SEventParameters params;
 			if (bRes && Failure(params.Initialize(1))) bRes = false;
-			if (bRes && Failure(params.Add("sender", S_PARAMTYPE_PTR, this))) bRes = false;
+			if (bRes && Failure(params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this))) bRes = false;
 			if (bRes && Failure(m_EventCallbackTable.Call(S_E_DESTRUCT, &params))) bRes = false;
 		}
 	}
