@@ -33,6 +33,46 @@ namespace SpeedPoint
 			m_bViewMatrixCalculated = false;
 		}
 
+
+		// We need to overwrite all transformation methods as we want to keep track of the modification of the look-at point
+		// and the view matrix
+
+		// Move absolutely
+		void Move(const SVector3& pos);
+
+		// Move absolutely
+		void Move(float x, float y, float z);
+
+		// Translate relatively
+		void Translate(const SVector3& vec);
+
+		// Translate relatively
+		void Translate(float x, float y, float z);
+
+		// Rotate absolutely
+		void Rotate(const SVector3& rotation);
+
+		// Rotate absolutely
+		void Rotate(float p, float y, float r);
+
+		// Turn relatively
+		void Turn(const SVector3& vec);
+
+		// Turn relatively
+		void Turn(float p, float y, float r);
+
+		// will do nothing, as u cannot scale the camera
+		void Size(const SVector3& size);
+
+		// will do nothing, as u cannot scale the camera
+		void Size(float w, float h, float d);
+
+		// will do nothing, as u cannot scale the camera
+		void Scale(const SVector3& vec);
+
+		// will do nothing, as u cannot scale the camera
+		void Scale(float w, float h, float d);
+
 		// Get a view matrix from this camera
 		SMatrix4& GetViewMatrix();
 

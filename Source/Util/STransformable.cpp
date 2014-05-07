@@ -102,19 +102,65 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SMatrix4 STransformable::GetWorldMatrix()
+	S_API inline SMatrix4& STransformable::GetWorldMatrix()
 	{
+		if (!m_WorldMatrixCalculated)
+			RecalculateWorldMatrix();
+
 		return m_WorldMatrix;
 	}
 
 	// **********************************************************************************
 
-	S_API SMatrix4 STransformable::RecalculateWorldMatrix()
+	S_API inline SMatrix4& STransformable::RecalculateWorldMatrix()
 	{
-		// ~~~~~~~~~~~
-		/// TODO !!!!!!!!!!		
-		// ~~~~~~~~~~~
-		return SMatrix4();
+		// World / Form matrix
+		//D3DXMATRIX mTrans, mRot, mScale, mOrig;
+		//
+		//D3DXMatrixIdentity(&mOrig);
+		//D3DXMatrixRotationYawPitchRoll(&mRot, form->vRotation.y, form->vRotation.x, form->vRotation.z);
+		//D3DXMatrixTranslation(&mTrans, form->vPosition.x, form->vPosition.y, form->vPosition.z);
+		//D3DXMatrixScaling(&mScale, form->vSize.x, form->vSize.y, form->vSize.z);
+		//
+		//D3DXMATRIX mW = mOrig * mScale * mRot * mTrans;
+		//
+		//mWorld = DXMatrixToDMatrix(mW);
+
+		m_WorldMatrix = SMatrix4(	// identity
+			SVector4(1.0f,   0,     0,    0),
+			SVector4(   0, 1.0f,    0,    0),
+			SVector4(   0,    0, 1.0f,    0),
+			SVector4(   0,    0,    0, 1.0f)
+			) * SMatrix4(	// Size
+			SVector4(vSize.x, 0, 0, 0),
+			SVector4(0, vSize.y, 0, 0),
+			SVector4(0, 0, vSize.z, 0),
+			SVector4(0, 0, 0, 1.0f)
+			) * SMatrix4(	// Yaw
+			SVector4(cosf(vRotation.y), 0, sinf(vRotation.y), 0),
+			SVector4(0, 1.0f, 0, 0),
+			SVector4(-sinf(vRotation.y), 0, cosf(vRotation.y), 0),
+			SVector4(0, 0, 0, 1.0f)
+			) * SMatrix4(		// Pitch
+			SVector4(1.0f, 0, 0, 0),
+			SVector4(0, cosf(vRotation.x), -sinf(vRotation.x), 0),
+			SVector4(0, sinf(vRotation.x), cosf(vRotation.x), 0),
+			SVector4(0, 0, 0, 1.0f)
+			) * SMatrix4(		// Roll
+			SVector4(cosf(vRotation.z), -sinf(vRotation.z), 0, 0),
+			SVector4(sinf(vRotation.z), cosf(vRotation.z), 0, 0),
+			SVector4(0, 0, 1.0f, 0),
+			SVector4(0, 0, 0, 1.0f)
+			) * SMatrix4(	// Translation
+			SVector4(1.0f, 0, 0, vPosition.x),
+			SVector4(0, 1.0f, 0, vPosition.y),
+			SVector4(0, 0, 1.0f, vPosition.z),
+			SVector4(0, 0, 0, 1.0f)
+			);
+
+		m_WorldMatrixCalculated = true;
+
+		return m_WorldMatrix;
 	}
 
 	// **********************************************************************************
