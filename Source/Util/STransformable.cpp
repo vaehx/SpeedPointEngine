@@ -102,7 +102,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API inline SMatrix4& STransformable::GetWorldMatrix()
+	S_API SMatrix4& STransformable::GetWorldMatrix()
 	{
 		if (!m_WorldMatrixCalculated)
 			RecalculateWorldMatrix();
@@ -112,7 +112,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API inline SMatrix4& STransformable::RecalculateWorldMatrix()
+	S_API SMatrix4& STransformable::RecalculateWorldMatrix()
 	{
 		// World / Form matrix
 		//D3DXMATRIX mTrans, mRot, mScale, mOrig;

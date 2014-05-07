@@ -264,6 +264,16 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
+	S_API void SSpeedPointEngine::SetCustomEventData(void* pData)
+	{
+		m_FrameEngine.SetCustomEventParameterData(pData);
+#ifdef _DEBUG				
+		LogI("Set custom event data.");
+#endif
+	}
+
+	// ********************************************************************************************
+
 	S_API IViewport* SSpeedPointEngine::GetViewport(UINT index)
 	{
 		SP_ASSERTXR(m_pViewports, 0, this);

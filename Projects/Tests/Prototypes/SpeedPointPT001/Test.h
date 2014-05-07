@@ -14,14 +14,20 @@
 // Foward declarate Log Report Handler
 void OnLogReport(SpeedPoint::SResult res, SpeedPoint::SString msg);
 
+class Test;
+
+struct SCustomData
+{
+	Test* pApplication;
+};
+
 class Test
 {
-private:
+public:
 	SpeedPoint::SpeedPointEngine m_Engine;
 	SpeedPoint::SSettings settings;
 	SpeedPoint::SP_ID testSolid;
 
-public:
 	bool Start(HWND hWnd, HINSTANCE hInstance);
 	bool Tick();
 	bool Stop();

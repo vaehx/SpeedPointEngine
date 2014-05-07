@@ -68,8 +68,16 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 
 SpeedPoint::SResult OnRenderCalls(SpeedPoint::SEventParameters* pParams)
 {
-	SpeedPoint::IRenderPipeline* pPipe = (SpeedPoint::IRenderPipeline*)pParams->Get("sender");
-	if (!pPipe) return SpeedPoint::S_ERROR;	
+	SCustomData* pCustomData = (SCustomData*)pParams->Get(SpeedPoint::ePARAM_CUSTOM_DATA);		
+	Test* pApplication = pCustomData->pApplication;
+
+	if (Failure(pApplication->m_Engine.RenderSolid(pApplication->testSolid)))
+	{
+		OutputDebugStringA("Failed render solid!");
+		return SpeedPoint::S_ERROR;
+	}
+
+	return SpeedPoint::S_SUCCESS;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

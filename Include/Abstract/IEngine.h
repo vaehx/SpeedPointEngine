@@ -40,7 +40,13 @@ namespace SpeedPoint
 		//	Get the FramePipeline registers in this engine
 		// Return Value:
 		//	Pointer to the FramePipeline
-		virtual SFramePipeline* GetFramePipeline() = 0;		
+		virtual SFramePipeline* GetFramePipeline() = 0;
+
+		// Summary:
+		//	Set the custom event data
+		// Note:
+		//	Will also be set, if pData is 0!
+		virtual void SetCustomEventData(void* pData) = 0;
 
 	// Rendering
 	public:

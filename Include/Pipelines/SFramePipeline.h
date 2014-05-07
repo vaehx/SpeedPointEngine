@@ -80,6 +80,12 @@ namespace SpeedPoint
 		// Executes the End Frame pipeline
 		SResult EndFrame();
 
+		// Set the ptr to the custom event parameter data
+		void SetCustomEventParameterData(void* pData)
+		{
+			m_pCustomEventParamData = pData;
+		}
+
 		// Get ptr to the custom event parameter data
 		void* GetCustomEventParameterData()
 		{

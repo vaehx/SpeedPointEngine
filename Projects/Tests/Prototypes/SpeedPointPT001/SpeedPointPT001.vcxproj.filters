@@ -27,7 +27,7 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Test.h">
-      <Filter>Quelldateien</Filter>
+      <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

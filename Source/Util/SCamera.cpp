@@ -10,7 +10,7 @@ namespace SpeedPoint
 {	
 	// ********************************************************************************************
 
-	S_API inline SMatrix4& SCamera::GetViewMatrix()
+	S_API SMatrix4& SCamera::GetViewMatrix()
 	{
 		if (!m_bViewMatrixCalculated)
 			RecalculateViewMatrix();
@@ -20,7 +20,7 @@ namespace SpeedPoint
 
 	// ********************************************************************************************
 
-	S_API inline SMatrix4& SCamera::RecalculateViewMatrix()
+	S_API SMatrix4& SCamera::RecalculateViewMatrix()
 	{
 		//zaxis = normal(Eye - At)
 		//	xaxis = normal(cross(Up, zaxis))

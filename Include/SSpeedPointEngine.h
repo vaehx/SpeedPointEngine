@@ -92,6 +92,9 @@ namespace SpeedPoint
 		// Stop the Engine components and clean up everything
 		SResult Shutdown();
 
+		// Set the custom event data ptr
+		void SetCustomEventData(void* pData);
+
 
 	// Viewport Management
 	public:
