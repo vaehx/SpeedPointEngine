@@ -84,6 +84,7 @@ namespace SpeedPoint
 		{
 		case S_PROJECTION_PERSPECTIVE:
 			{
+/// TODO: Eliminate calls of deprecated DirectX framework
 				D3DXMatrixPerspectiveFovRH(
 					&mProj,
 					fFOV,
@@ -95,6 +96,7 @@ namespace SpeedPoint
 			}
 		case S_PROJECTION_ORTHOGRAPHIC:
 			{
+/// TODO: Eliminate calls of deprecated DirectX framework
 				D3DXMatrixOrthoRH( &mProj, fOrthoW, fOrthoH,
 					engineSettings.render.fClipNear, engineSettings.render.fClipFar );
 
@@ -125,16 +127,9 @@ namespace SpeedPoint
 			c = tempCam;
 		}
 
-		D3DXVECTOR3 vEyePt(c->vPosition.x, c->vPosition.y, c->vPosition.z);
-		D3DXVECTOR3 vLookAt(c->vPosition.x + sin(c->vRotation.y)*cos(c->vRotation.x),
-			c->vPosition.y + sin(c->vRotation.x),
-			c->vPosition.z + cos(c->vRotation.y)*cos(c->vRotation.x));
-		D3DXVECTOR3 vUpVec(0.0f, 1.0f, 0.0f);
+		c->RecalculateViewMatrix();
 
-		D3DXMATRIX mCam;
-		D3DXMatrixLookAtRH(&mCam, &vEyePt, &vLookAt, &vUpVec);
-
-		mView = DXMatrixToSMatrix(mCam);
+		mView = c->GetViewMatrix();
 
 		return S_SUCCESS;
 	}
