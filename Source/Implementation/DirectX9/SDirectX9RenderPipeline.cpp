@@ -266,8 +266,12 @@ namespace SpeedPoint
 			params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
 			params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
 			params.Add(ePARAM_DRAW_DESC, S_PARAMTYPE_PTR, pDesc);
+			
+			// At this point, the concept of the hybrid geom input strategy is, that the pipeline
+			// does not handle the draw calls, but the application, handling the following event will.
 			m_pFramePipeline->CallEvent((pDesc->commandType == eSRCMD_DRAWPRIMITIVE) ? S_E_RENDER_GEOMETRY_DRAWPRIMITIVE : S_E_RENDER_GEOMETRY_DRAWSOLID, &params);
 
+			// ... so we're done here.
 			params.Clear();
 		}
 
