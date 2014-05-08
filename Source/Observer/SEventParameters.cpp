@@ -36,7 +36,7 @@ namespace SpeedPoint
 
 		if (m_pParameters == 0 || m_nMaxParameters == 0)
 		{
-			if (Failure(Initialize(1)))
+			if (Failure(Initialize(10)))
 				return S_ABORTED;
 		}
 

@@ -12,6 +12,7 @@
 #include "SWindowsSpecific.h"
 #include <cstdio> // for assertion
 
+
 namespace SpeedPoint
 {
 	// Old Result enumeration

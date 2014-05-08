@@ -178,11 +178,8 @@ namespace SpeedPoint
 			return m_pEngine->LogE("Cannot DXDEVICE::Clear (backbuffer)!");
 //~~~~~~~~~
 
-		// fire event
-		SEventParameters params;
-		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
-		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
-		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params)))
+		// fire event				
+		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, 0)))
 			return S_ERROR;		
 
 		// Begin DX Scene
@@ -202,11 +199,8 @@ namespace SpeedPoint
 		SP_ASSERTR(IsInitialized(), S_NOTINIT);
 		SP_ASSERTXR(GetCurrentStage() == S_RENDER_GEOMETRY, S_INVALIDSTAGE, m_pEngine);
 
-		// fire event
-		SEventParameters params;
-		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
-		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
-		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, &params)))
+		// fire event			
+		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_BEGIN, 0)))
 			return S_ERROR;
 
 		// Setup Geometry render section
@@ -218,7 +212,7 @@ namespace SpeedPoint
 		if (m_GeometryRenderStrategy == eGEOMRENDER_STRATEGY_EVENTS)
 		{
 			// using same params like above, as they do not change
-			if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, &params)))
+			if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_CALLS, 0)))
 				return S_ERROR;
 		}
 		else
@@ -228,8 +222,7 @@ namespace SpeedPoint
 			if (Failure(ExamineRenderCommandQueue()))
 				return S_ERROR;
 		}
-
-		params.Clear();
+		
 		return S_SUCCESS;
 	}
 
@@ -262,10 +255,12 @@ namespace SpeedPoint
 	{
 		SEventParameters params;
 		if (pDesc->commandType == eSRCMD_DRAWPRIMITIVE || pDesc->commandType == eSRCMD_DRAWSOLID)
-		{
-			params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
-			params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
-			params.Add(ePARAM_DRAW_DESC, S_PARAMTYPE_PTR, pDesc);
+		{						
+			params.AddSenderParam(this);
+			params.Add(ePARAM_DRAW_DESC, S_PARAMTYPE_PTR, &pDesc);
+
+			// the custom event data is set by the CallEvent function of the Framepipe
+			//params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());						
 			
 			// At this point, the concept of the hybrid geom input strategy is, that the pipeline
 			// does not handle the draw calls, but the application, handling the following event will.
@@ -342,8 +337,7 @@ namespace SpeedPoint
 
 		// Fire event
 		SEventParameters params;
-		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
-		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
+		params.AddSenderParam(this);
 		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_GEOMETRY_EXIT, &params)))
 			return S_ERROR;
 
@@ -371,9 +365,8 @@ namespace SpeedPoint
 
 		// fire preparation event
 		SEventParameters params;
-		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
+		params.AddSenderParam(this);
 		params.Add(ePARAM_LIGHTSOURCES, S_PARAMTYPE_PTR, (void*)&pLights);
-		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pFramePipeline->GetCustomEventParameterData());
 		if (Failure(m_pFramePipeline->CallEvent(S_E_RENDER_LIGHTING_PREPARE, &params)))
 			return S_ERROR;
 
@@ -392,6 +385,7 @@ namespace SpeedPoint
 		if (Failure(m_LightingRenderSection.EndSection()))
 			return S_ERROR;
 
+		params.Clear();
 		return S_SUCCESS;
 	}
 

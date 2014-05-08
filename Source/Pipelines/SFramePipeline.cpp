@@ -19,6 +19,7 @@ namespace SpeedPoint
 			
 		m_pEngine = pEngine;
 		m_bStartedFPSTimer = false;
+		m_Stage = S_IDLE;
 
 		// Initialize the timestamp pointers		
 		m_pFrameBeginTimestamp = new std::chrono::time_point<std::chrono::high_resolution_clock>();
@@ -72,6 +73,7 @@ namespace SpeedPoint
 
 		m_pEngine = 0;
 		m_bStartedFPSTimer = false;
+		m_Stage = S_IDLE;
 
 		return res;
 	}
@@ -89,6 +91,9 @@ namespace SpeedPoint
 	{
 		SResult res = S_SUCCESS;
 		SResult tempRes = S_SUCCESS;
+
+		// set the first stage
+		m_Stage = S_BEGINFRAME;
 		
 		// Capture current timestamps
 		*m_pFrameBeginTimestamp = m_HighResClock.now();
@@ -101,23 +106,24 @@ namespace SpeedPoint
 		// store skip stages
 		m_iCurrentSkipStages = iSkipStages;
 
-		// Call the BeginFrame event, as timestamp has now been captured				
-		SEventParameters params;
-		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
-		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pCustomEventParamData);
-		CallEvent(S_E_BEGINFRAME, &params);		
+		// Call the BeginFrame event, as timestamp has now been captured								
+		CallEvent(S_E_BEGINFRAME, 0);				
 		
-		// Go on with Dynamics Pipeline
-		if ((m_iCurrentSkipStages & S_DYNAMICS) == 0)
+		// Go on with Dynamics Pipeline		
+		if ((m_iCurrentSkipStages & S_SKIP_DYNAMICS) == 0)
 		{
+			m_Stage = S_DYNAMICS;
+
 			tempRes = DoDynamics(); // will throw specific errors		
 			if (res == S_SUCCESS && res != tempRes)
-				res = tempRes;
+			res = tempRes;
 		}
 
-		// Go on with Render Pipeline
-		if ((m_iCurrentSkipStages & S_RENDER) == 0)
+		// Go on with Render Pipeline		
+		if ((m_iCurrentSkipStages & S_SKIP_RENDER) == 0)
 		{
+			m_Stage = S_RENDER;
+
 			tempRes = DoRender(); // will throw specific errors
 			if (res == S_SUCCESS && res != tempRes)
 				res = tempRes;
@@ -133,14 +139,11 @@ namespace SpeedPoint
 	{
 		SResult res = S_SUCCESS, tempRes = S_SUCCESS;
 
-		// Call the Event
-		SEventParameters params;
-		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
-		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pCustomEventParamData);
-		CallEvent(S_E_DYNAMICS, &params);				
+		// Call the Event						
+		CallEvent(S_E_DYNAMICS, 0);				
 
 		// Do the animation part of the dynamics pipeline		
-		if ((m_iCurrentSkipStages & S_DYNAMICS_ANIM) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_DYNAMICS_ANIM) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoAnimation();
 			if (res == S_SUCCESS && res != tempRes)
@@ -148,7 +151,7 @@ namespace SpeedPoint
 		}
 
 		// Do the physics part of the dynamics pipeline
-		if ((m_iCurrentSkipStages & S_DYNAMICS_PHYSICS) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_DYNAMICS_PHYSICS) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoPhysics();
 			if (res == S_SUCCESS && res != tempRes)
@@ -156,7 +159,7 @@ namespace SpeedPoint
 		}
 
 		// Do the input part of the dynamics pipeline
-		if ((m_iCurrentSkipStages & S_DYNAMICS_INPUT) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_DYNAMICS_INPUT) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoInteraction();
 			if (res == S_SUCCESS && res != tempRes)
@@ -164,7 +167,7 @@ namespace SpeedPoint
 		}
 
 		// Do the Script part of the dynamics pipeline
-		if ((m_iCurrentSkipStages & S_DYNAMICS_SCRIPT) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_DYNAMICS_SCRIPT) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoScriptExecution();
 			if (res == S_SUCCESS && res != tempRes)
@@ -172,7 +175,7 @@ namespace SpeedPoint
 		}
 
 		// Do the RenderScript part of the dynamics pipeline
-		if ((m_iCurrentSkipStages & S_DYNAMICS_RENDERSCRIPT) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_DYNAMICS_RENDERSCRIPT) == 0)
 		{			
 			tempRes = m_DynamicsPipeline.DoRecalcRenderscript();
 			if (res == S_SUCCESS && res != tempRes)
@@ -180,7 +183,6 @@ namespace SpeedPoint
 		}
 
 		// Return the result of all stages
-		params.Clear();
 		return res;
 	}
 
@@ -190,23 +192,24 @@ namespace SpeedPoint
 	{
 		SResult res = S_SUCCESS, tempRes = S_SUCCESS;
 
-		// fire event
-		SEventParameters params;
-		params.Add(ePARAM_SENDER, S_PARAMTYPE_PTR, this);
-		params.Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, m_pCustomEventParamData);
-		CallEvent(S_E_RENDER, &params);
+		// fire event			
+		CallEvent(S_E_RENDER, 0);
 
 		// Begin the rendering (Clear backbuffers, ...)
-		if ((m_iCurrentSkipStages & S_RENDER_BEGIN) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_RENDER_BEGIN) == 0)
 		{			
+			m_Stage = S_RENDER_BEGIN;
+
 			tempRes = m_pRenderPipeline->DoBeginRendering();
 			if (res == S_SUCCESS && res != tempRes)
 				res = tempRes;
 		}
 
 		// Begin the Draw-Calls for solids GeometrySection
-		if ((m_iCurrentSkipStages & S_RENDER_GEOMETRY) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_RENDER_GEOMETRY) == 0)
 		{
+			m_Stage = S_RENDER_GEOMETRY;
+
 			tempRes = m_pRenderPipeline->DoGeometrySection();
 			if (res == S_SUCCESS && res != tempRes)
 				res = tempRes;
@@ -220,28 +223,34 @@ namespace SpeedPoint
 		}				
 
 		// Do the lighting section
-		if ((m_iCurrentSkipStages & S_RENDER_LIGHTING) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_RENDER_LIGHTING) == 0)
 		{
+			m_Stage = S_RENDER_LIGHTING;
+
 			tempRes = m_pRenderPipeline->DoLightingSection();
 			if (res == S_SUCCESS && res != tempRes)
 				res = tempRes;
 		}
 
 		// Do the post section
-		if ((m_iCurrentSkipStages & S_RENDER_POST) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_RENDER_POST) == 0)
 		{
+			m_Stage = S_RENDER_POST;
+
 			tempRes = m_pRenderPipeline->DoPost();
 			if (res == S_SUCCESS && res != tempRes)
 				res = tempRes;
 		}
 
 		// Do end rendering
-		if ((m_iCurrentSkipStages & S_RENDER_PRESENT) == 0)
+		if ((m_iCurrentSkipStages & S_SKIP_RENDER_PRESENT) == 0)
 		{
+			m_Stage = S_RENDER_PRESENT;
+
 			tempRes = m_pRenderPipeline->DoEndRendering();
 			if (res == S_SUCCESS && res != tempRes)
 				res = tempRes;
-		}
+		}		
 
 		return res;
 	}
@@ -256,6 +265,8 @@ namespace SpeedPoint
 			&& m_pdLastFrameDuration
 			&& m_pFPSBeginTimestamp,
 			S_NOTINIT);
+
+		m_Stage = S_ENDFRAME;
 
 		// capture current timestamp and calculate FPS
 		*m_pFrameEndTimestamp = m_HighResClock.now();
@@ -277,7 +288,33 @@ namespace SpeedPoint
 			}
 		}
 
+		m_Stage = S_IDLE;
+
 		// Everything went well
 		return S_SUCCESS;
+	}
+
+	// ******************************************************************************************
+
+	S_API SResult SFramePipeline::CallEvent(unsigned int iIndex, SEventParameters* pParams)
+	{
+		SEventParameters* params = pParams;
+		if (!params)
+			params = new SEventParameters();
+
+		// Add sender parameter if not set already
+		SEventParameter* pSenderParam = 0;
+		if(params->IsInitialized())
+			params->Get(ePARAM_SENDER);
+
+		void* pSender = this;
+		if (!pSenderParam || !pSenderParam->m_pValue)
+		{			
+			params->Add(ePARAM_SENDER, S_PARAMTYPE_PTR, &pSender);
+		}
+
+		params->Add(ePARAM_CUSTOM_DATA, S_PARAMTYPE_PTR, &m_pCustomEventParamData);
+
+		return SObservedObject::CallEvent(iIndex, pParams);
 	}
 }

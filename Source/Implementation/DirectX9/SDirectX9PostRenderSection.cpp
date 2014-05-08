@@ -16,6 +16,7 @@
 #include <Abstract\IRenderer.h>
 #include <SSpeedPointEngine.h>
 #include <Util\SVertex.h>
+#include <DxErr.h>
 
 namespace SpeedPoint
 {
@@ -174,8 +175,14 @@ namespace SpeedPoint
 			if (FAILED(pPostEffect->BeginPass(iPass)))
 				res = m_pEngine->LogE("Failed to begin pass in post render section!");
 
-			if (Success(res) && FAILED(pDXRenderer->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 11 * 11, 0, 10 * 10 * 3)))
+			HRESULT debRes;
+			if (Success(res) && FAILED(debRes = pDXRenderer->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 11 * 11, 0, 10 * 10 * 3)))
+			{
 				res = m_pEngine->LogE("Failed to Draw indexed primitive in post render section!");
+#ifdef _DEBUG				
+				SP_ASSERTD(Success(res), "D3D9 Error: %s", DXGetErrorDescription(debRes));
+#endif
+			}
 
 			if (FAILED(pPostEffect->EndPass()))
 				res = m_pEngine->LogE("Failed to end pass in post render section!");

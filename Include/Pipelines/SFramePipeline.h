@@ -12,7 +12,8 @@
 #include <chrono> // Notice: Requires at least C++11 !
 
 namespace SpeedPoint
-{
+{	
+
 	// SpeedPoint Frame Pipeline Engine
 	// This is the main Pipeline of the Game Engine and handles all other pipeline.
 	// It also uses an Event System, so that you have access to all pipeline states in your CPP code or your Script
@@ -91,5 +92,9 @@ namespace SpeedPoint
 		{
 			return m_pCustomEventParamData;
 		}
+
+		// Overwrite CallEvent because we want to add some params that should be passed everwhere.
+		// By putting this into this function, we can save a lot of code.
+		SResult CallEvent(unsigned int iIndex, SEventParameters* pParams);
 	};	
 }

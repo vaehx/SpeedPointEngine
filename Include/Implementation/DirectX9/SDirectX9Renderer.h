@@ -5,6 +5,9 @@
 // ******************************************************************************************
 
 #pragma once
+
+#define D3D_DEBUG_INFO
+
 #include <SPrerequisites.h>
 #include <Abstract\IRenderer.h>
 #include "SDirectX9Settings.h"
