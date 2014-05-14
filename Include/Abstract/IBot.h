@@ -18,6 +18,6 @@ namespace SpeedPoint
 	class S_API IBot : public IEntity
 	{
 	public:
-		///// TODO
-	};
+		///// TODO				
+	};		
 }

@@ -62,6 +62,9 @@ namespace SpeedPoint
 		m_plSolids.Clear();
 		m_plSolids.ResetCounts();
 		
+		WNDCLASSEX wcex;
+
+
 		return S_SUCCESS;
 	}
 

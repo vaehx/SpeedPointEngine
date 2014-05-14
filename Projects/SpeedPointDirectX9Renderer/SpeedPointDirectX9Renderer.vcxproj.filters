@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9FrameBuffer.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9GeometryRenderSection.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -59,6 +56,9 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9PostRenderSection.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9FBO.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9Shader.cpp">
@@ -71,9 +71,6 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9Viewport.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9FrameBuffer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9GeometryRenderSection.cpp">
@@ -101,6 +98,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9PostRenderSection.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9FBO.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

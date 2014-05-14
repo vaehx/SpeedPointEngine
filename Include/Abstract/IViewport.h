@@ -14,15 +14,17 @@
 
 namespace SpeedPoint
 {
+	class S_API IFBO;
+
 	// SpeedPoint Renderer Viewport (abstract)
 	class S_API IViewport
 	{
 	public:
 		// Initialize this viewport with an Engine instance
-		virtual SResult Initialize( SpeedPointEngine* pEngine ) = 0;
+		virtual SResult Initialize(SpeedPointEngine* pEngine, bool bIsAdditional = true) = 0;
 
 		// check whether this viewport is an additional one
-		virtual bool IsAddition() = 0;
+		virtual bool IsAdditional() = 0;
 
 		// Get the size of this viewport
 		virtual SIZE GetSize( void ) = 0;
@@ -47,11 +49,14 @@ namespace SpeedPoint
 
 		// Get view matrix of the camera of this viewport
 		virtual SMatrix4 GetCameraViewMatrix() = 0;
+		
+		virtual HWND GetWindow() = 0;		
+		virtual void SetWindow(HWND hWnd) = 0;
 
 		/////// TODO: More viewport related settings
 
 		// Get a pointer to the backbuffer framebuffer object
-		virtual IFrameBuffer* GetBackBuffer( void ) = 0;
+		virtual IFBO* GetBackBuffer( void ) = 0;
 
 		// Set the pointer of the camera.
 		virtual SResult SetCamera( SCamera* pCamera ) = 0;

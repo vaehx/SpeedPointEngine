@@ -14,6 +14,8 @@
 
 namespace SpeedPoint
 {
+	class S_API SpeedPointEngine;
+
 	// DirectX9-Specific implementation of the Shader interface
 	class S_API SDirectX9Shader : public IShader
 	{

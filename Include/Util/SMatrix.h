@@ -113,6 +113,8 @@ namespace SpeedPoint
 
 	};
 
+	typedef struct S_API SMatrix SMatrix4;
+
 	static void SMatrixIdentity( SMatrix* pMtx )
 	{
 		if( pMtx != 0 )

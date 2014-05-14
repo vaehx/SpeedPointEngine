@@ -13,7 +13,7 @@
 #include <Abstract\Pipelines\IRenderPipelineSection.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IRendererSettings.h>
-#include <Abstract\IFrameBuffer.h>
+#include <Abstract\IFBO.h>
 #include <Abstract\IShader.h>
 
 // we also want to light our scene....

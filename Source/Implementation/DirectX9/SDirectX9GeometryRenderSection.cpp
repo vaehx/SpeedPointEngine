@@ -7,7 +7,7 @@
 #include <Implementation\DirectX9\SDirectX9GeometryRenderSection.h>
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9RenderPipeline.h>
-#include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
+#include <Implementation\DirectX9\SDirectX9FBO.h>
 #include <Implementation\DirectX9\SDirectX9VertexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9IndexBuffer.h>
 #include <Implementation\DirectX9\SDirectX9Texture.h>

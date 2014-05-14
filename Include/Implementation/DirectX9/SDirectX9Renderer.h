@@ -50,49 +50,53 @@ namespace SpeedPoint
 		// --
 
 		SResult AutoSelectAdapter( int nW, int nH );
+		SResult CollectDeviceCaps(void);
+		SResult SetRenderStateDefaults(void);
 
 		SResult InitDefaultViewport( HWND hWnd, int nW, int nH, DWORD * dwBeheaviourFlags );
 		
 		SResult CreateDX9Device( DWORD * dwBeheaviourFlags );
 		
-		SResult CollectDeviceCaps( void );
-		
-		SResult SetRenderStateDefaults( void );
 
 
 		// Derived:
 
 		S_RENDERER_TYPE GetType( void );
 		
-		SResult Initialize( SpeedPointEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter );
-		
+		SResult Initialize( SpeedPointEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter );		
+		bool IsInited(void);
+
 		SResult CreateAdditionalViewport( IViewport** pViewport );
 		
-		SResult Shutdown( void );
-		
-		bool IsInited( void );
+		SResult Shutdown( void );			
 		
 		IRenderPipeline* GetRenderPipeline( void );
 		
-		SResult BeginScene( void );
-		
+		SResult BeginScene( void );		
 		SResult EndScene( void );
 		
-		SResult SetTargetViewport( IViewport* pViewport );
-		
-		IViewport* GetTargetViewport( void );
-		
+		SResult SetTargetViewport( IViewport* pViewport );		
+		IViewport* GetTargetViewport( void );		
+
 		IViewport* GetDefaultViewport( void );
 		
 		SResult UpdateViewportMatrices( IViewport* pViewport );
 		
 		SResult RenderSolid(ISolid* pSolid, bool bTextured);
 
+
+		virtual IRendererSettings* GetSettings()
+		{
+			return (IRendererSettings*)&setSettings;
+		}
+
+
+
 		// Get the DirectX9 Specific Fixed Vertex Format
 		// normally used for CreateVertexBuffer
 		static DWORD GetDirectXFVF()
 		{
 			return D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2;
-		}
+		}		
 	};
 }

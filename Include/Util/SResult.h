@@ -47,6 +47,7 @@ namespace SpeedPoint
 		S_INVALIDSTAGE,
 		S_INVALIDGEOMSTRATEGY,
 		S_NOTIMPLEMENTED,
+		S_NOTFOUND,
 		S_NOTINIT,
 		S_NOTINITED = S_NOTINIT
 	};
@@ -235,5 +236,6 @@ namespace SpeedPoint
 	// Support HRESULT
 
 	static bool Failure(const HRESULT& r) { return r < 0; }
+	static bool Success(const HRESULT& r) { return !(r < 0); }
 
 } // namespace SpeedPoint

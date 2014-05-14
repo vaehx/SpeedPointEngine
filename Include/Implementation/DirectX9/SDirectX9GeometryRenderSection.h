@@ -8,7 +8,7 @@
 #include <SPrerequisites.h>
 #include <Abstract\Pipelines\IRenderPipelineSection.h>
 #include "SDirectX9Shader.h"
-#include "SDirectX9FrameBuffer.h"
+#include "SDirectX9FBO.h"
 
 namespace SpeedPoint
 {
@@ -22,10 +22,10 @@ namespace SpeedPoint
 		ISolid*				m_pCurrentSolid;	// current solid for which the Shader inputs are configured
 
 		SDirectX9Shader			m_gBufferShader;
-		SDirectX9FrameBuffer		m_GBufferPosition;	// in world space
-		SDirectX9FrameBuffer		m_GBufferNormals;	// in world space
-		SDirectX9FrameBuffer		m_GBufferTangents;	// in world space		
-		SDirectX9FrameBuffer		m_GBufferAlbedo;
+		SDirectX9FBO		m_GBufferPosition;	// in world space
+		SDirectX9FBO		m_GBufferNormals;	// in world space
+		SDirectX9FBO		m_GBufferTangents;	// in world space		
+		SDirectX9FBO		m_GBufferAlbedo;
 
 	// Initialization / Destruction
 	public:
@@ -75,15 +75,15 @@ namespace SpeedPoint
 
 	// Getter / Setter
 	public:
-		SDirectX9FrameBuffer* GetAlbedoFBO() { return &m_GBufferAlbedo; }
+		SDirectX9FBO* GetAlbedoFBO() { return &m_GBufferAlbedo; }
 		
 		// Normals are in world space
-		SDirectX9FrameBuffer* GetNormalsFBO() { return &m_GBufferNormals; }
+		SDirectX9FBO* GetNormalsFBO() { return &m_GBufferNormals; }
 
-		SDirectX9FrameBuffer* GetPositionsFBO() { return &m_GBufferPosition; }
+		SDirectX9FBO* GetPositionsFBO() { return &m_GBufferPosition; }
 		
 		// Tangents are in world space
-		SDirectX9FrameBuffer* GetTangentsFBO() { return &m_GBufferTangents; }
+		SDirectX9FBO* GetTangentsFBO() { return &m_GBufferTangents; }
 
 		usint32 GetCurrentPassCount() { return m_nCurrentPasses; }
 	};

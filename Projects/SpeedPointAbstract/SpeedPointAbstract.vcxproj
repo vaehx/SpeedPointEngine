@@ -76,7 +76,7 @@
     <ClInclude Include="..\..\Include\Abstract\ICommandBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IEngine.h" />
     <ClInclude Include="..\..\Include\Abstract\IEntity.h" />
-    <ClInclude Include="..\..\Include\Abstract\IFrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\IFBO.h" />
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IInteractive.h" />
     <ClInclude Include="..\..\Include\Abstract\IOctree.h" />

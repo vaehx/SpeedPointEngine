@@ -11,31 +11,37 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11FrameBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11IndexBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11OutputPlane.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11RenderEffect.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Renderer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11RenderPipeline.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11ResourcePool.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Settings.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Shader.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Texture.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11VertexBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\SDirectX11Viewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11FBO.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11GeometryRenderSection.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11IndexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11LightingRenderSection.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11OutputPlane.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11PostRenderSection.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderEffect.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Renderer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderPipeline.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11ResourcePool.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Settings.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Effect.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Texture.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11VertexBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Viewport.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11FrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11GeometryRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11FBO.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11IndexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11OutputPlane.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Renderer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11RenderPipeline.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11ResourcePool.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Settings.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Shader.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Effect.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Texture.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11VertexBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Viewport.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}</ProjectGuid>
@@ -77,7 +83,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SP_UNITTEST;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOL_DIR=R"($(SolutionDir))";SP_UNITTEST;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>

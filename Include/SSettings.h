@@ -11,7 +11,14 @@
 #include <Util\SColor.h>
 
 namespace SpeedPoint
-{	
+{
+	// specifying in which direction the vertices are set if the polygon is front-faced
+	enum S_API EFrontFace
+	{
+		eFF_CCW,	// counter-clock-wise
+		eFF_CW		// clock-wise
+	};
+
 	// SpeedPoint Engine settings
 	struct S_API SSettings
 	{
@@ -61,11 +68,15 @@ namespace SpeedPoint
 		{
 			S_RENDERER_TYPE tyRendererType; // maybe put this into a separate struct Iface sometimes
 
+			bool		bEnableVSync;	// (default 1) is not evaluated by DX9 !			
+			bool		bEnableMSAA;
+
 			bool		bRenderTextures;	// Textures enabled?
 			float		fClipNear;		// Near-Clipping depth
 			float		fClipFar;		// Far-Clipping depth
 
 			bool		bRenderWireframe;		// is the wireframe shader enabled or not						
+			EFrontFace	frontFaceType; 
 
 			bool		bRenderLighting;		// Render lighting although it is set up in environment?			
 			bool		bCustomLighting;	// prevents lights-buffer to be updated automatically if light added/removed or camera moved
@@ -76,34 +87,37 @@ namespace SpeedPoint
 		////////////////////////////////////////////////////////////////////////////////////////////////////////		
 
 		// Default constructor
-		SSettings::SSettings()			
+		SSettings::SSettings()
 		{
 			// ApplicationSet
-			app.hWnd			= 0;
-			app.nXResolution		= 1024;
-			app.nYResolution		= 768;
-			app.bMultithreaded		= false;
-			app.bWindowed			= true;
+			app.hWnd = 0;
+			app.nXResolution = 1024;
+			app.nYResolution = 768;
+			app.bMultithreaded = false;
+			app.bWindowed = true;
 
 			// EnvironmentSet
-			env.bPhysics			= false;	//// TODO: Switch this to true as soon as physics is implemented
-			env.bSound			= false;	//// TOOD: Switch this to true as soon as sound system is implemented		
-			env.nMaxSceneNodeChilds		= 10;
-			env.bAllowNodeChildsOverflow	= false;
-			env.fFogNear			= 20.0f;
-			env.fFogFar			= 40.0f;
-			env.fFogDensity			= 0.08f;
-			env.colFogColor			= SColor(0.1f, 0.1f, 0.1f);			
+			env.bPhysics = false;	//// TODO: Switch this to true as soon as physics is implemented
+			env.bSound = false;	//// TOOD: Switch this to true as soon as sound system is implemented		
+			env.nMaxSceneNodeChilds = 10;
+			env.bAllowNodeChildsOverflow = false;
+			env.fFogNear = 20.0f;
+			env.fFogFar = 40.0f;
+			env.fFogDensity = 0.08f;
+			env.colFogColor = SColor(0.1f, 0.1f, 0.1f);
 
 			// RenderSet
-			render.tyRendererType		= S_DIRECTX9;
-			render.bRenderTextures		= false;	// TODO: Swith this to true as soon as non-texturing was tested
-			render.fClipNear		= 2.0f;
-			render.fClipFar			= 200.0f;
-			render.bRenderLighting		= false;	///// TODO: Switch this to true as soon as lighting shader is implemented									
-			render.bRenderWireframe		= false;
-			render.bRenderFog		= false;
-			render.bCustomLighting		= false;
+			render.tyRendererType = S_DIRECTX11;
+			render.bEnableVSync = true;
+			render.bEnableMSAA = false;	// TODO: switch this to true as soon as everything else works
+			render.bRenderTextures = false;	// TODO: Swith this to true as soon as non-texturing was tested
+			render.fClipNear = 2.0f;
+			render.fClipFar = 200.0f;
+			render.bRenderLighting = false;	///// TODO: Switch this to true as soon as lighting shader is implemented									
+			render.bRenderWireframe = false;
+			render.frontFaceType = eFF_CW;
+			render.bRenderFog = false;
+			render.bCustomLighting = false;
 		}
 
 		// Default copy constructor
@@ -128,7 +142,13 @@ namespace SpeedPoint
 
 			// RenderSet
 			render.tyRendererType = o.render.tyRendererType;
+			render.bEnableVSync = o.render.bEnableVSync;
+			render.bEnableMSAA = o.render.bEnableMSAA;
 			render.bRenderTextures = o.render.bRenderTextures;
+			render.fClipFar = o.render.fClipFar;
+			render.fClipNear = o.render.fClipNear;
+			render.frontFaceType = o.render.frontFaceType;
+			render.bRenderWireframe = o.render.bRenderWireframe;
 			render.bRenderLighting = o.render.bRenderLighting;
 			render.bCustomLighting = o.render.bCustomLighting;
 			render.bRenderFog = o.render.bRenderFog;

@@ -34,9 +34,6 @@
     <ClInclude Include="..\..\Include\Abstract\IEntity.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IFrameBuffer.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -107,6 +104,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IScene.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IFBO.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

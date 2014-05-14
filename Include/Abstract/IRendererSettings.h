@@ -14,28 +14,23 @@
 namespace SpeedPoint
 {
 	// SpeedPoint Renderer Settings (abstract)
-	class S_API IRendererSettings
+	struct S_API IRendererSettings
 	{
-	public:
 		// Set the renderer belonging to these settings
 		virtual SResult SetRenderer( IRenderer* pRenderer ) = 0;
 
 		// --
-
-		// Set the colorkey for alpha textures
+		
 		virtual SResult SetAlphaColorKey( SColor colKey ) = 0;
-
-		// Set the multi sampling type
-		virtual SResult SetMultiSampleType( S_MULTISAMPLE_TYPE type ) = 0;
-
-		// Set the multi sampling quality
-		virtual SResult SetMultiSampleQuality( S_MULTISAMPLE_QUALITY quality ) = 0;
-
-		// Set the processing mode
+		virtual SColor& GetAlphaColorKey() = 0;
+		
+		virtual SResult SetMSAACount( const EMSAACount& type ) = 0;
+		virtual EMSAACount& GetMSAACount() = 0;
+		
+		virtual SResult SetMSAAQuality( const EMSAAQuality& quality ) = 0;
+		virtual EMSAAQuality& GetMSAAQuality() = 0;
+		
 		virtual SResult SetProcessingMode( S_PROCESSING_MODE mode ) = 0;
-
-		// -- Capabilities --
-
-		////// TODO
+		virtual S_PROCESSING_MODE& GetProcessingMode() = 0;
 	};
 }

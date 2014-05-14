@@ -1,7 +1,7 @@
 // SpeedPoint DirectX9 Viewport
 
 #include <Implementation\DirectX9\SDirectX9Viewport.h>
-#include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
+#include <Implementation\DirectX9\SDirectX9FBO.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <SpeedPoint.h>
 #include <Util\SMatrix.h>
@@ -15,6 +15,8 @@ namespace SpeedPoint
 	{
 		Clear(); // make sure to be cleared, before initialization a second time		
 		SP_ASSERTR((pEngine = eng), S_ERROR);
+
+		// creation of the additional swapchain is handled outside.
 
 		return S_SUCCESS;
 	}

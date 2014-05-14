@@ -13,10 +13,13 @@
 #include <Util\SMatrix.h>
 
 namespace SpeedPoint
-{
+{		
 	// DirectX9 specific implementation of the SpeedPoint Viewport (IViewport abstr)
 	class S_API SDirectX9Viewport : public IViewport
 	{
+	private:
+		bool			m_bIsAdditional;
+
 	public:
 		SCamera*		pCamera;
 		SpeedPointEngine*	pEngine;
@@ -28,7 +31,7 @@ namespace SpeedPoint
 		SMatrix			mProjection, mView;
 		int			nXResolution, nYResolution;
 		float			fOrthoW, fOrthoH;
-		float			fFOV;
+		float			fFOV;		
 
 		// Default constructor
 		SDirectX9Viewport()
@@ -39,7 +42,8 @@ namespace SpeedPoint
 			pEngine(NULL),
 			hWnd(NULL),
 			pBackBuffer(NULL),
-			pSwapChain(NULL)
+			pSwapChain(NULL),
+			m_bIsAdditional(false)
 		{
 		}
 
@@ -52,12 +56,13 @@ namespace SpeedPoint
 			pEngine(o.pEngine),
 			hWnd(o.hWnd),
 			pBackBuffer(o.pBackBuffer),
-			pSwapChain(o.pSwapChain)
+			pSwapChain(o.pSwapChain),
+			m_bIsAdditional(o.m_bIsAdditional)
 		{
 		}
 
 		// Initialize this viewport with an Engine instance
-		virtual SResult Initialize( SpeedPointEngine* pEngine );
+		virtual SResult Initialize(SpeedPointEngine* pEngine, bool bIsAdditional = true);
 
 		// check whether this viewport is an additional one
 		virtual bool IsAddition();
@@ -88,8 +93,11 @@ namespace SpeedPoint
 
 		/////// TODO: More viewport related settings
 
+		virtual HWND GetWindow() = 0;
+		virtual void SetWindow(HWND hWnd) = 0;
+
 		// Get a pointer to the backbuffer framebuffer object
-		virtual IFrameBuffer* GetBackBuffer( void );
+		virtual IFrameBufferObject* GetBackBuffer( void );
 
 		// Set the pointer of the camera.
 		virtual SResult SetCamera( SCamera* pCamera );

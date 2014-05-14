@@ -70,7 +70,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9FrameBuffer.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9FBO.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9GeometryRenderSection.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9IndexBuffer.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9LightingRenderSection.h" />
@@ -88,7 +88,7 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX9\SDirectX9Viewport.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9FrameBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9FBO.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9GeometryRenderSection.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9IndexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX9\SDirectX9LightingRenderSection.cpp" />
