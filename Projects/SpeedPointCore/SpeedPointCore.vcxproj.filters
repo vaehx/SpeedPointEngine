@@ -89,9 +89,6 @@
     <ClInclude Include="..\..\Include\Pipelines\SDynamicsPipeline.h">
       <Filter>Headers\Pipelines</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Pipelines\SFramePipeline.h">
-      <Filter>Headers\Pipelines</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SAPI.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -177,6 +174,9 @@
       <Filter>Headers\Util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Pipelines\SCommandBuffering.h">
+      <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Pipelines\FramePipeline.h">
       <Filter>Headers\Pipelines</Filter>
     </ClInclude>
   </ItemGroup>

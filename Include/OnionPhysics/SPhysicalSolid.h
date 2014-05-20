@@ -7,13 +7,13 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Implementation\Geometry\SBasicSolid.h>
+#include <Implementation\Geometry\Solid.h>
 #include "SPhysIntersectInfo.h"
 
 namespace SpeedPoint
 {
 	// Implementation of the ISolid for Physics based on the Basic Implementation
-	class SPhysicalSolid : public SBasicSolid
+	class SPhysicalSolid : public Solid
 	{
 	private:
 		SVector3	m_Velocity;	// current velocity

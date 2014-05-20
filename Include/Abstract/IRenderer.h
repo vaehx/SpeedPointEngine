@@ -13,6 +13,8 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include <Abstract\IViewport.h>	// for SViewportDescription
+
 using std::vector;
 
 namespace SpeedPoint
@@ -44,6 +46,7 @@ namespace SpeedPoint
 
 	enum S_API ERenderTargetCollectionID
 	{
+		eRENDERTARGETS_NONE,
 		eRENDERTARGETS_GBUFFER,
 		eRENDERTARGETS_LBUFFER,
 		eRENDERTARGETS_BACKBUFFER
@@ -85,6 +88,11 @@ namespace SpeedPoint
 		}
 	};
 
+	
+
+
+	class IVertexBuffer;
+	class IIndexBuffer;
 
 
 	// SpeedPoint Renderer (abstract)
@@ -98,8 +106,8 @@ namespace SpeedPoint
 		virtual SResult Initialize( SpeedPointEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter ) = 0;
 
 		// Arguments:
-		//	pDesc - ptr to your instance of SDisplayModeDescription structure
-		virtual SResult GetDisplayModeDesc(SDisplayModeDescription* pDesc) = 0;
+		//	pDesc - ptr to your instance of SDisplayModeDescription structure. This instance will be filled by the function
+		virtual SResult GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pDesc) = 0;
 
 		virtual bool AdapterModeSupported(usint32 nW, usint32 nH) = 0;
 
@@ -117,6 +125,12 @@ namespace SpeedPoint
 		//		If bStore is false, these added FBOs are untouched and the function looks for an existing collection with given index
 		virtual SResult BindFBOs(ERenderTargetCollectionID collectionID, bool bStore = false) = 0;
 
+		// Binds a single FrameBuffer Object (mainly used for binding a single backbuffer of a viewport in post-rendering section)
+		virtual SResult BindFBO(IFBO* pFBO);
+
+		virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0) = 0;
+		virtual SResult SetIBStream(IIndexBuffer* pIB) = 0;
+
 		// Get the current target viewport
 		virtual IViewport* GetTargetViewport( void ) = 0;
 
@@ -127,7 +141,7 @@ namespace SpeedPoint
 		virtual SResult UpdateViewportMatrices( IViewport* pViewport ) = 0;
 
 		// Create an an addition viewport
-		virtual SResult CreateAdditionalViewport( IViewport** pViewport ) = 0;
+		virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc) = 0;
 
 		// Clearout everything (viewports, buffers, stop render Pipeline thread and task buffer)
 		virtual SResult Shutdown( void ) = 0;
@@ -138,8 +152,10 @@ namespace SpeedPoint
 		// Get a pointer to the instance of the render pipeline
 		virtual IRenderPipeline* GetRenderPipeline( void ) = 0;	
 	
-		virtual SResult BeginScene( void ) = 0;		
-		virtual SResult EndScene( void ) = 0;	
+		virtual SResult BeginScene(void) = 0;		
+		virtual SResult EndScene(void) = 0;	
+
+		virtual SResult ClearRenderTargets(void) = 0;
 
 		virtual IRendererSettings* GetSettings() = 0;
 	};

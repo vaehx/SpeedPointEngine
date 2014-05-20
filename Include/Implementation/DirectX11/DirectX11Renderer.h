@@ -83,6 +83,12 @@ private:
 	map<ERenderTargetCollectionID, SRenderTargetCollection>* m_pRenderTargetCollections;
 
 	IFBO* m_pTargetViewportBackBuffer;
+	IViewport* m_pTargetViewport;
+	ID3D11RenderTargetView* m_pDXRenderTarget;	
+
+	ERenderTargetCollectionID m_iCurRTCollection;
+
+	ID3D11DepthStencilState* m_pDepthStencilState;
 
 public:				
 	DirectX11Renderer();
@@ -96,48 +102,66 @@ public:
 
 	SResult InitDefaultViewport(HWND hWnd, int nW, int nH);		
 
-	SResult CreateDX11Device(
-		/* Maybe add some more Arguments! */
-		);
+
+	SResult CreateDX11Device();
 
 	ID3D11Device* GetD3D11Device() const { return m_pD3DDevice; }
 	ID3D11DeviceContext* GetD3D11DeviceContext() const { return m_pD3DDeviceContext; }
 
+	DXGI_MODE_DESC GetD3D11AutoSelectedDisplayModeDesc() { return m_AutoSelectedDisplayModeDesc; }
+
+	SResult D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDesc, IDXGISwapChain** ppSwapChain);
+	SResult D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV);
+
+	SResult SetRenderTarget(IViewport* pViewport);
+	SResult SetRenderTarget(DirectX11FBO* pFBO);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Derived:
 
 	virtual S_RENDERER_TYPE GetType(void);
 
-	virtual SResult GetDisplayModeDesc(SDisplayModeDescription* pDesc);
+	virtual SResult GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pDesc);
 
-	// !! bIgnoreAdapter is not evaluated in the D3D11Renderer !!	
+	// Note:
+	//	!! bIgnoreAdapter is not evaluated in the D3D11Renderer !!	
 	virtual SResult Initialize(SpeedPointEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter);
 
 	virtual bool IsInited(void);
 	virtual SResult Shutdown(void);
 
+	// Note:
+	//	Not implemented yet!
 	virtual bool AdapterModeSupported(usint32 nW, usint32 nH)
 	{
-		return false; // not implemented yet
+		return false;
 	}
 
 	virtual SResult AddBindedFBO(usint32 index, IFBO* pFBO);
 	virtual SResult BindFBOs(ERenderTargetCollectionID collcetionID, bool bStore = false);
+	virtual SResult BindFBO(IFBO* pFBO);
 
-	// creates an additional swap chain for the same window as the default viewport
-	virtual SResult CreateAdditionalViewport(IViewport** pViewport);				
+	// Description:
+	//	creates an additional swap chain for the same window as the default viewport
+	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc);	
 
 	virtual IRenderPipeline* GetRenderPipeline(void);
 
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
 
+	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0);
+	virtual SResult SetIBStream(IIndexBuffer* pIB);
+
+	virtual SResult ClearRenderTargets(void);
+
 	virtual SResult SetTargetViewport(IViewport* pViewport);
 	virtual IViewport* GetTargetViewport(void);
 
 	virtual IViewport* GetDefaultViewport(void);
 
+	// Note:
+	//	Doesn't actually do anything in DX11 due to removed fixed pipeline
 	virtual SResult UpdateViewportMatrices(IViewport* pViewport);
 
 	virtual SResult RenderSolid(ISolid* pSolid, bool bTextured);	

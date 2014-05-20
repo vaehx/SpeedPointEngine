@@ -32,5 +32,8 @@ namespace SpeedPoint
 		
 		virtual SResult SetProcessingMode( S_PROCESSING_MODE mode ) = 0;
 		virtual S_PROCESSING_MODE& GetProcessingMode() = 0;
+
+		virtual void SetClearColor(const SColor& clearColor) = 0;
+		virtual SColor& GetClearColor() = 0;
 	};
 }

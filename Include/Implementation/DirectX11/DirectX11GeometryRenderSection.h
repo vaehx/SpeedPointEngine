@@ -16,6 +16,9 @@
 
 SP_NMSPACE_BEG
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 class S_API DirectX11GeometryRenderSection : public IRenderPipelineSection
 {
 private:
@@ -30,18 +33,14 @@ private:
 	DirectX11FBO m_GBufferTangents;	// in world space		
 	DirectX11FBO m_GBufferAlbedo;
 
+
+
 	// Initialization / Destruction
-public:
-	// Default constructor
-	DirectX11GeometryRenderSection();
-
-	// Default Destructor
+public:	
+	DirectX11GeometryRenderSection();	
 	~DirectX11GeometryRenderSection();
-
-	// Initialize
-	virtual SResult Initialize(SpeedPointEngine* eng, IRenderPipeline* pRenderPipeline);
-
-	// Clearout the section
+	
+	virtual SResult Initialize(SpeedPointEngine* eng, IRenderPipeline* pRenderPipeline);	
 	virtual SResult Clear(void);
 
 	// Prepare render targets for the geometry section
@@ -49,6 +48,8 @@ public:
 
 	// Exit the GBuffer creation shader
 	SResult EndSection(void);
+
+
 
 	// Render calls
 public:
@@ -76,6 +77,8 @@ public:
 	// Free the shader from the current input
 	SResult FreeShaderInput();
 
+
+
 	// Getter / Setter
 public:
 	DirectX11FBO* GetAlbedoFBO() { return &m_GBufferAlbedo; }
@@ -90,5 +93,10 @@ public:
 
 	usint32 GetCurrentPassCount() { return m_nCurrentPasses; }
 };
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 SP_NMSPACE_END

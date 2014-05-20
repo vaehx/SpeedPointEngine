@@ -1,6 +1,6 @@
 // SpeedPoint Basic Solid
 
-#include <Implementation\Geometry\SBasicSolid.h>
+#include <Implementation\Geometry\Solid.h>
 #include <SpeedPoint.h>
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
@@ -8,7 +8,7 @@
 
 namespace SpeedPoint
 {
-	S_API SBasicSolid::~SBasicSolid()
+	S_API Solid::~Solid()
 	{
 		// Make sure resources are freed
 		Clear();
@@ -22,32 +22,32 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::Initialize( SpeedPointEngine* eng, bool dyn )
+	S_API SResult Solid::Initialize( SpeedPointEngine* eng, bool dyn )
 	{	
 		if( eng == NULL ) return S_ABORTED;
-		pEngine = eng;
+		m_pEngine = eng;
 
 		if( Failure( Clear() ) )
-			return pEngine->LogReport( S_ABORTED, "Could not clear previously initialized Basic solid!" );		
+			return m_pEngine->LogReport( S_ABORTED, "Could not clear previously initialized Basic solid!" );		
 	
-		bDynamic = dyn;			
+		m_bDynamic = dyn;			
 
 		// Create the vertex- and indexbuffer
 		IResourcePool* pResourcePool;
-		if( NULL == ( pResourcePool = pEngine->GetResourcePool()) )
+		if( NULL == ( pResourcePool = m_pEngine->GetResourcePool()) )
 		{
-			return pEngine->LogReport( S_ERROR, "Could not get Engine Resource pool while initializing basic solid" );
+			return m_pEngine->LogReport( S_ERROR, "Could not get Engine Resource pool while initializing basic solid" );
 		}
 
 		// VertexBuffer		
-		if( Failure( pResourcePool->AddVertexBuffer( NULL, &iVertexBuffer ) ) )
+		if( Failure( pResourcePool->AddVertexBuffer( NULL, &m_iVertexBuffer ) ) )
 		{
-			return pEngine->LogReport( S_ERROR, "Could not create Vertex buffer for solid" );
+			return m_pEngine->LogReport( S_ERROR, "Could not create Vertex buffer for solid" );
 		}		
 
-		if( Failure( pResourcePool->AddIndexBuffer( NULL, &iIndexBuffer ) ) )
+		if( Failure( pResourcePool->AddIndexBuffer( NULL, &m_iIndexBuffer ) ) )
 		{
-			return pEngine->LogReport( S_ERROR, "Could not create Index Buffer for solid!" );
+			return m_pEngine->LogReport( S_ERROR, "Could not create Index Buffer for solid!" );
 		}
 
 		return S_SUCCESS;
@@ -55,34 +55,34 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::Clear( void )
+	S_API SResult Solid::Clear( void )
 	{
-		if( bInitialized )
+		if( m_bInitialized )
 		{
-			IVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
+			IVertexBuffer* pVertexBuffer = m_pEngine->GetResourcePool()->GetVertexBuffer( m_iVertexBuffer );
 			if( pVertexBuffer )
 			{
 				pVertexBuffer->Clear();
-				pEngine->GetResourcePool()->RemoveVertexBuffer( iVertexBuffer );
-				iVertexBuffer = SP_ID();
+				m_pEngine->GetResourcePool()->RemoveVertexBuffer( m_iVertexBuffer );
+				m_iVertexBuffer = SP_ID();
 			}
 
-			IIndexBuffer* pIndexBuffer = pEngine->GetResourcePool()->GetIndexBuffer( iIndexBuffer );
+			IIndexBuffer* pIndexBuffer = m_pEngine->GetResourcePool()->GetIndexBuffer( m_iIndexBuffer );
 			if( pIndexBuffer )
 			{
 				pIndexBuffer->Clear();
-				pEngine->GetResourcePool()->RemoveIndexBuffer( iIndexBuffer );
-				iIndexBuffer = SP_ID();
+				m_pEngine->GetResourcePool()->RemoveIndexBuffer( m_iIndexBuffer );
+				m_iIndexBuffer = SP_ID();
 			}
 
-			if( pOctree )
+			if( m_pOctree )
 			{
-				pOctree->Clear();
-				delete pOctree;
-				pOctree = NULL;
+				m_pOctree->Clear();
+				delete m_pOctree;
+				m_pOctree = NULL;
 			}
 
-			pEngine = NULL;
+			m_pEngine = NULL;
 		}
 
 		return S_SUCCESS;
@@ -90,44 +90,56 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::SetGeometryData( SVertex* pVertices, UINT nVertices, DWORD* pdwIndices, UINT nIndices )
+	S_API SResult Solid::SetGeometryData( SVertex* pVertices, UINT nVertices, DWORD* pdwIndices, UINT nIndices )
 	{
-		if( pEngine == NULL ) return S_ABORTED;
+		if( m_pEngine == NULL ) return S_ABORTED;
 
 		if( pVertices == NULL && pdwIndices == NULL )
-			return pEngine->LogReport( S_ABORTED, "NullPointers given as geometry data when settings basic solid geometry" );
+			return m_pEngine->LogReport( S_ABORTED, "NullPointers given as geometry data when settings basic solid geometry" );
 
 		
 		// Fill Vertices
-		IVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
+		IVertexBuffer* pVertexBuffer = m_pEngine->GetResourcePool()->GetVertexBuffer( m_iVertexBuffer );
 		
 		if( pVertexBuffer == NULL )		
-			return pEngine->LogReport( S_ERROR, "BasicSolid seems not to be initialized yet (invalid Vertexbuffer)!" );
+			return m_pEngine->LogReport( S_ERROR, "BasicSolid seems not to be initialized yet (invalid Vertexbuffer)!" );
 		
 		if( pVertexBuffer->IsInited() && Failure( pVertexBuffer->Clear() ) )			
-			return pEngine->LogReport( S_ERROR, "Could not clear previously initialized Vertex buffer when setting geometry" );					
+			return m_pEngine->LogReport( S_ERROR, "Could not clear previously initialized Vertex buffer when setting geometry" );					
 
-		if( Failure( pVertexBuffer->Initialize( nVertices, bDynamic, pEngine, pEngine->GetRenderer() ) ) )
-			return pEngine->LogReport( S_ERROR, "Could not initilize Vertex Buffer when setting geometry data for basic solid!" );
+		if( Failure( pVertexBuffer->Initialize( nVertices, m_bDynamic, m_pEngine, m_pEngine->GetRenderer() ) ) )
+			return m_pEngine->LogReport( S_ERROR, "Could not initilize Vertex Buffer when setting geometry data for basic solid!" );
 
 		if( Failure( pVertexBuffer->Fill( pVertices, nVertices, false ) ) )
-			return pEngine->LogReport( S_ERROR, "Could not set vertex geometry data for basic solid" );
+			return m_pEngine->LogReport( S_ERROR, "Could not set vertex geometry data for basic solid" );
 
 
 		// Fill Indices
-		IIndexBuffer* pIndexBuffer = pEngine->GetResourcePool()->GetIndexBuffer( iIndexBuffer );		
+		IIndexBuffer* pIndexBuffer = m_pEngine->GetResourcePool()->GetIndexBuffer( m_iIndexBuffer );		
 
 		if( pIndexBuffer == NULL )
-			return pEngine->LogReport( S_ERROR, "BasicSolid seems not to be initialized yet (invalid Indexbuffer)!" );
+			return m_pEngine->LogReport( S_ERROR, "BasicSolid seems not to be initialized yet (invalid Indexbuffer)!" );
 
 		if( pIndexBuffer->IsInited() && Failure( pIndexBuffer->Clear() ) )
-			return pEngine->LogReport( S_ERROR, "Failed clear previously initialized indexbuffer when setting geometry" );
+			return m_pEngine->LogReport( S_ERROR, "Failed clear previously initialized indexbuffer when setting geometry" );
 
-		if( Failure( pIndexBuffer->Initialize( nIndices, bDynamic, pEngine, pEngine->GetRenderer(), S_INDEXBUFFER_32 ) ) )
-			return pEngine->LogReport( S_ERROR, "Could not initialize Index Buffer when settings geometry data for basic solid!" );
+
+
+
+
+		// TODO: check if using 16 bit oder 32 index buffer!
+
+		if( Failure( pIndexBuffer->Initialize( nIndices, m_bDynamic, m_pEngine, m_pEngine->GetRenderer(), S_INDEXBUFFER_32 ) ) )
+			return m_pEngine->LogReport( S_ERROR, "Could not initialize Index Buffer when settings geometry data for basic solid!" );
+
+
+
+
+
+
 
 		if( Failure( pIndexBuffer->Fill( pdwIndices, nIndices, false ) ) )
-			return pEngine->LogReport( S_ERROR, "Could not set index geometry data for basic solid!" );
+			return m_pEngine->LogReport( S_ERROR, "Could not set index geometry data for basic solid!" );
 
 
 		return S_SUCCESS;
@@ -135,26 +147,26 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SP_ID SBasicSolid::GetVertexBuffer( void )
+	S_API SP_ID Solid::GetVertexBuffer( void )
 	{
-		return iVertexBuffer;
+		return m_iVertexBuffer;
 	}
 
 	// **********************************************************************************
 
-	S_API SP_ID SBasicSolid::GetIndexBuffer( void )
+	S_API SP_ID Solid::GetIndexBuffer( void )
 	{
-		return iIndexBuffer;
+		return m_iIndexBuffer;
 	}	
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::RenderSolid(SpeedPointEngine* pEngineReplacement)
+	S_API SResult Solid::RenderSolid(SpeedPointEngine* m_pEngineReplacement)
 	{
-		SpeedPointEngine* pFinalEngine = pEngine;
+		SpeedPointEngine* pFinalEngine = m_pEngine;
 		
-		if (pEngineReplacement != 0)		
-			pFinalEngine = pEngineReplacement;
+		if (m_pEngineReplacement != 0)		
+			pFinalEngine = m_pEngineReplacement;
 
 		SP_ASSERTR(pFinalEngine, S_ABORTED, "Engine is zero! Not initialized?");
 		SP_ASSERTR(pFinalEngine->GetRenderer() && pFinalEngine->GetRenderer()->GetRenderPipeline(), S_ABORTED, "Renderer or Render pipeline of engine is zero!");
@@ -170,16 +182,16 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 	
-	S_API SP_ID SBasicSolid::AddPrimitive( const SPrimitive& primitive )
+	S_API SP_ID Solid::AddPrimitive( const SPrimitive& primitive )
 	{
-		if( pEngine == NULL ) return SP_ID();
+		if( m_pEngine == NULL ) return SP_ID();
 
 		SP_ID iUID;
-		SPrimitive* pPrimitive = plPrimitives.AddItem( primitive, &iUID );
+		SPrimitive* pPrimitive = m_plPrimitives.AddItem( primitive, &iUID );
 		
 		if( pPrimitive == NULL )
 		{
-			pEngine->LogReport( S_ERROR, "Failed to add Primitive to Basic solid!" );
+			m_pEngine->LogReport( S_ERROR, "Failed to add Primitive to Basic solid!" );
 			return SP_ID();
 		}
 
@@ -188,23 +200,23 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 	
-	S_API SPrimitive* SBasicSolid::GetPrimitive( SP_ID id )
+	S_API SPrimitive* Solid::GetPrimitive( SP_ID id )
 	{
-		return plPrimitives.GetItemByUID( id );
+		return m_plPrimitives.GetItemByUID( id );
 	}
 
 	// **********************************************************************************
 
-	S_API SPrimitive* SBasicSolid::GetPrimitive( SP_UNIQUE index )
+	S_API SPrimitive* Solid::GetPrimitive( SP_UNIQUE index )
 	{
-		return plPrimitives.GetItemByIndirectionIndex( index );
+		return m_plPrimitives.GetItemByIndirectionIndex( index );
 	}
 
 	// **********************************************************************************
 
-	S_API usint32 SBasicSolid::GetPrimitiveCount( void )
+	S_API usint32 Solid::GetPrimitiveCount( void )
 	{
-		return plPrimitives.GetSize();
+		return m_plPrimitives.GetSize();
 	}
 
 
@@ -219,17 +231,17 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 	
-	S_API void SBasicSolid::SetMaterial( const SMaterial& mat )
+	S_API void Solid::SetMaterial( const SMaterial& mat )
 	{
-		matMaterial = mat;
+		m_matMaterial = mat;
 		return;
 	}
 
 	// **********************************************************************************
 
-	S_API SMaterial* SBasicSolid::GetMaterial( void )
+	S_API SMaterial* Solid::GetMaterial( void )
 	{
-		return &matMaterial;
+		return &m_matMaterial;
 	}
 
 
@@ -241,19 +253,19 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SBoundBox* SBasicSolid::RecalculateBoundBox( void )
+	S_API SBoundBox* Solid::RecalculateBoundBox( void )
 	{
-		if( pEngine == NULL ) return NULL;
+		if( m_pEngine == NULL ) return NULL;
 
-		IVertexBuffer* pVertexBuffer = pEngine->GetResourcePool()->GetVertexBuffer( iVertexBuffer );
+		IVertexBuffer* pVertexBuffer = m_pEngine->GetResourcePool()->GetVertexBuffer( m_iVertexBuffer );
 		
 		if( pVertexBuffer == NULL || pVertexBuffer->GetVertexCount() < 0 ) return NULL;		
 
 		if( pVertexBuffer->GetVertexCount() == 0 )
 		{
-			bbBoundBox.vMin = S_DEFAULT_VEC3;
-			bbBoundBox.vMax = S_DEFAULT_VEC3;			
-			return &bbBoundBox;
+			m_bbBoundBox.vMin = S_DEFAULT_VEC3;
+			m_bbBoundBox.vMax = S_DEFAULT_VEC3;			
+			return &m_bbBoundBox;
 		}
 	
 		SVector3 cMin = S_DEFAULT_VEC3;
@@ -279,25 +291,25 @@ namespace SpeedPoint
 				cMax.z = pVertexBuffer->GetVertex(i)->z;
 		}
 	
-		bbBoundBox.vMin = cMin;
-		bbBoundBox.vMax = cMax;
+		m_bbBoundBox.vMin = cMin;
+		m_bbBoundBox.vMax = cMax;
 	
-		return &bbBoundBox;
+		return &m_bbBoundBox;
 	}
 
 	// **********************************************************************************
 
-	S_API SBoundBox* SBasicSolid::GetBoundBox( void )
+	S_API SBoundBox* Solid::GetBoundBox( void )
 	{
-		return &bbBoundBox;
+		return &m_bbBoundBox;
 	}
 
 	// **********************************************************************************
 
-	S_API SBoundBox* SBasicSolid::SetBoundBox( const SBoundBox& bb )
+	S_API SBoundBox* Solid::SetBoundBox( const SBoundBox& bb )
 	{
-		bbBoundBox = bb;
-		return &bbBoundBox;
+		m_bbBoundBox = bb;
+		return &m_bbBoundBox;
 	}
 
 
@@ -308,9 +320,9 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API IOctree* SBasicSolid::GetOctree( void )
+	S_API IOctree* Solid::GetOctree( void )
 	{
-		return pOctree;
+		return m_pOctree;
 	}
 
 
@@ -322,37 +334,37 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API void SBasicSolid::SetAnimationBundle( SP_ID iBundle )
+	S_API void Solid::SetAnimationBundle( SP_ID iBundle )
 	{
 		return;
 	}
 
 	// **********************************************************************************
 
-	S_API SP_ID SBasicSolid::GetAnimationBundle( void )
+	S_API SP_ID Solid::GetAnimationBundle( void )
 	{
 		return SP_ID();
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::RunAnimation( SString cName )
+	S_API SResult Solid::RunAnimation( SString cName )
 	{
-		return S_ERROR;
+		return S_NOTIMPLEMENTED;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::GetCurrentAnimation( SString* dest )
+	S_API SResult Solid::GetCurrentAnimation( SString* dest )
 	{
-		return S_ERROR;
+		return S_NOTIMPLEMENTED;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolid::TickAnimation( float fFrameDelay )
+	S_API SResult Solid::TickAnimation( float fFrameDelay )
 	{
-		return S_ERROR;
+		return S_NOTIMPLEMENTED;
 	}
 
 }

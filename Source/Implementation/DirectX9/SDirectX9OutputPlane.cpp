@@ -2,7 +2,7 @@
 
 #include <Implementation\DirectX9\SDirectX9Renderer.h>
 #include <Implementation\DirectX9\SDirectX9OutputPlane.h>
-#include <Implementation\DirectX9\SDirectX9FrameBuffer.h>
+#include <Implementation\DirectX9\SDirectX9FBO.h>
 #include <Implementation\DirectX9\SDirectX9Utilities.h>
 #include <Util\SVertex.h>
 #include <SpeedPoint.h>
@@ -106,7 +106,7 @@ namespace SpeedPoint
 
 	// This function should only be called by the Render Pipeline!
 	// The target buffers should be set properly already!
-	S_API SResult SDirectX9OutputPlane::Render( IFrameBuffer* pGBufferAlbedo, IFrameBuffer* pLightingBuffer )
+	S_API SResult SDirectX9OutputPlane::Render( IFBO* pGBufferAlbedo, IFBO* pLightingBuffer )
 	{
 		return S_NOTIMPLEMENTED;
 	}

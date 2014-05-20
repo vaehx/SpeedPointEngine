@@ -15,24 +15,37 @@
 
 SP_NMSPACE_BEG
 
+
+
 class S_API DirectX11FBO : public IFBO
 {
 private:
-	SpeedPointEngine*	m_pEngine;
-	DirectX11Renderer*	m_pDXRenderer;
+	SpeedPointEngine* m_pEngine;
+	DirectX11Renderer* m_pDXRenderer;
 
-	ID3D11Texture2D*	m_pTexture;
+	ID3D11Texture2D* m_pTexture;
 	ID3D11RenderTargetView* m_pRTV;
 
-	//LPDIRECT3DTEXTURE9	pTexture;
-	//LPDIRECT3DSURFACE9	pSurface;
+	ID3D11DepthStencilView* m_pDepthStencilView;
+	ID3D11Texture2D* m_pDepthStencilBuffer;
+
+	EFBOType m_FBOType;
+
+	usint32 m_nBufferWidth, m_nBufferHeight;
+
 
 public:
 	DirectX11FBO();
 	~DirectX11FBO();	
 
-	// initialize with given renderer
-	virtual SResult Initialize(EFBOType type, SSpeedPointEngine* pEngine, IRenderer* pRenderer, unsigned int nW, unsigned int nH);
+	// Summary:
+	//	Initialize with given renderer
+	// Arguments:
+	//	nW / nH - (default 0) resolution of the buffer. set to 0 or omit to use FBOType-Default
+	virtual SResult Initialize(EFBOType type, SSpeedPointEngine* pEngine, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0);
+	
+	virtual SResult InitializeDSV();
+
 	virtual bool IsInitialized();
 
 	// Clear buffers
@@ -53,7 +66,16 @@ public:
 	{
 		return m_pRTV;
 	}
+	void SetRTV(ID3D11RenderTargetView* pRTV)
+	{
+		SP_ASSERT(pRTV);
+		m_pRTV = pRTV;
+	}
+
+	ID3D11DepthStencilView* GetDSV() { return m_pDepthStencilView; }
 };
+
+
 
 
 SP_NMSPACE_END

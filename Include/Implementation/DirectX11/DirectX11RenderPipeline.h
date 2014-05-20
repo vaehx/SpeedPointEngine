@@ -9,10 +9,9 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <d3dx9.h>
-
 #include <Abstract\Pipelines\IRenderPipeline.h>
 
+#include "DirectX11.h"
 #include "DirectX11GeometryRenderSection.h"
 #include "DirectX11LightingRenderSection.h"
 #include "DirectX11PostRenderSection.h"
@@ -22,6 +21,8 @@
 SP_NMSPACE_BEG
 
 class DirectX11Renderer;
+class IViewport;
+class SFramePipeline;
 
 // DirectX9 Implementation of the SpeedPoint Render Pipeline
 class S_API DirectX11RenderPipeline : public IRenderPipeline

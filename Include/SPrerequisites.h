@@ -29,6 +29,7 @@
 
 #include "Util\SWindowsSpecific.h"
 #include <vector>
+#include <cmath>
 
 #include "Util\SResult.h"	// SResult, IExceptionProxy
 #include "Util\SAssert.h"
@@ -70,6 +71,14 @@ typedef double f64; // 64bit (double-)precision float value
 
 // SpeedPoint unique identifier index (unsigned)
 typedef usint32 SP_UNIQUE;
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Some math utility functions
+
+static inline float cotf(float val) { return (1.0f / tanf(val)); }
+static inline double cot(double val) { return (1.0f / tan(val)); }
+static inline double cot(float val) { return (1.0f / tan((double)val)); }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

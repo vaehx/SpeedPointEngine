@@ -14,9 +14,10 @@
 
 SP_NMSPACE_BEG
 
-// DirectX11 Utilities
+// DirectX11 Utilities and helper functions
 
-static S_API DXGI_SAMPLE_DESC GetD3D11MSAADesc(
+// -------------------------------------------------------------------------
+static inline S_API DXGI_SAMPLE_DESC GetD3D11MSAADesc(
 	DXGI_FORMAT backBufferFormat,
 	ID3D11Device* pD3D11Device,
 	const EMSAACount& count,
@@ -70,5 +71,8 @@ static S_API DXGI_SAMPLE_DESC GetD3D11MSAADesc(
 	return out;
 
 }
+
+// -------------------------------------------------------------------------
+
 
 SP_NMSPACE_END

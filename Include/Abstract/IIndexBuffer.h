@@ -13,6 +13,15 @@
 
 namespace SpeedPoint
 {
+
+	// We will only support 16bit indices :)
+#ifdef _WIN32
+	typedef unsigned __int16 S_API SIndex;
+#else
+	typedef unsigned int S_API SIndex;
+#endif
+
+
 	// SpeedPoint IndexBuffer Resource (abstract)
 	class S_API IIndexBuffer
 	{
@@ -40,10 +49,10 @@ namespace SpeedPoint
 		virtual SResult Unlock( void ) = 0;
 	
 		// Get the RAM Copy of the hardware Index Buffer
-		virtual DWORD* GetShadowBuffer( void ) = 0;
+		virtual SIndex* GetShadowBuffer( void ) = 0;
 
 		// Get a Pointer to an Index
-		virtual DWORD* GetIndex( int iIndex ) = 0;
+		virtual SIndex* GetIndex( int iIndex ) = 0;
 
 		// Get the total count of all indices
 		virtual INT GetIndexCount( void ) = 0;

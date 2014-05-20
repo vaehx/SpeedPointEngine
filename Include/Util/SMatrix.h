@@ -56,6 +56,17 @@ namespace SpeedPoint
 			m[3][0] = v4.x; m[3][1] = v4.y; m[3][2] = v4.z; m[3][3] = v4.w;
 		}
 
+		SMatrix(float m11, float m12, float m13, float m14,
+			float m21, float m22, float m23, float m24,
+			float m31, float m32, float m33, float m34,
+			float m41, float m42, float m43, float m44)
+			: _11(m11), _12(m12), _13(m13), _14(m14),
+			_21(m21), _22(m22), _23(m23), _24(m24),
+			_31(m31), _32(m32), _33(m33), _34(m34),
+			_41(m41), _42(m42), _43(m43), _44(m44)
+		{
+		}
+
 		SMatrix& operator = ( const SMatrix& o )
 		{
 			m[0][0] = o._11; m[0][1] = o._12; m[0][2] = o._13; m[0][3] = o._14;
@@ -140,5 +151,65 @@ namespace SpeedPoint
 				}
 			}
 		}
-	}		
+	}
+
+	// calculate view matrix
+	static inline void SPMatrixLookAtRH(SMatrix* pMtx, const SVector3& eye, const SVector3& at, const SVector3& up)
+	{
+		if (!pMtx)
+			return;
+
+		SVector3& zaxis = SVector3Normalize(eye - at);
+		SVector3& xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
+		SVector3& yaxis = SVector3Cross(zaxis, xaxis);
+
+		*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
+			SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
+			SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
+			SVector4(SVector3Dot(xaxis, eye), SVector3Dot(yaxis, eye), SVector3Dot(zaxis, eye), 1.0f));
+	}
+
+	// calculate view matrix
+	static inline void SPMatrixLookAtLH(SMatrix* pMtx, const SVector3& eye, const SVector3& at, const SVector3& up)
+	{
+		if (!pMtx)
+			return;
+
+		SVector3& zaxis = SVector3Normalize(at - eye);
+		SVector3& xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
+		SVector3& yaxis = SVector3Cross(zaxis, xaxis);
+
+		*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
+			SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
+			SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
+			SVector4(-SVector3Dot(xaxis, eye), -SVector3Dot(yaxis, eye), -SVector3Dot(zaxis, eye), 1.0f));
+	}
+
+	// calculate orthographic projection matrix
+	static inline void SPMatrixOrthoRH(SMatrix* pMtx, float w, float h, float zn, float zf)
+	{
+		if (!pMtx)
+			return;
+
+		*pMtx = SMatrix(
+			2.0f / w,	0,		0,			0,
+			0,		2.0f / h,	0,			0,
+			0,		0,		1.0f / (zn - zf),	0,
+			0,		0,		zn / (zn - zf),		1.0f);
+	}
+
+	// calculate perspective projection matrix
+	static inline void SPMatrixPerspectiveFovRH(SMatrix* pMtx, float fovy, float aspect, float zn, float zf)
+	{
+		if (!pMtx)
+			return;
+
+		double yScale = cot(fovy * 0.5f);
+		*pMtx = SMatrix(
+			(float)(yScale / (double)aspect),	0,		0,			0,
+			0,					(float)yScale,	0,			0,
+			0,					0,		zf / (zn-zf),		-1.0f,
+			0,					0,		zn * zf / (zn-zf),	0
+			);
+	}
 }

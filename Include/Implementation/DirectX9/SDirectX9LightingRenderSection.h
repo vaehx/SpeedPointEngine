@@ -8,7 +8,7 @@
 
 #include <SPrerequisites.h>
 #include <Abstract\Pipelines\IRenderPipelineSection.h>
-#include "SDirectX9FrameBuffer.h"
+#include "SDirectX9FBO.h"
 #include "SDirectX9Shader.h"
 #include <Util\SPool.h>
 
@@ -22,7 +22,7 @@ namespace SpeedPoint
 		SDirectX9RenderPipeline*	m_pDX9RenderPipeline;	// Ptr to the DirectX9 Render Pipeline instance		
 		
 		SDirectX9Shader			m_LightingShader;	// the lighting shader
-		SDirectX9FrameBuffer		m_LightingBuffer;	// The output of the lighting shader
+		SDirectX9FBO			m_LightingBuffer;	// The output of the lighting shader
 
 		SPool<SLight*>*			m_pLightSources;	// Pool of ptrs to the light sources to be rendered			
 

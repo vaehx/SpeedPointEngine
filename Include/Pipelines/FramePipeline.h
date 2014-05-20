@@ -19,11 +19,12 @@ SP_NMSPACE_BEG
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class IRenderPipeline;
+class SpeedPointEngine;
 
 // SpeedPoint Frame Pipeline Engine
 // This is the main Pipeline of the Game Engine and handles all other pipeline.
 // It also uses an Event System, so that you have access to all pipeline states in your CPP code or your Script
-class S_API SFramePipeline : public SObservedObject
+class S_API FramePipeline : public SObservedObject
 {
 private:
 	S_FRAMEPIPELINE_STAGE			m_Stage;			// current state of the frame pipeline
@@ -48,7 +49,7 @@ private:
 
 public:
 	// Default constructor
-	SFramePipeline()
+	FramePipeline()
 		: m_pRenderPipeline(0),
 		m_pEngine(0),
 		m_bStartedFPSTimer(false),
@@ -59,7 +60,7 @@ public:
 	}
 
 	// Default destructor
-	~SFramePipeline()			
+	~FramePipeline()			
 	{
 		Clear(); // important due to STL timestamps (chrono)
 
@@ -104,7 +105,7 @@ public:
 	SResult CallEvent(unsigned int iIndex, SEventParameters* pParams);
 };	
 
-typedef class SFramePipeline SFrameEngine;
+typedef class FramePipeline FrameEngine;
 
 
 SP_NMSPACE_END

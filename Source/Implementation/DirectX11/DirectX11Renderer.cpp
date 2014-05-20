@@ -11,6 +11,8 @@
 #include <Implementation\DirectX11\DirectX11RenderPipeline.h>
 #include <SSpeedPointEngine.h>
 #include <Implementation\DirectX11\DirectX11Utilities.h>
+#include <Implementation\DirectX11\DirectX11VertexBuffer.h>
+#include <Implementation\DirectX11\DirectX11IndexBuffer.h>
 
 SP_NMSPACE_BEG
 
@@ -21,7 +23,7 @@ using std::vector;
 
 // --------------------------------------------------------------------
 S_API DirectX11RenderDeviceCaps::DirectX11RenderDeviceCaps()
-	: m_MaxMSQuality(0) // lowest quality
+	: m_MaxMSQuality(1) // lowest quality
 {
 }
 
@@ -44,6 +46,10 @@ S_API SResult DirectX11RenderDeviceCaps::Collect(IRenderer* pRenderer)
 
 
 
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // DirectX11Renderer
 
@@ -54,8 +60,12 @@ m_pD3DDeviceContext(0),
 m_pRenderPipeline(0),
 m_pAutoSelectedAdapter(0),
 m_pTargetViewportBackBuffer(0),
+m_pTargetViewport(0),
+m_pDXRenderTarget(0),
 m_pDXGIFactory(0),
-m_pRenderTargetCollections(0)
+m_pRenderTargetCollections(0),
+m_iCurRTCollection(eRENDERTARGETS_NONE),
+m_pDepthStencilState(0)
 {
 };
 
@@ -143,7 +153,7 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter(usint32 nW, usint32 nH)
 }
 
 // --------------------------------------------------------------------
-SResult DirectX11Renderer::GetDisplayModeDesc(SDisplayModeDescription* pDesc)
+SResult DirectX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pDesc)
 {
 	if (pDesc)
 	{
@@ -162,23 +172,42 @@ SResult DirectX11Renderer::GetDisplayModeDesc(SDisplayModeDescription* pDesc)
 S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
-	/*
-	pd3dDevice->SetRenderState( D3DRS_SHADEMODE, D3DSHADE_PHONG );
-	pd3dDevice->SetRenderState( D3DRS_LIGHTING, false );
-	pd3dDevice->SetRenderState( D3DRS_AMBIENT, 0x20202020 );
-	pd3dDevice->SetRenderState( D3DRS_FILLMODE, D3DFILL_SOLID );
-	pd3dDevice->SetRenderState( D3DRS_CULLMODE, D3DCULL_CCW );
-	pd3dDevice->SetRenderState( D3DRS_STENCILENABLE, false );
-
-	pd3dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
-	pd3dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-	pd3dDevice->SetSamplerState( 0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR );
-	pd3dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP );
-	pd3dDevice->SetSamplerState( 0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP );
-	*/
 
 	// we probably need the settings of our engine
 	SSettings::RenderSet& renderSettings = m_pEngine->GetSettings().render;
+
+
+
+	// setup proper depth stencil testing
+	// Setup the proper depth testing
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	depthStencilDesc.DepthEnable = true; // we probably won't change this, so this if fixed
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+
+	depthStencilDesc.StencilEnable = true;
+	depthStencilDesc.StencilReadMask = 0xff;
+	depthStencilDesc.StencilWriteMask = 0xff;
+
+	depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	if (Failure(m_pD3DDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState)))
+	{
+		return m_pEngine->LogE("Failed create depth stencil state!");
+	}
+	m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
+
+
+	
 
 	// In DX11 we fist need a RSState interface
 	D3D11_RASTERIZER_DESC rsDesc;
@@ -188,7 +217,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	rsDesc.DepthBias = 0;
 	rsDesc.DepthBiasClamp = 0;
 	rsDesc.SlopeScaledDepthBias = 0;
-	rsDesc.DepthClipEnable = true;	
+	rsDesc.DepthClipEnable = true;
 	rsDesc.FillMode = renderSettings.bRenderWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 	rsDesc.FrontCounterClockwise = (renderSettings.frontFaceType == eFF_CW);
 	rsDesc.MultisampleEnable = renderSettings.bEnableMSAA;
@@ -200,7 +229,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 		return m_pEngine->LogE("Faield create Rasterizer State!");
 	}
 
-	m_pD3DDeviceContext->RSSetState(m_pDefaultRSState);	
+	m_pD3DDeviceContext->RSSetState(m_pDefaultRSState);
 
 	return S_SUCCESS;
 }
@@ -211,54 +240,31 @@ S_API SResult DirectX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 	SP_ASSERTR(m_pEngine && m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);	
 	SP_ASSERTR(hWnd, S_INVALIDPARAM);
 
-	SSettings& engineSet = m_pEngine->GetSettings();
-
-	// Make sure to initialize the default viewport
-	m_Viewport.Initialize(m_pEngine, false);
-
-	// Setup swap chain description
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	swapChainDesc.BufferCount = 1;	// only one buffer. render targets will be handled externally
-	swapChainDesc.BufferDesc = m_AutoSelectedDisplayModeDesc;
-	if (!engineSet.render.bEnableVSync)
-	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	}
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.Flags = 0;
-	swapChainDesc.OutputWindow = hWnd;	
-	swapChainDesc.SampleDesc = GetD3D11MSAADesc(
-		swapChainDesc.BufferDesc.Format,
-		m_pD3DDevice,
-		m_Settings.GetMSAACount(),
-		m_Settings.GetMSAAQuality());	
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // i saw no purpose to change this to custom val as we want to support MSAA
-	swapChainDesc.Windowed = engineSet.app.bWindowed;
-
-
-	// Create the swapchain
-	IDXGISwapChain* pSwapChain;
-	if (Failure(m_pDXGIFactory->CreateSwapChain(m_pD3DDevice, &swapChainDesc, &pSwapChain)))
-	{
-		return m_pEngine->LogE("Failed create swap chain in InitDefaultViewport!");
-	}
-	*m_Viewport.GetSwapChainPtr() = pSwapChain;
-
+	SViewportDescription vpDesc;
 	
-	// Now create an RTV for this swapchain	
-	ID3D11Resource* pBBResource;
-	if (Failure(pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
-	{
-		return m_pEngine->LogE("Failed retrieve BackBuffer resource of SwapChain in InitDefaultViewport!");
-	}
-	if (Failure(m_pD3DDevice->CreateRenderTargetView(pBBResource, 0, m_Viewport.GetRTVPtr())))
-	{
-		return m_pEngine->LogE("Failed create RTV for swapchain in InitDefaultViewport!");
-	}
+	
+	vpDesc.fov = 60.0f;	// maybe you want to change this sometimes...
 
-	// Set this swapchain as render target immediately
-	m_pD3DDeviceContext->OMSetRenderTargets(1, m_Viewport.GetRTVPtr(), 0);
+
+	vpDesc.width = nW;
+	vpDesc.height = nH;
+	vpDesc.useDepthStencil = true;	// we definetly want a depthstencil!
+	vpDesc.hWnd = hWnd;
+
+	if (Failure(m_Viewport.Initialize(m_pEngine, vpDesc, false)))
+		return S_ERROR;
+
+
+	// We still ned to setup the viewport in order tht d3d can map clip space coordinates to the render target space
+	D3D11_VIEWPORT* pDXViewportDesc = m_Viewport.GetViewportDescPtr();
+	pDXViewportDesc->Width = (float)nW;
+	pDXViewportDesc->Height = (float)nH;
+	pDXViewportDesc->MaxDepth = 1.0f;
+	pDXViewportDesc->MinDepth = 0.0f;
+	pDXViewportDesc->TopLeftX = 0.0f;
+	pDXViewportDesc->TopLeftY = 0.0f;	
+
+	// m_pD3DDeviceContext->RSSetViewports() is called in the SetTargetViewport after the call of this function.
 
 
 	// okay. done
@@ -327,6 +333,29 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 }
 
 // --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDesc, IDXGISwapChain** ppSwapChain)
+{
+	SP_ASSERTR(ppSwapChain && pDesc, S_INVALIDPARAM);
+	SP_ASSERTR(m_pDXGIFactory, S_NOTINIT);
+
+	m_pDXGIFactory->CreateSwapChain(m_pD3DDevice, pDesc, ppSwapChain);
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV)
+{
+	SP_ASSERTR(pBBResource && ppRTV, S_INVALIDPARAM);
+	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
+
+	if (Failure(m_pD3DDevice->CreateRenderTargetView(pBBResource, pDesc, ppRTV)))
+		return S_ERROR;
+	else
+		return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
 S_API S_RENDERER_TYPE DirectX11Renderer::GetType(void)
 {
 	return S_DIRECTX11;
@@ -376,9 +405,7 @@ S_API SResult DirectX11Renderer::Initialize(SpeedPointEngine* pEngine, HWND hWnd
 	{
 		Shutdown();
 		return S_ERROR;
-	}
-	// First update of Viewport Projection
-	m_Viewport.Set3DProjection(S_PROJECTION_PERSPECTIVE, 50.0f, 0, 0);
+	}		
 
 
 
@@ -392,7 +419,9 @@ S_API SResult DirectX11Renderer::Initialize(SpeedPointEngine* pEngine, HWND hWnd
 		return pEngine->LogReport(S_ERROR, "Could not initialize DX9 Render Pipeline");
 	}
 	// !!! pRenderPipeline->SetFramePipeline() will be called by SFramePipeline::Initialize() !!!
-	if (Failure(m_pRenderPipeline->SetTargetViewport((IViewport*)&m_Viewport)))
+
+
+	if (Failure(SetTargetViewport((IViewport*)&m_Viewport)))
 	{
 		return pEngine->LogReport(S_ERROR, "Failed set Target Viewport!");
 	}
@@ -470,83 +499,100 @@ S_API SResult DirectX11Renderer::BindFBOs(ERenderTargetCollectionID collectionID
 		SP_ASSERTR(itCollection != m_pRenderTargetCollections->end(), S_NOTFOUND);
 
 		// get the render targets
-		vector<SRenderTarget>* pvRenderTargets = (*itCollection).second.pvRenderTargets;
+		vector<SRenderTarget>* pvRenderTargets = itCollection->second.pvRenderTargets;
 		if (pvRenderTargets) return S_ERROR;
 
 		usint32 nRenderTargets = pvRenderTargets->size();
 
-		// transform to an array
-		ID3D11RenderTargetView** pRenderTargets = new ID3D11RenderTargetView*[nRenderTargets];
-		usint32 nAddedRenderTargets = 0;
-		for (auto itRenderTarget = pvRenderTargets->begin(); itRenderTarget != pvRenderTargets->end(); ++itRenderTarget)
-		{			
-			if (!itRenderTarget->pFBO->IsInitialized())
-				continue;
+		// Reset the old ptrs for single render targets
+		m_pTargetViewport = 0;
+		m_pTargetViewportBackBuffer = 0;
+		m_pDXRenderTarget = 0;
 
-			DirectX11FBO* pDXFBO = (DirectX11FBO*)itRenderTarget->pFBO;
-			pRenderTargets[nAddedRenderTargets] = pDXFBO->GetRTV();
-			++nAddedRenderTargets;
+		if (nRenderTargets > 0)
+		{
+			// transform to an array
+			ID3D11RenderTargetView** pRenderTargets = new ID3D11RenderTargetView*[nRenderTargets];
+			usint32 nAddedRenderTargets = 0;						
+			for (auto itRenderTarget = pvRenderTargets->begin(); itRenderTarget != pvRenderTargets->end(); ++itRenderTarget)
+			{
+				if (!itRenderTarget->pFBO->IsInitialized())
+					continue;
+
+				DirectX11FBO* pDXFBO = (DirectX11FBO*)itRenderTarget->pFBO;
+				pRenderTargets[nAddedRenderTargets] = pDXFBO->GetRTV();				
+				++nAddedRenderTargets;
+			}
+
+			m_pD3DDeviceContext->OMSetRenderTargets(nAddedRenderTargets, pRenderTargets, 0);
+			m_iCurRTCollection = collectionID;
+		}	
+		else
+		{
+			// Reset all targets. Will lead into an error!
+			m_pD3DDeviceContext->OMSetRenderTargets(0, 0, 0);			
+			m_iCurRTCollection = eRENDERTARGETS_NONE;
+
+			m_pEngine->LogW("Render Target Collection to bind was empty. Resetting all Render Targets! Might lead into several Renderer Errors!");
 		}
-
-		m_pD3DDeviceContext->OMSetRenderTargets(nAddedRenderTargets, pRenderTargets, 0);
 	}
 
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::CreateAdditionalViewport(IViewport** pViewport)
+S_API SResult DirectX11Renderer::BindFBO(IFBO* pFBO)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(pFBO, S_INVALIDPARAM);
+
+	ID3D11RenderTargetView* pDXFBO = ((DirectX11FBO*)pFBO)->GetRTV();
+	m_pD3DDeviceContext->OMSetRenderTargets(1, &pDXFBO, 0);
+	m_pDXRenderTarget = pDXFBO;
+	m_pTargetViewportBackBuffer = pFBO;
+	m_pTargetViewport = 0; // !
+	m_iCurRTCollection = eRENDERTARGETS_NONE;
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int index)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	ID3D11Buffer* pDXVB = ((DirectX11VertexBuffer*)pVB)->GetDXBuffer();
+	m_pD3DDeviceContext->IASetVertexBuffers(index, 1, )
+}
+
+
+// --------------------------------------------------------------------
+virtual SResult SetIBStream(IIndexBuffer* pIB);
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc)
 {
 	SP_ASSERTR(m_pEngine && m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);
-	SP_ASSERTR(pViewport, S_INVALIDPARAM);
+	SP_ASSERTR(pViewport, S_INVALIDPARAM);		
 
-	// instanciate the viewport first
+
+	// instanciate the viewport first and initialize it
 	DirectX11Viewport* pDXViewport = (DirectX11Viewport*)(*pViewport);
 	pDXViewport = new DirectX11Viewport();
-	pDXViewport->Initialize(m_pEngine, true);
+	pDXViewport->Initialize(m_pEngine, desc, true);
 
 	SSettings& engineSet = m_pEngine->GetSettings();
 
-	// Setup swap chain description
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	swapChainDesc.BufferCount = 1;	// only one buffer. render targets will be handled externally
-	swapChainDesc.BufferDesc = m_AutoSelectedDisplayModeDesc;
-	if (!engineSet.render.bEnableVSync)
-	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	}
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.Flags = 0;
-	swapChainDesc.OutputWindow = m_Viewport.GetWindow();
-	swapChainDesc.SampleDesc = GetD3D11MSAADesc(
-		swapChainDesc.BufferDesc.Format,
-		m_pD3DDevice,
-		m_Settings.GetMSAACount(),
-		m_Settings.GetMSAAQuality());
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // i saw no purpose to change this to custom val as we want to support MSAA
-	swapChainDesc.Windowed = engineSet.app.bWindowed;
 
 
-	// Create the swapchain
-	IDXGISwapChain* pSwapChain;
-	if (Failure(m_pDXGIFactory->CreateSwapChain(m_pD3DDevice, &swapChainDesc, &pSwapChain)))
+
+	// Initialize the depth-stencil view for this viewport
+	if (Failure(pDXViewport->InitializeDepthStencilBuffer()))
 	{
-		return m_pEngine->LogE("Failed create additional swap chain in CreateAdditionalViewport!");
+		return S_ERROR;
 	}
-	*pDXViewport->GetSwapChainPtr() = pSwapChain;
 
 
-	// Now create an RTV for this swapchain	
-	ID3D11Resource* pBBResource;
-	if (Failure(pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
-	{
-		return m_pEngine->LogE("Failed retrieve BackBuffer resource of SwapChain in CreateAdditionalViewport!");
-	}
-	if (Failure(m_pD3DDevice->CreateRenderTargetView(pBBResource, 0, pDXViewport->GetRTVPtr())))
-	{
-		return m_pEngine->LogE("Failed create RTV for additional swapchain in CreateAdditionalViewport!");
-	}
 
 	// okay. done.
 
@@ -562,18 +608,65 @@ S_API IRenderPipeline* DirectX11Renderer::GetRenderPipeline(void)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::BeginScene(void)
 {
+	// actually nothing really to do here.
+	// - RTs are cleared explicitly with ClearRenderTargets()
 
+	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::EndScene(void)
 {
+	// actually nothing to do here in DX11
+	// the Present method is called in the specific Rendering Pipeline technology stage.
 
+	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
+S_API SResult DirectX11Renderer::ClearRenderTargets(void)
 {
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	if (m_iCurRTCollection != eRENDERTARGETS_NONE)
+	{
+		// go through all render targets in the current collection
+		auto itCollection = m_pRenderTargetCollections->find(m_iCurRTCollection);
+		if (itCollection == m_pRenderTargetCollections->end() || !itCollection->second.pvRenderTargets)
+			return S_ERROR;
+
+		ID3D11RenderTargetView* pDXRTV;
+		ID3D11DepthStencilView*	pDXDSV;
+		for (auto itRT = itCollection->second.pvRenderTargets->begin(); itRT != itCollection->second.pvRenderTargets->end(); ++itRT)
+		{
+			if (!itRT->pFBO)
+				continue;
+
+			pDXRTV = ((DirectX11FBO*)itRT->pFBO)->GetRTV();
+			if (pDXRTV)				
+				m_pD3DDeviceContext->ClearRenderTargetView(pDXRTV, m_Settings.GetClearColorFloatArr());			
+
+			pDXDSV = ((DirectX11FBO*)itRT->pFBO)->GetDSV();
+			if (pDXDSV)
+				m_pD3DDeviceContext->ClearDepthStencilView(pDXDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+		}
+	}
+	else
+	{
+		if (m_pDXRenderTarget)
+		{
+			m_pD3DDeviceContext->ClearRenderTargetView(m_pDXRenderTarget, m_Settings.GetClearColorFloatArr());
+		}
+	}
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetRenderTarget(IViewport* pViewport)
+{
+	// here, we assume that the viewport backbuffer is the only render target	
+
 	IFBO* pBackBuffer = 0;
 	SP_ASSERTR(pViewport && (pBackBuffer = pViewport->GetBackBuffer()), S_INVALIDPARAM);
 	SP_ASSERTR(m_pD3DDevice && m_pEngine && m_pD3DDeviceContext, S_NOTINIT);
@@ -581,7 +674,44 @@ S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
 	if (!pBackBuffer->IsInitialized())
 		return S_INVALIDPARAM;
 
+	if (Failure(BindFBO(pBackBuffer)))
+		return S_ERROR;
+
+	m_pTargetViewport = pViewport;
 	m_pTargetViewportBackBuffer = pBackBuffer;
+	m_pDXRenderTarget = ((DirectX11FBO*)pBackBuffer)->GetRTV();
+	m_iCurRTCollection = eRENDERTARGETS_NONE;
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetRenderTarget(DirectX11FBO* pFBO)
+{
+	SP_ASSERTR(pFBO, S_INVALIDPARAM);
+	SP_ASSERTR(m_pD3DDeviceContext, S_NOTINIT);
+
+	ID3D11RenderTargetView* pDXFBO = pFBO->GetRTV();
+	m_pD3DDeviceContext->OMSetRenderTargets(1, &pDXFBO, 0);	
+	m_pDXRenderTarget = pDXFBO;
+	m_pTargetViewport = 0;
+	m_pTargetViewportBackBuffer = (IFBO*)pFBO;
+	m_iCurRTCollection = eRENDERTARGETS_NONE;
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
+{
+	SP_ASSERTR(pViewport, S_INVALIDPARAM);
+
+	if (Failure(SetRenderTarget(pViewport)))
+		return S_ERROR;
+
+	// make also sure to synch the render pipe
+	if (m_pRenderPipeline)
+		m_pRenderPipeline->SetTargetViewport(pViewport);
 
 	return S_SUCCESS;
 }
@@ -589,25 +719,60 @@ S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
 // --------------------------------------------------------------------
 S_API IViewport* DirectX11Renderer::GetTargetViewport(void)
 {
-
+	return m_pTargetViewport;
 }
 
 // --------------------------------------------------------------------
 S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 {
-
+	return (IViewport*)&m_Viewport;
 }
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::UpdateViewportMatrices(IViewport* pViewport)
 {
+	// doesn't actually do anything in DX11 due to the removed fixed pipeline
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+
+
+
+	// T O D O :   a d d   s o m e t h i n g   l i k e   S e t S h a d e r I n p u t ( E S h a d e r I n p u t C o m p o n e n t )
+
+
+	// with:
+	/*
+	enum EShaderInputComponent
+	{
+		eSH_INP_VIEWMTX,
+		eSH_INP_WORLDMTX,
+		eSH_INP_PROJMTX,
+		eSH_INP_LIGHTSOURCES	// how to do that?
+	};
+	*/
+
+
+
+
+
+
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::RenderSolid(ISolid* pSolid, bool bTextured)
 {
-	
+	return m_pRenderPipeline->RenderSolidGeometry(pSolid, bTextured);
 }
 
 

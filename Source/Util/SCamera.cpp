@@ -22,37 +22,15 @@ namespace SpeedPoint
 
 	S_API SMatrix4& SCamera::RecalculateViewMatrix()
 	{
-		//zaxis = normal(Eye - At)
-		//	xaxis = normal(cross(Up, zaxis))
-		//	yaxis = cross(zaxis, xaxis)
-		//
-		//	xaxis.x           yaxis.x           zaxis.x          0
-		//	xaxis.y           yaxis.y           zaxis.y          0
-		//	xaxis.z           yaxis.z           zaxis.z          0
-		//	dot(xaxis, eye)   dot(yaxis, eye)   dot(zaxis, eye)  1
+		if (!m_bViewMatrixCalculated)
+		{
+			m_vLookAt = vPosition.x + sin(vRotation.y) * cos(vRotation.x);
+			m_vLookAt = vPosition.y + sin(vRotation.x);
+			m_vLookAt = vPosition.z + cos(vRotation.y) * cos(vRotation.x);
 
-		//D3DXVECTOR3 vEyePt(camera->vPosition.x, camera->vPosition.y, camera->vPosition.z);		
-
-		// !! We do not recalculate the look-at position in each frame, as trigonometrical functions have a high perf cost
-		/*D3DXVECTOR3 vLookAt(
-			camera->vPosition.x + sin(camera->vRotation.y)*cos(camera->vRotation.x),
-			camera->vPosition.y + sin(camera->vRotation.x),
-			camera->vPosition.z + cos(camera->vRotation.y) * cos(camera->vRotation.x)
-			);*/
-
-		// we assume that EyePos - At vector has length 1, as we use unit polar coords
-		SVector3 zaxis = vPosition - m_vLookAt;
-		SVector3 xaxis = SVector3Cross(SVector3(0.0f, 1.0f, 0.0), zaxis).Normalize();
-		SVector3 yaxis = SVector3Cross(zaxis, xaxis);
-
-		m_ViewMatrix = SMatrix4(
-			SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
-			SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
-			SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
-			SVector4(SVector3Dot(xaxis, vPosition), SVector3Dot(yaxis, vPosition), SVector3Dot(zaxis, vPosition), 1.0f)
-			);
-
-		m_bViewMatrixCalculated = true;
+			SPMatrixLookAtRH(&m_ViewMatrix, vPosition, m_vLookAt, SVector3(0, 1, 0));
+			m_bViewMatrixCalculated = true;
+		}
 
 		return m_ViewMatrix;
 	}
@@ -64,7 +42,7 @@ namespace SpeedPoint
 		if (pos != vPosition)
 		{
 			STransformable::Move(pos);
-			RecalculateViewMatrix();
+			m_bViewMatrixCalculated = false;
 		}
 	}
 
@@ -75,7 +53,7 @@ namespace SpeedPoint
 		if (vPosition.x != x || vPosition.y != y || vPosition.z != z)
 		{
 			STransformable::Move(x, y, z);
-			RecalculateViewMatrix();
+			m_bViewMatrixCalculated = false;
 		}
 	}
 
@@ -86,7 +64,7 @@ namespace SpeedPoint
 		if (vec.x != 0 || vec.y != 0 || vec.z != 0)
 		{
 			STransformable::Translate(vec);
-			RecalculateViewMatrix();
+			m_bViewMatrixCalculated = false;
 		}
 	}
 
@@ -108,7 +86,7 @@ namespace SpeedPoint
 		if (rotation != vRotation)
 		{
 			STransformable::Rotate(rotation);
-			RecalculateViewMatrix();
+			m_bViewMatrixCalculated = false;
 		}
 	}
 
@@ -119,7 +97,7 @@ namespace SpeedPoint
 		if (p != vRotation.x || y != vRotation.y || r != vRotation.z)
 		{
 			STransformable::Rotate(p, y, r);
-			RecalculateViewMatrix();
+			m_bViewMatrixCalculated = false;
 		}
 	}
 
@@ -130,7 +108,7 @@ namespace SpeedPoint
 		if (vec.x != 0 || vec.y != 0 || vec.z != 0)
 		{
 			STransformable::Turn(vec);
-			RecalculateViewMatrix();
+			m_bViewMatrixCalculated = false;
 		}
 	}
 
@@ -141,7 +119,7 @@ namespace SpeedPoint
 		if (p != 0 || y != 0 || r != 0)
 		{
 			STransformable::Turn(p, y, r);
-			RecalculateViewMatrix();
+			m_bViewMatrixCalculated = false;
 		}
 	}
 

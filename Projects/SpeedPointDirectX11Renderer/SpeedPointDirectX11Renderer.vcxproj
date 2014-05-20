@@ -31,16 +31,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11GeometryRenderSection.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11FBO.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11IndexBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11OutputPlane.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Renderer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11RenderPipeline.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11ResourcePool.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Settings.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Effect.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11Texture.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\SDirectX11VertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11LightingRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11IndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11OutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11RenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Settings.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Effect.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Texture.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11VertexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -53,7 +54,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>

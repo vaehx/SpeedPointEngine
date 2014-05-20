@@ -13,6 +13,13 @@
 
 namespace SpeedPoint
 {
+
+	// Forward declarations
+	class IFBO;
+	class SpeedPointEngine;
+	class IRenderer;
+
+
 	// SpeedPoint Renderer specific Output Plane (abstract)
 	class S_API IOutputPlane
 	{
@@ -20,8 +27,10 @@ namespace SpeedPoint
 		// Initialize the output plane
 		virtual SResult Initialize( SpeedPointEngine* pEngine, IRenderer* pRenderer, int nW, int nH ) = 0;
 
+		virtual bool IsInitialized() = 0;
+
 		// Render the output plane
-		virtual SResult Render( IFrameBuffer* pGBufferAlbedo, IFrameBuffer* pLightingBuffer ) = 0;
+		virtual SResult Render( IFBO* pGBufferAlbedo, IFBO* pLightingBuffer ) = 0;
 
 		// Clearout the output plane
 		virtual SResult Clear( void ) = 0;

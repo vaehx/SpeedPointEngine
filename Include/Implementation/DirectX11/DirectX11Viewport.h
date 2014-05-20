@@ -21,6 +21,7 @@ class S_API SSpeedPointEngine;
 class S_API SpeedPointEngine;
 class S_API DirectX11Renderer;
 class S_API SCamera;	
+class S_API DirectX11FBO;
 
 // DirectX11 implementation of the viewport interface
 class S_API DirectX11Viewport : public IViewport
@@ -29,17 +30,24 @@ private:
 	SSpeedPointEngine* m_pEngine;
 	DirectX11Renderer* m_pRenderer;	// the handling rendering
 	
-	IDXGISwapChain* m_pSwapChain;	// the corresponding swap chain		
-	ID3D11RenderTargetView* m_pRenderTarget;	
+	DirectX11FBO* m_pFBO;
 
-	ID3D11DepthStencilState* m_pDepthStencilState;
+	IDXGISwapChain* m_pSwapChain;	// the corresponding swap chain		
+	ID3D11RenderTargetView* m_pRenderTarget;		
 
 	ID3D11Texture2D* m_pDepthStencilBuffer;
-	ID3D11DepthStencilState* m_pDepthStencilState;
 	ID3D11DepthStencilView* m_pDepthStencilView;	
 
-	HWND m_hWnd;
+	D3D11_VIEWPORT m_DXViewportDesc;	
 	bool m_bIsAdditional;
+
+	SViewportDescription m_Desc;
+	unsigned int m_nBackBuffers;
+
+	SMatrix m_ProjectionMtx;
+
+	SCamera* m_pCamera;
+	bool m_bCustomCamera;
 
 public:		
 	DirectX11Viewport();
@@ -49,6 +57,7 @@ public:
 
 	IDXGISwapChain** GetSwapChainPtr() { return &m_pSwapChain; }
 	ID3D11RenderTargetView** GetRTVPtr() { return &m_pRenderTarget; }
+	D3D11_VIEWPORT* GetViewportDescPtr() { return &m_DXViewportDesc; }
 
 	// With DirectX11 we have to create our own Depth Buffer
 	SResult InitializeDepthStencilBuffer();
@@ -58,7 +67,7 @@ public:
 
 	// Derived:
 
-	virtual SResult Initialize(SpeedPointEngine* pEngine, bool bIsAdditional = true);		
+	virtual SResult Initialize(SpeedPointEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional = true);		
 	virtual SResult Clear(void);
 
 	virtual bool IsAdditional();
@@ -76,10 +85,10 @@ public:
 	virtual SResult RecalculateCameraViewMatrix(SCamera* tempCam);		
 	virtual SMatrix4 GetCameraViewMatrix();
 
-	virtual HWND GetWindow() { return m_hWnd;  }
+	virtual HWND GetWindow() { return m_Desc.hWnd;  }
 	virtual void SetWindow(HWND hWnd) // does NOT update swapchain hwnd!
 	{
-		m_hWnd = hWnd;
+		m_Desc.hWnd = hWnd;
 	}
 				
 	virtual IFBO* GetBackBuffer(void);
