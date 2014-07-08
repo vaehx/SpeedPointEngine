@@ -20,6 +20,22 @@ using std::ifstream;
 SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------------
+DirectX11Effect::DirectX11Effect()
+: m_pDXRenderer(0),
+m_pEngine(0),
+m_pPixelShader(0),
+m_pVertexShader(0),
+m_pVSInputLayout(0)
+{
+}
+
+// -------------------------------------------------------------------------
+DirectX11Effect::~DirectX11Effect()
+{
+	Clear();
+}
+
+// -------------------------------------------------------------------------
 S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFilename)
 {
 	SP_ASSERTR((m_pEngine = pEngine) && cFilename, S_INVALIDPARAM);
@@ -68,7 +84,7 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 	compileFlags |= D3DCOMPILE_DEBUG;
 #endif	
 
-	ID3DBlob *pVSBlob, *pPSBlob, *pErrorBlob;
+	ID3DBlob *pVSBlob = 0, *pPSBlob = 0, *pErrorBlob = 0;
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
@@ -123,6 +139,54 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 
 
 
+	// 5. Create the polygon layout for the SVertex structure
+	
+	D3D11_INPUT_ELEMENT_DESC vtxDesc[5];
+	vtxDesc[0].AlignedByteOffset = 0;
+	vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[0].InputSlot = 0;
+	vtxDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[0].SemanticIndex = 0;
+	vtxDesc[0].SemanticName = "POSITION";	
+
+	vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[1].InputSlot = 0;
+	vtxDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[1].SemanticIndex = 0;
+	vtxDesc[1].SemanticName = "NORMAL";
+
+	vtxDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[2].InputSlot = 0;
+	vtxDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[2].SemanticIndex = 0;
+	vtxDesc[2].SemanticName = "TANGENT";
+
+	vtxDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[3].InputSlot = 0;
+	vtxDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[3].SemanticIndex = 0;
+	vtxDesc[3].SemanticName = "TEXCOORD";
+
+	vtxDesc[4].AlignedByteOffset = 0;
+	vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[4].InputSlot = 0;
+	vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[4].SemanticIndex = 1;
+	vtxDesc[4].SemanticName = "TEXCOORD";
+	
+	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, 5, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
+		return m_pEngine->LogE("Failed Create input layout for VS!");
+
+
+
+	// 6. Clear unneeded stuff
+
+	SP_SAFE_RELEASE(pVSBlob);
+	SP_SAFE_RELEASE(pPSBlob);
+	SP_SAFE_RELEASE(pErrorBlob);
 
 
 
@@ -148,15 +212,22 @@ S_API SResult DirectX11Effect::Clear(void)
 }
 
 // -------------------------------------------------------------------------
+S_API SResult DirectX11Effect::Enable()
+{
+	SP_ASSERTR(m_pDXRenderer && m_pPixelShader && m_pVertexShader && m_pVSInputLayout, S_NOTINIT);
+
+	ID3D11DeviceContext* pDXDeviceContext = m_pDXRenderer->GetD3D11DeviceContext();	
+	pDXDeviceContext->VSSetShader(m_pVertexShader, 0, 0);		
+	pDXDeviceContext->PSSetShader(m_pPixelShader, 0, 0);	
+	pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);
+
+	return S_SUCCESS;
+}
+
+// -------------------------------------------------------------------------
 S_API SResult DirectX11Effect::SetTechnique(char* cTechnique)
 {
-
-
-	// TODO: is this even possible in DX11 anylonger? --> no!
-
-
-
-	return S_NOTIMPLEMENTED;
+	return Enable();
 }
 
 

@@ -88,11 +88,22 @@ namespace SpeedPoint
 		}
 	};
 
+
+
+	struct S_API SDefMtxCB
+	{
+		SMatrix4 mtxWorld;
+		SMatrix4 mtxView;
+		SMatrix4 mtxProjection;
+	};
+
+
 	
 
 
-	class IVertexBuffer;
-	class IIndexBuffer;
+	class S_API IVertexBuffer;
+	class S_API IIndexBuffer;
+	class S_API STransformable;
 
 
 	// SpeedPoint Renderer (abstract)
@@ -138,7 +149,9 @@ namespace SpeedPoint
 		virtual IViewport* GetDefaultViewport( void ) = 0;
 
 		// Update projection and view matrix to those of the given viewport
-		virtual SResult UpdateViewportMatrices( IViewport* pViewport ) = 0;
+		virtual SResult SetViewportMatrices( IViewport* pViewport ) = 0;
+
+		virtual SResult SetWorldMatrix(STransformable* t) = 0;
 
 		// Create an an addition viewport
 		virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc) = 0;

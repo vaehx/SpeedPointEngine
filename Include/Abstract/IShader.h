@@ -30,6 +30,12 @@ namespace SpeedPoint
 		// Setup the current technique to be used
 		virtual SResult SetTechnique( char* cTechnique ) = 0;
 
+		// Summary:
+		//	 Enable this shader
+		// Description:
+		//	Will set the VS and PS of this effect as currently active ones
+		virtual SResult Enable() = 0;
+
 		// Apply this shader to the current state of the render pipeline
 		//virtual SResult ApplyToRenderPipeline( IRenderPipeline* pPipeline ) = 0;	
 

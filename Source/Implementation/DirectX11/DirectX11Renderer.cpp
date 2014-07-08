@@ -65,7 +65,8 @@ m_pDXRenderTarget(0),
 m_pDXGIFactory(0),
 m_pRenderTargetCollections(0),
 m_iCurRTCollection(eRENDERTARGETS_NONE),
-m_pDepthStencilState(0)
+m_pDepthStencilState(0),
+m_pDXMatrixCB(0)
 {
 };
 
@@ -561,7 +562,7 @@ S_API SResult DirectX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int in
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
-	ID3D11Buffer* pDXVB = ((DirectX11VertexBuffer*)pVB)->GetDXBuffer();
+	ID3D11Buffer* pDXVB = ((DirectX11VertexBuffer*)pVB)->Get
 	m_pD3DDeviceContext->IASetVertexBuffers(index, 1, )
 }
 
@@ -729,43 +730,93 @@ S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdateViewportMatrices(IViewport* pViewport)
+S_API SResult DirectX11Renderer::SetupMatrixCB()
 {
-	// doesn't actually do anything in DX11 due to the removed fixed pipeline
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pDXMatrixCB, sizeof(SDefMtxCB))))
+		return S_ERROR;
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pDXMatrixCB);
 
+	return S_SUCCESS;
+}
 
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::UpdateMatrixCB()
+{
+	SDefMtxCB* pBuffer;
+	if (Failure(D3D11_LockConstantsBuffer(m_pDXMatrixCB, (void**)&pBuffer)))
+		return S_ERROR;
 
-
-
-
-
-
-
-	// T O D O :   a d d   s o m e t h i n g   l i k e   S e t S h a d e r I n p u t ( E S h a d e r I n p u t C o m p o n e n t )
-
-
-	// with:
-	/*
-	enum EShaderInputComponent
+	if (!pBuffer)
 	{
-		eSH_INP_VIEWMTX,
-		eSH_INP_WORLDMTX,
-		eSH_INP_PROJMTX,
-		eSH_INP_LIGHTSOURCES	// how to do that?
-	};
-	*/
+		pBuffer->mtxProjection = m_Matrices.mtxProjection;
+		pBuffer->mtxView = m_Matrices.mtxView;
+		pBuffer->mtxWorld = m_Matrices.mtxWorld;
+	}
+
+	return D3D11_UnlockConstantsBuffer(m_pDXMatrixCB);
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 byteSize)
+{
+	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
+	SP_ASSERTR(ppCB, S_INVALIDPARAM);
+
+	D3D11_BUFFER_DESC cbDesc;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;	
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.MiscFlags = 0;
+	cbDesc.StructureByteStride = 0;
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.ByteWidth = byteSize;
 
 
+	if (Failure(m_pD3DDevice->CreateBuffer(&cbDesc, 0, ppCB)))
+		return m_pEngine->LogE("Failed Create constants buffer!");
 
 
+	return S_SUCCESS;
+}
 
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData)
+{
+	SP_ASSERTR(m_pD3DDeviceContext, S_NOTINIT);
+	SP_ASSERTR(pCB && pData, S_INVALIDPARAM);
 
+	D3D11_MAPPED_SUBRESOURCE cbSubRes;	
+	if (Failure(m_pD3DDeviceContext->Map(pCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbSubRes)))
+		return m_pEngine->LogE("Failed Map Constant buffer!");
 
+	*pData = cbSubRes.pData;
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	return S_SUCCESS;
+}
 
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB)
+{
+	SP_ASSERTR(m_pD3DDeviceContext, S_NOTINIT);
+	SP_ASSERTR(pCB, S_INVALIDPARAM);
+
+	m_pD3DDeviceContext->Unmap(pCB, 0);
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
+{	
+	m_Matrices.mtxProjection = pViewport->GetProjectionMatrix();
+	m_Matrices.mtxView = pViewport->GetCameraViewMatrix();	
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetWorldMatrix(STransformable* t)
+{
+	m_Matrices.mtxWorld = t->GetWorldMatrix();
 	return S_SUCCESS;
 }
 

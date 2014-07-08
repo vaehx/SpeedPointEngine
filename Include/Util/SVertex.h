@@ -43,17 +43,7 @@ namespace SpeedPoint
 				float tx, ty, tz;
 			};		
 			SXYZ tangent;		
-		};
-		
-		// binormal
-		union	
-		{
-			struct
-			{
-				float bx, by, bz;
-			};	
-			SXYZ binormal;	
-		};									
+		};											
 
 		// texture coords							
 		SVector2 textureCoords[2];
@@ -66,7 +56,7 @@ namespace SpeedPoint
 			nx(nx_), ny(ny_), nz(nz_),
 			tx(tx_), ty(ty_), tz(tz_)
 		{				
-			binormal = SVector3( nx, ny, nz ).Cross( SVector3( tx, ty, ty ) );				
+			//binormal = SVector3( nx, ny, nz ).Cross( SVector3( tx, ty, ty ) );				
 			textureCoords[0].x = tu_;
 			textureCoords[0].y = tv_;
 			textureCoords[1].x = tu2_;
@@ -95,6 +85,12 @@ namespace SpeedPoint
 		SVertex ()
 			: SVertex (0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f, 1.0f,0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f)
 		{			
+		}
+
+		// Get the binormal of this Vertex
+		SXYZ GetBinormal()
+		{
+			return SVector3Cross(SVector3(nx, ny, nz), SVector3(tx, ty, ty));
 		}
 	};
 

@@ -114,6 +114,11 @@ namespace SpeedPoint
 			return res.result != result;
 		}
 
+		bool operator !() const
+		{
+			return Failure(result);
+		}
+
 		// WARNING: out needs to be initialized with a minimum of 16 chars!
 		static void GetResultTypeDesc(const SResultType& type, char* out)
 		{

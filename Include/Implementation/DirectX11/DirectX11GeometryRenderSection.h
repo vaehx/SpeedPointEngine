@@ -33,6 +33,8 @@ private:
 	DirectX11FBO m_GBufferTangents;	// in world space		
 	DirectX11FBO m_GBufferAlbedo;
 
+	ID3D11Buffer* m_pConstantsBuffer;	// for the matrices
+
 
 
 	// Initialization / Destruction

@@ -25,6 +25,8 @@ private:
 	SpeedPointEngine* m_pEngine;
 	DirectX11Renderer* m_pDXRenderer;
 
+	ID3D11InputLayout* m_pVSInputLayout;
+
 	ID3D11PixelShader* m_pPixelShader;
 	ID3D11VertexShader* m_pVertexShader;
 
@@ -33,9 +35,17 @@ private:
 	//ID3D11GeometryShader* m_pGeomShader;
 
 public:
+	DirectX11Effect();
+	~DirectX11Effect();
+
 	virtual SResult Initialize(SpeedPointEngine* pEngine, char* cFilename);	
 	virtual bool IsInitialized();
 	virtual SResult Clear(void);
+
+	// Note:
+	//	This function will update the Matrices Constants buffer, so make sure to call
+	//	DirectX11Renderer::SetViewportMatrices() and DirectX11Renderer::SetWorldMatrix() before!
+	virtual SResult Enable();
 
 	virtual SResult SetTechnique(char* cTechnique);	
 };

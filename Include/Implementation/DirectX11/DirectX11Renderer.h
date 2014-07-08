@@ -53,9 +53,15 @@ private:
 	unsigned int m_MaxMSQuality;
 };
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SpeedPoint DirectX 11 Renderer Implementation
+
+enum S_API EDirectX11CBSizeType
+{
+	eDX11CBSZ_MATRICES,
+	eDX11CBSZ_CUSTOM
+};
+
 class S_API DirectX11Renderer : public IRenderer
 {
 private:
@@ -90,6 +96,9 @@ private:
 
 	ID3D11DepthStencilState* m_pDepthStencilState;
 
+	SDefMtxCB m_Matrices;
+	ID3D11Buffer* m_pDXMatrixCB;
+
 public:				
 	DirectX11Renderer();
 	~DirectX11Renderer();
@@ -111,10 +120,18 @@ public:
 	DXGI_MODE_DESC GetD3D11AutoSelectedDisplayModeDesc() { return m_AutoSelectedDisplayModeDesc; }
 
 	SResult D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDesc, IDXGISwapChain** ppSwapChain);
-	SResult D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV);
+	SResult D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV);	
 
 	SResult SetRenderTarget(IViewport* pViewport);
 	SResult SetRenderTarget(DirectX11FBO* pFBO);
+	
+
+	SResult D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 customByteSize);
+	SResult D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData);
+	
+	SResult D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB);
+	SResult SetupMatrixCB();
+	SResult UpdateMatrixCB();
 
 	////////////////////////////////////////////////////////////////////////////
 	// Derived:
@@ -160,9 +177,8 @@ public:
 
 	virtual IViewport* GetDefaultViewport(void);
 
-	// Note:
-	//	Doesn't actually do anything in DX11 due to removed fixed pipeline
-	virtual SResult UpdateViewportMatrices(IViewport* pViewport);
+	virtual SResult SetViewportMatrices(IViewport* pViewport);
+	virtual SResult SetWorldMatrix(STransformable* t);
 
 	virtual SResult RenderSolid(ISolid* pSolid, bool bTextured);	
 
