@@ -384,7 +384,7 @@ S_API SResult DirectX11Renderer::Initialize(SpeedPointEngine* pEngine, HWND hWnd
 	if (IsInited())
 		Shutdown();	// shutdown before initializing again
 
-	pEngine = pEngine;	
+	m_pEngine = pEngine;	
 
 
 
