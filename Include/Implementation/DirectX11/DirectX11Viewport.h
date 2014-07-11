@@ -17,7 +17,6 @@
 SP_NMSPACE_BEG
 
 // forward declarations
-class S_API SSpeedPointEngine;
 class S_API SpeedPointEngine;
 class S_API DirectX11Renderer;
 class S_API SCamera;	
@@ -27,7 +26,7 @@ class S_API DirectX11FBO;
 class S_API DirectX11Viewport : public IViewport
 {
 private:
-	SSpeedPointEngine* m_pEngine;
+	SpeedPointEngine* m_pEngine;
 	DirectX11Renderer* m_pRenderer;	// the handling rendering
 	
 	DirectX11FBO* m_pFBO;

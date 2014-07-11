@@ -33,40 +33,28 @@ public:
 	DirectX11VertexBuffer();	
 	DirectX11VertexBuffer(const DirectX11VertexBuffer& o);		
 	~DirectX11VertexBuffer();
+	
+	virtual SResult Initialize(int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer);	
+	virtual SResult Create(int nSize, bool bDynamic_);
+	
+	virtual BOOL IsInited(void);	
+	virtual SResult Resize(int nNewSize);	
+	virtual SResult Lock(UINT iBegin, UINT iLength, SVertex** buf, EVBLockType lockType);
+	virtual SResult Lock(UINT iBegin, UINT iLength, SVertex** buf);	
+	virtual SResult Fill(SVertex* pVertices, int nVertices, bool append);	
+	virtual SResult Unlock(void);	
+	virtual SVertex* GetShadowBuffer(void);	
+	virtual SVertex* GetVertex(int iVertex);	
+	virtual INT GetVertexCount(void);	
+	virtual SResult Clear(void);
 
-	// Initialize the vertex buffer
-	SResult Initialize(int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer);
 
-	// Create the Hardware Vertex Buffer
-	SResult Create(int nSize, bool bDynamic_);
 
-	// Check if this Vertex Buffer is inited properly
-	BOOL IsInited(void);
-
-	// Change the size of the Hardware Vertex Buffer
-	SResult Resize(int nNewSize);
-
-	// Lock the Hardware Vertex Buffer in order to be able to fill Hardware data
-	SResult Lock(UINT iBegin, UINT iLength, SVertex** buf, EVBLockType lockType);
-	SResult Lock(UINT iBegin, UINT iLength, SVertex** buf);
-
-	// Fill the Hardware Vertex Buffer with an array of vertices
-	SResult Fill(SVertex* pVertices, int nVertices, bool append);
-
-	// Unlock the Hardware Vertex Buffer
-	SResult Unlock(void);
-
-	// Get the RAM Copy of the hardware Vertex Buffer
-	SVertex* GetShadowBuffer(void);
-
-	// Get a Pointer to an Vertex
-	SVertex* GetVertex(int iVertex);
-
-	// Get the total count of all vertices
-	INT GetVertexCount(void);
-
-	// Clear everything and free memory
-	SResult Clear(void);
+	// DX
+	ID3D11Buffer* D3D11_GetBuffer()
+	{
+		return m_pHWVertexBuffer;
+	}
 };
 
 

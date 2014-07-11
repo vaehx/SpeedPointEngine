@@ -10,7 +10,7 @@
 #include <Implementation\DirectX11\DirectX11FBO.h>
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <Abstract\IRenderer.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 #include <Implementation\DirectX11\DirectX11Utilities.h>
 
 SP_NMSPACE_BEG
@@ -33,7 +33,7 @@ S_API DirectX11FBO::~DirectX11FBO()
 }
 
 // -----------------------------------------------------------------------
-S_API SResult DirectX11FBO::Initialize(EFBOType type, SSpeedPointEngine* pEngine, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
+S_API SResult DirectX11FBO::Initialize(EFBOType type, SpeedPointEngine* pEngine, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
 {
 	Clear(); // make sure to clear before initialize again
 
@@ -51,24 +51,29 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, SSpeedPointEngine* pEngine
 		texFmt = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	}
 
-	// Setup the texture description structure
-	D3D11_TEXTURE2D_DESC texDesc;
-	texDesc.ArraySize = 1;
-	texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;		
-	texDesc.Height = nH;
-	texDesc.Width = nW;
-	texDesc.MiscFlags = 0;
-	texDesc.Usage = D3D11_USAGE_DEFAULT; // maybe make this specificable someday							
-	texDesc.Format = texFmt;
-	texDesc.SampleDesc = GetD3D11MSAADesc(
-		texDesc.Format,
+	// Setup the texture description structure	
+	m_texDesc.ArraySize = 1;
+
+
+	m_texDesc.BindFlags = D3D11_BIND_RENDER_TARGET 
+		| D3D11_BIND_SHADER_RESOURCE;	// assumes that all FBOs currently are used as textures as well - maybe we want to change this someday!
+
+
+
+	m_texDesc.Height = nH;
+	m_texDesc.Width = nW;
+	m_texDesc.MiscFlags = 0;
+	m_texDesc.Usage = D3D11_USAGE_DEFAULT; // maybe make this specificable someday							
+	m_texDesc.Format = texFmt;
+	m_texDesc.SampleDesc = GetD3D11MSAADesc(
+		m_texDesc.Format,
 		m_pDXRenderer->GetD3D11Device(),
 		m_pDXRenderer->GetSettings()->GetMSAACount(),
 		m_pDXRenderer->GetSettings()->GetMSAAQuality());
 
 	// now finally create the texture
 	HRESULT hRes;
-	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&texDesc, 0, &m_pTexture)))
+	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&m_texDesc, 0, &m_pTexture)))
 	{
 		return m_pEngine->LogE("Failed CreateTexture2D while attempting to create FBO!");
 	}
@@ -76,7 +81,7 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, SSpeedPointEngine* pEngine
 
 	// setup description of rtv
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
-	rtvDesc.Format = texDesc.Format;
+	rtvDesc.Format = m_texDesc.Format;
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
@@ -134,7 +139,8 @@ S_API SResult DirectX11FBO::InitializeDSV()
 	depthStencilViewDesc.Flags = 0;
 	depthStencilViewDesc.Format = depthStencilBufferFormat;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;	// ???
-	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;	// Maybe someday use MS?
 
 	if (Failure(pD3DDevice->CreateDepthStencilView(m_pDepthStencilBuffer, &depthStencilViewDesc, &m_pDepthStencilView)))
 	{
@@ -143,6 +149,23 @@ S_API SResult DirectX11FBO::InitializeDSV()
 
 	
 	// okay. done.
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------
+S_API SResult DirectX11FBO::InitializeSRV()
+{
+	SP_ASSERTR(m_pTexture, S_NOTINIT);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	memset(&srvDesc, 0, sizeof(srvDesc));
+	srvDesc.Format = m_texDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;		// maybe someday use MS?
+	srvDesc.Texture2D.MipLevels = 1;
+
+	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pTexture, &srvDesc, &m_pSRV)))
+		return m_pEngine->LogE("Failed create shader resource view for FBO!");
+
 	return S_SUCCESS;
 }
 

@@ -54,7 +54,7 @@ struct S_API SColor
 // --------------------------------------------------------------------------
 static inline S_API void SPGetColorFloatArray(float* pFloatArr, const SColor& color)
 {
-	SP_ASSERTR(pFloatArr);
+	SP_ASSERT(pFloatArr);
 	pFloatArr[0] = color.r;
 	pFloatArr[1] = color.g;
 	pFloatArr[2] = color.b;

@@ -9,6 +9,8 @@
 #include "Test.h"
 #include "TestUtil.h"
 
+#include <Implementation\DirectX11\DirectX11Renderer.h>
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 void OnLogReport(SpeedPoint::SResult res, SpeedPoint::SString msg)
@@ -23,7 +25,8 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	// Start the engine
 	settings.app.bWindowed = true;
 	settings.app.hWnd = hWnd;
-	if (Failure(m_Engine.Start(settings))) return false;
+	if (SpeedPoint::Failure(m_Engine.Start(SpeedPoint::DirectX11Renderer::GetInstance(), settings)))
+		return false;
 
 	// Add a triangle	
 	SpeedPoint::ISolid* pSolid;
@@ -35,7 +38,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	pSolid->SetMaterial(mat);
 
 	SpeedPoint::SVertex* pVertices = new SpeedPoint::SVertex[4];
-	DWORD* pIndices = new DWORD[6];
+	SpeedPoint::SIndex* pIndices = new SpeedPoint::SIndex[6];
 	pVertices[0] = SpeedPoint::SVertex(-0.5f,-0.5f,0.5f, 0,0,-1.0f, -1.0f,0.0f,0.0f, 0.0f,0.0f);
 	pVertices[2] = SpeedPoint::SVertex( 0.5f, 0.5f,0.0f, 0,0,-1.0f, -1.0f,0.0f,0.0f, 1.0f,1.0f);
 	pVertices[3] = SpeedPoint::SVertex( 0.5f,-0.5f,0.0f, 0,0,-1.0f, -1.0f,0.0f,0.0f, 1.0f,0.0f);

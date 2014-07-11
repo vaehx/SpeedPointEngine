@@ -11,22 +11,27 @@
 
 #include <SPrerequisites.h>
 
-namespace SpeedPoint
+
+SP_NMSPACE_BEG
+
+struct S_API ISoundSystem;
+
+// SpeedPoint Sound Resource (abstract)
+struct S_API ISound
 {
-	// SpeedPoint Sound Resource (abstract)
-	class S_API ISound
-	{
-	public:	
-		// Initialize with a soundsystem
-		virtual SResult Initialize( ISoundSystem* pSystem ) = 0;		
+public:	
+	// Initialize with a soundsystem
+	virtual SResult Initialize( ISoundSystem* pSystem ) = 0;		
 
-		// Load the sound from a file and set specification
-		virtual SResult LoadFromFile( char* cFilename, char* specification ) = 0;
+	// Load the sound from a file and set specification
+	virtual SResult LoadFromFile( char* cFilename, char* specification ) = 0;
 
-		// Get the specification
-		virtual SString GetSpecification( void ) = 0;
+	// Get the specification
+	virtual SString GetSpecification( void ) = 0;
 
-		// Clear the sound data
-		virtual SResult Clear( void ) = 0;
-	};
-}
+	// Clear the sound data
+	virtual SResult Clear( void ) = 0;
+};
+
+
+SP_NMSPACE_END

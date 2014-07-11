@@ -22,15 +22,15 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicTerrain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationBundle.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationJoint.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationKey.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicAnimationSequence.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicOctree.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicOctreeNode.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationBundle.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Solid.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicSolidSystem.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SBasicTerrain.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SolidSystem.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FACEAC68-301E-41D3-AA53-EBFDE139F192}</ProjectGuid>

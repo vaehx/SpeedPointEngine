@@ -8,7 +8,7 @@
 
 //~~~~~~~~~
 // TODO: Try to eliminate this include and use interface instead!
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 //~~~~~~~~~
 
 namespace SpeedPoint

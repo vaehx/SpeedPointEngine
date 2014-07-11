@@ -5,10 +5,12 @@
 // ******************************************************************************************
 
 #include <Pipelines\SDynamicsPipeline.h>
+#include <SpeedPointEngine.h>
+#include <Pipelines\FramePipeline.h>
 
 namespace SpeedPoint
 {
-	S_API SResult SDynamicsPipeline::Initialize(SpeedPointEngine* m_pEngine, SFramePipeline* pFramePipeline)
+	S_API SResult SDynamicsPipeline::Initialize(SpeedPointEngine* m_pEngine, FramePipeline* pFramePipeline)
 	{
 		return S_SUCCESS;
 	}

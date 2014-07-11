@@ -10,14 +10,17 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include <Util\SMatrix.h>
 
 namespace SpeedPoint
 {
 
 	// Forward declarations
-	class IFBO;
-	class SpeedPointEngine;
-	class IRenderer;
+	class S_API IFBO;
+	class S_API SpeedPointEngine;
+	struct S_API IRenderer;
+	struct S_API IIndexBuffer;
+	struct S_API IVertexBuffer;
 
 
 	// SpeedPoint Renderer specific Output Plane (abstract)
@@ -34,5 +37,13 @@ namespace SpeedPoint
 
 		// Clearout the output plane
 		virtual SResult Clear( void ) = 0;
+		
+		virtual IVertexBuffer* GetVertexBuffer() = 0;
+		virtual IIndexBuffer* GetIndexBuffer() = 0;
+
+		virtual SMatrix& GetProjectionMatrix() = 0;
+		virtual SMatrix& GetViewMatrix() = 0;
+
+		virtual usint32 GetIndexCount() = 0;		
 	};
 }

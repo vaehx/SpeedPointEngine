@@ -21,12 +21,13 @@ namespace SpeedPoint
 	// ******************************************************************************************
 
 	// Use this to point to a function that shall be called when log entry was added to the stream
-	// ! See SPrerequisites for definition !
-	// typedef S_API void(*SLogHandler)(SResult, SString);
 
-	// ******************************************************************************************
+	typedef S_API void(*SLogHandler)(SResult, SString);
 
-	// SpeedPoint Log Stream
+	// ******************************************************************************************	
+
+
+	// SpeedPoint Log Stream	
 	class S_API SLogStream
 	{
 	private:

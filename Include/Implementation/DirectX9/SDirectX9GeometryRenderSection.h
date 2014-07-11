@@ -21,11 +21,11 @@ namespace SpeedPoint
 		usint32 			m_nCurrentPasses;	// Count of passes of the current technique		
 		ISolid*				m_pCurrentSolid;	// current solid for which the Shader inputs are configured
 
-		SDirectX9Shader			m_gBufferShader;
-		SDirectX9FBO		m_GBufferPosition;	// in world space
-		SDirectX9FBO		m_GBufferNormals;	// in world space
-		SDirectX9FBO		m_GBufferTangents;	// in world space		
-		SDirectX9FBO		m_GBufferAlbedo;
+		SDirectX9Shader m_gBufferShader;
+		SDirectX9FBO m_GBufferPosition;	// in world space
+		SDirectX9FBO m_GBufferNormals;	// in world space
+		SDirectX9FBO m_GBufferTangents;	// in world space		
+		SDirectX9FBO m_GBufferAlbedo;
 
 	// Initialization / Destruction
 	public:

@@ -1,12 +1,12 @@
 // SpeedPoint Basic Animation Bundle
 
-#include <Implementation\Geometry\SBasicAnimationBundle.h>
+#include <Implementation\Geometry\AnimationBundle.h>
 
 namespace SpeedPoint
 {
 	// **********************************************************************************
 
-	S_API SResult SBasicAnimationBundle::Initialize( ISolid* pSolid )
+	S_API SResult AnimationBundle::Initialize( ISolid* pSolid )
 	{
 		if( pSolid == NULL ) return S_ABORTED;
 
@@ -15,69 +15,69 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult SBasicAnimationBundle::Tick( float fTimeFactor )
+	S_API SResult AnimationBundle::Tick( float fTimeFactor )
 	{
 		return S_ERROR;
 	}
 
 	// **********************************************************************************
 
-	S_API void SBasicAnimationBundle::SetName( const SString& name )
+	S_API void AnimationBundle::SetName( const SString& name )
 	{
 	}
 
 	// **********************************************************************************
 
-	S_API SString* SBasicAnimationBundle::GetName( void )
-	{
-		return NULL;
-	}
-
-	// **********************************************************************************
-
-	S_API IAnimationJoint* SBasicAnimationBundle::AddJoint( SP_ID* pID )
+	S_API SString* AnimationBundle::GetName( void )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API IAnimationJoint* SBasicAnimationBundle::GetJoint( SP_ID id )
+	S_API IAnimationJoint* AnimationBundle::AddJoint( SP_ID* pID )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API IAnimationSequence* SBasicAnimationBundle::AddAnimationSequence( SP_ID* pID )
+	S_API IAnimationJoint* AnimationBundle::GetJoint( SP_ID id )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API IAnimationSequence* SBasicAnimationBundle::GetAnimationSequence( SP_ID id )
+	S_API IAnimationSequence* AnimationBundle::AddAnimationSequence( SP_ID* pID )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SBasicAnimationBundle::RunAnimationSequence( SP_ID id )
+	S_API IAnimationSequence* AnimationBundle::GetAnimationSequence( SP_ID id )
+	{
+		return NULL;
+	}
+
+	// **********************************************************************************
+
+	S_API SResult AnimationBundle::RunAnimationSequence( SP_ID id )
 	{
 		return S_ERROR;
 	}
 
 	// **********************************************************************************
 
-	S_API SP_ID SBasicAnimationBundle::GetRunningAnimationSequence( void )
+	S_API SP_ID AnimationBundle::GetRunningAnimationSequence( void )
 	{
 		return SP_ID();
 	}
 
 	// **********************************************************************************
 	
-	S_API void SBasicAnimationBundle::Clear( void )
+	S_API void AnimationBundle::Clear( void )
 	{
 	}
 }

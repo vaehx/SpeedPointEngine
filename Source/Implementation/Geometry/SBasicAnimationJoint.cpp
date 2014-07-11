@@ -1,30 +1,30 @@
 // SpeedPoint Basic Animation Joint
 
-#include <Implementation\Geometry\SBasicAnimationJoint.h>
+#include <Implementation\Geometry\AnimationJoint.h>
 
 namespace SpeedPoint
 {
 	// **********************************************************************************
 
-	S_API void SBasicAnimationJoint::SetSolid( ISolid* psol )
+	S_API void AnimationJoint::SetSolid( ISolid* psol )
 	{
 	}
 
 	// **********************************************************************************
 
-	S_API void SBasicAnimationJoint::AssignVertex( SP_UNIQUE iVertex )
+	S_API void AnimationJoint::AssignVertex( SP_UNIQUE iVertex )
 	{
 	}
 
 	// **********************************************************************************
 
-	S_API void SBasicAnimationJoint::MoveVertices( const SVector3& vec )
+	S_API void AnimationJoint::MoveVertices( const SVector3& vec )
 	{
 	}
 
 	// **********************************************************************************
 
-	S_API void SBasicAnimationJoint::Clear( void )
+	S_API void AnimationJoint::Clear( void )
 	{
 	}
 }

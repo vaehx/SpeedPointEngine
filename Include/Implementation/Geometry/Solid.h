@@ -14,69 +14,76 @@
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
 
-namespace SpeedPoint
+
+SP_NMSPACE_BEG
+
+
+class S_API SpeedPointEngine;
+
+
+// SpeedPoint Solid implementation
+class S_API Solid : public ISolid
 {
-	// SpeedPoint Solid implementation
-	class S_API Solid : public ISolid
-	{
-	private:
-		bool m_bInitialized;
-		SpeedPointEngine* m_pEngine;
-		
-		SP_ID m_iAnimationBundle;
-		
-		SP_ID m_iVertexBuffer;
-		SP_ID m_iIndexBuffer;
-		
-		SPool<SPrimitive> m_plPrimitives;
-		bool m_bDynamic;
-		
-		SBoundBox m_bbBoundBox;							
-		IOctree* m_pOctree;
+private:
+	bool m_bInitialized;
+	SpeedPointEngine* m_pEngine;
+	
+	SP_ID m_iAnimationBundle;
+	
+	SP_ID m_iVertexBuffer;
+	SP_ID m_iIndexBuffer;
+	
+	SPool<SPrimitive> m_plPrimitives;
+	bool m_bDynamic;
+	
+	SBoundBox m_bbBoundBox;							
+	IOctree* m_pOctree;
 
-		SMaterial m_matMaterial;				
+	SMaterial m_matMaterial;				
 
-		ERenderPipelineStrategy m_RenderPipeStrategy;
+	ERenderPipelineStrategy m_RenderPipeStrategy;
 
 
 
-	public:		
-		Solid();		
-		~Solid();
+public:		
+	Solid();		
+	~Solid();
 
-		// -- General --
-		virtual SResult Initialize( SpeedPointEngine* pEngine, bool bDynamic );
-		virtual SResult Clear( void );
+	// -- General --
+	virtual SResult Initialize( SpeedPointEngine* pEngine, bool bDynamic );
+	virtual SResult Clear( void );
 
-		virtual SResult SetGeometryData( SVertex* pVertices, UINT nVertices, DWORD* pdwIndices, UINT nIndices );
-		virtual SP_ID GetVertexBuffer( void );
-		virtual SP_ID GetIndexBuffer( void );
+	virtual SResult SetGeometryData( SVertex* pVertices, UINT nVertices, SIndex* pdwIndices, UINT nIndices );
+	virtual SP_ID GetVertexBuffer( void );
+	virtual SP_ID GetIndexBuffer( void );
 
-		virtual SResult RenderSolid( SpeedPointEngine* pEngineReplacement = 0 );
+	virtual SResult RenderSolid( SpeedPointEngine* pEngineReplacement = 0 );
 
-		// -- Primitive --
-		virtual SP_ID AddPrimitive( const SPrimitive& primitive );
-		virtual SPrimitive* GetPrimitive( SP_ID id );
-		virtual SPrimitive* GetPrimitive( SP_UNIQUE index );
-		virtual usint32 GetPrimitiveCount( void );
+	// -- Primitive --
+	virtual SP_ID AddPrimitive( const SPrimitive& primitive );
+	virtual SPrimitive* GetPrimitive( SP_ID id );
+	virtual SPrimitive* GetPrimitive( SP_UNIQUE index );
+	virtual usint32 GetPrimitiveCount( void );
 
-		// -- Material --
-		virtual void SetMaterial( const SMaterial& mat );
-		virtual SMaterial* GetMaterial( void );
+	// -- Material --
+	virtual void SetMaterial( const SMaterial& mat );
+	virtual SMaterial* GetMaterial( void );
 
-		// -- BoundBox --
-		virtual SBoundBox* RecalculateBoundBox( void );
-		virtual SBoundBox* GetBoundBox( void );
-		virtual SBoundBox* SetBoundBox( const SBoundBox& bb );
+	// -- BoundBox --
+	virtual SBoundBox* RecalculateBoundBox( void );
+	virtual SBoundBox* GetBoundBox( void );
+	virtual SBoundBox* SetBoundBox( const SBoundBox& bb );
 
-		// -- Octree --
-		virtual IOctree* GetOctree( void );
+	// -- Octree --
+	virtual IOctree* GetOctree( void );
 
-		// -- Animations --
-		virtual void SetAnimationBundle( SP_ID iBundle );
-		virtual SP_ID GetAnimationBundle( void );
-		virtual SResult RunAnimation( SString cName );
-		virtual SResult GetCurrentAnimation( SString* dest );
-		virtual SResult TickAnimation( float fFrameDelay );
-	};
-}
+	// -- Animations --
+	virtual void SetAnimationBundle( SP_ID iBundle );
+	virtual SP_ID GetAnimationBundle( void );
+	virtual SResult RunAnimation( SString cName );
+	virtual SResult GetCurrentAnimation( SString* dest );
+	virtual SResult TickAnimation( float fFrameDelay );
+};
+
+
+SP_NMSPACE_END

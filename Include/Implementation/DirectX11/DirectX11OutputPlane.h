@@ -11,13 +11,14 @@
 
 #include <SPrerequisites.h>
 #include <Abstract\IOutputPlane.h>
+#include <Util\SMatrix.h>
 
 SP_NMSPACE_BEG
 
-class DirectX11Renderer;
-class IVertexBuffer;
-class IIndexBuffer;
-class DirectX11Effect;
+class S_API DirectX11Renderer;
+struct S_API IVertexBuffer;
+struct S_API IIndexBuffer;
+class S_API DirectX11Effect;
 
 
 
@@ -33,8 +34,9 @@ private:
 	IIndexBuffer* m_pIndexBuffer;
 
 	SMatrix m_mtxProjection;
-	SMatrix m_mtxView;
+	SMatrix m_mtxView;	
 
+public:
 	// Default constructor
 	DirectX11OutputPlane()
 		: m_pEngine(0),
@@ -45,11 +47,10 @@ private:
 	}
 
 	~DirectX11OutputPlane()
-	{		
+	{
 		Clear();
 	}
 
-public:
 
 	// Initialize the output plane
 	virtual SResult Initialize(SpeedPointEngine* eng, IRenderer* renderer, int nW, int nH);
@@ -61,6 +62,27 @@ public:
 
 	// Clearout the output plane
 	virtual SResult Clear(void);
+
+	virtual IVertexBuffer* GetVertexBuffer()
+	{
+		return m_pVertexBuffer;
+	}
+
+	virtual IIndexBuffer* GetIndexBuffer()
+	{
+		return m_pIndexBuffer;
+	}
+
+	virtual SMatrix& GetProjectionMatrix()
+	{
+		return m_mtxProjection;
+	}
+	virtual SMatrix& GetViewMatrix()
+	{
+		return m_mtxView;
+	}
+
+	virtual usint32 GetIndexCount();
 };
 
 

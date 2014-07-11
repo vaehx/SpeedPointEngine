@@ -18,11 +18,11 @@ SP_NMSPACE_BEG
 
 
 // Forward declarations
-class DirectX11OutputPlane;
-class DirectX11RenderPipeline;
-class DirectX11GeometryRenderSection;
-class SLight;
-class IRenderPipeline;
+class S_API DirectX11OutputPlane;
+class S_API DirectX11RenderPipeline;
+class S_API DirectX11GeometryRenderSection;
+class S_API SLight;
+struct S_API IRenderPipeline;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 

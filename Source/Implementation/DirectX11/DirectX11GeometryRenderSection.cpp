@@ -20,7 +20,7 @@
 #include <Util\SMaterial.h>
 #include <Util\SVertex.h>
 #include <Util\SPrimitive.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 
 SP_NMSPACE_BEG
 
@@ -159,10 +159,7 @@ S_API SResult DirectX11GeometryRenderSection::EndSection()
 // -------------------------------------------------------------------
 S_API SResult DirectX11GeometryRenderSection::PrepareShaderInput(ISolid* pSolid, bool bTextured)
 {
-	HRESULT hRes;
-	DirectX11Renderer* pDXRenderer;
-	DirectX11VertexBuffer* pDXVertexBuffer;
-	DirectX11IndexBuffer* pDXIndexBuffer;
+	DirectX11Renderer* pDXRenderer;		
 
 	SP_ASSERTR(m_pEngine, S_NOTINIT);
 	SP_ASSERTXR(m_pDXRenderPipeline && m_pDXRenderPipeline->IsInitialized(), S_NOTINIT, m_pEngine, "Renderer not initialized!");
@@ -241,7 +238,7 @@ S_API SResult DirectX11GeometryRenderSection::RenderSolidGeometry(ISolid* pSolid
 	SP_ASSERTXR(m_pCurrentSolid->GetPrimitiveCount() > 0, S_INVALIDPARAM, m_pEngine, "Primitive count of solid equals 0!");	
 
 	// -----------------------------------------------------------------------------------------------------------------------
-	// now draw all objects per shader pass	
+	// now draw all objects
 
 	for (usint32 iPrimitive = 0; iPrimitive < (usint32)m_pCurrentSolid->GetPrimitiveCount(); ++iPrimitive)
 	{
@@ -305,9 +302,8 @@ S_API SResult DirectX11GeometryRenderSection::RenderTexturedPrimitive(UINT iPrim
 	if (0 == (pTexture = m_pEngine->GetResourcePool()->GetTexture(pPrimitive->iTexture)))
 		return m_pEngine->LogE("Failed to retrieve texture of textured primitive!");
 
-	DirectX11Texture* pDXTexture = (DirectX11Texture*)pTexture;
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(0, pDXTexture->pTexture)))
-		return m_pEngine->LogE("Failed to set the texture of textured primitive!");
+	if (Failure(pDXRenderer->BindTexture(pTexture, 0)))
+		return m_pEngine->LogE("Failed bind texture!");
 
 	// --------------------------------------------------------------------------------------------
 	// Draw the actual geometry
@@ -326,62 +322,40 @@ S_API SResult DirectX11GeometryRenderSection::RenderPrimitiveGeometry(SPrimitive
 {
 	if (m_pEngine == NULL) return S_ABORTED;
 
-	if (m_pDX9RenderPipeline == 0 || !m_pDX9RenderPipeline->IsInitialized())
+	if (m_pDXRenderPipeline == 0 || !m_pDXRenderPipeline->IsInitialized())
 		return m_pEngine->LogReport(S_ABORTED, "Cannot render primitive geometry: renderer not initialized!");
 
 	if (pPrimitive == NULL)
 		return m_pEngine->LogReport(S_ABORTED, "Cannot render primitive geometry: given primitive not initialized!");
 
 	// Get the DirectX9 Renderer
-	SDirectX9Renderer* pDXRenderer = (SDirectX9Renderer*)m_pDX9RenderPipeline->GetRenderer();
+	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pDXRenderPipeline->GetRenderer();
 
 	// Get the effect
-	LPD3DXEFFECT pGBufferEffect = m_gBufferShader.GetEffect();
+	m_gBufferShader.Enable();
 
 	// --------------------------------------------------------------------------------------------
-	// Setup the proper Cullmode
+	// Setup the proper Backface Cullmode
 
-	DWORD dwCullMode = D3DCULL_CW;
-	if (pPrimitive->tType == S_PRIM_PARTICLE || pPrimitive->tType == S_PRIM_COMPLEX_PLANE)
-	{
-		dwCullMode = D3DCULL_NONE;
-	}
+	bool bEnableCulling = true;
+	if (pPrimitive->tType == S_PRIM_PARTICLE || pPrimitive->tType == S_PRIM_COMPLEX_PLANE)	
+		bEnableCulling = false;	
 
-	if (FAILED(pDXRenderer->pd3dDevice->SetRenderState(D3DRS_CULLMODE, dwCullMode)))
-	{
-		pGBufferEffect->EndPass(); // pass started by Renderpipeline
-		pGBufferEffect->End();
-		return m_pEngine->LogReport(S_ERROR, "Failed set CullMode render state while rendering a solid inside the pipeline");
-	}
+	if (Failure(pDXRenderer->EnableBackfaceCulling(bEnableCulling)))	
+		return m_pEngine->LogReport(S_ERROR, "Failed set CullMode render state while rendering a solid inside the pipeline");	
 
 	// --------------------------------------------------------------------------------------------
-	// Convert the polygon type
+	// If we have to use a special primitive type, then enable it and disable it again after draw
 
-	D3DPRIMITIVETYPE ptType = D3DPT_TRIANGLELIST;
-	switch (pPrimitive->tRenderType)
-	{
-	case S_PRIM_RENDER_TRIANGLELIST: ptType = D3DPT_TRIANGLELIST; break;
-	case S_PRIM_RENDER_TRIANGLESTRIP: ptType = D3DPT_TRIANGLESTRIP; break;
-	case S_PRIM_RENDER_LINELIST: ptType = D3DPT_LINELIST; break;
-	case S_PRIM_RENDER_POINTLIST: ptType = D3DPT_POINTLIST; break;
-	}
+	pDXRenderer->UpdatePolygonType(pPrimitive->tType);
 
 	// --------------------------------------------------------------------------------------------
 	// Now draw the polygons
 
-	if (FAILED(pDXRenderer->pd3dDevice->DrawIndexedPrimitive(
-		ptType,								// Polygon type
-		pPrimitive->iFirstVertex,					// index of first vertex
-		0,								// minimum index of the vertex buffer
-		(pPrimitive->iLastVertex - pPrimitive->iFirstVertex + 1),	// Count of vertices available
-		pPrimitive->iFirstIndex,					// the first index to be drawn
-		(UINT)pPrimitive->nPolygons)))					// Count of polygons in the index buffer to be drawn
-	{
-		pGBufferEffect->EndPass(); // pass started by renderPipeline
-		pGBufferEffect->End();
-
-		return m_pEngine->LogReport(S_ERROR, "Failed draw Polygons inside render pipeline!");
-	}
+	pDXRenderer->GetD3D11DeviceContext()->DrawIndexed(
+		pPrimitive->iLastIndex - pPrimitive->iFirstIndex + 1,	// Number of indices to draw
+		pPrimitive->iFirstIndex,				// The location of the first index read by the GPU from the index buffer
+		pPrimitive->iFirstVertex);				// A value added to each index before reading a vertex from the vertex buffer
 
 	// --------------------------------------------------------------------------------------------
 
@@ -392,17 +366,12 @@ S_API SResult DirectX11GeometryRenderSection::RenderPrimitiveGeometry(SPrimitive
 S_API SResult DirectX11GeometryRenderSection::FreeShaderInput(void)
 {
 	SP_ASSERTR(m_pEngine, S_ERROR);
-	SP_ASSERTXR(m_pDX9RenderPipeline && m_pDX9RenderPipeline->IsInitialized(), S_NOTINIT, "Renderer not initialized!");
+	SP_ASSERTXR(m_pDXRenderPipeline && m_pDXRenderPipeline->IsInitialized(), S_NOTINIT, "Renderer not initialized!");
 
-	// --------------------------------------------------------------------------------------------
-	// Exit the shader
-
-	if (FAILED(m_gBufferShader.GetEffect()->End()))
-		return m_pEngine->LogReport(S_ERROR, "Failed to exit gBuffer creation shader!");
-
-	// --------------------------------------------------------------------------------------------
+	// No exiting of the shader needed, as it will be overwritten after the next shader->enable()
 
 	return S_SUCCESS;
 }
 
-}
+
+SP_NMSPACE_END

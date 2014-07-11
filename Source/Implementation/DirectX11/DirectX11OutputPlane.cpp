@@ -12,10 +12,16 @@
 #include <Abstract\IIndexBuffer.h>
 #include <Util\SMatrix.h>
 #include <Util\SVector3.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 #include <Util\SVertex.h>
 
 SP_NMSPACE_BEG
+
+// --------------------------------------------------------------------------------
+S_API usint32 DirectX11OutputPlane::GetIndexCount()
+{
+	return 600; // 10 * 10 * 6;
+}
 
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer* renderer, int nW, int nH)
@@ -37,7 +43,7 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 	SPMatrixOrthoRH(&mtxProj, fWidth, fHeight, 2.0f, 200.0f);	
 
 	SMatrix mtxView;
-	SPMatrixLookAtRH(&mtxView, new SVector3(0, 0, -10.0f), new SVector3(0, 0, 0.0f), new SVector3(0, 1.0f, 0));	
+	SPMatrixLookAtRH(&mtxView, SVector3(0, 0, -10.0f), SVector3(0, 0, 0.0f), SVector3(0, 1.0f, 0));	
 
 	// Create the geometry with plane of 10 * 10 fields
 	if (Failure(m_pVertexBuffer->Initialize(11 * 11, false, m_pEngine, renderer)))
@@ -51,7 +57,7 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 	}
 
 	SVertex* pVertices = (SVertex*)(malloc(sizeof(SVertex)* 11 * 11));
-	DWORD* pIndices = (DWORD*)(malloc(sizeof(DWORD)* 10 * 10 * 6));
+	SIndex* pIndices = (SIndex*)(malloc(sizeof(SIndex) * GetIndexCount()));
 
 	UINT vPos = 0, iPos = 0;
 

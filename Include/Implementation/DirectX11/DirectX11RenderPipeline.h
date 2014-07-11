@@ -20,9 +20,9 @@
 
 SP_NMSPACE_BEG
 
-class DirectX11Renderer;
-class IViewport;
-class SFramePipeline;
+class S_API DirectX11Renderer;
+struct S_API IViewport;
+class S_API FramePipeline;
 
 // DirectX9 Implementation of the SpeedPoint Render Pipeline
 class S_API DirectX11RenderPipeline : public IRenderPipeline
@@ -31,7 +31,7 @@ private:
 	SpeedPointEngine*		m_pEngine;
 	DirectX11Renderer*		m_pDXRenderer;
 	IViewport*			m_pTargetViewport;
-	SFramePipeline*			m_pFramePipeline;	// the handling frame pipeline
+	FramePipeline*			m_pFramePipeline;	// the handling frame pipeline
 
 
 
@@ -67,7 +67,7 @@ public:
 	virtual inline bool IsInitialized();
 
 	// Set the Frame pipeline pointer (due to aggregation)
-	virtual SResult SetFramePipeline(SFramePipeline* pFramePipeline);
+	virtual SResult SetFramePipeline(FramePipeline* pFramePipeline);
 
 	// Clearout the renderpipeline
 	virtual SResult Clear(void);
@@ -147,7 +147,7 @@ public:
 
 	// Getter / setter
 public:
-	SFramePipeline* GetFramePipeline() { return m_pFramePipeline; }
+	FramePipeline* GetFramePipeline() { return m_pFramePipeline; }
 };
 
 

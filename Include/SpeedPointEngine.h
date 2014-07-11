@@ -17,7 +17,7 @@
 #include "Util\SCamera.h"
 #include "Util\SLogStream.h"
 
-#include "Pipelines\SFramePipeline.h"
+#include "Pipelines\FramePipeline.h"
 
 #include "OnionPhysics\SPhysicsEngine.h"
 #include "OnionPhysics\SPhysicalSolidSystem.h"
@@ -47,24 +47,32 @@ SP_NMSPACE_BEG
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // forward declarations
 
-class IViewport;
+struct S_API IViewport;
+struct S_API IRenderer;
+
+
+
+
 
 // TODO: Try to get an interface from this engine!!
 
+
+
+
+
 // SpeedPoint Game Engine contains all parts of the default SpeedPoint Engine components (Frame, Physics, Rendering, ...)
 // If you want to use custom components you can either hook your components into the other components
-class S_API SSpeedPointEngine : public IExceptionProxy
+class S_API SpeedPointEngine : public IExceptionProxy
 {
-private:
-	// Global
+private:	
 	bool			m_bRunning;		// Is the Game Engine started and initialized?
 	SSettings		m_Settings;		// Main Settings of the Game Engine	
 
-	SFrameEngine		m_FrameEngine;		// Frame Engine Component	
-	IRenderer*		m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX10/11, OpenGL)
+	FrameEngine		m_FrameEngine;		// Frame Engine Component	
+	IRenderer*		m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 
 	SPhysicsEngine		m_PhysicsEngine;	// Default Physics Engine Component
-	SPhysicalSolidSystem	m_PhysWorld;		// global system of physical objects (terrain, cow, rocks, barrels, ...)	
+	ISolidSystem*		m_pWorld;		// global system of physical objects (terrain, cow, rocks, barrels, ...)	
 
 	SLightSystem		m_GlobalLightSystem;	// global (default) system of light sources
 
@@ -76,10 +84,9 @@ private:
 	SLogStream*		m_pLoggingStream;	// Logging stream used in this Game Engine
 	bool			m_bCustomLogStream;	// Is a custom logging stream used?
 
-// Initialization
 public:
 	// Default constructor
-	SSpeedPointEngine()
+	SpeedPointEngine()
 		: m_bRunning(false),
 		m_pRenderer(0),
 		m_pViewports(0),
@@ -95,11 +102,14 @@ public:
 	// Setup the Game Engine settings and update components if running already
 	SResult UpdateSettings(const SSettings& customSettings);
 
-	// Start the Engine components
-	SResult Start();
+	// Summary:
+	//	Start the Engine components
+	// Arguments:
+	//	pRendererInstance - pass an Instance created by RendererImplementation::GetInstance()
+	SResult Start(IRenderer* pRendererInstance);
 
 	// Start the Engine components with given settings (avoids extra SetSettings()-Call)
-	SResult Start(const SSettings& customSettings);
+	SResult Start(IRenderer* pRendererInstance, const SSettings& customSettings);
 
 	// Stop the Engine components and clean up everything
 	SResult Shutdown();
@@ -114,7 +124,7 @@ public:
 	IViewport* GetViewport(unsigned int index);
 
 	// Add an additional viewport and retrieve pointer to it
-	IViewport* AddViewport();
+	IViewport* AddViewport(HWND hWnd);
 
 
 // Global physical solids management
@@ -178,7 +188,7 @@ public:
 	SSettings& GetSettings() { return m_Settings; }	
 	SResult SetSettings(const SSettings& settings) { return UpdateSettings(settings); }
 
-	SFrameEngine* GetFrameEngine() { return &m_FrameEngine; }
+	FrameEngine* GetFrameEngine() { return &m_FrameEngine; }
 
 	SPhysicsEngine* GetPhysicsEngine() { return &m_PhysicsEngine; }
 
@@ -189,8 +199,6 @@ public:
 
 	IResourcePool* GetResourcePool() { return m_pResourcePool; }
 };
-
-typedef class SSpeedPointEngine SpeedPointEngine;
 
 
 SP_NMSPACE_END

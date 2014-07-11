@@ -8,6 +8,7 @@
 
 #pragma once
 
+#define SP_NO_PHYSICS
 #include <SpeedPoint.h>
 #include <Windows.h>
 

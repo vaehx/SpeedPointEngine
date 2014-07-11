@@ -9,10 +9,13 @@
 
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <Implementation\DirectX11\DirectX11RenderPipeline.h>
-#include <SSpeedPointEngine.h>
+#include <Implementation\DirectX11\DirectX11ResourcePool.h>
+#include <SpeedPointEngine.h>
 #include <Implementation\DirectX11\DirectX11Utilities.h>
 #include <Implementation\DirectX11\DirectX11VertexBuffer.h>
 #include <Implementation\DirectX11\DirectX11IndexBuffer.h>
+#include <Implementation\DirectX11\DirectX11Texture.h>
+#include <Util\SVertex.h>
 
 SP_NMSPACE_BEG
 
@@ -55,6 +58,7 @@ S_API SResult DirectX11RenderDeviceCaps::Collect(IRenderer* pRenderer)
 
 DirectX11Renderer::DirectX11Renderer()
 : m_pEngine(0),
+m_pResourcePool(0),
 m_pD3DDevice(0),
 m_pD3DDeviceContext(0),
 m_pRenderPipeline(0),
@@ -71,6 +75,17 @@ m_pDXMatrixCB(0)
 };
 
 // --------------------------------------------------------------------
+S_API IResourcePool* DirectX11Renderer::GetSpecificResourcePool()
+{
+	if (m_pResourcePool == 0)
+	{
+		m_pResourcePool = new DirectX11ResourcePool();
+	}
+	
+	return m_pResourcePool;
+}
+
+// --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::AutoSelectAdapter(usint32 nW, usint32 nH)
 {
 	HRESULT hRes = S_OK;
@@ -83,7 +98,7 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter(usint32 nW, usint32 nH)
 
 	// Load and save all possible adapters
 	IDXGIAdapter* pAdapter;
-	for (usint32 iAdapter;
+	for (usint32 iAdapter = 0;
 		m_pDXGIFactory->EnumAdapters(iAdapter, &pAdapter) != DXGI_ERROR_NOT_FOUND;
 		++iAdapter)
 	{		
@@ -104,7 +119,7 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter(usint32 nW, usint32 nH)
 		if (!(pAdapter = *iAdapter))
 			continue;
 
-		for (usint32 iOutput; pAdapter->EnumOutputs(iOutput, &pOutput) != DXGI_ERROR_NOT_FOUND; ++iOutput)
+		for (usint32 iOutput = 0; pAdapter->EnumOutputs(iOutput, &pOutput) != DXGI_ERROR_NOT_FOUND; ++iOutput)
 		{			
 			usint32 nModes;
 			DXGI_MODE_DESC* pModes = 0;
@@ -210,27 +225,26 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 
 	
 
-	// In DX11 we fist need a RSState interface
-	D3D11_RASTERIZER_DESC rsDesc;
-	memset((void*)&rsDesc, 0, sizeof(D3D11_RASTERIZER_DESC));
-	rsDesc.AntialiasedLineEnable = false;	// ???
-	rsDesc.CullMode = D3D11_CULL_BACK;
-	rsDesc.DepthBias = 0;
-	rsDesc.DepthBiasClamp = 0;
-	rsDesc.SlopeScaledDepthBias = 0;
-	rsDesc.DepthClipEnable = true;
-	rsDesc.FillMode = renderSettings.bRenderWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-	rsDesc.FrontCounterClockwise = (renderSettings.frontFaceType == eFF_CW);
-	rsDesc.MultisampleEnable = renderSettings.bEnableMSAA;
-	rsDesc.ScissorEnable = FALSE; // maybe change this to true someday	
+	// In DX11 we fist need a RSState interface	
+	memset((void*)&m_rsDesc, 0, sizeof(D3D11_RASTERIZER_DESC));
+	m_rsDesc.AntialiasedLineEnable = false;	// ???
+	m_rsDesc.CullMode = D3D11_CULL_BACK;
+	m_rsDesc.DepthBias = 0;
+	m_rsDesc.DepthBiasClamp = 0;
+	m_rsDesc.SlopeScaledDepthBias = 0;
+	m_rsDesc.DepthClipEnable = true;
+	m_rsDesc.FillMode = renderSettings.bRenderWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+	m_rsDesc.FrontCounterClockwise = (renderSettings.frontFaceType == eFF_CW);
+	m_rsDesc.MultisampleEnable = renderSettings.bEnableMSAA;
+	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday	
 
 	HRESULT hRes;
-	if ((hRes = m_pD3DDevice->CreateRasterizerState(&rsDesc, &m_pDefaultRSState)))
+	if ((hRes = m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
 	{
 		return m_pEngine->LogE("Faield create Rasterizer State!");
 	}
 
-	m_pD3DDeviceContext->RSSetState(m_pDefaultRSState);
+	m_pD3DDeviceContext->RSSetState(m_pRSState);
 
 	return S_SUCCESS;
 }
@@ -428,6 +442,10 @@ S_API SResult DirectX11Renderer::Initialize(SpeedPointEngine* pEngine, HWND hWnd
 	}
 
 
+	// Set the base primitive topology
+	m_pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
 	// okay. done.
 
 
@@ -561,14 +579,66 @@ S_API SResult DirectX11Renderer::BindFBO(IFBO* pFBO)
 S_API SResult DirectX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int index)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(pVB, S_INVALIDPARAM);
 
-	ID3D11Buffer* pDXVB = ((DirectX11VertexBuffer*)pVB)->Get
-	m_pD3DDeviceContext->IASetVertexBuffers(index, 1, )
+	ID3D11Buffer* pDXVB = ((DirectX11VertexBuffer*)pVB)->D3D11_GetBuffer();
+	usint32 stride = sizeof(SVertex);
+	usint32 offset = 0;
+
+	m_pD3DDeviceContext->IASetVertexBuffers(index, 1, &pDXVB, &stride, &offset);
+
+	return S_SUCCESS;
 }
 
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(pIB, S_INVALIDPARAM);
+
+	S_INDEXBUFFER_FORMAT ibFmt = pIB->GetFormat();
+	DXGI_FORMAT ibFmtDX;
+	switch (ibFmt)
+	{
+	case S_INDEXBUFFER_16: ibFmtDX = DXGI_FORMAT_R16_UINT; break;
+	case S_INDEXBUFFER_32: ibFmtDX = DXGI_FORMAT_R32_UINT; break;
+	default:
+		return S_ERROR;
+	}
+
+	m_pD3DDeviceContext->IASetIndexBuffer(((DirectX11IndexBuffer*)pIB)->D3D11_GetBuffer(), ibFmtDX, 0);
+
+	return S_SUCCESS;
+}
 
 // --------------------------------------------------------------------
-virtual SResult SetIBStream(IIndexBuffer* pIB);
+S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(pTex, S_INVALIDPARAM);
+
+	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
+	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(pFBO, S_INVALIDPARAM);
+
+	DirectX11FBO* pDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);	
+	SP_ASSERTR(pDXFBO, S_INVALIDPARAM);
+
+	ID3D11ShaderResourceView* pSRV = pDXFBO->GetSRV();
+	SP_ASSERTR(pSRV, S_ERROR);
+
+	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
+
+	return S_SUCCESS;
+}
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc)
@@ -620,6 +690,21 @@ S_API SResult DirectX11Renderer::EndScene(void)
 {
 	// actually nothing to do here in DX11
 	// the Present method is called in the specific Rendering Pipeline technology stage.
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::PresentTargetViewport(void)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	DirectX11Viewport* pDXTargetViewport = (DirectX11Viewport*)m_pTargetViewport;
+	SP_ASSERTR(pDXTargetViewport, S_ERROR);
+
+	IDXGISwapChain* pSwapChain = *pDXTargetViewport->GetSwapChainPtr();
+	if (Failure(pSwapChain->Present(0, 0)))
+		return S_ERROR;
 
 	return S_SUCCESS;
 }
@@ -730,7 +815,7 @@ S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetupMatrixCB()
+S_API SResult DirectX11Renderer::InitMatrixCB()
 {
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pDXMatrixCB, sizeof(SDefMtxCB))))
 		return S_ERROR;
@@ -808,8 +893,18 @@ S_API SResult DirectX11Renderer::D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
 {	
-	m_Matrices.mtxProjection = pViewport->GetProjectionMatrix();
-	m_Matrices.mtxView = pViewport->GetCameraViewMatrix();	
+	IViewport* pV = (pViewport) ? pViewport : GetTargetViewport();
+
+	m_Matrices.mtxProjection = pV->GetProjectionMatrix();
+	m_Matrices.mtxView = pV->GetCameraViewMatrix();	
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj)
+{
+	m_Matrices.mtxProjection = mtxProj;
+	m_Matrices.mtxView = mtxView;
 	return S_SUCCESS;
 }
 
@@ -817,6 +912,78 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
 S_API SResult DirectX11Renderer::SetWorldMatrix(STransformable* t)
 {
 	m_Matrices.mtxWorld = t->GetWorldMatrix();
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::UpdateRasterizerState()
+{
+	// delete old rasterizer state
+	if (m_pRSState)
+		m_pRSState->Release();
+
+	// and create new one
+	if (Failure(m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
+		return S_ERROR;
+
+	m_pD3DDeviceContext->RSSetState(m_pRSState);
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::UpdateCullMode(EFrontFace ff)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	if (m_rsDesc.FrontCounterClockwise == (ff == eFF_CCW))
+		return S_SUCCESS;
+
+	// update the rasterizer settings
+	m_pEngine->GetSettings().render.frontFaceType = ff;			
+	m_rsDesc.FrontCounterClockwise = (ff == eFF_CCW);	
+
+	return UpdateRasterizerState();
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::EnableBackfaceCulling(bool state)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	if ((m_rsDesc.CullMode == D3D11_CULL_NONE && !state) ||
+		(m_rsDesc.CullMode != D3D11_CULL_NONE && state))
+	{
+		return S_SUCCESS;
+	}
+
+	// update rasterizer state
+	m_rsDesc.CullMode = (state) ? D3D11_CULL_BACK : D3D11_CULL_NONE;
+
+	return UpdateRasterizerState();
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::UpdatePolygonType(S_PRIMITIVE_TYPE type)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	D3D11_PRIMITIVE_TOPOLOGY targetTP;
+	switch (type)
+	{
+	case S_PRIM_RENDER_LINELIST: targetTP = D3D11_PRIMITIVE_TOPOLOGY_LINELIST; break;
+	case S_PRIM_RENDER_POINTLIST: targetTP = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST; break;
+	case S_PRIM_RENDER_TRIANGLESTRIP: targetTP = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP; break;
+	default:
+		targetTP = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	}
+
+	D3D11_PRIMITIVE_TOPOLOGY currentTP;
+	m_pD3DDeviceContext->IAGetPrimitiveTopology(&currentTP);
+
+	if (currentTP != targetTP)
+		m_pD3DDeviceContext->IASetPrimitiveTopology(targetTP);
+
 	return S_SUCCESS;
 }
 

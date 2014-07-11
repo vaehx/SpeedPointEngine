@@ -83,7 +83,7 @@
     <ClInclude Include="..\..\Include\Pipelines\FramePipeline.h" />
     <ClInclude Include="..\..\Include\SpeedPoint.h" />
     <ClInclude Include="..\..\Include\SSettings.h" />
-    <ClInclude Include="..\..\Include\SSpeedPointEngine.h" />
+    <ClInclude Include="..\..\Include\SpeedPointEngine.h" />
     <ClInclude Include="..\..\Include\SpeedPointAI.h" />
     <ClInclude Include="..\..\Include\SpeedPointAnimations.h" />
     <ClInclude Include="..\..\Include\SpeedPointCommon.h" />
@@ -128,7 +128,7 @@
     <ClCompile Include="..\..\Source\Pipelines\SDynamicsPipeline.cpp" />
     <ClCompile Include="..\..\Source\Pipelines\SFramePipeline.cpp" />
     <ClCompile Include="..\..\Source\SSettings.cpp" />
-    <ClCompile Include="..\..\Source\SSpeedPoint.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine.cpp" />
     <ClCompile Include="..\..\Source\Util\SBoundBox.cpp" />
     <ClCompile Include="..\..\Source\Util\SCamera.cpp" />
     <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />

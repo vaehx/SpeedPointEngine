@@ -24,10 +24,10 @@ namespace SpeedPoint
 		virtual SResult SetAlphaColorKey( SColor colKey ) = 0;
 		virtual SColor& GetAlphaColorKey() = 0;
 		
-		virtual SResult SetMSAACount( const EMSAACount& type ) = 0;
+		virtual SResult SetMSAACount( EMSAACount type ) = 0;
 		virtual EMSAACount& GetMSAACount() = 0;
 		
-		virtual SResult SetMSAAQuality( const EMSAAQuality& quality ) = 0;
+		virtual SResult SetMSAAQuality( EMSAAQuality quality ) = 0;
 		virtual EMSAAQuality& GetMSAAQuality() = 0;
 		
 		virtual SResult SetProcessingMode( S_PROCESSING_MODE mode ) = 0;

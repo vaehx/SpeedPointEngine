@@ -10,4 +10,4 @@
 #include <Observer\SObservedObject.h>
 
 // The Engine itself
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>

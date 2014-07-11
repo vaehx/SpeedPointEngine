@@ -12,7 +12,7 @@
 #include <Implementation\DirectX11\DirectX11LightingRenderSection.h>
 #include <Implementation\DirectX11\DirectX11RenderPipeline.h>
 #include <Abstract\IRenderer.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <Implementation\DirectX11\DirectX11OutputPlane.h>
 
@@ -109,7 +109,7 @@ S_API SResult DirectX11LightingRenderSection::PrepareSection()
 	// -----------------------------------------------------------------------------------
 	// Check buffers and effects in advance
 
-	if (!m_LightingBuffer.IsInitialized)	
+	if (!m_LightingBuffer.IsInitialized())	
 		return m_pEngine->LogReport(S_NOTINIT, "Could not prepare lighting render section: Lighting buffer not initialized!");
 
 	if (!m_LightingEffect.IsInitialized())
@@ -250,22 +250,14 @@ S_API SResult DirectX11LightingRenderSection::RenderLighting(DirectX11GeometryRe
 {
 	SResult res = S_SUCCESS;
 
-	if (m_pEngine == 0) return S_NOTINIT;
-
-	if (m_pDXRenderPipeline == 0 || !m_pDXRenderPipeline->IsInitialized())
-		return m_pEngine->LogReport(S_NOTINIT, "Cannot render lighting in lighting render section: Render pipeline not initialized!");
+	SP_ASSERTR(m_pEngine && m_pDXRenderPipeline && m_pDXRenderPipeline->IsInitialized(), S_NOTINIT);	
+	SP_ASSERTR(pOutputPlane && pDXGeometrySection, S_INVALIDPARAM);
 
 	if (m_pLightSources == 0)
-		return m_pEngine->LogReport(S_NOTINIT, "Cannot render lighting in lighting render section: light source buffer is zero!");
+		return S_SUCCESS; // no light sources, so just finish that up
 
 	if (!m_LightingBuffer.IsInitialized())
-		return m_pEngine->LogReport(S_NOTINIT, "Cannot render lighting in lighting render section: lighting buffer is not initialized!");
-
-	if (pOutputPlane == 0)
-		return m_pEngine->LogReport(S_INVALIDPARAM, "Cannot render lighting in lighting render section: Given output plane is invalid!");
-
-	if (pDXGeometrySection == 0)
-		return m_pEngine->LogReport(S_INVALIDPARAM, "Cannot render lighting in lighting render section: Given Geometry section is invalid!");
+		return m_pEngine->LogReport(S_NOTINIT, "Cannot render lighting in lighting render section: lighting buffer is not initialized!");	
 
 	// check if nothing has to be rendered
 	if (m_pLightSources->GetUsageSize() == 0)
@@ -282,101 +274,58 @@ S_API SResult DirectX11LightingRenderSection::RenderLighting(DirectX11GeometryRe
 	if (!pOutputPlane->IsInitialized())
 		return m_pEngine->LogReport(S_NOTINIT, "Cannot render lighting in lighting render section: Given output plane is not initialized!");
 
-	if (FAILED(pDXRenderer->pd3dDevice->SetStreamSource(0, pOutputPlane->vertexBuffer.pHWVertexBuffer, 0, sizeof(SVertex))))
-		return m_pEngine->LogE("Cannot render lighting in lighting render section: Failed to set Stream source!");
+	if (Failure(pDXRenderer->SetVBStream(pOutputPlane->GetVertexBuffer())))
+		return m_pEngine->LogE("Cannot render lighting in lighting render section: Failed to set VB Stream source!");
 
-	if (FAILED(pDXRenderer->pd3dDevice->SetIndices(pOutputPlane->indexBuffer.pHWIndexBuffer)))
-		return m_pEngine->LogE("Cannot render lighting in lighting render section: Failed to set Stream source!");
-
-	// -----------------------------------------------------------------------------------
-	// Begin the effect
-
-	LPD3DXEFFECT pLightingEffect = m_LightingEffect.GetEffect();
-
-	if (FAILED(pLightingEffect->SetTechnique("LightingTechnique")))
-		return m_pEngine->LogE("Failed to render lighting in lighting render section: Failed to set technique");
-
-	usint32 nPasses;
-	if (FAILED(pLightingEffect->Begin(&nPasses, 0)))
-		return m_pEngine->LogE("Failed to render lighting in lighting render section: Failed to Begin effect!");
+	if (Failure(pDXRenderer->SetIBStream(pOutputPlane->GetIndexBuffer())))
+		return m_pEngine->LogE("Cannot render lighting in lighting render section: Failed to set IB Stream source!");	
 
 	// -----------------------------------------------------------------------------------		
-	// Matrices
+	// Matrices and begin the effect
+	// Notice: we don't have to worry about the world matrix here as we use as fixed-in in the shader
 
-	D3DXMATRIX mtxProjection = SMatrixToDXMatrix(pOutputPlane->mProjection);
-	if (FAILED(pLightingEffect->SetMatrix("mtxProjection", &mtxProjection)))
-		res = m_pEngine->LogE("Failed to set projection matrix for lighting shader!");
+	if (Failure(m_LightingEffect.Enable()))
+		return S_ERROR;
 
-	D3DXMATRIX mtxView = SMatrixToDXMatrix(pOutputPlane->mView);
-	if (FAILED(pLightingEffect->SetMatrix("mtxView", &mtxView)))
-		res = m_pEngine->LogE("Failed to set view matrix for lighting shader!");
-
-	// World matrix is obsolete.
-
-	if (Failure(res))
-	{
-		pLightingEffect->End();
-		return res;
-	}
+	pDXRenderer->SetViewportMatrices(pOutputPlane->GetViewMatrix(), pOutputPlane->GetProjectionMatrix());		
+	if (Failure(pDXRenderer->UpdateMatrixCB()))
+		return S_ERROR;
 
 	// -----------------------------------------------------------------------------------		
-	// Texture
+	// Textures
 
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(0, pDXGeometrySection->GetAlbedoFBO()->pTexture)))
+	if (Failure(pDXRenderer->BindTexture(pDXGeometrySection->GetAlbedoFBO(), 0)))
 		res = m_pEngine->LogE("Failed to set Albedo FBO as texture 0 for lighting shader!");
 
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(1, pDXGeometrySection->GetPositionsFBO()->pTexture)))
+	if (Failure(pDXRenderer->BindTexture(pDXGeometrySection->GetPositionsFBO(), 1)))
 		res = m_pEngine->LogE("Failed to set Positions FBO as texture 1 for lighting shader!");
 
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(2, pDXGeometrySection->GetNormalsFBO()->pTexture)))
+	if (Failure(pDXRenderer->BindTexture(pDXGeometrySection->GetNormalsFBO(), 2)))
 		res = m_pEngine->LogE("Failed to set Normals FBO as texture 2 for lighting shader!");
 
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(3, pDXGeometrySection->GetTangentsFBO()->pTexture)))
+	if (Failure(pDXRenderer->BindTexture(pDXGeometrySection->GetTangentsFBO(), 3)))
 		res = m_pEngine->LogE("Failed to set Normals FBO as texture 3 for lighting shader!");
 
 	if (Failure(res))
-	{
-		pLightingEffect->End();
 		return res;
-	}
+
+	// -----------------------------------------------------------------------------------	
+	// Make sure that we set up proper render states
+
+	pDXRenderer->EnableBackfaceCulling(false);
+	pDXRenderer->UpdatePolygonType(S_PRIM_COMPLEX);
+
+	// -----------------------------------------------------------------------------------	
+	// Now draw
+	
+	pDXRenderer->GetD3D11DeviceContext()->DrawIndexed(pOutputPlane->GetIndexCount(), 0, 0);
 
 	// -----------------------------------------------------------------------------------		
-	// Now draw the polygons of the output plane
+	// Reset unused textures
 
-	for (usint32 iPass = 0; iPass < nPasses; ++iPass)
-	{
-		if (FAILED(pLightingEffect->BeginPass(iPass)))
-			res = m_pEngine->LogE("Failed to BeginPass of lighting effect in lighting render section!");
-
-		if (Success(res) && FAILED(pDXRenderer->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 11 * 11, 0, 10 * 10 * 3)))
-			res = m_pEngine->LogE("Failed to draw output plane in lighting render section!");
-
-		if (FAILED(pLightingEffect->EndPass()))
-			res = m_pEngine->LogE("Failed to end pass of lighting effect in lighting render section!");
-
-		if (Failure(res)) break;
-	}
-
-	// -----------------------------------------------------------------------------------		
-	// End the lighting shader
-
-	if (FAILED(pLightingEffect->End()))
-		res = m_pEngine->LogE("Failed to end lighting effect in lighting render section!");
-
-	// -----------------------------------------------------------------------------------		
-	// Reset textures
-
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(0, 0)))
-		res = m_pEngine->LogE("Failed to set Albedo FBO as texture 0 for lighting shader!");
-
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(1, 0)))
-		res = m_pEngine->LogE("Failed to set Positions FBO as texture 1 for lighting shader!");
-
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(2, 0)))
-		res = m_pEngine->LogE("Failed to set Normals FBO as texture 2 for lighting shader!");
-
-	if (FAILED(pDXRenderer->pd3dDevice->SetTexture(3, 0)))
-		res = m_pEngine->LogE("Failed to set Normals FBO as texture 3 for lighting shader!");
+	pDXRenderer->BindTexture(static_cast<ITexture*>(nullptr), 1);
+	pDXRenderer->BindTexture(static_cast<ITexture*>(nullptr), 2);
+	pDXRenderer->BindTexture(static_cast<ITexture*>(nullptr), 3);	
 
 	return res;
 }

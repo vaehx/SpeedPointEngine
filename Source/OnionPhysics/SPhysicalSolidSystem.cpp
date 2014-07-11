@@ -41,7 +41,7 @@ namespace SpeedPoint
 
 	S_API ISolid* SPhysicalSolidSystem::GetSolid(SP_ID id)
 	{
-		SBasicSolid* pBasicSolid = m_PhysicalSolids.GetItemByUID(id);
+		Solid* pBasicSolid = m_PhysicalSolids.GetItemByUID(id);
 
 		return (ISolid*)pBasicSolid;
 	}
@@ -59,7 +59,7 @@ namespace SpeedPoint
 	{
 		for (usint32 iSolid = 0; iSolid < m_PhysicalSolids.GetSize(); iSolid++)
 		{
-			SBasicSolid* pBasicSolid = m_PhysicalSolids.GetItemByIndirectionIndex(iSolid);
+			Solid* pBasicSolid = m_PhysicalSolids.GetItemByIndirectionIndex(iSolid);
 			if (pBasicSolid)
 				pBasicSolid->Clear();
 		}

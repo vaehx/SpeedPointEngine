@@ -1,47 +1,47 @@
 // SpeedPoint Basic Octree Node
 
-#include <Implementation\Geometry\SBasicOctreeNode.h>
+#include <Implementation\Geometry\OctreeNode.h>
 
 namespace SpeedPoint
 {
 	// **********************************************************************************
 	
-	S_API bool SBasicOctreeNode::IsLeaf( void )
+	S_API bool OctreeNode::IsLeaf( void )
 	{
 		return false;
 	}
 
 	// **********************************************************************************
 	
-	S_API IOctreeNode* SBasicOctreeNode::GetChild( SP_UNIQUE id )
+	S_API IOctreeNode* OctreeNode::GetChild( SP_UNIQUE id )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API int SBasicOctreeNode::GetPolygonCount( void )
+	S_API int OctreeNode::GetPolygonCount( void )
 	{
 		return -1;
 	}
 
 	// **********************************************************************************
 
-	S_API SBoundBox SBasicOctreeNode::GetBoundBox( void )
+	S_API SBoundBox OctreeNode::GetBoundBox( void )
 	{
 		return SBoundBox();
 	}
 
 	// **********************************************************************************
 
-	S_API DWORD* SBasicOctreeNode::GetTriangles( void )
+	S_API DWORD* OctreeNode::GetTriangles( void )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API void SBasicOctreeNode::Clear( void )
+	S_API void OctreeNode::Clear( void )
 	{
 	}
 

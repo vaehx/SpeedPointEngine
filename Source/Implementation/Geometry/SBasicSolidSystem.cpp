@@ -1,12 +1,12 @@
 // SpeedPoint Solid System - A collection of solids
 
-#include <Implementation\Geometry\SBasicSolidSystem.h>
+#include <Implementation\Geometry\SolidSystem.h>
 
 namespace SpeedPoint
 {
 	// **********************************************************************************
 	
-	S_API SResult SBasicSolidSystem::Initialize( SpeedPointEngine* engine )
+	S_API SResult SolidSystem::Initialize( SpeedPointEngine* engine )
 	{
 		if( engine == NULL ) return S_ERROR;
 
@@ -17,54 +17,51 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SSpeedPointEngine* SBasicSolidSystem::GetEngine()
+	S_API SpeedPointEngine* SolidSystem::GetEngine()
 	{
 		return m_pEngine;
 	}
 
 	// **********************************************************************************
 
-	S_API SP_ID SBasicSolidSystem::AddSolid( void )
+	S_API SP_ID SolidSystem::AddSolid( void )
 	{
 		SP_ID id;
-		m_plSolids.AddItem( SBasicSolid(), &id );
+		m_plSolids.AddItem( Solid(), &id );
 
 		return id;
 	}
 
 	// **********************************************************************************
 
-	S_API ISolid* SBasicSolidSystem::GetSolid( SP_ID id )
+	S_API ISolid* SolidSystem::GetSolid( SP_ID id )
 	{
-		SBasicSolid* pBasicSolid = m_plSolids.GetItemByUID( id );
+		Solid* pBasicSolid = m_plSolids.GetItemByUID( id );
 		
 		return (ISolid*)pBasicSolid;
 	}
 
 	// **********************************************************************************
 
-	S_API unsigned int SBasicSolidSystem::GetSolidCount()
+	S_API unsigned int SolidSystem::GetSolidCount()
 	{
 		return m_plSolids.GetUsageSize();
 	}
 
 	// **********************************************************************************
 
-	S_API SResult SBasicSolidSystem::Clear( void )
+	S_API SResult SolidSystem::Clear( void )
 	{
 		for( usint32 iSolid = 0; iSolid < m_plSolids.GetSize(); iSolid++ )
 		{
-			SBasicSolid* pBasicSolid = m_plSolids.GetItemByIndirectionIndex( iSolid );
+			Solid* pBasicSolid = m_plSolids.GetItemByIndirectionIndex( iSolid );
 			if( pBasicSolid )			
 				pBasicSolid->Clear();							
 		}
 
 		m_plSolids.Clear();
 		m_plSolids.ResetCounts();
-		
-		WNDCLASSEX wcex;
-
-
+				
 		return S_SUCCESS;
 	}
 

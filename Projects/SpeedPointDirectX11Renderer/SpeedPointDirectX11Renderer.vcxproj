@@ -35,6 +35,7 @@
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11IndexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11OutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11PostRenderSection.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11RenderPipeline.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp" />

@@ -1,12 +1,12 @@
 // SpeedPoint Basic Animation Key
 
-#include <Implementation\Geometry\SBasicAnimationKey.h>
+#include <Implementation\Geometry\AnimationKey.h>
 
 namespace SpeedPoint
 {
 	// **********************************************************************************
 
-	S_API void SBasicAnimationKey::SetTimecode( float timeCode )
+	S_API void AnimationKey::SetTimecode( float timeCode )
 	{
 		if( timeCode > 0 )
 			fTimeCode = timeCode;
@@ -14,7 +14,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API void SBasicAnimationKey::SetJointPosition( SP_UNIQUE iJoint, const SVector3& vec )
+	S_API void AnimationKey::SetJointPosition( SP_UNIQUE iJoint, const SVector3& vec )
 	{
 		SJointMovement jointMovement;
 		jointMovement.iJoint = iJoint;
@@ -24,7 +24,7 @@ namespace SpeedPoint
 	}
 
 	// **********************************************************************************
-	S_API void SBasicAnimationKey::Clear( void )
+	S_API void AnimationKey::Clear( void )
 	{
 		aMovements.Clear();
 	}

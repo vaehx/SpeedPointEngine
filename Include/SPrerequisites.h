@@ -245,13 +245,7 @@ class	S_API DirectX11RenderDeviceCaps;
 
 // -------------------------- Command Buffering -------------------------
 
-// Render command types used for the command buffering
-enum S_API S_RENDER_COMMAND_TYPE
-{
-	eSRCMD_NONE,
-	eSRCMD_DRAWSOLID,
-	eSRCMD_DRAWPRIMITIVE
-};
+
 
 class S_API SCommandQueue;
 struct S_API SCommandDescription;
@@ -485,12 +479,8 @@ enum S_API S_BACKBUFFER_FORMAT
 	S_BACKBUFFER16
 };
 
-// SpeedPoint IndexBuffer Format
-enum S_API S_INDEXBUFFER_FORMAT
-{
-	S_INDEXBUFFER_16,
-	S_INDEXBUFFER_32,
-};
+
+
 
 // Command Buffer
 enum S_API S_COMMAND_TYPE
@@ -505,6 +495,17 @@ enum S_API S_COMMAND_TYPE
 	// CPU Commands
 	////// TODO
 };
+
+// Render command types used for the command buffering
+enum S_API S_RENDER_COMMAND_TYPE
+{
+	eSRCMD_NONE,
+	eSRCMD_DRAWSOLID,
+	eSRCMD_DRAWPRIMITIVE
+};
+
+
+
 
 // Type of the texture
 enum S_API S_TEXTURE_TYPE

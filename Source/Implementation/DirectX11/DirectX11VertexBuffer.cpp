@@ -10,7 +10,7 @@
 #include <Implementation\DirectX11\DirectX11VertexBuffer.h>
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <Util\SVertex.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 
 SP_NMSPACE_BEG
 

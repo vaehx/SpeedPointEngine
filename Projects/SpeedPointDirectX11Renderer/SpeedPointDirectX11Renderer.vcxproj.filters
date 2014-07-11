@@ -26,9 +26,6 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11OutputPlane.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11PostRenderSection.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderEffect.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -60,6 +57,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11PostRenderSection.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -101,6 +101,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11VertexBuffer.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11PostRenderSection.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

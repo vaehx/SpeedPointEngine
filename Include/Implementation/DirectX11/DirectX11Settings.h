@@ -36,14 +36,13 @@ private:
 	// We dont want to convert the clear color from SColor to th DX11 FLOAT array every frame.
 	// So we put this into here
 	float m_ClearColor[4];
-	SColor m_clClearColor;
-
-
-	DirectX11Settings();
-	~DirectX11Settings();
+	SColor m_clClearColor;	
 
 
 public:	
+	DirectX11Settings();
+	~DirectX11Settings();
+
 	float* GetClearColorFloatArr()
 	{
 		return m_ClearColor;

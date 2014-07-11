@@ -152,9 +152,6 @@
     <ClInclude Include="..\..\Include\SPrerequisites.h">
       <Filter>Headers\Frontend</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\SSpeedPointEngine.h">
-      <Filter>Headers\Frontend</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Lighting\SLight.h">
       <Filter>Headers\Lighting</Filter>
     </ClInclude>
@@ -178,6 +175,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Pipelines\FramePipeline.h">
       <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointEngine.h">
+      <Filter>Headers\Frontend</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -223,9 +223,6 @@
     <ClCompile Include="..\..\Source\Util\SCamera.cpp">
       <Filter>Sources\Util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SSpeedPoint.cpp">
-      <Filter>Sources\Frontend</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Lighting\SLight.cpp">
       <Filter>Sources\Lighting</Filter>
     </ClCompile>
@@ -233,6 +230,9 @@
       <Filter>Sources\Lighting</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SSettings.cpp">
+      <Filter>Sources\Frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine.cpp">
       <Filter>Sources\Frontend</Filter>
     </ClCompile>
   </ItemGroup>

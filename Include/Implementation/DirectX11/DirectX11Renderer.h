@@ -31,8 +31,9 @@ SP_NMSPACE_BEG
 // Forward declarations
 
 class S_API SpeedPointEngine;
-class S_API IRenderPipeline;
-class S_API ISolid;
+struct S_API IRenderPipeline;
+struct S_API ISolid;
+struct S_API IResourcePool;
 
 
 
@@ -68,11 +69,14 @@ private:
 	SpeedPointEngine* m_pEngine;
 	DirectX11Settings m_Settings;
 
+	IResourcePool* m_pResourcePool;
+
 	ID3D11Device* m_pD3DDevice;
 	ID3D11DeviceContext* m_pD3DDeviceContext;
 
 	D3D_FEATURE_LEVEL m_D3DFeatureLevel;
-	ID3D11RasterizerState* m_pDefaultRSState;
+	D3D11_RASTERIZER_DESC m_rsDesc;
+	ID3D11RasterizerState* m_pRSState;
 
 	IDXGIFactory* m_pDXGIFactory;
 
@@ -98,6 +102,9 @@ private:
 
 	SDefMtxCB m_Matrices;
 	ID3D11Buffer* m_pDXMatrixCB;
+
+
+	SResult UpdateRasterizerState();
 
 public:				
 	DirectX11Renderer();
@@ -127,10 +134,9 @@ public:
 	
 
 	SResult D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 customByteSize);
-	SResult D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData);
-	
+	SResult D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData);	
 	SResult D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB);
-	SResult SetupMatrixCB();
+	SResult InitMatrixCB();
 	SResult UpdateMatrixCB();
 
 	////////////////////////////////////////////////////////////////////////////
@@ -158,6 +164,9 @@ public:
 	virtual SResult BindFBOs(ERenderTargetCollectionID collcetionID, bool bStore = false);
 	virtual SResult BindFBO(IFBO* pFBO);
 
+	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0);
+	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
+
 	// Description:
 	//	creates an additional swap chain for the same window as the default viewport
 	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc);	
@@ -166,6 +175,8 @@ public:
 
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
+
+	virtual SResult PresentTargetViewport(void);
 
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0);
 	virtual SResult SetIBStream(IIndexBuffer* pIB);
@@ -177,7 +188,8 @@ public:
 
 	virtual IViewport* GetDefaultViewport(void);
 
-	virtual SResult SetViewportMatrices(IViewport* pViewport);
+	virtual SResult SetViewportMatrices(IViewport* pViewport = 0);
+	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj);
 	virtual SResult SetWorldMatrix(STransformable* t);
 
 	virtual SResult RenderSolid(ISolid* pSolid, bool bTextured);	
@@ -185,6 +197,24 @@ public:
 	virtual IRendererSettings* GetSettings()
 	{
 		return (IRendererSettings*)&m_Settings;
+	}
+
+	virtual SResult UpdateCullMode(EFrontFace cullmode);
+	virtual SResult EnableBackfaceCulling(bool state = true);
+	virtual SResult UpdatePolygonType(S_PRIMITIVE_TYPE type);
+
+
+	virtual IResourcePool* GetSpecificResourcePool();
+
+
+
+	// Summary:
+	//	Builds an instance of the DirectX11 Renderer.
+	// Description:
+	//	Used to completely encapsulate the SpeedPoint Engine Core from the DirectX11 Implementation
+	static IRenderer* GetInstance()
+	{
+		return new DirectX11Renderer();
 	}
 };
 

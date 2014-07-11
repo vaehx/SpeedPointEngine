@@ -15,9 +15,9 @@ SP_NMSPACE_BEG
 
 
 
-class S_API SVertex;
+struct S_API SVertex;
 class S_API SpeedPointEngine;
-class S_API IRenderer;
+struct S_API IRenderer;
 
 
 enum EVBLockType
@@ -29,7 +29,7 @@ enum EVBLockType
 
 
 // SpeedPoint VertexBuffer Resource (abstract)
-class S_API IVertexBuffer
+struct S_API IVertexBuffer
 {
 public:
 	// Initialize the vertex buffer

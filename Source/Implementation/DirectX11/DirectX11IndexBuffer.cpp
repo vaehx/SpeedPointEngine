@@ -9,7 +9,7 @@
 
 #include <Implementation\DirectX11\DirectX11IndexBuffer.h>
 #include <Implementation\DirectX11\DirectX11Renderer.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 
 SP_NMSPACE_BEG
 
@@ -57,7 +57,21 @@ S_API BOOL DirectX11IndexBuffer::IsInited(void)
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Initialize(int nSize, bool bDyn, SpeedPointEngine* engine, IRenderer* renderer)
+S_API S_INDEXBUFFER_FORMAT DirectX11IndexBuffer::GetFormat()
+{
+
+	
+	
+	// TODO: make this variable!
+	
+	return S_INDEXBUFFER_16;	
+
+
+
+}
+
+// --------------------------------------------------------------------------------
+S_API SResult DirectX11IndexBuffer::Initialize(int nSize, bool bDyn, SpeedPointEngine* engine, IRenderer* renderer, S_INDEXBUFFER_FORMAT fmt /*=S_INDEXBUFFER_16*/)
 {
 	if (IsInited())
 		Clear();
@@ -96,7 +110,7 @@ S_API SResult DirectX11IndexBuffer::Create(int nIndices_, bool bDynamic_)
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	if (bDynamic_)
 		bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	bufferDesc.MiscFlags = 0;
+	bufferDesc.MiscFlags = 0;	
 
 
 	D3D11_SUBRESOURCE_DATA IndexData;

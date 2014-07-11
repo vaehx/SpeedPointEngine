@@ -16,54 +16,89 @@
 SP_NMSPACE_BEG
 
 class S_API SpeedPointEngine;
-class S_API IRenderer;
+struct S_API IRenderer;
+class S_API DirectX11Renderer;
+
+// IWICImagineFactory must not be forward declared in SpeedPoint NameSpace!
+SP_NMSPACE_END
+struct IWICImagingFactory;
+SP_NMSPACE_BEG
+
+
+template<class T> class S_API ScopedTextureLoadingObject
+{
+public:
+	explicit ScopedTextureLoadingObject(T *p = 0) : _pointer(p) {}
+	~ScopedTextureLoadingObject()
+	{
+		if (_pointer)
+		{
+			_pointer->Release();
+			_pointer = nullptr;
+		}
+	}
+
+	bool IsNull() const { return (!_pointer); }
+
+	T& operator*() { return *_pointer; }
+	T* operator->() { return _pointer; }
+	T** operator&() { return &_pointer; }
+
+	void Reset(T *p = 0) { if (_pointer) { _pointer->Release(); } _pointer = p; }
+
+	T* Get() const { return _pointer; }
+
+private:
+	ScopedTextureLoadingObject(const ScopedTextureLoadingObject&);
+	ScopedTextureLoadingObject& operator=(const ScopedTextureLoadingObject&);
+
+	T* _pointer;
+};
+
+
+
 
 class S_API DirectX11Texture : ITexture
 {
 private:
-	SString			m_Specification;
-	SpeedPointEngine*	m_pEngine;
-	S_TEXTURE_TYPE		m_Type;
-	bool			m_bDynamic;
-	ID3D11Texture2D*	m_pDXTexture;
-	DirectX11Renderer*	m_pDXRenderer;
+	SString	m_Specification;
+	SpeedPointEngine* m_pEngine;
+	S_TEXTURE_TYPE m_Type;
+	bool m_bDynamic;
+	ID3D11Texture2D* m_pDXTexture;	
+	DirectX11Renderer* m_pDXRenderer;
+	ID3D11ShaderResourceView* m_pDXSRV;
 
 public:		
 	DirectX11Texture();
 	DirectX11Texture(const DirectX11Texture& o);
 
 	~DirectX11Texture();
+	
 
-
-
-
-	// -- Initialize --
-
-	// Initialize the texture
 	virtual SResult Initialize(SpeedPointEngine* pEngine, const SString& spec);
-
-	// Initialize the texture with extended params
+	
 	virtual SResult Initialize(SpeedPointEngine* pEngine, const SString& spec, bool bDynamic);
-
-	// Load a texture from file
-	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);
-
-	// Initialize an empty texture with specified size and type
-	virtual SResult CreateEmpty(int w, int h, int mipLevels, S_TEXTURE_TYPE type, SColor clearcolor);
-
-	// Get the specification
+	
+	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);	
+	virtual SResult CreateEmpty(int w, int h, int mipLevels, S_TEXTURE_TYPE type, SColor clearcolor);	
 	virtual SString GetSpecification(void);
 
 	// ----
-
-	// Get the type of this texture
-	virtual S_TEXTURE_TYPE GetType(void);
-
-	// Get the size of this texture
-	virtual SResult GetSize(int* pW, int* pH);
-
-	// Clear texture buffer
+	
+	virtual S_TEXTURE_TYPE GetType(void);	
+	virtual SResult GetSize(int* pW, int* pH);	
 	virtual SResult Clear(void);
+
+
+	// DX
+	ID3D11ShaderResourceView* D3D11_GetSRV()
+	{
+		return m_pDXSRV;
+	}
+
+private:
+	static size_t BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC);
 };
 
 SP_NMSPACE_END

@@ -17,7 +17,7 @@ SP_NMSPACE_BEG
 
 class S_API SpeedPointEngine;
 class S_API DirectX11Renderer;
-class S_API IRenderer;
+struct S_API IRenderer;
 
 class S_API DirectX11Effect : public IShader
 {
@@ -42,9 +42,6 @@ public:
 	virtual bool IsInitialized();
 	virtual SResult Clear(void);
 
-	// Note:
-	//	This function will update the Matrices Constants buffer, so make sure to call
-	//	DirectX11Renderer::SetViewportMatrices() and DirectX11Renderer::SetWorldMatrix() before!
 	virtual SResult Enable();
 
 	virtual SResult SetTechnique(char* cTechnique);	

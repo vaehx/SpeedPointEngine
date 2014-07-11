@@ -10,25 +10,30 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include <Util\SVector3.h>
 
-namespace SpeedPoint
+
+SP_NMSPACE_BEG
+
+
+// SpeedPoint Animation Key (abstract)
+struct S_API IAnimationKey
 {
-	// SpeedPoint Animation Key (abstract)
-	class S_API IAnimationKey
-	{
-	public:
-		// Set Timecode for this animation key.
-		// Time is in Seconds, modified by SpeedPoint speed modifier
-		virtual void SetTimecode( float fTimeCode ) = 0;
+public:
+	// Set Timecode for this animation key.
+	// Time is in Seconds, modified by SpeedPoint speed modifier
+	virtual void SetTimecode( float fTimeCode ) = 0;
 
-		// Set the Joint position to be moved to
-		// This value is relative to the key before!
-		// (If this is the default key the position equals the start position of the joint)
-		virtual void SetJointPosition( SP_UNIQUE iJoint, const SVector3& vPosition ) = 0;
-		
-		// Clearout Vertexposition and timecode
-		virtual void Clear( void ) = 0;
-		
-		//// TODO
-	};
-}
+	// Set the Joint position to be moved to
+	// This value is relative to the key before!
+	// (If this is the default key the position equals the start position of the joint)
+	virtual void SetJointPosition( SP_UNIQUE iJoint, const SVector3& vPosition ) = 0;
+	
+	// Clearout Vertexposition and timecode
+	virtual void Clear( void ) = 0;
+	
+	//// TODO
+};
+
+
+SP_NMSPACE_END

@@ -13,7 +13,7 @@
 #include <Implementation\DirectX11\DirectX11Utilities.h>
 #include <Util\SCamera.h>
 #include <Util\SMatrix.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 #include <Abstract\IRenderer.h>
 
 SP_NMSPACE_BEG
@@ -45,7 +45,7 @@ S_API DirectX11Viewport::~DirectX11Viewport()
 S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional)
 {
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);
-	SP_ASSERTR(desc.width > 640 & desc.height > 480, S_INVALIDPARAM);
+	SP_ASSERTR(desc.width > 640 && desc.height > 480, S_INVALIDPARAM);
 	SP_ASSERTR(desc.fov > 0, S_INVALIDPARAM);
 	SP_ASSERTR(desc.hWnd, S_INVALIDPARAM);
 
@@ -88,8 +88,7 @@ S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SVi
 	swapChainDesc.Windowed = engineSet.app.bWindowed;
 
 
-	// Create the swapchain
-	IDXGISwapChain* pSwapChain;
+	// Create the swapchain	
 	if (Failure(m_pRenderer->D3D11_CreateSwapChain(&swapChainDesc, &m_pSwapChain)))
 	{
 		return m_pEngine->LogE("Failed create swap chain!");
@@ -98,7 +97,7 @@ S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SVi
 
 	// Now create an RTV for this swapchain	
 	ID3D11Resource* pBBResource;
-	if (Failure(pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
+	if (Failure(m_pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
 	{
 		return m_pEngine->LogE("Failed retrieve BackBuffer resource of SwapChain in InitDefaultViewport!");
 	}
@@ -239,8 +238,8 @@ S_API bool DirectX11Viewport::IsAdditional()
 S_API SIZE DirectX11Viewport::GetSize(void)
 {
 	SIZE size;
-	size.cx = m_DXViewportDesc.Width;
-	size.cy = m_DXViewportDesc.Height;
+	size.cx = (LONG)m_DXViewportDesc.Width;
+	size.cy = (LONG)m_DXViewportDesc.Height;
 
 	return size;
 }
@@ -287,10 +286,11 @@ S_API float DirectX11Viewport::GetPerspectiveFOV(void)
 // -------------------------------------------------------------------
 S_API SResult DirectX11Viewport::Set3DProjection(S_PROJECTION_TYPE type, float fPerspDegFOV, float fOrthoW, float fOrthoH)
 {
+	SSettings& engineSettings = m_pEngine->GetSettings();
+
 	switch (type)
 	{
-	case S_PROJECTION_PERSPECTIVE:				
-		SSettings& engineSettings = m_pEngine->GetSettings();
+	case S_PROJECTION_PERSPECTIVE:		
 		SPMatrixPerspectiveFovRH(
 			&m_ProjectionMtx,
 			fPerspDegFOV,

@@ -10,7 +10,7 @@
 #pragma once
 
 #include <Implementation\DirectX11\DirectX11Effect.h>
-#include <SSpeedPointEngine.h>
+#include <SpeedPointEngine.h>
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <d3dcompiler.h>
 
@@ -67,7 +67,7 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 		return m_pEngine->LogE("Failed open FX file ifstream!");
 
 	fxInput.seekg(0, fxInput.end);
-	size = fxInput.tellg();
+	size = (unsigned int)fxInput.tellg();
 
 	fxInput.seekg(0, fxInput.beg);
 
@@ -219,7 +219,7 @@ S_API SResult DirectX11Effect::Enable()
 	ID3D11DeviceContext* pDXDeviceContext = m_pDXRenderer->GetD3D11DeviceContext();	
 	pDXDeviceContext->VSSetShader(m_pVertexShader, 0, 0);		
 	pDXDeviceContext->PSSetShader(m_pPixelShader, 0, 0);	
-	pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);
+	pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);	
 
 	return S_SUCCESS;
 }

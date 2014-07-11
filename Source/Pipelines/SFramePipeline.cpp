@@ -6,14 +6,14 @@
 
 #include <Abstract\Pipelines\IRenderPipeline.h>
 #include <Abstract\IRenderer.h>
-#include <Pipelines\SFramePipeline.h>
-#include <SSpeedPointEngine.h>
+#include <Pipelines\FramePipeline.h>
+#include <SpeedPointEngine.h>
 
 namespace SpeedPoint
 {	
 	// ******************************************************************************************
 
-	S_API SResult SFramePipeline::Initialize(SpeedPointEngine* pEngine)
+	S_API SResult FramePipeline::Initialize(SpeedPointEngine* pEngine)
 	{
 		SP_ASSERTR(pEngine, S_INVALIDPARAM);
 			
@@ -43,7 +43,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API SResult SFramePipeline::Clear()
+	S_API SResult FramePipeline::Clear()
 	{
 		SResult res = S_SUCCESS;
 
@@ -80,14 +80,14 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API S_FRAMEPIPELINE_STAGE SFramePipeline::GetCurrentStage()
+	S_API S_FRAMEPIPELINE_STAGE FramePipeline::GetCurrentStage()
 	{
 		return m_Stage;
 	}
 	
 	// ******************************************************************************************
 
-	S_API SResult SFramePipeline::BeginFrame(unsigned int iSkipStages)
+	S_API SResult FramePipeline::BeginFrame(unsigned int iSkipStages)
 	{
 		SResult res = S_SUCCESS;
 		SResult tempRes = S_SUCCESS;
@@ -135,7 +135,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API SResult SFramePipeline::DoDynamics()
+	S_API SResult FramePipeline::DoDynamics()
 	{
 		SResult res = S_SUCCESS, tempRes = S_SUCCESS;
 
@@ -188,7 +188,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 	
-	S_API SResult SFramePipeline::DoRender()
+	S_API SResult FramePipeline::DoRender()
 	{
 		SResult res = S_SUCCESS, tempRes = S_SUCCESS;
 
@@ -257,7 +257,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 	
-	S_API SResult SFramePipeline::EndFrame()
+	S_API SResult FramePipeline::EndFrame()
 	{
 		SP_ASSERTR(m_pEngine
 			&& m_pFrameBeginTimestamp
@@ -296,7 +296,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API SResult SFramePipeline::CallEvent(unsigned int iIndex, SEventParameters* pParams)
+	S_API SResult FramePipeline::CallEvent(unsigned int iIndex, SEventParameters* pParams)
 	{
 		SEventParameters* params = pParams;
 		if (!params)

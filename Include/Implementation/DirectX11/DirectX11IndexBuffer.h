@@ -15,12 +15,8 @@
 
 SP_NMSPACE_BEG
 
-
-enum EIBLockType
-{
-	eIBLOCK_DISCARD,
-	eIBLOCK_NOOVERWRITE
-};
+class S_API SpeedPointEngine;
+struct S_API IRenderer;
 
 
 // SpeedPoint IndexBuffer Resource
@@ -41,40 +37,27 @@ public:
 	DirectX11IndexBuffer();
 	DirectX11IndexBuffer(const DirectX11IndexBuffer& o);
 	~DirectX11IndexBuffer();
+	
+	virtual SResult Initialize(int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer, S_INDEXBUFFER_FORMAT format = S_INDEXBUFFER_16);
+	virtual SResult Create(int nSize, bool bDynamic_);	
 
-	// Initialize the Index buffer
-	SResult Initialize(int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer);
+	virtual BOOL IsInited(void);	
+	virtual SResult Resize(int nNewSize);	
+	virtual SResult Lock(UINT iBegin, UINT iLength, SIndex** buf, EIBLockType lockType);
+	virtual SResult Lock(UINT iBegin, UINT iLength, SIndex** buf);	
+	virtual SResult Fill(SIndex* pIndices, int nIndices, bool append);	
+	virtual SResult Unlock(void);	
+	virtual SIndex* GetShadowBuffer(void);	
+	virtual SIndex* GetIndex(int iIndex);	
+	virtual INT GetIndexCount(void);	
+	virtual SResult Clear(void);
+	virtual S_INDEXBUFFER_FORMAT GetFormat();
 
-	// Create the Hardware Index Buffer
-	SResult Create(int nSize, bool bDynamic_);
-
-	// Check if this Index Buffer is inited properly
-	BOOL IsInited(void);
-
-	// Change the size of the Hardware Index Buffer
-	SResult Resize(int nNewSize);
-
-	// Lock the Hardware Index Buffer in order to be able to fill Hardware data
-	SResult Lock(UINT iBegin, UINT iLength, SIndex** buf, EIBLockType lockType);
-	SResult Lock(UINT iBegin, UINT iLength, SIndex** buf);
-
-	// Fill the Hardware Index Buffer with an array of Indices
-	SResult Fill(SIndex* pIndices, int nIndices, bool append);
-
-	// Unlock the Hardware Index Buffer
-	SResult Unlock(void);
-
-	// Get the RAM Copy of the hardware Index Buffer
-	SIndex* GetShadowBuffer(void);
-
-	// Get a Pointer to an Index
-	SIndex* GetIndex(int iIndex);
-
-	// Get the total count of all Indices
-	INT GetIndexCount(void);
-
-	// Clear everything and free memory
-	SResult Clear(void);
+	// DX
+	ID3D11Buffer* D3D11_GetBuffer()
+	{
+		return m_pHWIndexBuffer;
+	}
 };
 
 

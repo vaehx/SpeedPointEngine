@@ -8,6 +8,13 @@
 
 namespace SpeedPoint
 {
+	S_API Solid::Solid()
+		: m_bInitialized(false),
+		m_pEngine(nullptr),
+		m_pOctree(nullptr)
+	{
+	}
+
 	S_API Solid::~Solid()
 	{
 		// Make sure resources are freed
@@ -90,7 +97,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SResult Solid::SetGeometryData( SVertex* pVertices, UINT nVertices, DWORD* pdwIndices, UINT nIndices )
+	S_API SResult Solid::SetGeometryData( SVertex* pVertices, UINT nVertices, SIndex* pdwIndices, UINT nIndices )
 	{
 		if( m_pEngine == NULL ) return S_ABORTED;
 

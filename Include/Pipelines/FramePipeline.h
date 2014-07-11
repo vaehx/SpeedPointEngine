@@ -18,8 +18,8 @@ SP_NMSPACE_BEG
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-class IRenderPipeline;
-class SpeedPointEngine;
+struct S_API IRenderPipeline;
+class S_API SpeedPointEngine;
 
 // SpeedPoint Frame Pipeline Engine
 // This is the main Pipeline of the Game Engine and handles all other pipeline.

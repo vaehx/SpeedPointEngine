@@ -46,8 +46,7 @@ namespace SpeedPoint
 		S_INVALIDPARAM,
 		S_INVALIDSTAGE,
 		S_INVALIDGEOMSTRATEGY,
-		S_NOTIMPLEMENTED,
-		S_NOTFOUND,
+		S_NOTIMPLEMENTED,		
 		S_NOTINIT,
 		S_NOTINITED = S_NOTINIT
 	};
@@ -76,6 +75,12 @@ namespace SpeedPoint
 	public:
 		virtual void HandleException(char* msg) = 0;
 	};
+
+
+	// We need to forward declare the Failure function as it is used in the SResult class itself
+	class S_API SResult;
+	static bool Failure(const SResult& r);
+
 
 	// New SpeedPoint Result class
 	class S_API SResult
