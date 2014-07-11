@@ -94,7 +94,7 @@ S_API SResult SpeedPointEngine::Start(IRenderer* pRendererInstance)
 	res = m_pRenderer->Initialize(this, m_Settings.app.hWnd, m_Settings.app.nXResolution, m_Settings.app.nYResolution, false);
 	if (Failure(res))
 	{
-		return LogReport(S_ERROR, "Failed to initialize DirectX9-Renderer!");
+		return LogReport(S_ERROR, "Failed to initialize renderer!");
 	}
 
 	m_pResourcePool = m_pRenderer->GetSpecificResourcePool();

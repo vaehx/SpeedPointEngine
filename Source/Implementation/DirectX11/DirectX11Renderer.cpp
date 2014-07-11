@@ -431,7 +431,7 @@ S_API SResult DirectX11Renderer::Initialize(SpeedPointEngine* pEngine, HWND hWnd
 	m_pRenderPipeline = (IRenderPipeline*)new DirectX11RenderPipeline();
 	if (Failure(m_pRenderPipeline->Initialize(pEngine, (IRenderer*)this)))
 	{
-		return pEngine->LogReport(S_ERROR, "Could not initialize DX9 Render Pipeline");
+		return pEngine->LogReport(S_ERROR, "Could not initialize DX11 Render Pipeline");
 	}
 	// !!! pRenderPipeline->SetFramePipeline() will be called by SFramePipeline::Initialize() !!!
 
