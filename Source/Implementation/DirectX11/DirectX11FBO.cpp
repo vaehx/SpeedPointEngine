@@ -42,6 +42,8 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, SpeedPointEngine* pEngine,
 
 	m_pDXRenderer = (DirectX11Renderer*)pRenderer;
 	m_FBOType = type;
+	m_nBufferWidth = nW;
+	m_nBufferHeight = nH;
 
 	// By default we use sRGB 32bit unsigned normalized buffer
 	DXGI_FORMAT texFmt;	
