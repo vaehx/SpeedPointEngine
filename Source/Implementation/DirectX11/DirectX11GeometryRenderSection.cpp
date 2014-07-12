@@ -41,9 +41,9 @@ S_API DirectX11GeometryRenderSection::~DirectX11GeometryRenderSection()
 S_API SResult DirectX11GeometryRenderSection::Initialize(SpeedPointEngine* eng, IRenderPipeline* pRenderPipeline)
 {	
 	SP_ASSERTR(eng, S_INVALIDPARAM);
-	SP_ASSERTR((pRenderPipeline == 0
-		|| pRenderPipeline->GetRenderer() == 0
-		|| pRenderPipeline->GetRenderer()->GetType() != S_DIRECTX11), S_INVALIDPARAM);
+	SP_ASSERTR((pRenderPipeline
+		&& pRenderPipeline->GetRenderer()
+		&& pRenderPipeline->GetRenderer()->GetType() == S_DIRECTX11), S_INVALIDPARAM);
 
 	// --------------------------------------------------------------------------------------------
 	// Assign pointers
