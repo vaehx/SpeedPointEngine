@@ -51,7 +51,9 @@ S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SVi
 
 	Clear(); // make sure to clear before initializing again
 
-
+	// make sure the FBO instance is instanciated, because we might delete it in Clear()
+	if (!m_pFBO)
+		m_pFBO = new DirectX11FBO();
 
 	m_pEngine = pEngine;
 	SSettings& engineSet = m_pEngine->GetSettings();

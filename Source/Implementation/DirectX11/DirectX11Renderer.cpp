@@ -111,7 +111,7 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter(usint32 nW, usint32 nH)
 	// find matching adapter and display mode	
 	bool bFound = false;
 	DXGI_FORMAT desiredBackBufferFormat =
-		DXGI_FORMAT_R32G32B32A32_FLOAT;	// possibly change this to custom one depending on engine settings
+		DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	IDXGIOutput* pOutput;	
 	for (auto iAdapter = m_vAdapters.begin(); iAdapter != m_vAdapters.end(); ++iAdapter)
@@ -300,7 +300,7 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 
 	// To be sure we only use correct feature levels in our dx11 device, we have to explicitly set them	
 	// !!! Notice: To optionally support DX11.1, you have to add the missing D3D_FEATURE_LEVEL_11_1 !!!
-	D3D_FEATURE_LEVEL* pD3D11FeatureLevels = new D3D_FEATURE_LEVEL[]
+	D3D_FEATURE_LEVEL pD3D11FeatureLevels[] =
 	{
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_1,
@@ -309,7 +309,7 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 		// D3D9 features used to support old-hardware compatibility
 		D3D_FEATURE_LEVEL_9_3,
 		D3D_FEATURE_LEVEL_9_2,
-		D3D_FEATURE_LEVEL_9_1,
+		D3D_FEATURE_LEVEL_9_1
 	};
 	usint32 nFeatureLevels = 6;
 
@@ -317,25 +317,14 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 	HRESULT hRes;
 	hRes = D3D11CreateDevice(
 		m_pAutoSelectedAdapter,
-		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_UNKNOWN,	// DX requires that, because we have a non-null existing adapter
 		0,
 		createFlags,
 		pD3D11FeatureLevels, nFeatureLevels, D3D11_SDK_VERSION,
 		&m_pD3DDevice, &m_D3DFeatureLevel, &m_pD3DDeviceContext);	// consider using deferred context for multithreading!
 
-	// If that failed, try with Ref driver type
-	if (Failure(hRes))
-	{
-		hRes = D3D11CreateDevice(
-			m_pAutoSelectedAdapter,
-			D3D_DRIVER_TYPE_REFERENCE,
-			0,
-			createFlags,
-			pD3D11FeatureLevels, nFeatureLevels, D3D11_SDK_VERSION,
-			&m_pD3DDevice, &m_D3DFeatureLevel, &m_pD3DDeviceContext);	// consider using deferred context for multithreading!
-	}
-
-	SP_SAFE_DELETE_ARR(pD3D11FeatureLevels, nFeatureLevels);
+	//delete[] pD3D11FeatureLevels;
+	//SP_SAFE_DELETE_ARR(pD3D11FeatureLevels, nFeatureLevels);
 
 	// If everything failed, then don't go further
 	if (Failure(hRes) || !m_pD3DDevice || !m_pD3DDeviceContext)
