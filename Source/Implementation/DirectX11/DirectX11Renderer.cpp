@@ -415,6 +415,10 @@ S_API SResult DirectX11Renderer::Initialize(SpeedPointEngine* pEngine, HWND hWnd
 
 
 
+	// initialize the render target collections
+	// WARNING: Needs to be done before initialization of the render pipeline, beacuse the sections
+	// might add FBO collections in order to initialize!
+	m_pRenderTargetCollections = new map<ERenderTargetCollectionID, SRenderTargetCollection>();
 
 	// Initialize the render pipeline
 	m_pRenderPipeline = (IRenderPipeline*)new DirectX11RenderPipeline();
@@ -428,7 +432,7 @@ S_API SResult DirectX11Renderer::Initialize(SpeedPointEngine* pEngine, HWND hWnd
 	if (Failure(SetTargetViewport((IViewport*)&m_Viewport)))
 	{
 		return pEngine->LogReport(S_ERROR, "Failed set Target Viewport!");
-	}
+	}	
 
 
 	// Set the base primitive topology
