@@ -22,7 +22,7 @@ namespace SpeedPoint
 
 	// Use this to point to a function that shall be called when log entry was added to the stream
 
-	typedef S_API void(*SLogHandler)(SResult, SString);
+	typedef S_API void(*PLogHandler)(SResult, SString);
 
 	// ******************************************************************************************	
 
@@ -31,7 +31,7 @@ namespace SpeedPoint
 	class S_API SLogStream
 	{
 	private:
-		SLogHandler* pLogHandlers;
+		PLogHandler* pLogHandlers;
 
 	public:		
 		// Default constructor
@@ -48,7 +48,7 @@ namespace SpeedPoint
 		SResult Report(SResult res, SString str);
 
 		// Register a listener function
-		void RegisterHandler(SLogHandler pHandler);
+		void RegisterHandler(PLogHandler pHandler);
 
 		// Clear log listener functions
 		void Clear(void);

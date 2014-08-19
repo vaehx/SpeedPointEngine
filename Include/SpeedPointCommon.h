@@ -11,3 +11,5 @@
 
 // The Engine itself
 #include <SpeedPointEngine.h>
+
+#include <Abstract\IApplication.h>

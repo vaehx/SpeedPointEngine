@@ -96,7 +96,7 @@ namespace SpeedPoint
 		}
 
 		// Get the length of this string
-		unsigned int GetLength()
+		unsigned int GetLength() const
 		{
 			return nLength;
 		}

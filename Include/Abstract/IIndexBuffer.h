@@ -14,15 +14,15 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
 struct S_API IRenderer;
+struct S_API IGameEngine;
 
 
 // SpeedPoint IndexBuffer Format
 enum S_API S_INDEXBUFFER_FORMAT
 {
-	S_INDEXBUFFER_16,
-	S_INDEXBUFFER_32,
+	S_INDEXBUFFER_16
+	//S_INDEXBUFFER_32,	( not implemented yet )
 };
 
 
@@ -33,9 +33,22 @@ enum S_API EIBLockType
 	eIBLOCK_NOOVERWRITE
 };
 
+
+// Usage type of a indexbuffer to let the engine get the most optimization
+enum EIBUsage
+{
+	eIBUSAGE_STATIC,		// the buffer has initial data and never changes until destruction
+	eIBUSAGE_DYNAMIC_RARE,		// the buffer content changes less than once per frame
+	eIBUSAGE_DYNAMIC_FREQUENT	// the buffer content changes more than once per frame
+};
+
+
 	
 #ifdef _WIN32
 typedef unsigned __int16 S_API SIndex;
+
+// TODO: Add separation into SIndex16 and SIndex32
+
 #else
 typedef unsigned int S_API SIndex;
 #endif
@@ -45,11 +58,15 @@ typedef unsigned int S_API SIndex;
 struct S_API IIndexBuffer
 {
 public:
-	// Initialize the Index Buffer
-	virtual SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEngine, IRenderer* pRenderer, S_INDEXBUFFER_FORMAT format ) = 0;
+	// Summary:
+	//	Initialize the Index Buffer
+	// Arguments:
+	//	pInitialData - Specifies inital buffer data. If 0, then nSize and format is ignored and the buffers are created as soon as Fill() is called.
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, SIndex* pInitialData = nullptr) = 0;
 
 	// Create the Hardware Index Buffer
-	virtual SResult Create( int nIndices_, bool bDynamic_ ) = 0;
+	virtual SResult Create( int nIndices_, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0) = 0;
 
 	// Check if this Index Buffer is inited properly
 	virtual BOOL IsInited( void ) = 0;
@@ -77,7 +94,7 @@ public:
 	virtual INT GetIndexCount( void ) = 0;
 
 	// Get the Index Buffer format specified when creating the Index Buffer
-	virtual S_INDEXBUFFER_FORMAT GetFormat( void ) = 0;
+//virtual S_INDEXBUFFER_FORMAT GetFormat( void ) = 0;
 
 	// Clear everything and free memory
 	virtual SResult Clear( void ) = 0;

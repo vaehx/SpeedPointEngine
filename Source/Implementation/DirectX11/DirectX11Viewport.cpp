@@ -13,23 +13,23 @@
 #include <Implementation\DirectX11\DirectX11Utilities.h>
 #include <Util\SCamera.h>
 #include <Util\SMatrix.h>
-#include <SpeedPointEngine.h>
+#include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
 
 SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------
 S_API DirectX11Viewport::DirectX11Viewport()
-	: m_pEngine(0),
-	m_pRenderer(0),
-	m_pRenderTarget(0),	
-	m_bIsAdditional(false),
-	m_pDepthStencilBuffer(0),	
-	m_pDepthStencilView(0),
-	m_pSwapChain(0),
-	m_pCamera(0),
-	m_bCustomCamera(false),
-	m_nBackBuffers(0)
+: m_pEngine(0),
+m_pRenderer(0),
+m_pRenderTarget(0),	
+m_bIsAdditional(false),
+m_pDepthStencilBuffer(0),	
+m_pDepthStencilView(0),
+m_pSwapChain(0),
+m_pCamera(0),
+m_bCustomCamera(false),
+m_nBackBuffers(0)
 {
 	m_pFBO = new DirectX11FBO();
 }
@@ -42,7 +42,7 @@ S_API DirectX11Viewport::~DirectX11Viewport()
 }
 
 // -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional)
+S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional)
 {
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);
 	SP_ASSERTR(desc.width > 640 && desc.height > 480, S_INVALIDPARAM);
@@ -51,12 +51,12 @@ S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SVi
 
 	Clear(); // make sure to clear before initializing again
 
-	// make sure the FBO instance is instanciated, because we might delete it in Clear()
+	// make sure the FBO instance is instanciated, because we might have deleted it in Clear()
 	if (!m_pFBO)
-		m_pFBO = new DirectX11FBO();
+		m_pFBO = new DirectX11FBO();	
 
 	m_pEngine = pEngine;
-	SSettings& engineSet = m_pEngine->GetSettings();
+	SSettingsDesc& engineSet = m_pEngine->GetSettings()->Get();
 
 	IRenderer* pRenderer = pEngine->GetRenderer();
 	SP_ASSERTR(pRenderer->GetType() == S_DIRECTX11, S_INVALIDPARAM);
@@ -66,7 +66,14 @@ S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SVi
 
 	m_bIsAdditional = bIsAdditional;
 	m_Desc = desc;
-	m_nBackBuffers = 1;// only one buffer. render targets will be handled externally			
+	m_nBackBuffers = 1;// only one buffer. render targets will be handled externally	
+
+	m_DXViewportDesc.Width = desc.width;
+	m_DXViewportDesc.Height = desc.height;
+	m_DXViewportDesc.MinDepth = 0;
+	m_DXViewportDesc.MaxDepth = 1.0f;
+	m_DXViewportDesc.TopLeftX = 0.0f;
+	m_DXViewportDesc.TopLeftY = 0.0f;
 
 
 	// Setup swap chain description
@@ -108,20 +115,14 @@ S_API SResult DirectX11Viewport::Initialize(SpeedPointEngine* pEngine, const SVi
 		return m_pEngine->LogE("Failed create RTV for swapchain!");
 	}
 
-	m_pFBO->SetRTV(m_pRenderTarget);
-
-
-
-
-
 	if (desc.useDepthStencil)
 	{
 		if (Failure(InitializeDepthStencilBuffer()))
 			return S_ERROR;
 	}
 
-
-
+	// Setup the RTV of the FBO which is used by the renderer to bind the swapchain backbuffer as rendertarget	
+	m_pFBO->FlagSwapchainFBO(m_pRenderTarget, m_pDepthStencilView);	
 
 
 	// Instanciate the camera
@@ -208,13 +209,13 @@ S_API SResult DirectX11Viewport::Clear(void)
 	SP_SAFE_RELEASE(m_pDepthStencilBuffer);	
 
 	SP_SAFE_RELEASE(m_pRenderTarget);	
+	if (m_pFBO)
+		delete m_pFBO;
+
 	SP_SAFE_RELEASE(m_pSwapChain);
 
 	if (!m_bCustomCamera && m_pCamera)
-		delete m_pCamera;
-
-	if (m_pFBO)
-		delete m_pFBO;
+		delete m_pCamera;	
 
 	m_pEngine = 0;
 	m_pRenderer = 0;
@@ -288,7 +289,7 @@ S_API float DirectX11Viewport::GetPerspectiveFOV(void)
 // -------------------------------------------------------------------
 S_API SResult DirectX11Viewport::Set3DProjection(S_PROJECTION_TYPE type, float fPerspDegFOV, float fOrthoW, float fOrthoH)
 {
-	SSettings& engineSettings = m_pEngine->GetSettings();
+	SSettingsDesc& engineSettings = m_pEngine->GetSettings()->Get();
 
 	switch (type)
 	{

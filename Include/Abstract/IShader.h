@@ -13,7 +13,7 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 
 
 
@@ -32,7 +32,7 @@ class S_API IShader
 public:
 	// Loads the shader from the file and compiles it
 	// It will also select the first available technique as the default
-	virtual SResult Initialize( SpeedPointEngine* pEngine, char* cFilename ) = 0;
+	virtual SResult Initialize( IGameEngine* pEngine, const char* cFilename, const char* cEntry ) = 0;
 
 	// Check if the shader is initialized
 	virtual bool IsInitialized() = 0;

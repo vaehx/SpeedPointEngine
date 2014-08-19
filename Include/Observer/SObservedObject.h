@@ -19,6 +19,9 @@ namespace SpeedPoint
 	private:
 		SEventCallbackTable m_EventCallbackTable;
 
+	protected:
+		SResult InitEventCallbackTable(SpeedPointEngine* pEngine);
+
 	public:
 		// Default constructor
 		SObservedObject();
@@ -27,7 +30,7 @@ namespace SpeedPoint
 		SObservedObject(SEventCallback pDestructionCallbackFunction);
 
 		// Default destructor
-		~SObservedObject();
+		~SObservedObject();		
 
 		// Set the destruction handler manually		
 		void SetDestructionCallback(SEventCallback pDestructionCallbackFunc);

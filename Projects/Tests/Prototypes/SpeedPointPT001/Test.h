@@ -10,26 +10,26 @@
 
 #define SP_NO_PHYSICS
 #include <SpeedPoint.h>
+#include <SpeedPointApplication.h>
+#include <Implementation\Geometry\VisibleObject.h>
 #include <Windows.h>
 
 // Foward declarate Log Report Handler
 void OnLogReport(SpeedPoint::SResult res, SpeedPoint::SString msg);
 
-class Test;
-
-struct SCustomData
+class Test : public SpeedPoint::SpeedPointApplication
 {
-	Test* pApplication;
-};
+private:
+	SpeedPoint::VisibleObject testObject;
 
-class Test
-{
-public:
-	SpeedPoint::SpeedPointEngine m_Engine;
-	SpeedPoint::SSettings settings;
-	SpeedPoint::SP_ID testSolid;
+protected:
+	void OnInitGeometry();
 
+public:	
 	bool Start(HWND hWnd, HINSTANCE hInstance);
 	bool Tick();
+
+	void Render();
+
 	bool Stop();
 }; 

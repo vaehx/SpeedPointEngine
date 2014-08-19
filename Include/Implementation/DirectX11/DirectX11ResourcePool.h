@@ -18,11 +18,13 @@
 SP_NMSPACE_BEG
 
 
+struct S_API IGameEngine;
+
 // SpeedPoint DirectX11 Resource Pool
 class S_API DirectX11ResourcePool : public IResourcePool
 {
 public:
-	SpeedPointEngine*		pEngine;
+	IGameEngine*		pEngine;
 	DirectX11Renderer*		pDXRenderer;
 
 	SPool<DirectX11IndexBuffer>	plIndexBuffers;
@@ -35,7 +37,7 @@ public:
 	// **************************************************************************
 
 	// Initialize the Resource pool
-	SResult Initialize(SpeedPointEngine* pEngine, IRenderer* pRenderer);
+	SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer);
 
 	// **************************************************************************
 	//				VertexBuffer

@@ -67,12 +67,17 @@ S_API SResult DirectX11GeometryRenderSection::Initialize(SpeedPointEngine* eng, 
 	SP_ASSERTR(m_GBufferNormals.Initialize(eFBO_GBUFFER_NORMALS, m_pEngine, pRenderer, nXRes, nYRes), S_ERROR);	
 	SP_ASSERTR(m_GBufferTangents.Initialize(eFBO_GBUFFER_TANGENTS, m_pEngine, pRenderer, nXRes, nYRes), S_ERROR);
 
+	SP_ASSERTR(m_GBufferAlbedo.InitializeSRV(), S_ERROR);
+	SP_ASSERTR(m_GBufferPosition.InitializeSRV(), S_ERROR);
+	SP_ASSERTR(m_GBufferNormals.InitializeSRV(), S_ERROR);
+	SP_ASSERTR(m_GBufferTangents.InitializeSRV(), S_ERROR);
+
 	// Setup the render target collection
-	SP_ASSERTR(pDXRenderer->AddBindedFBO(0, (IFBO*)&m_GBufferAlbedo), S_ERROR);
-	SP_ASSERTR(pDXRenderer->AddBindedFBO(1, (IFBO*)&m_GBufferPosition), S_ERROR);
-	SP_ASSERTR(pDXRenderer->AddBindedFBO(2, (IFBO*)&m_GBufferNormals), S_ERROR);
-	SP_ASSERTR(pDXRenderer->AddBindedFBO(3, (IFBO*)&m_GBufferTangents), S_ERROR);	
-	SP_ASSERTR(pDXRenderer->BindFBOs(eRENDERTARGETS_GBUFFER, true), S_ERROR);
+	SP_ASSERTR(pDXRenderer->AddRTCollectionFBO(0, (IFBO*)&m_GBufferAlbedo), S_ERROR);
+	SP_ASSERTR(pDXRenderer->AddRTCollectionFBO(1, (IFBO*)&m_GBufferPosition), S_ERROR);
+	SP_ASSERTR(pDXRenderer->AddRTCollectionFBO(2, (IFBO*)&m_GBufferNormals), S_ERROR);
+	SP_ASSERTR(pDXRenderer->AddRTCollectionFBO(3, (IFBO*)&m_GBufferTangents), S_ERROR);	
+	SP_ASSERTR(pDXRenderer->StoreRTCollection(eRENDERTARGETS_GBUFFER), S_ERROR);
 
 	// --------------------------------------------------------------------------------------------
 	// Initialize the GBuffer effect
@@ -126,15 +131,15 @@ S_API SResult DirectX11GeometryRenderSection::PrepareSection()
 	if (!m_GBufferNormals.IsInitialized()) return m_pEngine->LogReport(S_NOTINIT, "Could not prepare Geometry Render Section: Normals Framebuffer not initialized!");
 	if (!m_GBufferTangents.IsInitialized()) return m_pEngine->LogReport(S_NOTINIT, "Could not prepare Geometry Render Section: Tangents Framebuffer not initialized!");
 	if (!m_gBufferShader.IsInitialized()) return m_pEngine->LogReport(S_ABORTED, "Cannot prepare Geometry Section: GBuffer creation shader not initilized!");
-	
+
 	// Set the render targets
-	if (Failure(pDXRenderer->BindFBOs(eRENDERTARGETS_GBUFFER)))
+	if (Failure(pDXRenderer->BindRTCollection(eRENDERTARGETS_GBUFFER)))
 	{
 		return S_ERROR;
 	}
 	
 	// Clear the frame buffer objects	
-	if (!pDXRenderer->ClearRenderTargets())
+	if (!pDXRenderer->ClearBoundRTs())
 	{
 		return m_pEngine->LogReport(S_ERROR, "Could not clear GBuffer components properly!");
 	}

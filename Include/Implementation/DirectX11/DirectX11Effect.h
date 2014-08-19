@@ -15,14 +15,14 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 class S_API DirectX11Renderer;
 struct S_API IRenderer;
 
 class S_API DirectX11Effect : public IShader
 {
 private:
-	SpeedPointEngine* m_pEngine;
+	IGameEngine* m_pEngine;
 	DirectX11Renderer* m_pDXRenderer;
 
 	ID3D11InputLayout* m_pVSInputLayout;
@@ -38,7 +38,7 @@ public:
 	DirectX11Effect();
 	~DirectX11Effect();
 
-	virtual SResult Initialize(SpeedPointEngine* pEngine, char* cFilename);	
+	virtual SResult Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry);	
 	virtual bool IsInitialized();
 	virtual SResult Clear(void);
 

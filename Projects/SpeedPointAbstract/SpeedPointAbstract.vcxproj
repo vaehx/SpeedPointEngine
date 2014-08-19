@@ -67,16 +67,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Abstract\IDynamicsPipeline.h" />
+    <ClInclude Include="..\..\Include\Abstract\IAI.h" />
     <ClInclude Include="..\..\Include\Abstract\IAnimationBundle.h" />
     <ClInclude Include="..\..\Include\Abstract\IAnimationJoint.h" />
     <ClInclude Include="..\..\Include\Abstract\IAnimationKey.h" />
     <ClInclude Include="..\..\Include\Abstract\IAnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Abstract\IApplication.h" />
     <ClInclude Include="..\..\Include\Abstract\IBot.h" />
     <ClInclude Include="..\..\Include\Abstract\ICollisionShape.h" />
     <ClInclude Include="..\..\Include\Abstract\ICommandBuffer.h" />
-    <ClInclude Include="..\..\Include\Abstract\IEngine.h" />
+    <ClInclude Include="..\..\Include\Abstract\IGameEngine.h" />
     <ClInclude Include="..\..\Include\Abstract\IEntity.h" />
     <ClInclude Include="..\..\Include\Abstract\IFBO.h" />
+    <ClInclude Include="..\..\Include\Abstract\IFramePipeline.h" />
+    <ClInclude Include="..\..\Include\Abstract\IGeometrical.h" />
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IInteractive.h" />
     <ClInclude Include="..\..\Include\Abstract\IOctree.h" />
@@ -85,14 +90,15 @@
     <ClInclude Include="..\..\Include\Abstract\IParticle.h" />
     <ClInclude Include="..\..\Include\Abstract\IParticleSystem.h" />
     <ClInclude Include="..\..\Include\Abstract\IPhysicalObject.h" />
+    <ClInclude Include="..\..\Include\Abstract\IPhysics.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderer.h" />
     <ClInclude Include="..\..\Include\Abstract\IRendererSettings.h" />
+    <ClInclude Include="..\..\Include\Abstract\IRenderPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
     <ClInclude Include="..\..\Include\Abstract\IScene.h" />
-    <ClInclude Include="..\..\Include\Abstract\Pipelines\IRenderPipeline.h" />
-    <ClInclude Include="..\..\Include\Abstract\Pipelines\IRenderPipelineSection.h" />
+    <ClInclude Include="..\..\Include\Abstract\IVisbleObject.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
-    <ClInclude Include="..\..\Include\Abstract\ISolid.h" />
+    <ClInclude Include="..\..\Include\Abstract\IVisible.h" />
     <ClInclude Include="..\..\Include\Abstract\ISolidSystem.h" />
     <ClInclude Include="..\..\Include\Abstract\ISound.h" />
     <ClInclude Include="..\..\Include\Abstract\ISoundSystem.h" />

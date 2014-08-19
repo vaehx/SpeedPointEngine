@@ -13,7 +13,7 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 struct S_API IRenderer;
 
 
@@ -38,14 +38,18 @@ enum S_API EFBOType
 
 
 // SpeedPoint FrameBufferObject (abstract)
-class S_API IFBO
+struct S_API IFBO
 {
 public:
+	virtual ~IFBO()
+	{
+	}
+
 	// Summary:
 	//	Initialize with given renderer
 	// Arguments:
 	//	nW / nH - (default 0) resolution of the buffer. set to 0 or omit to use FBOType-Default
-	virtual SResult Initialize(EFBOType type, SpeedPointEngine* pEngine, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0) = 0;		
+	virtual SResult Initialize(EFBOType type, IGameEngine* pEngine, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0) = 0;		
 
 	// Initialize 
 	//	Initialize the Depth Stencil Buffer and its View
@@ -56,7 +60,7 @@ public:
 	virtual bool IsInitialized() = 0;
 
 	// Get the handling engine
-	virtual SpeedPointEngine* GetEngine() = 0;
+	virtual IGameEngine* GetEngine() = 0;
 
 	// Get the handling renderer
 	virtual IRenderer* GetRenderer() = 0;
@@ -66,7 +70,7 @@ public:
 };
 
 
-typedef class S_API IFBO IFrameBufferObject;
+typedef struct S_API IFBO IFrameBufferObject;
 
 
 SP_NMSPACE_END

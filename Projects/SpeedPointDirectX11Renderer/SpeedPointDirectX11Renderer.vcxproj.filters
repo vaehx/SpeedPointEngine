@@ -14,13 +14,7 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11FBO.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11GeometryRenderSection.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11IndexBuffer.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11LightingRenderSection.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11OutputPlane.h">
@@ -30,9 +24,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Renderer.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderPipeline.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11ResourcePool.h">
@@ -59,18 +50,9 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11PostRenderSection.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11GeometryRenderSection.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11LightingRenderSection.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp">
@@ -88,9 +70,6 @@
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11RenderPipeline.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -101,9 +80,6 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11VertexBuffer.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11PostRenderSection.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

@@ -7,14 +7,14 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\ITerrain.h>
-#include "Solid.h"
+#include "RawGeometrical.h"
 
 
 SP_NMSPACE_BEG
 
 
 // SpeedPoint Terrain
-class S_API Terrain : public ITerrain, public Solid
+class S_API Terrain : public ITerrain, public RawGeometrical
 {
 public:
 	int		nXResolution;
@@ -25,7 +25,7 @@ public:
 	SResult CreatePlanar( float fW, float fD );
 	SResult CreateFromHeightMap( SP_ID iTexture, float fW, float fD );
 	SResult RenderTerrain( void );
-	SResult Clear( void );
+	//virtual void Clear( void );
 };
 
 SP_NMSPACE_END

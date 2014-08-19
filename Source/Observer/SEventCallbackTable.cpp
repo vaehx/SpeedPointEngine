@@ -24,6 +24,9 @@ namespace SpeedPoint
 
 	S_API SResult SEventCallbackTable::Initialize(SpeedPointEngine* pEngine)
 	{
+		SP_ASSERTR(pEngine, S_INVALIDPARAM);
+		m_pEngine = pEngine;
+
 		if (IsInitialized())
 		{					
 			m_pEngine->LogW("Tried to initialize already initialized EventCallbackTable! Clearing it now...");
@@ -83,8 +86,7 @@ namespace SpeedPoint
 	S_API SResult SEventCallbackTable::Call(unsigned int iIndex, SEventParameters* parameters)
 	{
 		// We do not have to go further if the table isnt initialized
-		if (!IsInitialized())
-			return S_NOTINIT;
+		SP_ASSERTR(IsInitialized(), S_NOTINIT);
 
 		if (m_pFirstEntry == 0 || m_pLastEntry == 0)
 			return m_pEngine->LogE("Could not call event of EventTable: Table Stack damaged!");

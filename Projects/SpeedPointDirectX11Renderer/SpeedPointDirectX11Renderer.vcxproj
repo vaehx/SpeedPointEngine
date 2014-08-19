@@ -13,14 +13,10 @@
   <ItemGroup>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11FBO.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11GeometryRenderSection.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11IndexBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11LightingRenderSection.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11OutputPlane.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11PostRenderSection.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderEffect.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Renderer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderPipeline.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11ResourcePool.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Settings.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Effect.h" />
@@ -30,14 +26,10 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Viewport.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11GeometryRenderSection.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11LightingRenderSection.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11IndexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11OutputPlane.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11PostRenderSection.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11RenderPipeline.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Settings.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Effect.cpp" />

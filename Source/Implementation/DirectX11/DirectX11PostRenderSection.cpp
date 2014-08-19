@@ -36,7 +36,7 @@ namespace SpeedPoint
 		if (pRenderPipeline == 0 || !pRenderPipeline->IsInitialized())
 			return m_pEngine->LogReport(S_INVALIDPARAM, "Cannot initialize post render section: given render pipeline is zero or not initialized!");
 
-		if (pRenderPipeline->GetRenderer() == 0 || pRenderPipeline->GetRenderer()->GetType() != S_DIRECTX9)
+		if (pRenderPipeline->GetRenderer() == 0 || pRenderPipeline->GetRenderer()->GetType() != S_DIRECTX11)
 			return m_pEngine->LogReport(S_NOTINIT, "Cannot initialize post render section: renderer is not initialized or invalid");
 
 		m_pDXRenderPipeline = (DirectX11RenderPipeline*)pRenderPipeline;
@@ -104,7 +104,7 @@ namespace SpeedPoint
 
 		// -----------------------------------------------------------------------------------
 		
-		pDXRenderer->SetRenderTarget(pDXRenderer->GetTargetViewport());
+		pDXRenderer->BindSingleFBO(pDXRenderer->GetTargetViewport());
 
 
 

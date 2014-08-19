@@ -15,18 +15,51 @@
 
 SP_NMSPACE_BEG
 
+struct S_API IGameEngine;
+
+
+struct S_API SDirectX11VBCreateFlags
+{
+	D3D11_USAGE usage;
+	unsigned int bindFlags;
+	unsigned int cpuAccessFlags;
+
+	SDirectX11VBCreateFlags()
+		: usage(D3D11_USAGE_DEFAULT),
+		bindFlags(D3D11_BIND_VERTEX_BUFFER),
+		cpuAccessFlags(0)
+	{
+	}
+
+	SDirectX11VBCreateFlags(const SDirectX11VBCreateFlags& o)
+		: usage(o.usage),
+		bindFlags(o.bindFlags),
+		cpuAccessFlags(o.cpuAccessFlags)
+	{
+	}
+
+	SDirectX11VBCreateFlags(D3D11_USAGE pUsage, unsigned int pBindFlags, unsigned int pCpuAccessFlags)
+		: usage(pUsage),
+		bindFlags(pBindFlags),
+		cpuAccessFlags(pCpuAccessFlags)
+	{
+	}
+};
+
+
 // SpeedPoint VertexBuffer Resource
 class S_API DirectX11VertexBuffer : public IVertexBuffer
 {
 private:
-	SpeedPointEngine*		m_pEngine;
+	IGameEngine*			m_pEngine;	// used for logging!
 	IRenderer*			m_pRenderer;
 	ID3D11Buffer*			m_pHWVertexBuffer;
 	SVertex*			m_pShadowBuffer;
 	int				m_nVertices;
 	int				m_nVerticesWritten;
-	bool				m_bDynamic;
 	bool				m_bLocked;
+	EVBUsage			m_Usage;
+	bool				m_bInitialDataWritten;
 
 
 public:	
@@ -34,8 +67,13 @@ public:
 	DirectX11VertexBuffer(const DirectX11VertexBuffer& o);		
 	~DirectX11VertexBuffer();
 	
-	virtual SResult Initialize(int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer);	
-	virtual SResult Create(int nSize, bool bDynamic_);
+	// Arguments:
+	//	nSize - spezifies the vertex count of pInitialData if set
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, int nSize, SVertex* pInitialData = nullptr);
+
+	// Arguments:
+	//	nSize - spezifies the count of pInitialData if set
+	virtual SResult Create(int nSize, SVertex* pInitialData = nullptr, usint32 nInitialDataCount = 0);
 	
 	virtual BOOL IsInited(void);	
 	virtual SResult Resize(int nNewSize);	
@@ -55,6 +93,8 @@ public:
 	{
 		return m_pHWVertexBuffer;
 	}
+
+	SDirectX11VBCreateFlags GetCreateFlags();
 };
 
 

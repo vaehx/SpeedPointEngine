@@ -14,7 +14,7 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 
 
 // SpeedPoint Texture Resource (abstract)
@@ -24,10 +24,10 @@ public:
 	// -- Initialize --
 
 	// Initialize the texture
-	virtual SResult Initialize( SpeedPointEngine* pEngine, const SString& spec ) = 0;
+	virtual SResult Initialize( IGameEngine* pEngine, const SString& spec ) = 0;
 	
 	// Initialize the texture with extended params
-	virtual SResult Initialize( SpeedPointEngine* pEngine, const SString& spec, bool bDynamic ) = 0;
+	virtual SResult Initialize( IGameEngine* pEngine, const SString& spec, bool bDynamic ) = 0;
 
 	// Load a texture from file
 	virtual SResult LoadFromFile( int w, int h, int mipLevels, char* cFileName ) = 0;

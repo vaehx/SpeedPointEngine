@@ -16,14 +16,23 @@ SP_NMSPACE_BEG
 
 
 struct S_API SVertex;
-class S_API SpeedPointEngine;
 struct S_API IRenderer;
+struct S_API IGameEngine;
 
 
-enum EVBLockType
+enum S_API EVBLockType
 {
 	eVBLOCK_DISCARD,
 	eVBLOCK_NOOVERWRITE
+};
+
+
+// Usage type of a vertexbuffer to let the engine get the most optimization
+enum S_API EVBUsage
+{
+	eVBUSAGE_STATIC,		// the buffer has initial data and never changes until destruction
+	eVBUSAGE_DYNAMIC_RARE,		// the buffer content changes less than once per frame
+	eVBUSAGE_DYNAMIC_FREQUENT	// the buffer content changes more than once per frame
 };
 
 
@@ -32,11 +41,18 @@ enum EVBLockType
 struct S_API IVertexBuffer
 {
 public:
-	// Initialize the vertex buffer
-	virtual SResult Initialize( int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer ) = 0;
+	// Summary:
+	//	Initialize the vertex buffer
+	// Arguments:
+	//	nSize - spezifies the count of pInitialData if set. If pInitialData is 0 then nSize is ignored and the buffer is created
+	//		as soon as Fill() is called.
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, int nSize, SVertex* pInitialData = nullptr) = 0;
 
-	// Create the Hardware Vertex Buffer
-	virtual SResult Create( int nSize, bool bDynamic_ ) = 0;
+	// Summary:
+	//	 Create the Hardware Vertex Buffer
+	// Arguments:
+	//	nInitialDataCount - if 0, pInitialData is not copied into buffer. Function fails if nInitialDatacount is greater than nSize
+	virtual SResult Create( int nSize, SVertex* pInitalData = nullptr, usint32 nInitialDataCount = 0 ) = 0;
 
 	// Check if this Vertex Buffer is inited properly
 	virtual BOOL IsInited( void ) = 0;

@@ -37,6 +37,13 @@ namespace SpeedPoint
 	}
 
 	// ********************************************************************************************
+
+	S_API SResult SObservedObject::InitEventCallbackTable(SpeedPointEngine* pEngine)
+	{
+		return m_EventCallbackTable.Initialize(pEngine);
+	}
+
+	// ********************************************************************************************
 	
 	S_API void SObservedObject::SetDestructionCallback(SEventCallback pDestructionCallbackFunc)
 	{

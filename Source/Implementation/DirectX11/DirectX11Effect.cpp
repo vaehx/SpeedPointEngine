@@ -10,7 +10,7 @@
 #pragma once
 
 #include <Implementation\DirectX11\DirectX11Effect.h>
-#include <SpeedPointEngine.h>
+#include <Abstract\IGameEngine.h>
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <d3dcompiler.h>
 
@@ -36,7 +36,7 @@ DirectX11Effect::~DirectX11Effect()
 }
 
 // -------------------------------------------------------------------------
-S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFilename)
+S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry)
 {
 	SP_ASSERTR((m_pEngine = pEngine) && cFilename, S_INVALIDPARAM);
 
@@ -53,6 +53,7 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 	//
 	//
 	// For now we only compile the shader at runtime!!
+	// Maybe dynamically compose the shader someday!
 	//
 	//
 
@@ -84,11 +85,15 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 	compileFlags |= D3DCOMPILE_DEBUG;
 #endif	
 
+	char* composedEntryName = new char[60];
+	ZeroMemory(composedEntryName, 60);
+	sprintf_s(composedEntryName, 60, "VS_%s", cEntry);
+
 	ID3DBlob *pVSBlob = 0, *pPSBlob = 0, *pErrorBlob = 0;
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
-		0, 0, 0, "VSMain",
+		0, 0, 0, composedEntryName,
 		"vs_4_0",
 		compileFlags,
 		0,
@@ -98,10 +103,11 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 		return S_ERROR;
 	}
 
+	composedEntryName[0] = 'P'; // VS... -> PS...
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
-		0, 0, 0, "PSMain",
+		0, 0, 0, composedEntryName,
 		"ps_4_0",
 		compileFlags,
 		0,
@@ -110,6 +116,8 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), "Effect compile error (PS)!", MB_OK | MB_ICONERROR);
 		return S_ERROR;
 	}
+
+	delete[] composedEntryName;
 
 
 	
@@ -142,6 +150,8 @@ S_API SResult DirectX11Effect::Initialize(SpeedPointEngine* pEngine, char* cFile
 	// 5. Create the polygon layout for the SVertex structure
 	
 	D3D11_INPUT_ELEMENT_DESC vtxDesc[5];
+	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * 5);
+
 	vtxDesc[0].AlignedByteOffset = 0;
 	vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	vtxDesc[0].InputSlot = 0;
@@ -204,6 +214,8 @@ S_API SResult DirectX11Effect::Clear(void)
 {
 	SP_SAFE_RELEASE(m_pPixelShader);
 	SP_SAFE_RELEASE(m_pVertexShader);
+	m_pPixelShader = nullptr;
+	m_pVertexShader = nullptr;
 
 	m_pDXRenderer = 0;
 	m_pEngine = 0;

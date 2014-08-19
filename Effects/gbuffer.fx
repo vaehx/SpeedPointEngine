@@ -1,9 +1,18 @@
+/////////////////////////////////////////////////////////////////////////
+//
+//
+//		GBuffer Shader
+//
+//
+/////////////////////////////////////////////////////////////////////////
+
 float4x4 mtxWorld : WORLD;
 float4x4 mtxView : VIEW;
 float4x4 mtxProjection : PROJECTION;
 float4x4 mtxWorldViewProj;
 
-sampler2D tex0;
+Texture2D albedoTexture;
+SamplerState sampleType;
 
 // ---------------------------------------------------------
 
@@ -25,7 +34,7 @@ struct VS_OUTPUT
     float3 Tangent : TEXCOORD4;
 };
 
-VS_OUTPUT VS_main(VS_INPUT IN)
+VS_OUTPUT VSMain(VS_INPUT IN)
 {
     VS_OUTPUT OUT;
 
@@ -63,13 +72,13 @@ struct PS_INPUT
 
 struct PS_OUTPUT
 {
-    float4 Albedo : COLOR0;
-    float4 Position : COLOR1;
-    float4 Normal : COLOR2;
-    float4 Tangent : COLOR3;
+    float4 Albedo : SV_Target0;
+    float4 Position : SV_Target1;
+    float4 Normal : SV_Target2;
+    float4 Tangent : SV_Target3;
 };
 
-PS_OUTPUT PS_main(PS_INPUT IN)
+PS_OUTPUT PSMain(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
 
@@ -87,24 +96,4 @@ PS_OUTPUT PS_main(PS_INPUT IN)
     OUT.Tangent = float4(IN.Tangent * 0.5f + 0.5f, 1.0f);
 
     return OUT;
-}
-
-// ---------------------------------------------------------
-
-technique GBufferTechniqueTex
-{
-	pass P0
-	{
-		VertexShader = compile vs_3_0 VS_main();
-		PixelShader = compile ps_3_0 PS_main();
-	}
-}
-
-technique GBufferTechniqueDiffuse
-{
-	pass P0
-	{
-		VertexShader = compile vs_3_0 VS_main();
-		PixelShader = compile ps_3_0 PS_main();
-	}
 }

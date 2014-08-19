@@ -11,14 +11,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\RawGeometrical.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationJoint.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationKey.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationSequence.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctree.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Solid.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicSolidSystem.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\VisibleObject.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicTerrain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -26,16 +27,17 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Solid.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\SolidSystem.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\RawGeometrical.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\VisibleObject.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FACEAC68-301E-41D3-AA53-EBFDE139F192}</ProjectGuid>
     <RootNamespace>SpeedPointGeometry</RootNamespace>
-    <ProjectName>SpeedPointGeometry</ProjectName>
+    <ProjectName>SpeedPointObjects</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

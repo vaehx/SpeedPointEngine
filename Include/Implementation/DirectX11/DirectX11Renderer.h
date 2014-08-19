@@ -13,6 +13,8 @@
 #include <Abstract\IRenderer.h>
 #include "DirectX11Settings.h"
 #include "DirectX11Viewport.h"
+#include "DirectX11FBO.h"
+#include "DirectX11Effect.h"
 #include <Util\SQueue.h>
 
 // DirectX11 Specific headers
@@ -30,7 +32,7 @@ SP_NMSPACE_BEG
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 struct S_API IRenderPipeline;
 struct S_API ISolid;
 struct S_API IResourcePool;
@@ -66,7 +68,7 @@ enum S_API EDirectX11CBSizeType
 class S_API DirectX11Renderer : public IRenderer
 {
 private:
-	SpeedPointEngine* m_pEngine;
+	IGameEngine* m_pEngine;
 	DirectX11Settings m_Settings;
 
 	IResourcePool* m_pResourcePool;
@@ -85,23 +87,46 @@ private:
 	DXGI_ADAPTER_DESC m_AutoSelectedAdapterDesc;	
 	IDXGIAdapter* m_pAutoSelectedAdapter;	// dont release this. it will be released in m_vAdapters! possibly use shared_ptr
 		
-	IRenderPipeline* m_pRenderPipeline;
+	//IRenderPipeline* m_pRenderPipeline;
 		
 	DirectX11Viewport m_Viewport;
 
-	SRenderTargetCollection m_CurrentRenderTargetCollection;	// temporary render targets that will be bound
+	SRenderTargetCollection m_CurrentRenderTargetCollection;	// RTs to be stored
 	map<ERenderTargetCollectionID, SRenderTargetCollection>* m_pRenderTargetCollections;
-
-	IFBO* m_pTargetViewportBackBuffer;
+	
 	IViewport* m_pTargetViewport;
-	ID3D11RenderTargetView* m_pDXRenderTarget;	
+	DirectX11FBO* m_pTargetFBO;	
 
-	ERenderTargetCollectionID m_iCurRTCollection;
+	ERenderTargetCollectionID m_iCurRTCollection;	// RT collection that is currently bound
 
 	ID3D11DepthStencilState* m_pDepthStencilState;
 
 	SDefMtxCB m_Matrices;
 	ID3D11Buffer* m_pDXMatrixCB;
+
+
+
+	// The Frame Buffer objects
+
+	DirectX11FBO m_GBufferDepth;
+	DirectX11FBO m_GBufferNormal;
+
+	DirectX11FBO m_LightAccumulation;
+
+
+	// The required shaders
+
+	DirectX11Effect m_GBufferEffect;
+	DirectX11Effect m_LightingEffect;
+	DirectX11Effect m_DeferredMergeEffect;
+	
+	DirectX11Effect m_ForwardEffect;
+
+
+	bool m_bInScene;
+	map<usint32, SRenderDesc>* m_pRenderSchedule;	// The Render schedule filled by RenderGeometrical()
+	usint32 m_RenderScheduleIDCounter;	// counter for the id used to resort the render schedule to get the highest performance while rendering
+
 
 
 	SResult UpdateRasterizerState();
@@ -127,17 +152,16 @@ public:
 	DXGI_MODE_DESC GetD3D11AutoSelectedDisplayModeDesc() { return m_AutoSelectedDisplayModeDesc; }
 
 	SResult D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDesc, IDXGISwapChain** ppSwapChain);
-	SResult D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV);	
-
-	SResult SetRenderTarget(IViewport* pViewport);
-	SResult SetRenderTarget(DirectX11FBO* pFBO);
-	
+	SResult D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV);			
 
 	SResult D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 customByteSize);
 	SResult D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData);	
 	SResult D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB);
 	SResult InitMatrixCB();
 	SResult UpdateMatrixCB();
+
+	// Draw all things schedule in the render schedule
+	SResult UnleashRenderSchedule();
 
 	////////////////////////////////////////////////////////////////////////////
 	// Derived:
@@ -148,7 +172,7 @@ public:
 
 	// Note:
 	//	!! bIgnoreAdapter is not evaluated in the D3D11Renderer !!	
-	virtual SResult Initialize(SpeedPointEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter);
+	virtual SResult Initialize(IGameEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter);
 
 	virtual bool IsInited(void);
 	virtual SResult Shutdown(void);
@@ -160,9 +184,12 @@ public:
 		return false;
 	}
 
-	virtual SResult AddBindedFBO(usint32 index, IFBO* pFBO);
-	virtual SResult BindFBOs(ERenderTargetCollectionID collcetionID, bool bStore = false);
-	virtual SResult BindFBO(IFBO* pFBO);
+	virtual SResult AddRTCollectionFBO(usint32 index, IFBO* pFBO);
+	virtual SResult StoreRTCollection(ERenderTargetCollectionID asId);
+	virtual SResult BindRTCollection(ERenderTargetCollectionID collcetionID);
+	
+	virtual SResult BindSingleFBO(IFBO* pFBO);		
+	virtual SResult BindSingleFBO(IViewport* pViewport);
 
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0);
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
@@ -170,8 +197,6 @@ public:
 	// Description:
 	//	creates an additional swap chain for the same window as the default viewport
 	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc);	
-
-	virtual IRenderPipeline* GetRenderPipeline(void);
 
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
@@ -181,7 +206,7 @@ public:
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0);
 	virtual SResult SetIBStream(IIndexBuffer* pIB);
 
-	virtual SResult ClearRenderTargets(void);
+	virtual SResult ClearBoundRTs(void);
 
 	virtual SResult SetTargetViewport(IViewport* pViewport);
 	virtual IViewport* GetTargetViewport(void);
@@ -190,9 +215,22 @@ public:
 
 	virtual SResult SetViewportMatrices(IViewport* pViewport = 0);
 	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj);
-	virtual SResult SetWorldMatrix(STransformable* t);
+	virtual SResult SetWorldMatrix(const STransformation& transform);
 
-	virtual SResult RenderSolid(ISolid* pSolid, bool bTextured);	
+
+
+	virtual SResult RenderGeometry(const SRenderDesc& dsc);
+	
+	// Summary:
+	//	Draws the given geometry desc to the GBuffer and its depth buffer
+	virtual SResult DrawDeferred(const SDrawCallDesc& desc);
+	virtual SResult DrawDeferredLighting();
+	virtual SResult MergeDeferred();
+
+	// Summary:
+	//	Draws the given geometry desc directly to the back buffer and the depth buffer
+	virtual SResult DrawForward(const SDrawCallDesc& desc);
+
 
 	virtual IRendererSettings* GetSettings()
 	{
@@ -203,8 +241,7 @@ public:
 	virtual SResult EnableBackfaceCulling(bool state = true);
 	virtual SResult UpdatePolygonType(S_PRIMITIVE_TYPE type);
 
-
-	virtual IResourcePool* GetSpecificResourcePool();
+	virtual IResourcePool* GetResourcePool();
 
 
 

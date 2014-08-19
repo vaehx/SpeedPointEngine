@@ -44,15 +44,42 @@
 
 #define SP_TRIVIAL -1
 
-#define SP_SAFE_RELEASE(x) if((x)) x->Release();
+// also check against wrong debug values if in debug mode
+#ifdef _DEBUG
+	#define IS_VALID_PTR(ptr) (ptr && (unsigned int)ptr != 0xC0000005 && *(char*)ptr != 0xCD)
+#else
+	#define IS_VALID_PTR(ptr) (ptr)
+#endif
+
+
+#define SP_SAFE_RELEASE(x) if(IS_VALID_PTR(x)) x->Release();
 
 // Delete an array safely, avoids memory heap violations if array has length 1
 #define SP_SAFE_DELETE_ARR(x, len) \
-	if((x) && len == 1) delete x; else if((x) && len > 1) delete[] x;
+	if(IS_VALID_PTR(x) && len == 1) delete x; else if((x) && len > 1) delete[] x;
 
 // Clear and release all items in a vector. x has to be a vector.
 #define SP_SAFE_RELEASE_CLEAR_VECTOR(x) \
 	if((x).size() > 0) for(auto it = (x).begin(); it != (x).end(); ++it) SP_SAFE_RELEASE((*it));
+
+
+
+
+// Bits - use this to define flags
+#define BIT_1 1 << 0
+#define BIT_2 1 << 1
+#define BIT_3 1 << 2
+#define BIT_4 1 << 3
+#define BIT_5 1 << 4
+#define BIT_6 1 << 5
+#define BIT_7 1 << 6
+#define BIT_8 1 << 7
+
+#define BITN(n) 1 << (n - 1)
+
+
+
+
 
 
 
@@ -63,9 +90,10 @@ SP_NMSPACE_BEG
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Basic datatypes
 
+typedef unsigned __int8 usbyte; // 1 Byte
+typedef unsigned __int16 usword;
 typedef unsigned __int32 usint32; // Unsigned 32bit integer
 typedef unsigned __int64 usint64; // Unsigned 64bit integer
-typedef unsigned __int8 byte; // 1 Byte
 typedef float f32; // 32bit precision float value
 typedef double f64; // 64bit (double-)precision float value
 
@@ -79,7 +107,6 @@ typedef usint32 SP_UNIQUE;
 static inline float cotf(float val) { return (1.0f / tanf(val)); }
 static inline double cot(double val) { return (1.0f / tan(val)); }
 static inline double cot(float val) { return (1.0f / tan((double)val)); }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 /*

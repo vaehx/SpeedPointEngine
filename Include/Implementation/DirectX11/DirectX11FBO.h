@@ -15,7 +15,7 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 class S_API DirectX11Renderer;
 struct S_API IRenderer;
 
@@ -25,7 +25,7 @@ struct S_API IRenderer;
 class S_API DirectX11FBO : public IFBO
 {
 private:
-	SpeedPointEngine* m_pEngine;
+	IGameEngine* m_pEngine;
 	DirectX11Renderer* m_pDXRenderer;
 
 	D3D11_TEXTURE2D_DESC m_texDesc;
@@ -41,6 +41,8 @@ private:
 
 	usint32 m_nBufferWidth, m_nBufferHeight;
 
+	bool m_bSwapChainFBO;
+
 
 public:
 	DirectX11FBO();
@@ -50,7 +52,7 @@ public:
 	//	Initialize with given renderer
 	// Arguments:
 	//	nW / nH - (default 0) resolution of the buffer. set to 0 or omit to use FBOType-Default
-	virtual SResult Initialize(EFBOType type, SpeedPointEngine* pEngine, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0);
+	virtual SResult Initialize(EFBOType type, IGameEngine* pEngine, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0);
 	
 	// Summary:
 	//	Mark this FBO to later be used as a texture, so generate the Shader resource view
@@ -63,7 +65,7 @@ public:
 	// Clear buffers
 	virtual void Clear(void);
 
-	virtual SpeedPointEngine* GetEngine()
+	virtual IGameEngine* GetEngine()
 	{
 		return m_pEngine;
 	}
@@ -74,19 +76,18 @@ public:
 	}				
 
 	// Getter / setter
-	ID3D11RenderTargetView* GetRTV()
+	ID3D11RenderTargetView* GetRTV() const { return m_pRTV; }
+	ID3D11DepthStencilView* GetDSV() const { return m_pDepthStencilView; }
+	ID3D11ShaderResourceView* GetSRV() const { return m_pSRV; }
+
+	// Description:
+	//	flags that this FBO only contains the RTV of the swapchain and does not handle a texture on its own
+	void FlagSwapchainFBO(ID3D11RenderTargetView* pRTV, ID3D11DepthStencilView* pDSV)
 	{
-		return m_pRTV;
-	}
-	void SetRTV(ID3D11RenderTargetView* pRTV)
-	{
-		SP_ASSERT(pRTV);
 		m_pRTV = pRTV;
+		m_pDepthStencilView = pDSV;
+		m_bSwapChainFBO = true;
 	}
-
-	ID3D11DepthStencilView* GetDSV() { return m_pDepthStencilView; }
-
-	ID3D11ShaderResourceView* GetSRV() { return m_pSRV; }
 	
 };
 

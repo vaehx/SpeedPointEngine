@@ -39,6 +39,7 @@ namespace SpeedPoint
 		S_SUCCESS,
 		S_ABORTED,
 		S_INFO,
+		S_DEBUG,
 		S_FULL,
 		S_NOTFOUND,
 		S_WARN,
@@ -124,12 +125,14 @@ namespace SpeedPoint
 			return Failure(result);
 		}
 
-		// WARNING: out needs to be initialized with a minimum of 16 chars!
+		// WARNING: out needs to be initialized with a minimum of 16 chars when passed to this function!
 		static void GetResultTypeDesc(const SResultType& type, char* out)
 		{
 			if (!out) return;			
 			switch (type)
 			{
+			case S_INFO: sprintf_s(out, 16, "S_INFO"); break;
+			case S_DEBUG: sprintf_s(out, 16, "S_DEBUG"); break;
 			case S_ERROR: sprintf_s(out, 16, "S_ERROR"); break;
 			case S_INVALIDPARAM: sprintf_s(out, 16, "S_INVALIDPARAM"); break;
 			case S_ABORTED: sprintf_s(out, 16, "S_ABORTED"); break;
@@ -181,7 +184,11 @@ namespace SpeedPoint
 				file, function, line, msg, pErrDesc);
 
 			if (pExProxy) pExProxy->HandleException(pOutput);
-			else printf(pOutput);
+			else
+			{
+				printf(pOutput);
+				MessageBox(nullptr, pOutput, "Assertion failed", MB_ICONERROR | MB_OK);
+			}
 
 			delete[] pOutput;
 			delete[] pErrDesc;

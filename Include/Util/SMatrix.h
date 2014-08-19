@@ -79,7 +79,7 @@ struct S_API SMatrix
 		return *this;
 	}
 
-	SMatrix operator * (const SMatrix& b)
+	SMatrix operator * (const SMatrix& b) const
 	{
 		SMatrix a = *this;
 		return SMatrix(
@@ -102,7 +102,7 @@ struct S_API SMatrix
 			);
 	}
 
-	SVector4 operator * (const SVector4& v)
+	SVector4 operator * (const SVector4& v) const
 	{
 		return SVector4(
 			m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3] * v.w,
@@ -124,6 +124,39 @@ struct S_API SMatrix
 	}
 	*/
 
+
+	static SMatrix MakeTranslationMatrix(const SVector3& translation)
+	{
+		return SMatrix(
+			1, 0, 0, translation.x,
+			0, 1, 0, translation.y,
+			0, 0, 1, translation.z,
+			0, 0, 0, 1
+			);
+	}
+
+	static SMatrix MakeScaleMatrix(const SVector3& scale)
+	{
+		return SMatrix(
+			scale.x, 0, 0, 0,
+			0, scale.y, 0, 0,
+			0, 0, scale.z, 0,
+			0, 0, 0, 1
+			);
+	}
+
+	static SMatrix MakeRotationMatrix(const SVector3& rot)
+	{
+		float ca = cosf(rot.x), sa = sinf(rot.x);
+		float cb = cosf(rot.y), sb = sinf(rot.y);
+		float cg = cosf(rot.z), sg = sinf(rot.z);
+		return SMatrix(
+			cb * cg, -cb * sg, sb, 0,
+			sa * sb * cg + ca * sg, -sa * sb * sg + ca * cg, -sa * cb, 0,
+			-ca * sb * cg + sa * sg, ca * sb * sg + sa * cg, ca * cb, 0,
+			0, 0, 0, 1
+			);
+	}
 };
 
 typedef struct S_API SMatrix SMatrix4;
@@ -153,6 +186,13 @@ static void SMatrixTranspose( SMatrix* pMtx )
 			}
 		}
 	}
+}
+
+static SMatrix SMatrixTranspose(const SMatrix& mtx)
+{
+	SMatrix res = mtx;
+	SMatrixTranspose(&res);
+	return res;
 }
 
 // calculate view matrix
@@ -206,9 +246,9 @@ static inline void SPMatrixPerspectiveFovRH(SMatrix* pMtx, float fovy, float asp
 	if (!pMtx)
 		return;
 
-	double yScale = cot(fovy * 0.5f);
+	float yScale = cotf(fovy * 0.5f);
 	*pMtx = SMatrix(
-		(float)(yScale / (double)aspect),	0,		0,			0,
+		(float)(yScale / aspect),	0,		0,			0,
 		0,					(float)yScale,	0,			0,
 		0,					0,		zf / (zn-zf),		-1.0f,
 		0,					0,		zn * zf / (zn-zf),	0

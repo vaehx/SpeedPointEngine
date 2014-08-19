@@ -21,7 +21,8 @@ m_pHWVertexBuffer(NULL),
 m_pShadowBuffer(NULL),
 m_nVertices(0),
 m_nVerticesWritten(0),
-m_bDynamic(false),
+m_Usage(eVBUSAGE_STATIC),
+m_bInitialDataWritten(false),
 m_bLocked(false)
 {
 }
@@ -34,7 +35,8 @@ m_pHWVertexBuffer(o.m_pHWVertexBuffer),
 m_pShadowBuffer(o.m_pShadowBuffer),
 m_nVertices(o.m_nVertices),
 m_nVerticesWritten(o.m_nVerticesWritten),
-m_bDynamic(o.m_bDynamic),
+m_Usage(o.m_Usage),
+m_bInitialDataWritten(o.m_bInitialDataWritten),
 m_bLocked(o.m_bLocked)
 {
 }
@@ -58,58 +60,111 @@ S_API BOOL DirectX11VertexBuffer::IsInited(void)
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Initialize(int nSize, bool bDyn, SpeedPointEngine* engine, IRenderer* renderer)
+S_API SResult DirectX11VertexBuffer::Initialize(IGameEngine* pEngine,
+						IRenderer* renderer,
+						EVBUsage usage,
+						int nSize,																	
+						SVertex* pInitialData /* = nullptr */)
 {
 	if (IsInited())
 		Clear();
 
-	m_pEngine = engine;
+	m_pEngine = pEngine;
 	m_pRenderer = renderer;
+	m_Usage = usage;
 
-	if (Failure(Create(nSize, bDyn)))
+	if (usage == eVBUSAGE_STATIC)
 	{
-		return S_ERROR;
+		if (pInitialData && nSize > 0)
+		{
+			if (Failure(Create(nSize, pInitialData, nSize)))
+				return S_ERROR;
+		}
+		else
+		{
+			m_bInitialDataWritten = false; // just to be on the safe side
+		}
+	}	
+	else
+	{
+		if (Failure(Create(nSize)))
+			return S_ERROR;
 	}
 
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Create(int nVertices_, bool bDynamic_)
+S_API SDirectX11VBCreateFlags DirectX11VertexBuffer::GetCreateFlags()
+{
+	switch (m_Usage)
+	{
+	case eVBUSAGE_STATIC:
+		return SDirectX11VBCreateFlags(
+			D3D11_USAGE_DEFAULT,
+			D3D11_BIND_VERTEX_BUFFER,
+			0);
+
+	default:
+		m_pEngine->LogW("Tried to retrieve vb create flags for unsupported vb usage!");
+		return SDirectX11VBCreateFlags();
+	}
+}
+
+// --------------------------------------------------------------------------------
+S_API SResult DirectX11VertexBuffer::Create(int nVertices_, SVertex* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);			
+	SP_ASSERTR(nVertices_ > 0, S_INVALIDPARAM);
+	SP_ASSERTR(nInitialDataCount <= (usint32)nVertices_, S_INVALIDPARAM);
 
-	m_nVertices = nVertices_;
-	m_bDynamic = bDynamic_;
+	if (m_pHWVertexBuffer || m_pShadowBuffer)
+		return m_pEngine->LogE("Tried to create existing VB - Do a clear first!");
 
+	if (m_Usage == eVBUSAGE_STATIC && !pInitialData)
+		return m_pEngine->LogE("Cannot create static VB without given initial Data!");
+
+	
 	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
 
+	m_nVertices = nVertices_;
+	m_pShadowBuffer = (SVertex*)(malloc(m_nVertices * sizeof(SVertex)));	
+	if (pInitialData && nInitialDataCount)
+	{		
+		memcpy(m_pShadowBuffer, pInitialData, sizeof(SVertex) * nInitialDataCount);
+		if ((usint32)m_nVertices > nInitialDataCount)
+			memset(m_pShadowBuffer + nInitialDataCount - 1, 0, (m_nVertices - nInitialDataCount));
 
-	m_pShadowBuffer = (SVertex*)(malloc(m_nVertices * sizeof(SVertex)));
+		m_nVerticesWritten = nInitialDataCount;
+		m_bInitialDataWritten = true;
+	}
+	else
+	{
+		// zero memory
+		memset(m_pShadowBuffer, 0, sizeof(SVertex) * m_nVertices);
+		m_nVerticesWritten = 0;
+	}
 
 	D3D11_BUFFER_DESC bufferDesc;
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.ByteWidth = m_nVertices * sizeof(SVertex);
-	bufferDesc.CPUAccessFlags = 0;
-	if (bDynamic_)
-		bufferDesc.CPUAccessFlags = /*D3D11_CPU_ACCESS_READ | */D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.StructureByteStride = 0;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	if (bDynamic_)
-		bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	SDirectX11VBCreateFlags createFlags = GetCreateFlags();
+	bufferDesc.BindFlags = createFlags.bindFlags;
+	bufferDesc.CPUAccessFlags = createFlags.cpuAccessFlags;
+	bufferDesc.Usage = createFlags.usage;
+	bufferDesc.ByteWidth = m_nVertices * sizeof(SVertex);	
+	bufferDesc.StructureByteStride = 0;	
 	bufferDesc.MiscFlags = 0;
 	
 
 	D3D11_SUBRESOURCE_DATA vertexData;
 	vertexData.pSysMem = (void*)m_pShadowBuffer;
 	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
+	vertexData.SysMemSlicePitch = 0;	
 
 
 	if (Failure(pDXRenderer->GetD3D11Device()->CreateBuffer(&bufferDesc, &vertexData, &m_pHWVertexBuffer)))
 	{
 		return m_pEngine->LogE("Could not create Vertex buffer resource!");
-	}
+	}	
 
 	return S_SUCCESS;
 }
@@ -119,48 +174,36 @@ S_API SResult DirectX11VertexBuffer::Resize(int nVertices_)
 {
 	if (nVertices_ == m_nVertices)
 		return S_SUCCESS;
+	
+	if (m_Usage == eVBUSAGE_STATIC)
+		return m_pEngine->LogE("Tried to resize static VB!");
 
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);	
 
 	int nVerticesOld = m_nVertices;
-	m_nVertices = nVertices_;
+	usint32 nVerticesWrittenOld = m_nVerticesWritten;
+	m_nVertices = nVertices_; // total size
 
 	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
 
 
-	// Resize Sys memory
-	void* vBackup = (void*)(malloc(nVerticesOld * sizeof(SVertex)));
-	memcpy(vBackup, m_pShadowBuffer, sizeof(SVertex)* nVerticesOld);
-	m_pShadowBuffer = (SVertex*)(malloc(m_nVertices * sizeof(SVertex)));
-	memcpy(m_pShadowBuffer, vBackup, sizeof(SVertex)* nVerticesOld);
+	// check whether we acutally resize or create a new buffer
+	bool bResize = nVerticesOld > 0 && m_pShadowBuffer && m_pHWVertexBuffer;
 
+	// Resize Sys memory or create if not existing
+	SVertex* vBackup = m_pShadowBuffer;
+	m_pShadowBuffer = 0;
 
-
-	// Setup description of the new buffer
-	D3D11_BUFFER_DESC bufferDesc;	
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.ByteWidth = nVertices_ * sizeof(SVertex);
-	bufferDesc.CPUAccessFlags = 0;
-	if (m_bDynamic)
-		bufferDesc.CPUAccessFlags = /*D3D11_CPU_ACCESS_READ | */D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.MiscFlags = 0;
-	bufferDesc.StructureByteStride = 0;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	if (m_bDynamic)
-		bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-
-
-	D3D11_SUBRESOURCE_DATA vertexData;
-	vertexData.pSysMem = m_pShadowBuffer;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
+	// Clear the old HW buffer
 	SP_SAFE_RELEASE(m_pHWVertexBuffer);
-
-	if (Failure(pDXRenderer->GetD3D11Device()->CreateBuffer(&bufferDesc, &vertexData, &m_pHWVertexBuffer)))
-	{
-		return m_pEngine->LogE("Failed create resized vertex buffer!");
-	}	
+	m_pHWVertexBuffer = 0;
+	
+	// Create the new buffer
+	Create(m_nVertices, vBackup, nVerticesWrittenOld);
+	
+	// delete old shadow buffer
+	if (vBackup)
+		delete[] vBackup;
 
 	return S_SUCCESS;
 }
@@ -177,9 +220,12 @@ S_API SResult DirectX11VertexBuffer::Lock(UINT iBegin, UINT iLength, SVertex** b
 	SP_ASSERTR(m_pEngine, S_NOTINIT);
 	SP_ASSERTR(buf, S_INVALIDPARAM);
 
-	// just don't allow HW Buffer updates if not dynamic
-	if (!m_bDynamic)
+	// just don't allow any lock if not dynamic
+	if (m_Usage == eVBUSAGE_STATIC)
+	{
+		m_pEngine->LogW("Tried to lock static VB!");
 		return S_ABORTED;
+	}
 
 	SP_ASSERTR(IsInited() && m_pHWVertexBuffer != NULL && !m_bLocked, S_NOTINITED);
 
@@ -194,7 +240,7 @@ S_API SResult DirectX11VertexBuffer::Lock(UINT iBegin, UINT iLength, SVertex** b
 		mapType = D3D11_MAP_WRITE_DISCARD;
 		break;
 	case eVBLOCK_NOOVERWRITE:
-		mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+		mapType = D3D11_MAP_WRITE_NO_OVERWRITE;		
 		break;
 	default:
 		mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
@@ -215,51 +261,92 @@ S_API SResult DirectX11VertexBuffer::Lock(UINT iBegin, UINT iLength, SVertex** b
 
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Fill(SVertex* vertices, int nVertices_, bool append)
+S_API SResult DirectX11VertexBuffer::Fill(SVertex* vertices, int nVertices_, bool bAppend)
 {
-	SP_ASSERTR(m_pEngine && IsInited() && m_pHWVertexBuffer, S_NOTINIT);
+	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(vertices, S_INVALIDPARAM);
+	SP_ASSERTR(!m_bLocked, S_ABORTED);
 	
-	if (!m_bDynamic && nVertices_ > m_nVertices)
-		return m_pEngine->LogReport(S_ABORTED, "Cannot fill non-dynamic vertex buffer: Buffer overflow!");
-
-	if (append && m_nVerticesWritten > 0 && !m_bDynamic)
-		return m_pEngine->LogReport(S_ABORTED, "Cannot append Vertex data to non-dynamic Vertex Buffer");
-
-	if (nVertices_ + m_nVerticesWritten > m_nVertices)
+	if (m_Usage == eVBUSAGE_STATIC)
 	{
-		// Resize
-		if (Failure(Resize(nVertices_ + m_nVerticesWritten)))
-			return m_pEngine->LogE("Resize for fill vertex buffer failed!");
+
+
+		if (m_bInitialDataWritten)
+			return m_pEngine->LogReport(S_ABORTED, "Cannot fill static buffer which is already filled!");
+		
+
+		// this Fill()-Call writes initial data so create the buffer with the initial data
+		SResult createRes;
+		if (Failure((createRes = Create(nVertices_, vertices, nVertices_))))
+			return createRes;
+
+		m_nVerticesWritten = nVertices_;
+		m_bInitialDataWritten = true;
+
+		return S_SUCCESS;
+
 	}
+
+
+	// else:
+
+	usint32 iBegin;
+	EVBLockType lockType;
+
+	if (bAppend) // add to end of existing data
+	{
+		if (nVertices_ + m_nVerticesWritten >
+			m_nVertices) // m_nVertices actually stores the size of the existing VB, or 0 if not existing
+		{
+
+
+			// Resize
+			// also creates the buffer if not existing yet
+			if (Failure(Resize(nVertices_ + m_nVerticesWritten)))
+				return m_pEngine->LogE("Resize for fill vertex buffer failed (append)!");			
+
+		}
+
+		iBegin = m_nVerticesWritten;
+		lockType = eVBLOCK_NOOVERWRITE;
+	}
+	else // overwrite old data
+	{
+		if (nVertices_ > m_nVertices)
+		{
+
+			// also creates the buffer if not existing yet
+			if (Failure(Resize(nVertices_)))
+				return m_pEngine->LogE("Resize for fill vertex buffer failed!");			
+
+		}
+
+		iBegin = 0;	
+		lockType = eVBLOCK_DISCARD;
+	}
+
 
 	// Lock buffer if not happened
-	SVertex* pVert = 0;
-	if (!m_bLocked)
-	{
-		SResult lockResult = Lock((UINT)(m_nVerticesWritten * sizeof(SVertex)), (UINT)(nVertices_ * sizeof(SVertex)), &pVert);
-		if (Failure(lockResult) || pVert == 0)
-			return m_pEngine->LogE("Could not lock vertex buffer to fill with vertex data!");
-	}
+	SVertex* pVert = 0;		
+	SResult lockResult = Lock(iBegin * sizeof(SVertex), (UINT)(nVertices_ * sizeof(SVertex)), &pVert, lockType);
+		
+	if (Failure(lockResult) || pVert == 0)
+		return m_pEngine->LogE("Could not lock vertex buffer to fill with vertex data!");
+	
 
 	// Now copy data		
 	memcpy(pVert, (void*)vertices, nVertices_ * sizeof(SVertex));
 
 	// copy data to our copy in sys mem (shadow buffer)
-	memcpy((void*)&m_pShadowBuffer[m_nVerticesWritten], (void*)vertices, nVertices_ * sizeof(SVertex));
+	memcpy((void*)&m_pShadowBuffer[iBegin], (void*)vertices, nVertices_ * sizeof(SVertex));
 
-	m_nVerticesWritten += nVertices_;
+	m_nVerticesWritten = (int)iBegin + nVertices_;
+	m_bInitialDataWritten = true;
 
-	// ... and unlock
+
+	// ... and unlock	
 	if (Failure(Unlock()))
-		return S_ERROR;	
-
-
-	/*
-	D3DVERTEXBUFFER_DESC dsc;
-	pHWVertexBuffer->GetDesc(&dsc);
-	int vbs = dsc.Size;
-	*/
+		return S_ERROR;
 
 	return S_SUCCESS;
 }

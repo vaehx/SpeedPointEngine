@@ -17,7 +17,7 @@
 SP_NMSPACE_BEG
 
 // forward declarations
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 class S_API DirectX11Renderer;
 class S_API SCamera;	
 class S_API DirectX11FBO;
@@ -26,7 +26,7 @@ class S_API DirectX11FBO;
 class S_API DirectX11Viewport : public IViewport
 {
 private:
-	SpeedPointEngine* m_pEngine;
+	IGameEngine* m_pEngine;
 	DirectX11Renderer* m_pRenderer;	// the handling rendering
 	
 	DirectX11FBO* m_pFBO;
@@ -66,7 +66,7 @@ public:
 
 	// Derived:
 
-	virtual SResult Initialize(SpeedPointEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional = true);		
+	virtual SResult Initialize(IGameEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional = true);		
 	virtual SResult Clear(void);
 
 	virtual bool IsAdditional();

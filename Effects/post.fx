@@ -1,9 +1,16 @@
+/////////////////////////////////////////////////////////
+//
+//	Post FX shader
+//
+/////////////////////////////////////////////////////////
+
 float4x4 mtxWorld : WORLD;
 float4x4 mtxView : VIEW;
 float4x4 mtxProjection : PROJECTION;
 float4x4 mtxWorldViewProj;
 
-sampler2D tex0;
+Texture2D inputFBO;
+SamplerState sampleType;
 
 // ---------------------------------------------------------
 
@@ -19,7 +26,7 @@ struct VS_OUTPUT
 	float2 TexCoord : TEXCOORD0;	
 };
 
-VS_OUTPUT VS_main(VS_INPUT IN)
+VS_OUTPUT VSMain(VS_INPUT IN)
 {
 	VS_OUTPUT OUT;
 
@@ -44,27 +51,16 @@ struct PS_INPUT
 
 struct PS_OUTPUT
 {
-	float4 Color : COLOR0;
+	float4 Color : SV_Target0;
 };
 
-PS_OUTPUT PS_main(PS_INPUT IN)
+PS_OUTPUT PSMain(PS_INPUT IN)
 {
 	PS_OUTPUT OUT;
 
 	// Get the color of the input (probably the lighting buffer)
-	OUT.Color.rgb = tex2D(tex0, IN.TexCoord).rgb;
+	OUT.Color.rgb = inputFBO.Sample(sampleType, IN.TexCoord).rgb;
 	OUT.Color.a = 1.0;
 
 	return OUT;
-}
-
-// ---------------------------------------------------------
-
-technique PostTechnique
-{
-	pass P0
-	{
-		VertexShader = compile vs_3_0 VS_main();
-		PixelShader = compile ps_3_0 PS_main();
-	}
 }

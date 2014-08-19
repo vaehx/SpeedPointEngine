@@ -27,7 +27,7 @@ SP_NMSPACE_BEG
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::Initialize(SpeedPointEngine* eng, IRenderer* renderer)
+S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* renderer)
 {
 	if (eng == NULL || renderer == NULL) return S_ABORTED;
 

@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include <Abstract\Pipelines\IRenderPipeline.h>
-#include <Abstract\Pipelines\IRenderPipelineSection.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IRendererSettings.h>
 #include <Abstract\IFBO.h>
@@ -21,4 +19,4 @@
 #include <Lighting\SLightSystem.h>
 
 // of course we want to render solids...
-#include <Abstract\ISolid.h>
+#include <Abstract\IGeometrical.h>

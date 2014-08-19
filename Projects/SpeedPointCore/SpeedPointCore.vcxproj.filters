@@ -86,9 +86,6 @@
     <ClInclude Include="..\..\Include\Observer\SEventCallbackTableEntry.h">
       <Filter>Headers\Observer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Pipelines\SDynamicsPipeline.h">
-      <Filter>Headers\Pipelines</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SAPI.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -164,9 +161,6 @@
     <ClInclude Include="..\..\Include\Util\SAssert.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\SSettings.h">
-      <Filter>Headers\Frontend</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SQueue.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -177,6 +171,18 @@
       <Filter>Headers\Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\SpeedPointEngine.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Pipelines\DynamicsPipeline.h">
+      <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\EngineSettings.h">
+      <Filter>Headers\Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Pipelines\RenderPipeline.h">
+      <Filter>Headers\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SpeedPointApplication.h">
       <Filter>Headers\Frontend</Filter>
     </ClInclude>
   </ItemGroup>
@@ -192,12 +198,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Observer\SEventCallbackTable.cpp">
       <Filter>Sources\Observer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Pipelines\SDynamicsPipeline.cpp">
-      <Filter>Sources\Pipelines</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Pipelines\SFramePipeline.cpp">
-      <Filter>Sources\Pipelines</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Observer\SEventParameter.cpp">
       <Filter>Sources\Observer</Filter>
@@ -229,10 +229,22 @@
     <ClCompile Include="..\..\Source\Lighting\SLightSystem.cpp">
       <Filter>Sources\Lighting</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SSettings.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine.cpp">
       <Filter>Sources\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine.cpp">
+    <ClCompile Include="..\..\Source\Pipelines\DynamicsPipeline.cpp">
+      <Filter>Sources\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Pipelines\FramePipeline.cpp">
+      <Filter>Sources\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\EngineSettings.cpp">
+      <Filter>Sources\Frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Pipelines\RenderPipeline.cpp">
+      <Filter>Sources\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointApplication.cpp">
       <Filter>Sources\Frontend</Filter>
     </ClCompile>
   </ItemGroup>

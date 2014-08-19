@@ -42,13 +42,13 @@ DirectX11Texture::~DirectX11Texture()
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Initialize(SpeedPointEngine* pEngine, const SString& spec)
+S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& spec)
 {	
 	return Initialize(pEngine, spec, false);
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Initialize(SpeedPointEngine* pEngine, const SString& spec, bool bDynamic)
+S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic)
 {
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);
 

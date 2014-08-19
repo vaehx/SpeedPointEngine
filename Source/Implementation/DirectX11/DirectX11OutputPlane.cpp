@@ -14,6 +14,8 @@
 #include <Util\SVector3.h>
 #include <SpeedPointEngine.h>
 #include <Util\SVertex.h>
+#include <Implementation\DirectX11\DirectX11VertexBuffer.h>
+#include <Implementation\DirectX11\DirectX11IndexBuffer.h>
 
 SP_NMSPACE_BEG
 
@@ -32,7 +34,6 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 		return S_ERROR;
 
 	m_pEngine = eng;
-
 	m_pDXRenderer = (DirectX11Renderer*)renderer;
 
 	// Initialize the matrices
@@ -45,16 +46,7 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 	SMatrix mtxView;
 	SPMatrixLookAtRH(&mtxView, SVector3(0, 0, -10.0f), SVector3(0, 0, 0.0f), SVector3(0, 1.0f, 0));	
 
-	// Create the geometry with plane of 10 * 10 fields
-	if (Failure(m_pVertexBuffer->Initialize(11 * 11, false, m_pEngine, renderer)))
-	{
-		return m_pEngine->LogE("Failed initialize vertex Buffer of OutputPlane!");
-	}
 
-	if (Failure(m_pIndexBuffer->Initialize(10 * 10 * 6, false, m_pEngine, renderer, S_INDEXBUFFER_32)))
-	{
-		return m_pEngine->LogE("Failed initialize index buffer of OutputPlane!");
-	}
 
 	SVertex* pVertices = (SVertex*)(malloc(sizeof(SVertex)* 11 * 11));
 	SIndex* pIndices = (SIndex*)(malloc(sizeof(SIndex) * GetIndexCount()));
@@ -93,14 +85,19 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 		}
 	}
 
-	if (Failure(m_pVertexBuffer->Fill(pVertices, 11 * 11, true)))
+
+
+	// Create the geometry with plane of 10 * 10 fields
+	m_pVertexBuffer = new DirectX11VertexBuffer();
+	if (Failure(m_pVertexBuffer->Initialize(m_pEngine, renderer, eVBUSAGE_STATIC, 11 * 11, pVertices)))
 	{
-		return m_pEngine->LogE("Failed Fill Vertex Buffer of output plane!");
+		return m_pEngine->LogE("Failed initialize vertex Buffer of OutputPlane!");
 	}
 
-	if (Failure(m_pIndexBuffer->Fill(pIndices, 10 * 10 * 6, true)))
+	m_pIndexBuffer = new DirectX11IndexBuffer();
+	if (Failure(m_pIndexBuffer->Initialize(m_pEngine, renderer, eIBUSAGE_STATIC, 10 * 10 * 6, pIndices)))
 	{
-		return m_pEngine->LogE("Failed fill index buffer of output plane!");
+		return m_pEngine->LogE("Failed initialize index buffer of OutputPlane!");
 	}
 
 	free(pVertices);

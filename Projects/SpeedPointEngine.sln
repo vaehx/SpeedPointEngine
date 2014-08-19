@@ -1,14 +1,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointAbstract", "SpeedPointAbstract\SpeedPointAbstract.vcxproj", "{94D549D6-E12E-40CE-814B-573C0C47FCF4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointCore", "SpeedPointCore\SpeedPointCore.vcxproj", "{6A802F58-8B42-46E9-A308-87ADE350A374}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointDirectX9Renderer", "SpeedPointDirectX9Renderer\SpeedPointDirectX9Renderer.vcxproj", "{B7C82D6C-D25D-47E7-A951-23148A74164D}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointGeometry", "SpeedPointGeometry\SpeedPointGeometry.vcxproj", "{FACEAC68-301E-41D3-AA53-EBFDE139F192}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointPhysics", "SpeedPointPhysics\SpeedPointPhysics.vcxproj", "{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}"
 EndProject
@@ -41,6 +39,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointPT001", "Tests\Prototypes\SpeedPointPT001\SpeedPointPT001.vcxproj", "{D4E5AB17-EFE9-4DF4-9F0F-4D330530EFD1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArchitectureSandbox", "ArchitectureSandbox\ArchitectureSandbox.vcxproj", "{308AF5A8-EB3B-44D0-89D7-9189146E2FE7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointObjects", "SpeedPointObjects\SpeedPointObjects.vcxproj", "{FACEAC68-301E-41D3-AA53-EBFDE139F192}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,16 +82,6 @@ Global
 		{B7C82D6C-D25D-47E7-A951-23148A74164D}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{B7C82D6C-D25D-47E7-A951-23148A74164D}.Release|Win32.ActiveCfg = Release|Win32
 		{B7C82D6C-D25D-47E7-A951-23148A74164D}.Release|Win32.Build.0 = Release|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Win32.ActiveCfg = Debug|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Win32.Build.0 = Debug|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Any CPU.ActiveCfg = Release|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Win32.ActiveCfg = Release|Win32
-		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Win32.Build.0 = Release|Win32
 		{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}.Debug|Mixed Platforms.Build.0 = Debug|Win32
@@ -232,14 +222,24 @@ Global
 		{308AF5A8-EB3B-44D0-89D7-9189146E2FE7}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{308AF5A8-EB3B-44D0-89D7-9189146E2FE7}.Release|Win32.ActiveCfg = Release|Win32
 		{308AF5A8-EB3B-44D0-89D7-9189146E2FE7}.Release|Win32.Build.0 = Release|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Debug|Win32.Build.0 = Debug|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Any CPU.ActiveCfg = Release|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Win32.ActiveCfg = Release|Win32
+		{FACEAC68-301E-41D3-AA53-EBFDE139F192}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{916F9D16-FFA8-4BC5-8FF0-51CB33757D7E} = {01FD7CAE-1183-454D-98E8-51559974F7E3}
-		{D4E5AB17-EFE9-4DF4-9F0F-4D330530EFD1} = {01FD7CAE-1183-454D-98E8-51559974F7E3}
 		{D48E2919-2750-49F5-A449-AB69557E86E4} = {E839B16A-EDF0-4587-A77A-A0885E570F98}
+		{D4E5AB17-EFE9-4DF4-9F0F-4D330530EFD1} = {01FD7CAE-1183-454D-98E8-51559974F7E3}
 		{308AF5A8-EB3B-44D0-89D7-9189146E2FE7} = {E839B16A-EDF0-4587-A77A-A0885E570F98}
 	EndGlobalSection
 EndGlobal

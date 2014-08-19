@@ -58,6 +58,10 @@ S_API SResult DirectX11LightingRenderSection::Initialize(SpeedPointEngine* pEngi
 	{
 		return m_pEngine->LogE("Cannot initialize lighting render section: failed to initialize lighting output buffer");
 	}
+	if (Failure(m_LightingBuffer.InitializeSRV()))
+	{
+		return m_pEngine->LogE("Could not create SRV for light fbo!");
+	}
 
 	// Load and compile lighting shader
 	char* pLightingFXFile;
@@ -119,13 +123,13 @@ S_API SResult DirectX11LightingRenderSection::PrepareSection()
 	// Set the render target
 	// We assume, that the previous render sections properly cleared all render targets with index >0
 
-	if (Failure(pDXRenderer->SetRenderTarget(&m_LightingBuffer)))
+	if (Failure(pDXRenderer->BindSingleFBO(&m_LightingBuffer)))
 		return m_pEngine->LogE("Could not prepare Lighting render section: Failed to Set Lighting Buffer as render target 0!");
 
 	// -----------------------------------------------------------------------------------
 	// Clear the frame buffer object
 
-	if (Failure(pDXRenderer->ClearRenderTargets()))
+	if (Failure(pDXRenderer->ClearBoundRTs()))
 		return m_pEngine->LogE("Could not prepare Lighting render section: Cannot clear lighting frame buffer object!");
 
 	return S_SUCCESS;

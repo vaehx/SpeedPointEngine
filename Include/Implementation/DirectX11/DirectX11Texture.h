@@ -15,7 +15,7 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 struct S_API IRenderer;
 class S_API DirectX11Renderer;
 
@@ -62,7 +62,7 @@ class S_API DirectX11Texture : ITexture
 {
 private:
 	SString	m_Specification;
-	SpeedPointEngine* m_pEngine;
+	IGameEngine* m_pEngine;
 	S_TEXTURE_TYPE m_Type;
 	bool m_bDynamic;
 	ID3D11Texture2D* m_pDXTexture;	
@@ -76,9 +76,8 @@ public:
 	~DirectX11Texture();
 	
 
-	virtual SResult Initialize(SpeedPointEngine* pEngine, const SString& spec);
-	
-	virtual SResult Initialize(SpeedPointEngine* pEngine, const SString& spec, bool bDynamic);
+	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec);	
+	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic);
 	
 	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);	
 	virtual SResult CreateEmpty(int w, int h, int mipLevels, S_TEXTURE_TYPE type, SColor clearcolor);	

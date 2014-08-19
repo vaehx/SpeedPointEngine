@@ -22,78 +22,57 @@ void OnLogReport(SpeedPoint::SResult res, SpeedPoint::SString msg)
 
 bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 {
-	// Start the engine
-	settings.app.bWindowed = true;
-	settings.app.hWnd = hWnd;
-	if (SpeedPoint::Failure(m_Engine.Start(SpeedPoint::DirectX11Renderer::GetInstance(), settings)))
-		return false;
-
-	// Add a triangle	
-	SpeedPoint::ISolid* pSolid;
-	pSolid = m_Engine.AddSolid(&testSolid, 0);
-	pSolid->Initialize(&m_Engine, false);
-
-	SpeedPoint::SMaterial mat;
-	mat.colDiffuse = SpeedPoint::SColor(0.5f, 0.4f, 0.1f, 0.3f);
-	pSolid->SetMaterial(mat);
-
-	SpeedPoint::SVertex* pVertices = new SpeedPoint::SVertex[4];
-	SpeedPoint::SIndex* pIndices = new SpeedPoint::SIndex[6];
-	pVertices[0] = SpeedPoint::SVertex(-0.5f,-0.5f,0.5f, 0,0,-1.0f, -1.0f,0.0f,0.0f, 0.0f,0.0f);
-	pVertices[2] = SpeedPoint::SVertex( 0.5f, 0.5f,0.0f, 0,0,-1.0f, -1.0f,0.0f,0.0f, 1.0f,1.0f);
-	pVertices[3] = SpeedPoint::SVertex( 0.5f,-0.5f,0.0f, 0,0,-1.0f, -1.0f,0.0f,0.0f, 1.0f,0.0f);
-	pVertices[1] = SpeedPoint::SVertex(-0.5f, 0.5f,0.0f, 0,0,-1.0f, -1.0f,0.0f,0.0f, 0.0f,1.0f);	
+	m_pEngine = new SpeedPoint::SpeedPointEngine();
+	m_pEngine->RegisterApplication(this);
 	
-	pIndices[0] = 0; pIndices[1] = 1; pIndices[2] = 3;
-	pIndices[3] = 1; pIndices[4] = 2; pIndices[5] = 3;
+	SpeedPoint::SSettingsDesc dsc;
+	dsc.app.nXResolution = 1024;
+	dsc.app.nYResolution = 768;
+	dsc.app.hWnd = hWnd;	
+	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND;
 
-	pSolid->SetGeometryData(pVertices, 4, pIndices, 6);
-	delete[] pVertices;
-	delete[] pIndices;
-
-	SpeedPoint::SPrimitive myPrimitive;
-	myPrimitive.bDraw = true;
-	myPrimitive.iFirstIndex = 0;
-	myPrimitive.iFirstVertex = 0;
-	myPrimitive.iLastIndex = 5;
-	myPrimitive.iLastVertex = 3;
-	myPrimitive.nPolygons = 2;
-	myPrimitive.tRenderType = SpeedPoint::S_PRIM_RENDER_TRIANGLELIST;
-	myPrimitive.tType = SpeedPoint::S_PRIM_COMPLEX_PLANE;
-	//myPrimitive.iTexture = iTestTexture;
+	m_pEngine->GetSettings()->Set(dsc);
+	m_pEngine->InitializeLogger();
+	m_pEngine->InitializeFramePipeline();		
+	m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true);
+	m_pEngine->InitializeResourcePool();
 	
-	pSolid->AddPrimitive(myPrimitive);
+	m_pEngine->FinishInitialization();
 
 	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-SpeedPoint::SResult OnRenderCalls(SpeedPoint::SEventParameters* pParams)
+void Test::OnInitGeometry()
 {
-	SCustomData* pCustomData = (SCustomData*)pParams->Get(SpeedPoint::ePARAM_CUSTOM_DATA);		
-	Test* pApplication = pCustomData->pApplication;
+	// Add first geometry	
 
-	if (Failure(pApplication->m_Engine.RenderSolid(pApplication->testSolid)))
-	{
-		OutputDebugStringA("Failed render solid!");
-		return SpeedPoint::S_ERROR;
-	}
+	SpeedPoint::SInitialGeometryDesc initialGeom;
+	initialGeom.pVertices = new SpeedPoint::SVertex[4];
+	initialGeom.pIndices = new SpeedPoint::SIndex[6];
 
-	return SpeedPoint::S_SUCCESS;
+	//						  Position		   Normal		Tangent		    UV
+	initialGeom.pVertices[0] = SpeedPoint::SVertex(-1.0f, 0, -1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	0.0f, 0.0f);
+	initialGeom.pVertices[1] = SpeedPoint::SVertex(-1.0f, 0, 1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	1.0f, 1.0f);
+	initialGeom.pVertices[2] = SpeedPoint::SVertex( 1.0f, 0, 1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	1.0f, 0.0f);
+	initialGeom.pVertices[3] = SpeedPoint::SVertex( 1.0f, 0, -1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	0.0f, 1.0f);
+	initialGeom.nVertices = 4;
+
+	initialGeom.pIndices[0] = 0; initialGeom.pIndices[1] = 1; initialGeom.pIndices[2] = 3;
+	initialGeom.pIndices[3] = 1; initialGeom.pIndices[4] = 2; initialGeom.pIndices[5] = 3;	
+	initialGeom.nIndices = 6;
+
+	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);
+	testObject.Init(m_pEngine, m_pEngine->GetRenderer(), &initialGeom);			
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Test::Tick()
 {	
-	// Start the frame
-	if (Failure(m_Engine.BeginFrame()))
-		return false;
-
-	// Render
-	SpeedPoint::ISolid* pSolid = m_Engine.GetSolid(testSolid);
-	if (pSolid && Failure(pSolid->RenderSolid()))
+	// Start the frame pipeline
+	if (Failure(m_pEngine->ExecuteFramePipeline()))
 		return false;
 
 	return true;
@@ -101,9 +80,26 @@ bool Test::Tick()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Test::Render()
+{
+
+
+
+	testObject.Render();
+
+
+
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Test::Stop()
 {
-	m_Engine.Shutdown();	
-	
+	testObject.Clear();
+
+	m_pEngine->Shutdown();	
+	delete m_pEngine;
+
 	return true;
 }

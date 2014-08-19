@@ -12,9 +12,9 @@ namespace SpeedPoint
 	{
 		Clear();
 
-		pLogHandlers = new SLogHandler[ SP_MAX_LOGSTREAM_HANDLERS ];
+		pLogHandlers = new PLogHandler[ SP_MAX_LOGSTREAM_HANDLERS ];
 		
-		memset( pLogHandlers, 0, sizeof( SLogHandler ) * SP_MAX_LOGSTREAM_HANDLERS );
+		memset( pLogHandlers, 0, sizeof( PLogHandler ) * SP_MAX_LOGSTREAM_HANDLERS );
 	}
 
 	// ******************************************************************************************
@@ -46,7 +46,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API void SLogStream::RegisterHandler( SLogHandler pHandler )
+	S_API void SLogStream::RegisterHandler( PLogHandler pHandler )
 	{
 		if( !pLogHandlers ) Initialize();
 

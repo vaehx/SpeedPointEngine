@@ -13,7 +13,7 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
 struct S_API ITexture;
@@ -29,7 +29,7 @@ public:
 	// **************************************************************************
 
 	// Initialize the Resource pool
-	virtual SResult Initialize( SpeedPointEngine* pEngine, IRenderer* pRenderer ) = 0;
+	virtual SResult Initialize( IGameEngine* pEngine, IRenderer* pRenderer ) = 0;
 
 	// **************************************************************************
 	//				VertexBuffer

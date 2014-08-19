@@ -30,7 +30,7 @@
 #endif
 
 #include <Util\SVertex.h>
-#include <Abstract\ISolid.h>
+#include <Abstract\IGeometrical.h>
 #include <Abstract\ITerrain.h>
 
 // ******************************************************************************************

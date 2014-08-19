@@ -22,7 +22,8 @@ S_API DirectX11FBO::DirectX11FBO()
 	m_pTexture(0),
 	m_pRTV(0),
 	m_nBufferWidth(0),
-	m_nBufferHeight(0)
+	m_nBufferHeight(0),
+	m_bSwapChainFBO(false)
 {
 }
 
@@ -33,7 +34,7 @@ S_API DirectX11FBO::~DirectX11FBO()
 }
 
 // -----------------------------------------------------------------------
-S_API SResult DirectX11FBO::Initialize(EFBOType type, SpeedPointEngine* pEngine, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
+S_API SResult DirectX11FBO::Initialize(EFBOType type, IGameEngine* pEngine, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
 {
 	Clear(); // make sure to clear before initialize again
 
@@ -49,8 +50,19 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, SpeedPointEngine* pEngine,
 	DXGI_FORMAT texFmt;	
 	switch (type)
 	{
+	case eFBO_BACKBUFFER:
+	case eFBO_GBUFFER_ALBEDO:
+	case eFBO_GBUFFER_NORMALS:
+	case eFBO_GBUFFER_POSITION:
+	case eFBO_GBUFFER_SRT:
+	case eFBO_GBUFFER_TANGENTS:
+	case eFBO_LIGHT:
+	case eFBO_LIGHT_DIFFUSE:
+	case eFBO_LIGHT_SPECULAR:
+		texFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
 	default:
-		texFmt = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		texFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
 	}
 
 	// Setup the texture description structure	
@@ -174,16 +186,23 @@ S_API SResult DirectX11FBO::InitializeSRV()
 // -----------------------------------------------------------------------
 S_API bool DirectX11FBO::IsInitialized()
 {
-	return (m_pTexture && m_pDXRenderer && m_pEngine
-		&& m_nBufferWidth > 0 && m_nBufferHeight > 0);
+	if (m_bSwapChainFBO)
+		return m_pRTV != nullptr; // note: DSV does not need to be initialized
+	else
+		return (m_pTexture && m_pDXRenderer && m_pEngine
+			&& m_nBufferWidth > 0 && m_nBufferHeight > 0);
 }
 
 // -----------------------------------------------------------------------
 S_API void DirectX11FBO::Clear(void)
 {
-	SP_SAFE_RELEASE(m_pRTV);
-	SP_SAFE_RELEASE(m_pTexture);
-	SP_SAFE_RELEASE(m_pDepthStencilView);
+	if (!m_bSwapChainFBO)
+	{
+		SP_SAFE_RELEASE(m_pRTV);
+		SP_SAFE_RELEASE(m_pDepthStencilView);
+	}
+
+	SP_SAFE_RELEASE(m_pTexture);	
 	SP_SAFE_RELEASE(m_pDepthStencilBuffer);
 
 	m_pRTV = 0;

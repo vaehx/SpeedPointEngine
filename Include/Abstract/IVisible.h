@@ -25,7 +25,7 @@ class S_API IOctree;
 
 
 // SpeedPoint Geometrical Oject Interface
-struct S_API ISolid : public STransformable
+struct S_API IVisibleObject : public STransformable
 {	
 	enum ERenderPipelineStrategy
 	{

@@ -38,12 +38,4 @@ namespace SpeedPoint
 	{
 		return S_ERROR;
 	}
-
-
-	// **********************************************************************************
-
-	S_API SResult Terrain::Clear( void )
-	{
-		return S_ERROR;
-	}
 }

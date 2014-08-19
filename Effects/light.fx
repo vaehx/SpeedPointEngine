@@ -1,8 +1,15 @@
+/////////////////////////////////////////////////////////
+//
+//	Lighting shader
+//
+/////////////////////////////////////////////////////////
+
 float4x4 mtxWorld : WORLD;
 float4x4 mtxView : VIEW;
 float4x4 mtxProjection : PROJECTION;
 
-sampler2D tex0;
+Texture2D inputFBO;
+SamplerState sampleType;
 
 struct VS_INPUT
 {
@@ -16,14 +23,14 @@ struct VS_OUTPUT
 	float2 Texcoord : TEXCOORD0;
 };
 
-VS_OUTPUT VS_main(VS_INPUT IN)
+VS_OUTPUT VSMain(VS_INPUT IN)
 {
 	VS_OUTPUT OUT;
 
 	// Position
 	float4 WorldPos = mul(IN.Position, mtxWorld);
-		float4 CamPos = mul(WorldPos, mtxView);
-		OUT.Position = mul(CamPos, mtxProjection);
+	float4 CamPos = mul(WorldPos, mtxView);
+	OUT.Position = mul(CamPos, mtxProjection);
 
 	// pass Texcoord
 	OUT.Texcoord = IN.Texcoord;
@@ -41,27 +48,15 @@ struct PS_INPUT
 
 struct PS_OUTPUT
 {
-	float4 Color : COLOR0;
+	float4 Color : SV_Target0;
 };
 
-PS_OUTPUT PS_main(PS_INPUT IN)
+PS_OUTPUT PSMain(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
 
-    OUT.Color.rgb = tex2D(tex0, IN.Texcoord).rgb;
+    OUT.Color.rgb = inputFBO.Sample(sampleType, IN.Texcoord).rgb;
     OUT.Color.a = 1.0f;
 
     return OUT;
-}
-
-
-// ------------------------------------------------------------
-
-technique LightingTechnique
-{
-    pass P0
-    {
-        VertexShader = compile vs_3_0 VS_main();
-        PixelShader = compile ps_3_0 PS_main();
-    }
 }

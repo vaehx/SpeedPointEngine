@@ -16,9 +16,9 @@
 SP_NMSPACE_BEG
 
 
-class S_API IFBO;
+struct S_API IFBO;
 class S_API SCamera;
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 
 
 struct S_API SViewportDescription
@@ -60,9 +60,13 @@ struct S_API SViewportDescription
 struct S_API IViewport
 {
 public:
+	virtual ~IViewport()
+	{
+	}
+
 	// Summary:
 	//	Initialize this viewport with an Engine instance
-	virtual SResult Initialize(SpeedPointEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional = true) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional = true) = 0;
 
 	// check whether this viewport is an additional one
 	virtual bool IsAdditional() = 0;

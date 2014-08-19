@@ -15,22 +15,51 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 struct S_API IRenderer;
+
+struct S_API SDirectX11IBCreateFlags
+{
+	D3D11_USAGE usage;
+	unsigned int bindFlags;
+	unsigned int cpuAccessFlags;
+
+	SDirectX11IBCreateFlags()
+		: usage(D3D11_USAGE_DEFAULT),
+		bindFlags(D3D11_BIND_VERTEX_BUFFER),
+		cpuAccessFlags(0)
+	{
+	}
+
+	SDirectX11IBCreateFlags(const SDirectX11IBCreateFlags& o)
+		: usage(o.usage),
+		bindFlags(o.bindFlags),
+		cpuAccessFlags(o.cpuAccessFlags)
+	{
+	}
+
+	SDirectX11IBCreateFlags(D3D11_USAGE pUsage, unsigned int pBindFlags, unsigned int pCpuAccessFlags)
+		: usage(pUsage),
+		bindFlags(pBindFlags),
+		cpuAccessFlags(pCpuAccessFlags)
+	{
+	}
+};
 
 
 // SpeedPoint IndexBuffer Resource
 class S_API DirectX11IndexBuffer : public IIndexBuffer
 {
 private:
-	SpeedPointEngine*		m_pEngine;
+	IGameEngine*		m_pEngine;
 	IRenderer*			m_pRenderer;
 	ID3D11Buffer*			m_pHWIndexBuffer;
 	SIndex*			m_pShadowBuffer;
 	int				m_nIndices;
 	int				m_nIndicesWritten;
-	bool				m_bDynamic;
+	EIBUsage			m_Usage;
 	bool				m_bLocked;
+	bool				m_bInitialDataWritten;
 
 
 public:
@@ -38,8 +67,14 @@ public:
 	DirectX11IndexBuffer(const DirectX11IndexBuffer& o);
 	~DirectX11IndexBuffer();
 	
-	virtual SResult Initialize(int nSize, bool bDynamic, SpeedPointEngine* pEng, IRenderer* renderer, S_INDEXBUFFER_FORMAT format = S_INDEXBUFFER_16);
-	virtual SResult Create(int nSize, bool bDynamic_);	
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr);
+
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, SIndex* pInitialData = nullptr)
+	{
+		return Initialize(pEngine, pRenderer, usage, nSize, S_INDEXBUFFER_16, pInitialData);
+	}
+
+	virtual SResult Create(int nSize, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0);	
 
 	virtual BOOL IsInited(void);	
 	virtual SResult Resize(int nNewSize);	
@@ -51,13 +86,15 @@ public:
 	virtual SIndex* GetIndex(int iIndex);	
 	virtual INT GetIndexCount(void);	
 	virtual SResult Clear(void);
-	virtual S_INDEXBUFFER_FORMAT GetFormat();
+//virtual S_INDEXBUFFER_FORMAT GetFormat();
 
 	// DX
 	ID3D11Buffer* D3D11_GetBuffer()
 	{
 		return m_pHWIndexBuffer;
 	}
+
+	SDirectX11IBCreateFlags GetCreateFlags();
 };
 
 
