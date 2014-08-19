@@ -212,10 +212,19 @@ S_API bool DirectX11Effect::IsInitialized()
 // -------------------------------------------------------------------------
 S_API SResult DirectX11Effect::Clear(void)
 {
-	SP_SAFE_RELEASE(m_pPixelShader);
-	SP_SAFE_RELEASE(m_pVertexShader);
+	if (IS_VALID_PTR(m_pPixelShader))
+		m_pPixelShader->Release();
+
+	if (IS_VALID_PTR(m_pVertexShader))
+		m_pVertexShader->Release();
+
 	m_pPixelShader = nullptr;
 	m_pVertexShader = nullptr;
+
+	if (IS_VALID_PTR(m_pVSInputLayout))
+		m_pVSInputLayout->Release();
+	
+	m_pVSInputLayout = nullptr;
 
 	m_pDXRenderer = 0;
 	m_pEngine = 0;

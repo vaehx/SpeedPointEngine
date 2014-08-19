@@ -16,6 +16,10 @@
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
 
+#ifdef _DEBUG
+#include <dxgi1_3.h>
+#endif
+
 SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------
@@ -102,6 +106,10 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	{
 		return m_pEngine->LogE("Failed create swap chain!");
 	}
+#ifdef _DEBUG
+	const char nm[] = "DirectX11Viewport::SwapChain";
+	m_pSwapChain->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(nm) - 1, nm);
+#endif
 
 
 	// Now create an RTV for this swapchain	
@@ -114,6 +122,8 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	{
 		return m_pEngine->LogE("Failed create RTV for swapchain!");
 	}
+
+	pBBResource->Release();
 
 	if (desc.useDepthStencil)
 	{
@@ -205,22 +215,38 @@ S_API SResult DirectX11Viewport::InitializeDepthStencilBuffer()
 // -------------------------------------------------------------------
 S_API SResult DirectX11Viewport::Clear(void)
 {		
-	SP_SAFE_RELEASE(m_pDepthStencilView);
-	SP_SAFE_RELEASE(m_pDepthStencilBuffer);	
+	if (IS_VALID_PTR(m_pDepthStencilView))
+	{
+		m_pDepthStencilView->Release();
+		m_pDepthStencilView = nullptr;
+	}
+	
+	if (IS_VALID_PTR(m_pDepthStencilBuffer))
+	{
+		m_pDepthStencilBuffer->Release();
+		m_pDepthStencilBuffer = nullptr;
+	}
 
-	SP_SAFE_RELEASE(m_pRenderTarget);	
+	if (IS_VALID_PTR(m_pRenderTarget))
+	{
+		m_pRenderTarget->Release();
+		m_pRenderTarget = nullptr;
+	}
 	if (m_pFBO)
 		delete m_pFBO;
 
-	SP_SAFE_RELEASE(m_pSwapChain);
+	if (IS_VALID_PTR(m_pSwapChain))
+	{
+		m_pSwapChain->Release();
+		m_pSwapChain = nullptr;
+	}
 
 	if (!m_bCustomCamera && m_pCamera)
 		delete m_pCamera;	
 
 	m_pEngine = 0;
 	m_pRenderer = 0;
-	m_pRenderTarget = 0;
-	m_pSwapChain = 0;
+	m_pRenderTarget = 0;	
 	m_Desc.hWnd = 0;
 	m_pDepthStencilBuffer = 0;	
 	m_pDepthStencilView = 0;	

@@ -164,7 +164,7 @@ S_API SResult DirectX11VertexBuffer::Create(int nVertices_, SVertex* pInitialDat
 	if (Failure(pDXRenderer->GetD3D11Device()->CreateBuffer(&bufferDesc, &vertexData, &m_pHWVertexBuffer)))
 	{
 		return m_pEngine->LogE("Could not create Vertex buffer resource!");
-	}	
+	}
 
 	return S_SUCCESS;
 }

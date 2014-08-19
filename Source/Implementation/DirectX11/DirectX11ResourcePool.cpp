@@ -77,6 +77,10 @@ S_API IVertexBuffer* DirectX11ResourcePool::GetVertexBuffer(SP_ID iUID)
 
 S_API SResult DirectX11ResourcePool::RemoveVertexBuffer(SP_ID iUID)
 {
+	DirectX11VertexBuffer* pDXVB = plVertexBuffers.GetItemByUID(iUID);
+	if (IS_VALID_PTR(pDXVB))
+		pDXVB->Clear();
+
 	plVertexBuffers.DeleteItem(iUID);
 
 	return S_SUCCESS;
@@ -122,6 +126,10 @@ S_API IIndexBuffer* DirectX11ResourcePool::GetIndexBuffer(SP_ID iUID)
 S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(SP_ID iUID)
 {
 	if (pDXRenderer == NULL || plIndexBuffers.GetSize() == 0) return S_ABORTED;
+
+	DirectX11IndexBuffer* pDXIB = plIndexBuffers.GetItemByUID(iUID);
+	if (IS_VALID_PTR(pDXIB))
+		pDXIB->Clear();
 
 	plIndexBuffers.DeleteItem(iUID);
 
@@ -290,6 +298,10 @@ S_API SResult DirectX11ResourcePool::RemoveTexture(SP_ID iUID)
 {
 	if (pDXRenderer == NULL || plTextures.GetSize() <= 0) return S_ABORTED;
 
+	DirectX11Texture* pDXTex = plTextures.GetItemByUID(iUID);
+	if (IS_VALID_PTR(pDXTex))
+		pDXTex->Clear();
+
 	plTextures.DeleteItem(iUID);
 
 	return S_SUCCESS;
@@ -329,7 +341,7 @@ S_API SResult DirectX11ResourcePool::ClearAll(VOID)
 	SResult res = S_SUCCESS;
 
 	// Clear Index Buffers
-	for (UINT iIndexBuffer = 0; iIndexBuffer < (UINT)plIndexBuffers.GetSize(); iIndexBuffer++)
+	for (UINT iIndexBuffer = 0; iIndexBuffer < (UINT)plIndexBuffers.GetUsageSize(); iIndexBuffer++)
 	{
 		DirectX11IndexBuffer* pDXIndexBuffer = plIndexBuffers.GetItemByIndirectionIndex(iIndexBuffer);
 		if (pDXIndexBuffer == NULL)
@@ -345,7 +357,7 @@ S_API SResult DirectX11ResourcePool::ClearAll(VOID)
 	plIndexBuffers.Clear();
 
 	// Clear Vertex Buffers
-	for (UINT iVertexBuffer = 0; iVertexBuffer < (UINT)plVertexBuffers.GetSize(); iVertexBuffer++)
+	for (UINT iVertexBuffer = 0; iVertexBuffer < (UINT)plVertexBuffers.GetUsageSize(); iVertexBuffer++)
 	{
 		DirectX11VertexBuffer* pDXVertexBuffer = plVertexBuffers.GetItemByIndirectionIndex(iVertexBuffer);
 		if (pDXVertexBuffer == NULL)
@@ -361,7 +373,7 @@ S_API SResult DirectX11ResourcePool::ClearAll(VOID)
 	plVertexBuffers.Clear();
 
 	// Clear textures
-	for (UINT iTexture = 0; iTexture < (UINT)plTextures.GetSize(); iTexture++)
+	for (UINT iTexture = 0; iTexture < (UINT)plTextures.GetUsageSize(); iTexture++)
 	{
 		DirectX11Texture* pDXTexture = plTextures.GetItemByIndirectionIndex(iTexture);
 		if (pDXTexture == NULL)

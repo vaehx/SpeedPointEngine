@@ -19,6 +19,10 @@
 #include <Util\SVertex.h>
 #include <xnamath.h>
 
+#include <initguid.h>
+#include <dxgi1_3.h>
+#include <dxgidebug.h>
+
 SP_NMSPACE_BEG
 
 using ::std::vector;
@@ -321,6 +325,11 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 		createFlags,
 		pD3D11FeatureLevels, nFeatureLevels, D3D11_SDK_VERSION,
 		&m_pD3DDevice, &m_D3DFeatureLevel, &m_pD3DDeviceContext);	// consider using deferred context for multithreading!
+	
+#ifdef _DEBUG
+	const char nm[] = "SPD3D11Device";
+	m_pD3DDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(nm) - 1, nm);	
+#endif
 
 	//delete[] pD3D11FeatureLevels;
 	//SP_SAFE_DELETE_ARR(pD3D11FeatureLevels, nFeatureLevels);
@@ -330,6 +339,9 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 	{
 		return m_pEngine->LogE("Failed create D3D11 Device!");
 	}
+
+
+
 
 
 	return S_SUCCESS;
@@ -373,8 +385,6 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 		Shutdown();	// shutdown before initializing again
 
 	m_pEngine = pEngine;	
-
-
 
 
 
@@ -487,8 +497,41 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	}
 	m_pRenderTargetCollections = nullptr;
 
-	SP_SAFE_RELEASE(m_pD3DDevice);
-	SP_SAFE_RELEASE(m_pD3DDeviceContext);
+	m_ForwardEffect.Clear();	
+	m_Viewport.Clear();
+
+	if (IS_VALID_PTR(m_pDepthStencilState))
+	{
+		m_pDepthStencilState->Release();
+		m_pDepthStencilState = nullptr;
+	}
+
+	if (IS_VALID_PTR(m_pRSState))
+	{
+		m_pRSState->Release();
+		m_pRSState = nullptr;
+	}
+
+	if (IS_VALID_PTR(m_pDXMatrixCB))
+	{
+		m_pDXMatrixCB->Release();
+		m_pDXMatrixCB = nullptr;
+	}
+
+	m_pD3DDeviceContext->ClearState();
+	m_pD3DDeviceContext->Flush();
+
+	if (IS_VALID_PTR(m_pD3DDevice))
+	{
+		m_pD3DDevice->Release();
+		m_pD3DDevice = nullptr;
+	}
+
+	if (IS_VALID_PTR(m_pD3DDeviceContext))
+	{
+		m_pD3DDeviceContext->Release();
+		m_pD3DDeviceContext = nullptr;
+	}
 
 	if (IS_VALID_PTR(m_pRenderSchedule))
 	{
@@ -498,6 +541,16 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	m_pRenderSchedule = nullptr;
 
 	m_ForwardEffect.Clear();
+
+
+
+		
+#ifdef _DEBUG	
+	// Print live objects to detect memory leaks
+	IDXGIDebug1* pDXGIDebug;
+	DXGIGetDebugInterface1(0, __uuidof(IDXGIDebug1), reinterpret_cast<void**>(&pDXGIDebug));
+	pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);	
+#endif
 
 	return S_SUCCESS;
 }
