@@ -518,8 +518,11 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 		m_pDXMatrixCB = nullptr;
 	}
 
-	m_pD3DDeviceContext->ClearState();
-	m_pD3DDeviceContext->Flush();
+	if (IS_VALID_PTR(m_pD3DDeviceContext))
+	{
+		m_pD3DDeviceContext->ClearState();
+		m_pD3DDeviceContext->Flush();
+	}
 
 	if (IS_VALID_PTR(m_pD3DDevice))
 	{

@@ -61,10 +61,10 @@ struct S_API SInitialGeometryDesc
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-enum S_API EGeometryObjectType
-{
-	eGEOMOBJ_RAW,
-	eGEOMOBJ_VISIBLE,
+enum S_API EObjectType
+{	
+	eGEOMOBJ_STATIC,
+	eGEOMOBJ_ENTITY,
 	eGEOMOBJ_TERRAIN,
 	eGEOMOBJ_VEGETATION,
 	eGEOMOBJ_WATER
@@ -153,9 +153,9 @@ struct S_API STransformation
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-struct S_API IGeometrical
+struct S_API IGeometry
 {
-	virtual ~IGeometrical() {}
+	virtual ~IGeometry() {}
 
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
 	
@@ -164,26 +164,8 @@ struct S_API IGeometrical
 	virtual IVertexBuffer* GetVertexBuffer() const = 0;
 	virtual const SP_ID& GetVertexBufferResIndex() const = 0;
 
-	virtual EGeometryObjectType GetType() const = 0;
-
-	virtual IMaterial* GetMaterial() const = 0;
-
-	virtual SResult Render() = 0;
 	virtual void Clear() = 0;
 };
-
-// Summary:
-//	A mesh provides loading methods, a geometrical does not.
-struct S_API IMesh : public IGeometrical
-{
-	virtual ~IMesh()
-	{
-	}
-
-//	virtual SResult LoadFrom3DS(SString filename);
-};
-
-
 
 SP_NMSPACE_END
 #endif

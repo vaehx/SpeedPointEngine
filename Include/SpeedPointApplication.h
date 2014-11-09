@@ -42,6 +42,7 @@ public:
 	}
 
 	virtual void OnInit(IFramePipeline* pFramePipeline, IGameEngine* pGameEngine);
+	virtual void OnLogReport(SResult res, const char* msg);
 	virtual void OnSettingChange(const SSettingsDesc& dsc);
 	virtual void Update(float fLastFrameTime);
 	virtual void Render();

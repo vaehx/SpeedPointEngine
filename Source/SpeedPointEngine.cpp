@@ -227,6 +227,9 @@ S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& ms
 		
 	sprintf_s((char*)sActualMsg, nActualMsgLen, "%s %s", cPrefix, (char*)msg);		
 
+	if (IS_VALID_PTR(m_pApplication))
+		m_pApplication->OnLogReport(res, sActualMsg);
+
 	return m_pLoggingStream->Report( res, sActualMsg );
 }
 

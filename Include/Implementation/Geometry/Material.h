@@ -20,7 +20,7 @@
 
 
 #include <SPrerequisites.h>
-#include <Abstract\IGeometrical.h>
+#include <Abstract\IGeometry.h>
 #include <map>
 
 using std::map;

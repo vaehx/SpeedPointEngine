@@ -46,7 +46,7 @@
 
 // also check against wrong debug values if in debug mode
 #ifdef _DEBUG
-	#define IS_VALID_PTR(ptr) (ptr && (unsigned int)ptr != 0xC0000005 && *(char*)ptr != 0xCD)
+	#define IS_VALID_PTR(ptr) (ptr && (unsigned int)ptr != 0xC0000005 && (unsigned int)ptr != 0xCDCDCDCD)
 #else
 	#define IS_VALID_PTR(ptr) (ptr)
 #endif

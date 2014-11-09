@@ -41,6 +41,11 @@ S_API void SpeedPointApplication::OnInit(IFramePipeline* pFramePipeline, IGameEn
 }
 
 // ---------------------------------------------------------------------------------------------
+S_API void SpeedPointApplication::OnLogReport(SResult res, const char* msg)
+{
+}
+
+// ---------------------------------------------------------------------------------------------
 S_API void SpeedPointApplication::OnSettingChange(const SSettingsDesc& dsc)
 {
 	assert(IsInited());

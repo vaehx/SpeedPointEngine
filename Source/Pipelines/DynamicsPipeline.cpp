@@ -7,13 +7,18 @@
 #include <Pipelines\DynamicsPipeline.h>
 #include <SpeedPointEngine.h>
 #include <Pipelines\FramePipeline.h>
+#include <Abstract\IApplication.h>
 
 SP_NMSPACE_BEG
 
 
 S_API SResult DynamicsPipeline::Run()
 {
+	m_pEngine->GetApplication()->Update(0.0f);
+	
 	return S_SUCCESS;
+
+
 	/*
 	// Physics
 	for (uint32 iPhysicalBody; iPhysicalBody < m_pPhysics->GetNumRegisteredBodies(); ++iPhysicalBody)

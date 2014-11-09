@@ -112,9 +112,6 @@
     <ClInclude Include="..\..\Include\Abstract\ISoundSystem.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IVisbleObject.h">
-      <Filter>Headers\Objects</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IVertexBuffer.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
@@ -124,7 +121,10 @@
     <ClInclude Include="..\..\Include\Abstract\ITerrain.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IGeometrical.h">
+    <ClInclude Include="..\..\Include\Abstract\IGeometry.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IStaticObject.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
   </ItemGroup>

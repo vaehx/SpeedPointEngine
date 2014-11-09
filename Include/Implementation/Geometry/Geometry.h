@@ -20,25 +20,24 @@
 
 
 #include <SPrerequisites.h>
-#include <Abstract\IGeometrical.h>
+#include <Abstract\IGeometry.h>
 
 SP_NMSPACE_BEG
 
 
 // Summary:
-//	This is a raw geometrical object. You might want to inherit this and thereby avoid implementing all methods of IGeometrical.
-class S_API RawGeometrical : public IGeometrical
+//	This is the raw geometry (without material)
+class S_API Geometry : public IGeometry
 {
 protected:
 	IRenderer* m_pRenderer;
 
 	SP_ID m_iIndexBuffer;
-	SP_ID m_iVertexBuffer;
-	IMaterial* m_pMaterial;
+	SP_ID m_iVertexBuffer;	
 
 public:
-	RawGeometrical();
-	virtual ~RawGeometrical();
+	Geometry();
+	virtual ~Geometry();
 
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr);
 
@@ -46,18 +45,7 @@ public:
 	virtual const SP_ID& GetIndexBufferResIndex() const { return m_iIndexBuffer; }
 	virtual IVertexBuffer* GetVertexBuffer() const;
 	virtual const SP_ID& GetVertexBufferResIndex() const { return m_iVertexBuffer; }
-
-	virtual EGeometryObjectType GetType() const
-	{
-		return eGEOMOBJ_RAW;
-	}
-
-	virtual IMaterial* GetMaterial() const
-	{
-		return m_pMaterial;
-	}
-
-	virtual SResult Render();
+	
 	virtual void Clear();
 };
 

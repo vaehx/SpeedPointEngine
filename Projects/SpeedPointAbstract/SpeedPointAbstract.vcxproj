@@ -81,7 +81,7 @@
     <ClInclude Include="..\..\Include\Abstract\IEntity.h" />
     <ClInclude Include="..\..\Include\Abstract\IFBO.h" />
     <ClInclude Include="..\..\Include\Abstract\IFramePipeline.h" />
-    <ClInclude Include="..\..\Include\Abstract\IGeometrical.h" />
+    <ClInclude Include="..\..\Include\Abstract\IGeometry.h" />
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IInteractive.h" />
     <ClInclude Include="..\..\Include\Abstract\IOctree.h" />
@@ -96,7 +96,7 @@
     <ClInclude Include="..\..\Include\Abstract\IRenderPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
     <ClInclude Include="..\..\Include\Abstract\IScene.h" />
-    <ClInclude Include="..\..\Include\Abstract\IVisbleObject.h" />
+    <ClInclude Include="..\..\Include\Abstract\IStaticObject.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
     <ClInclude Include="..\..\Include\Abstract\IVisible.h" />
     <ClInclude Include="..\..\Include\Abstract\ISolidSystem.h" />

@@ -6,46 +6,41 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\IVisbleObject.h>
+#include <Abstract\IStaticObject.h>
 #include <Abstract\IOctree.h>
 #include <Util\STransformable.h>
 #include <Util\SBoundBox.h>
-#include <Util\SMaterial.h>
+#include "Material.h"
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
-#include "RawGeometrical.h"
+#include "Geometry.h"
 
 
 SP_NMSPACE_BEG
 
 
 // SpeedPoint Solid implementation
-class S_API VisibleObject : public IVisibleObject
+class S_API StaticObject : public IStaticObject
 {
 private:
-	IRenderer* m_pRenderer;
-
-	SP_ID m_iIndexBuffer;
-	SP_ID m_iVertexBuffer;
-	IMaterial* m_pMaterial;
+	Geometry m_Geometry;
+	Material m_Material;
 
 public:		
-	VisibleObject();
-	virtual ~VisibleObject();
+	StaticObject();
+	virtual ~StaticObject();
 
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr);
 
-	virtual IIndexBuffer* GetIndexBuffer() const;
-	virtual const SP_ID& GetIndexBufferResIndex() const { return m_iIndexBuffer; }
-	virtual IVertexBuffer* GetVertexBuffer() const;
-	virtual const SP_ID& GetVertexBufferResIndex() const { return m_iVertexBuffer; }
-
-	virtual EGeometryObjectType GetType() const
+	virtual EObjectType GetType() const
 	{
-		return eGEOMOBJ_VISIBLE;
+		return eGEOMOBJ_STATIC;
 	}
 
-	virtual IMaterial* GetMaterial() const;
+	virtual IMaterial* GetMaterial()
+	{
+		return &m_Material;
+	}
 
 	virtual SResult Render();
 	virtual void Clear();

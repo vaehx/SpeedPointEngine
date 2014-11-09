@@ -67,10 +67,10 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\RawGeometrical.h">
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\VisibleObject.h">
+    <ClInclude Include="..\..\Include\Implementation\Geometry\StaticObject.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -187,7 +187,7 @@ namespace SpeedPoint
 			else
 			{
 				printf(pOutput);
-				MessageBox(nullptr, pOutput, "Assertion failed", MB_ICONERROR | MB_OK);
+				MessageBoxA(nullptr, pOutput, "Assertion failed", MB_ICONERROR | MB_OK);
 			}
 
 			delete[] pOutput;

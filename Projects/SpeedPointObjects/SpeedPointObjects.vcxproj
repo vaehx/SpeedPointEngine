@@ -30,8 +30,8 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\RawGeometrical.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\VisibleObject.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\StaticObject.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

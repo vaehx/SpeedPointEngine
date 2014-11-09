@@ -19,22 +19,25 @@
 #endif
 
 #include <SPrerequisites.h>
-#include "IGeometrical.h"
-#include <Util\STransformable.h>
 
 SP_NMSPACE_BEG
 
 struct S_API ITexture;
 struct S_API IIndexBuffer;
 struct S_API IVertexBuffer;
+struct S_API IGeometry;
+struct S_API STransformation;
 
 // Summary:
 //	An object that can be rendered
-struct S_API IVisibleObject : public IGeometrical, public STransformable
+struct S_API IStaticObject
 {
-	virtual ~IVisibleObject()
+	virtual ~IStaticObject()
 	{
 	}
+
+	virtual IGeometry* GetGeometry() = 0;
+	virtual STransformation& GetTransformation() = 0;
 };
 
 

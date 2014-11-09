@@ -51,7 +51,7 @@ int main(void)
 	wc.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
 	wc.hInstance = hInstance;
 	wc.lpfnWndProc = WndProc;
-	wc.lpszClassName = "SPPT";
+	wc.lpszClassName = L"SPPT";
 	wc.lpszMenuName = 0;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	if (!RegisterClass(&wc))
@@ -61,7 +61,7 @@ int main(void)
 	if (bSuccess)
 	{
 		if (!(hWnd = CreateWindow(wc.lpszClassName,
-			"SpeedPoint Prototype Test Application",
+			L"SpeedPoint Prototype Test Application",
 			WS_VISIBLE | WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, CW_USEDEFAULT,
 			1280, 768,
