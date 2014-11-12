@@ -41,6 +41,11 @@ public:
 
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr);
 
+	virtual IRenderer* GetRenderer()
+	{
+		return m_pRenderer;
+	}
+
 	virtual IIndexBuffer* GetIndexBuffer() const;
 	virtual const SP_ID& GetIndexBufferResIndex() const { return m_iIndexBuffer; }
 	virtual IVertexBuffer* GetVertexBuffer() const;

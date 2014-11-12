@@ -215,7 +215,7 @@ public:
 
 	virtual SResult SetViewportMatrices(IViewport* pViewport = 0);
 	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj);
-	virtual SResult SetWorldMatrix(const STransformation& transform);
+	virtual SResult SetWorldMatrix(const STransformationDesc& transform);
 
 
 

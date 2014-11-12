@@ -1,0 +1,85 @@
+
+
+typedef Vec3 Position;
+
+template <typename F>
+struct Sphere
+{
+	Position<F> center;
+	F radius;
+};
+
+
+
+Engine::FramePipeline()
+{
+	pApplication->OnDynamics(); 	// = OnUpdate()
+
+	pApplication->OnRender();
+	pRenderer->PresentBackbuffer();
+	
+}
+
+void Application::OnRender()
+{
+	myScene.Render();
+	return; // equals finishRender
+}
+
+Scene::Render()
+{
+	pRenderer->BeginDeferred();	
+	AxisAlignedBoundBox lightCullingBB;
+	for (int i = 0; i < nObjects; ++i)
+	{
+		objects[i].RenderDeferred();
+		AxisAlignedBoundBox& objBB = objects[i].GetBoundBox();
+		if (lightCullingBB.max < objBB.max)
+			lightCullingBB.max = objBB.max;
+		if (lightCullingBB.min > objBB.min)
+			lightCullingBB.min = objBB.min;
+	}
+
+	EnableLightsAffectingAABB();
+	pRenderer->FinishDeferred();	// Lighting applied here
+
+
+	for (int j = 0; j < nObjects; ++j)
+	{	
+		AxisAlignedBoundBox objBB = objects[i].GetBoundBox();
+		EnableNearLights(SSphere(objBB.GetCenter(), objBB.GetLengthCenterMax()));
+		objects[j].RenderForward();	// Lighting applied here
+	}
+}
+
+
+
+
+Object::RenderForward()
+{	
+}
+Object::RenderDeferred()
+{
+	SRenderDesc dsc;
+	dsc.drawCallDesc.pVertexBuffer = ...;
+	dsc.drawCallDesc.iStartVBIndex = 0;
+	dsc.drawCallDesc.iEndVBIndex = ...;
+	dsc.drawCallDesc.pIndexBuffer = ...;
+	dsc.drawCallDesc.iStartIBIndex = 0;
+	dsc.drawCallDesc.iEndIBIndex = ...;
+	dsc.transform.translation = ...;
+	dsc.transform.rotation = ...;
+	dsc.transform.scale = ...;
+	dsc.pGeometry = ...;		
+}
+
+
+Renderer::BeginDeferred()
+{
+	// Setup G-Buffer RTs here
+}
+
+Renderer::FinishRendering()
+{
+
+}

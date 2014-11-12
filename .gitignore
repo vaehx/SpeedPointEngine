@@ -1,0 +1,6 @@
+Projects/Debug/
+Projects/*/Debug/
+Projects/Tests/Prototypes/*/Debug/
+*.sdf
+*.suo
+*.vcxproj.user

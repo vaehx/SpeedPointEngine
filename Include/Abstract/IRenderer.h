@@ -15,7 +15,7 @@
 #include <SPrerequisites.h>
 #include <Util\SMatrix.h> // for Matrix CB
 #include "IViewport.h"	// for SViewportDescription
-#include "IGeometrical.h" // for STransformation
+#include "IGeometry.h" // for STransformation
 
 using std::vector;
 
@@ -132,7 +132,7 @@ struct S_API SDrawCallDesc
 	usint32 iStartVBIndex;
 	usint32 iEndVBIndex;
 
-	STransformation transform;
+	STransformationDesc transform;
 
 	SDrawCallDesc()
 		: pVertexBuffer(0),
@@ -164,7 +164,7 @@ struct S_API SRenderDesc
 {
 	ERenderPipelineTechnique technique;
 	SDrawCallDesc drawCallDesc;
-	IGeometrical* pGeometrical;	
+	IGeometry* pGeometry;	
 };
 
 
@@ -232,7 +232,7 @@ public:
 	virtual SResult SetViewportMatrices(IViewport* pViewport = 0) = 0;
 	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
 
-	virtual SResult SetWorldMatrix(const STransformation& transform) = 0;
+	virtual SResult SetWorldMatrix(const STransformationDesc& transform) = 0;
 
 	// Create an an addition viewport
 	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc) = 0;

@@ -3,7 +3,7 @@
 // This file is part of the SpeedPointEngine
 // Copyright (c) 2011-2014, iSmokiieZz
 // ------------------------------------------------------------------------------
-// Filename:	IGeometrical.h
+// Filename:	IGeometry.h
 // Created:	8/18/2014 by iSmokiieZz
 // Description:
 // -------------------------------------------------------------------------------
@@ -61,16 +61,6 @@ struct S_API SInitialGeometryDesc
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-enum S_API EObjectType
-{	
-	eGEOMOBJ_STATIC,
-	eGEOMOBJ_ENTITY,
-	eGEOMOBJ_TERRAIN,
-	eGEOMOBJ_VEGETATION,
-	eGEOMOBJ_WATER
-	// ...
-};
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -122,19 +112,19 @@ struct S_API IMaterial
 
 // Summary:
 //	Transformation description
-struct S_API STransformation
+struct S_API STransformationDesc
 {
 	SMatrix4 translation;
 	SMatrix4 rotation;
 	SMatrix4 scale;
 
-	STransformation() {}
-	STransformation(const SMatrix& mtxTranslation, const SMatrix& mtxRotation, const SMatrix& mtxScale)
+	STransformationDesc() {}
+	STransformationDesc(const SMatrix& mtxTranslation, const SMatrix& mtxRotation, const SMatrix& mtxScale)
 		: translation(mtxTranslation), rotation(mtxRotation), scale(mtxScale)
 	{
 	}
 
-	STransformation(const STransformation& o)
+	STransformationDesc(const STransformationDesc& o)
 		: translation(o.translation), rotation(o.rotation), scale(o.scale)
 	{
 	}
@@ -159,6 +149,8 @@ struct S_API IGeometry
 
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
 	
+	virtual IRenderer* GetRenderer() = 0;
+
 	virtual IIndexBuffer* GetIndexBuffer() const = 0;
 	virtual const SP_ID& GetIndexBufferResIndex() const = 0;
 	virtual IVertexBuffer* GetVertexBuffer() const = 0;

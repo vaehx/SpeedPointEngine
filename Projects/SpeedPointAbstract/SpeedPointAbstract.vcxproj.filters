@@ -124,7 +124,7 @@
     <ClInclude Include="..\..\Include\Abstract\IGeometry.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IStaticObject.h">
+    <ClInclude Include="..\..\Include\Abstract\Objects.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
   </ItemGroup>

@@ -35,10 +35,10 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\RawGeometrical.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\VisibleObject.cpp">
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp">
+    <ClCompile Include="..\..\Source\Implementation\Geometry\StaticObject.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

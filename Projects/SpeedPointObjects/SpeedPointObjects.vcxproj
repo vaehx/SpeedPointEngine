@@ -19,7 +19,7 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationSequence.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctree.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\VisibleObject.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\StaticObject.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicTerrain.cpp" />
   </ItemGroup>
   <ItemGroup>
