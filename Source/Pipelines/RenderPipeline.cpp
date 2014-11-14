@@ -64,7 +64,7 @@ S_API SResult RenderPipeline::Run()
 	IApplication* pApp = m_pEngine->GetApplication();
 	assert(pApp);
 
-	pApp->Render();
+	pApp->Render();	// Render callback
 
 	m_pEngine->GetRenderer()->EndScene();
 

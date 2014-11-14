@@ -56,6 +56,7 @@ struct S_API IObject
 
 // Summary:
 //	An simple object that can be rendered and positioned in the world
+//	When implementing, also inherit from STransformable to add support for transformation tools
 struct S_API IStaticObject : public IObject
 {
 	virtual ~IStaticObject()
@@ -65,8 +66,7 @@ struct S_API IStaticObject : public IObject
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const Material& material, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
 
-	virtual IGeometry* GetGeometry() = 0;
-	virtual STransformation& GetTransformation() = 0;	
+	virtual IGeometry* GetGeometry() = 0;	
 	virtual IMaterial* GetMaterial() = 0;	
 
 	virtual SResult Render() = 0;

@@ -31,7 +31,7 @@ public:
 	virtual ~StaticObject();
 
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr);
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const Material& material, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
+	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const Material& material, SInitialGeometryDesc* pInitialGeom = nullptr);
 
 	virtual EObjectType GetType() const
 	{

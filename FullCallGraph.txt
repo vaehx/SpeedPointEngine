@@ -1,0 +1,27 @@
+
+// Engine does not yet create it's own thread !
+
+
+Application::Start()
+|  |- SpeedPoint::<<IGameEngine>>::RegisterApplication()
+|  |- SpeedPoint::<<IGameEngine>>::InitializeLogger()
+|  |- SpeedPoint::<<IGameEngine>>::InitializeFramePipeline()
+|  |- SpeedPoint::<<IGameEngine>>::InitializeRenderer()
+|  |- SpeedPoint::<<IGameEngine>>::InitializeResourcePool()
+|  |- SpeedPoint::<<IGameEngine>>::FinishInitialization()
+|  |  |- SpeedPoint::<<IFramePipeline>>::RegisterSection()
+
+Application::RenderThreadFunc()
+|  |- SpeedPoint::<<IGameEngine>>::ExecuteFramePipeline()
+|  |  |- SpeedPoint::<<IFramePipeline>>::ExecuteSections()
+|  |  |  |- SpeedPoint::<<IRenderPipeline>>::Run()
+|  |  |  |  |- SpeedPoint::<<Renderer>>::BeginScene()
+|  |  |  |  |- SpeedPoint::<<IApplication>>::Render()
+|  |  |  |  |  |- SpeedPoint::<<IObject>>::Render()
+|  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::RenderGeometry(const SRenderDesc& dsc)
+|  |  |  |  |  |  |  |- pRenderSchedule->insert(...)
+|  |  |  |  |- SpeedPoint::<<IRenderer>>::EndScene()
+|  |  |  |  |  |- SpeedPoint::<<IRenderer>>::UnleashRenderSchedule()
+|  |  |  |  |  |- SpeedPoint::<<IRenderer>>::PresentTargetViewport()
+|  |  |  |  |  |- SpeedPoint::<<IRenderer>>::BindSingleFBO()
+|  |  |  |  |  |- SpeedPoint::<<IRenderer>>::ClearBoundRTs()
