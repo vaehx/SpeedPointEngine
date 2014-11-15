@@ -15,18 +15,23 @@
 #include <Implementation\Geometry\StaticObject.h>
 #include <Windows.h>
 
-// Foward declarate Log Report Handler
-void OnLogReport(SpeedPoint::SResult res, SpeedPoint::SString msg);
+
+class TestLogHandler : public SpeedPoint::ILogHandler
+{
+public:
+	virtual void OnLog(SpeedPoint::SResult res, const SpeedPoint::SString& formattedMsg);
+};
 
 class Test : public SpeedPoint::SpeedPointApplication
 {
 private:
 	SpeedPoint::StaticObject testObject;
+	TestLogHandler logHandler;
 
 protected:
 	void OnInitGeometry();
 
-public:	
+public:		
 	bool Start(HWND hWnd, HINSTANCE hInstance);
 	bool Tick();
 

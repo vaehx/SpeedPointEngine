@@ -35,7 +35,7 @@ struct S_API IApplication
 	virtual void OnInit(IFramePipeline* pFramePipeline, IGameEngine* pGameEngine) = 0;
 	virtual void OnSettingChange(const SSettingsDesc& dsc) = 0;
 
-	virtual void OnLogReport(SResult res, const char* msg) = 0;
+	virtual void OnLogReport(SResult res, const SString& msg) = 0;
 
 	// Summary:
 	//	Called whenever the engine is going to execute dynamics stuff

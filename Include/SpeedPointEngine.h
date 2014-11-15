@@ -11,7 +11,7 @@
 #pragma once
 
 #include "SPrerequisites.h"
-#include "Util\SLogStream.h"
+#include "Abstract\ILog.h"
 
 #include "Abstract\IGameEngine.h"
 #include "Abstract\IResourcePool.h"
@@ -26,6 +26,26 @@ SP_NMSPACE_BEG
 struct S_API IViewport;
 struct S_API IRenderer;
 
+
+
+
+class S_API EngineLog : public ILog
+{
+private:
+	ELogLevel m_LogLevel;
+	SString m_Buffer;
+	std::vector<ILogHandler*> m_LogHandlers;
+
+public:
+	~EngineLog() {}
+
+	virtual void Clear();
+	virtual SResult SaveToFile(const SString& file, bool replace = false);
+	virtual SResult RegisterLogHandler(ILogHandler* pLogHandler);
+	virtual SResult SetLogLevel(ELogLevel loglevel);
+	virtual ELogLevel GetLogLevel() const;
+	virtual SResult Log(SResult res, const SString& msg);
+};
 
 
 
@@ -97,7 +117,7 @@ private:
 	EngineComponent<IFramePipeline> m_pFramePipeline;
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
-	EngineComponent<SLogStream> m_pLoggingStream;	// Logging stream used in this Game Engine	
+	EngineComponent<ILog> m_pLog;
 
 
 	void CheckFinishInit();
@@ -118,7 +138,7 @@ public:
 	virtual SResult InitializeFramePipeline(IFramePipeline* pCustomFramePipeline = 0);
 	virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true);
 	virtual SResult InitializeResourcePool();
-	virtual SResult InitializeLogger(SLogStream* pCustomLogStream = 0);
+	virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0);
 
 
 public:
@@ -126,8 +146,7 @@ public:
 	virtual SResult ExecuteFramePipeline(usint32 iSkippedSections = DEFAULT_SKIPPED_SECTIONS);	
 
 // Logging methods
-public:
-	SResult SetCustomLogStream(SLogStream* pLogStream);
+public:	
 	virtual SResult LogReport(const SResult& res, const SString& msg);
 	virtual SResult LogE(const SString& msg);
 	virtual SResult LogW(const SString& msg);
@@ -135,9 +154,7 @@ public:
 	virtual SResult LogD(const SString& msg);
 
 	// Implement IExceptionProxy methods
-	virtual void HandleException(char* msg);
-
-	virtual SResult AddLogHandler(PLogHandler pHandler);
+	virtual void HandleException(char* msg);	
 
 
 public:
@@ -150,7 +167,7 @@ public:
 	virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
 	virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	virtual IResourcePool* GetResources() const { return m_pResourcePool; }
-	virtual SLogStream* GetLogStream() const { return m_pLoggingStream; }	
+	virtual ILog* GetLog() const { return m_pLog; }	
 };
 
 

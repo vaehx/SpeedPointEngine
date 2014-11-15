@@ -84,6 +84,7 @@
     <ClInclude Include="..\..\Include\Abstract\IGeometry.h" />
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IInteractive.h" />
+    <ClInclude Include="..\..\Include\Abstract\ILog.h" />
     <ClInclude Include="..\..\Include\Abstract\IOctree.h" />
     <ClInclude Include="..\..\Include\Abstract\IOctreeNode.h" />
     <ClInclude Include="..\..\Include\Abstract\IOutputPlane.h" />

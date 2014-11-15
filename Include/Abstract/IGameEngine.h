@@ -23,8 +23,8 @@ namespace SpeedPoint
 	struct S_API IApplication;
 	//struct S_API IScriptEngine;
 	struct S_API IResourcePool;
-	class S_API SLogStream;
-	class S_API SLogHandler;
+	struct S_API ILogHandler;
+	struct S_API ILog;
 
 
 
@@ -295,12 +295,10 @@ namespace SpeedPoint
 //		virtual SResult InitializeAI() = 0;
 //		virtual SResult InitializeScriptEngine() = 0;		
 		virtual SResult InitializeResourcePool() = 0;
-		virtual SResult InitializeLogger(SLogStream* pCustomLogStream = 0) = 0;
+		virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0) = 0;
 
 		virtual bool IsRunning() const = 0;
-		virtual void Shutdown() = 0;
-
-		virtual SResult AddLogHandler(PLogHandler pHandler) = 0;
+		virtual void Shutdown() = 0;		
 
 
 		virtual IFramePipeline* GetFramePipeline() const = 0;
@@ -309,7 +307,7 @@ namespace SpeedPoint
 //		virtual IAI* GetAI() const = 0;
 //		virtual IScriptEngine* GetScriptEngine() const = 0;
 		virtual IResourcePool* GetResources() const = 0;
-		virtual SLogStream* GetLogStream() const = 0;	
+		virtual ILog* GetLog() const = 0;	
 		virtual IEngineSettings* GetSettings() const = 0;		
 
 		

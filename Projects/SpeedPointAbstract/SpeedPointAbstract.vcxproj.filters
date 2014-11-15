@@ -127,5 +127,8 @@
     <ClInclude Include="..\..\Include\Abstract\IObject.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\ILog.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

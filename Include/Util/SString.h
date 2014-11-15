@@ -34,53 +34,33 @@ namespace SpeedPoint
 	public:
 		// default constructor
 		SString()
-			: pBuffer(0)
 		{
+			pBuffer = new char[2];
+			nLength = 2;
 		}
 
 		// Copy constructor
 		// does a real copy!
 		SString(const SString& s)
 		{
-			char* pS = (char*)s;
-			if (pS)
-			{
-				// we assume the length is correct, we can save a lot of time doing so!
-				unsigned int nLen = s.nLength;
-
-				pBuffer = new char[nLen + 1];	// +1 due to terminated 0			
-				nLength = nLen + 1;
-
-				// copy memory
-				memcpy(pBuffer, pS, nLen);
-				pBuffer[nLen] = 0;
-			}
+			CopyFromOther(s);
 		}
 
 		// intialize with size
 		SString(unsigned int size)
 		{
+			if (size <= 1)
+				size = 2;
+
 			pBuffer = new char[size];
 			nLength = size;
 			memset(pBuffer, 0, nLength);
 		}
 
-		// assignment
+		// assignment, copies data
 		SString(const char* str)
-		{						
-			if (!str)
-			{								
-				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
-				return;
-			}
-
-			unsigned int nLen = GetCharArrLen(str);
-			pBuffer = new char[nLen + 1];	// +1 due to terminated 0			
-			nLength = nLen + 1;
-
-			// copy memory
-			memcpy(pBuffer, str, nLen);
-			pBuffer[nLen] = 0; // make sure last character is the terminating 0
+		{
+			CopyFromBytes(str);
 		}
 
 		// destructor
@@ -172,6 +152,45 @@ namespace SpeedPoint
 			return 0; // we copied nothing
 		}
 
+		void CopyFromBytes(const char* str)
+		{
+			if (!str)
+			{
+				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
+				return;
+			}			
+
+			unsigned int nLen = GetCharArrLen(str);
+			nLength = nLen;
+			if (str[nLen - 1] != 0)
+				nLength = nLen + 1;	// make sure to have a terminating 0
+
+			pBuffer = new char[nLength];
+
+			// copy memory
+			memcpy(pBuffer, str, nLen);
+			pBuffer[nLength - 1] = 0; // make sure last character is the terminating 0
+		}
+
+		void CopyFromOther(const SString& s)
+		{
+			char* pS = (char*)s;
+			if (pS)
+			{
+				// we assume the length is correct, we can save a lot of time doing so!
+				unsigned int nLen = s.nLength;
+				if (pS[nLen - 1] != 0)
+					nLen++;
+
+				pBuffer = new char[nLen];	// +1 due to terminated 0			
+				nLength = nLen;
+
+				// copy memory
+				memcpy(pBuffer, pS, s.nLength);
+				pBuffer[nLength - 1] = 0;
+			}
+		}
+
 		// Conversion to char-Array
 		// This does NOT copy the buffer!		
 		operator char*() const
@@ -179,15 +198,61 @@ namespace SpeedPoint
 			return pBuffer;
 		}		
 
-		// Assignment to char-Array
-		// This will copy the buffer!
-		char* operator = (const SString& s) const
+		// Concatenates strings
+		SString operator + (const SString& s) const
 		{
-			if (pBuffer == 0) return 0;
-			char* tempRes = new char[nLength];
-			memcpy(tempRes, pBuffer, nLength);
-			return tempRes;
-		}		
+			if (nLength == 0 && s.GetLength())
+				return SString();
+
+			char* pBuf = new char[nLength + s.GetLength()];
+			int c = nLength + s.GetLength();
+			memcpy(pBuf, pBuffer, nLength);
+			memcpy(pBuf + nLength - 1, s, s.GetLength());
+			SString res(pBuf);
+			delete[] pBuf;
+			return res;
+		}
+
+		SString& operator = (const char* s)
+		{
+			if (pBuffer && nLength > 0)
+			{
+				if (nLength == 1) delete pBuffer;
+				else delete[] pBuffer;
+				pBuffer = 0;
+				nLength = 0;
+			}
+			CopyFromBytes(s);
+			return *this;
+		}
+
+		SString& operator = (const SString& s)
+		{
+			if (pBuffer && nLength > 0)
+			{
+				if (nLength == 1) delete pBuffer;
+				else delete[] pBuffer;
+				pBuffer = 0;
+				nLength = 0;
+			}
+			CopyFromOther(s);
+			return *this;
+		}
+
+		// Conatenates string
+		SString& operator += (const SString& s)
+		{
+			if (s.GetLength() == 0)
+				return *this;
+
+			char* newBuf = new char[nLength + s.GetLength()];
+			memcpy(newBuf, pBuffer, nLength);
+			memcpy(newBuf + nLength, s, s.GetLength());
+			delete[] pBuffer;
+			pBuffer = newBuf;
+			nLength += s.GetLength();
+			return *this;
+		}
 	};	 
 
 	// check if string buffer pointer againt integer	

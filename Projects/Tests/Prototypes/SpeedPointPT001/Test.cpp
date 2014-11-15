@@ -11,12 +11,13 @@
 
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
 
-void OnLogReport(SpeedPoint::SResult res, SpeedPoint::SString msg)
+
+void TestLogHandler::OnLog(SpeedPoint::SResult res, const SpeedPoint::SString& formattedMsg)
 {
-	std::cout << msg;
+	std::cout << formattedMsg << std::endl;
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +34,8 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND | ENGSETTING_ENABLEVSYNC;
 
 	m_pEngine->GetSettings()->Set(dsc);
-	m_pEngine->InitializeLogger();
+	m_pEngine->InitializeLogger(&logHandler);
+	m_pEngine->GetLog()->SetLogLevel(SpeedPoint::ELOGLEVEL_DEBUG);
 	m_pEngine->InitializeFramePipeline();		
 	m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true);
 	m_pEngine->InitializeResourcePool();	
@@ -111,6 +113,7 @@ bool Test::Stop()
 {
 	testObject.Clear();
 
+	m_pEngine->GetLog()->SaveToFile("Application.log", true);
 	m_pEngine->Shutdown();	
 	delete m_pEngine;
 

@@ -15,9 +15,100 @@
 #include <EngineSettings.h>
 #include <Abstract\IApplication.h>
 #include <Pipelines\RenderPipeline.h>
+#include <fstream>
 
 SP_NMSPACE_BEG
 	
+
+
+S_API void EngineLog::Clear()
+{
+	m_Buffer = "";
+}
+
+S_API SResult EngineLog::SaveToFile(const SString& file, bool replace)
+{
+	std::ofstream of;
+	of.open(file, std::ofstream::out | (replace ? std::ofstream::trunc : std::ofstream::app));
+	if (!of.is_open())
+	{
+		OutputDebugString(SString("Could not open file: ") + file);
+		return S_ERROR;
+	}
+
+	of << m_Buffer;
+	of.close();
+	return S_SUCCESS;
+}
+
+S_API SResult EngineLog::RegisterLogHandler(ILogHandler* pLogHandler)
+{
+	assert(IS_VALID_PTR(pLogHandler));
+
+	// check if already registered
+	for (auto itLH = m_LogHandlers.begin(); itLH != m_LogHandlers.end(); itLH++)
+	{
+		if (*itLH == pLogHandler)
+			return S_SUCCESS;
+	}
+
+	m_LogHandlers.push_back(pLogHandler);
+	return S_SUCCESS;
+}
+
+S_API SResult EngineLog::SetLogLevel(ELogLevel loglevel)
+{
+	m_LogLevel = loglevel;
+	return S_SUCCESS;
+}
+
+S_API ELogLevel EngineLog::GetLogLevel() const
+{
+	return m_LogLevel;
+}
+
+S_API SResult EngineLog::Log(SResult res, const SString& msg)
+{
+	SString formattedMsg;
+	switch (res.result)
+	{
+	case S_INFO:
+	case S_SUCCESS:	
+		formattedMsg = SString("INFO: ") + msg;
+		break;
+	case S_ERROR:
+	case S_ABORTED:
+		formattedMsg = SString("ERR: ") + msg;
+		break;
+	case S_WARN:
+		if (m_LogLevel < ELOGLEVEL_WARN)
+			return res;
+		formattedMsg = SString("WARN: ") + msg;
+		break;
+	case S_DEBUG:
+		if (m_LogLevel < ELOGLEVEL_DEBUG)
+			return res;
+		formattedMsg = SString("DEBG: ") + msg;
+		break;
+	default:
+		formattedMsg = SString("INFO: ") + msg;
+		break;
+	}
+
+	formattedMsg += "\n";
+	m_Buffer += formattedMsg;	
+	if (m_LogHandlers.size() > 0)
+	{
+		for (auto itLH = m_LogHandlers.begin(); itLH != m_LogHandlers.end(); itLH++)
+			(*itLH)->OnLog(res, formattedMsg);
+	}
+
+	return res;
+}
+
+
+
+
 
 // ----------------------------------------------------------------------------------
 S_API SpeedPointEngine::SpeedPointEngine()
@@ -44,7 +135,7 @@ S_API void SpeedPointEngine::Shutdown(void)
 	m_pRenderer.Clear();
 
 	m_pFramePipeline.Clear();
-	m_pLoggingStream.Clear();
+	m_pLog.Clear();
 	
 	if (m_pSettings)
 	{
@@ -69,7 +160,7 @@ S_API void SpeedPointEngine::CheckFinishInit()
 	if (IS_VALID_PTR(m_pFramePipeline.pComponent)
 		&& IS_VALID_PTR(m_pRenderer.pComponent)
 		&& IS_VALID_PTR(m_pResourcePool.pComponent)
-		&& IS_VALID_PTR(m_pLoggingStream.pComponent))
+		&& IS_VALID_PTR(m_pLog.pComponent))
 	{		
 		m_pApplication->OnInit(m_pFramePipeline, this);
 	}
@@ -138,17 +229,12 @@ S_API SResult SpeedPointEngine::InitializeResourcePool()
 }
 
 // ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::InitializeLogger(SLogStream* pCustomLogStream /* = 0 */)
+S_API SResult SpeedPointEngine::InitializeLogger(ILogHandler* pCustomLogHandler /* = 0 */)
 {
-	if (IS_VALID_PTR(pCustomLogStream))
-		m_pLoggingStream.SetCustom(pCustomLogStream);
-	else
-		m_pLoggingStream.SetOwn(new SLogStream());
+	m_pLog.SetOwn(new EngineLog());
 
-
-
-	m_pLoggingStream->Initialize();
-
+	if (IS_VALID_PTR(pCustomLogHandler))
+		m_pLog->RegisterLogHandler(pCustomLogHandler);
 
 	LogD("Initialized Logger!");
 
@@ -210,7 +296,8 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& msg )
 {
-	if( m_pLoggingStream == NULL ) return S_ABORTED;		
+	if( !IS_VALID_PTR(m_pLog.pComponent) )
+		return S_ABORTED;		
 
 	char* cPrefix;
 	switch( m_pSettings->Get().render.tyRendererType )
@@ -230,7 +317,7 @@ S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& ms
 	if (IS_VALID_PTR(m_pApplication))
 		m_pApplication->OnLogReport(res, sActualMsg);
 
-	return m_pLoggingStream->Report( res, sActualMsg );
+	return m_pLog->Log( res, sActualMsg );
 }
 
 // ----------------------------------------------------------------------------------
@@ -246,18 +333,6 @@ S_API void SpeedPointEngine::HandleException(char* msg)
 	MessageBox(nullptr, msg, "Assertion failed", MB_ICONERROR | MB_OK);
 	m_bRunning = false;
 }
-
-// ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::AddLogHandler(PLogHandler pHandler)
-{
-	assert(IS_VALID_PTR(pHandler));
-	assert(IS_VALID_PTR(m_pLoggingStream.pComponent));
-
-	m_pLoggingStream->RegisterHandler(pHandler);
-
-	return IS_VALID_PTR(pHandler) ? S_SUCCESS : S_INVALIDPARAM;
-}
-
 
 
 

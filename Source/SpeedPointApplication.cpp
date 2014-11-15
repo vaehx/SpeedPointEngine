@@ -41,8 +41,11 @@ S_API void SpeedPointApplication::OnInit(IFramePipeline* pFramePipeline, IGameEn
 }
 
 // ---------------------------------------------------------------------------------------------
-S_API void SpeedPointApplication::OnLogReport(SResult res, const char* msg)
+S_API void SpeedPointApplication::OnLogReport(SResult res, const SString& msg)
 {
+#ifdef _DEBUG
+	OutputDebugString(msg);
+#endif
 }
 
 // ---------------------------------------------------------------------------------------------
