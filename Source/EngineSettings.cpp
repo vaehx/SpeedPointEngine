@@ -39,6 +39,7 @@ S_API SResult EngineSettings::Set(const SSettingsDesc& dsc)
 
 	// RENDER
 	if (dsc.CheckMask(ENGSETTING_ENABLEVSYNC)) m_Desc.render.bEnableVSync = dsc.render.bEnableVSync;
+	if (dsc.CheckMask(ENGSETTING_VSYNCINTERVAL)) m_Desc.render.vsyncInterval = dsc.render.vsyncInterval;
 	if (dsc.CheckMask(ENGSETTING_AAQUALITY)) m_Desc.render.antiAliasingQuality = dsc.render.antiAliasingQuality;
 	if (dsc.CheckMask(ENGSETTING_SHADOWQUALITY)) m_Desc.render.shadowQuality = dsc.render.shadowQuality;
 	if (dsc.CheckMask(ENGSETTING_FRONTFACE_TYPE)) m_Desc.render.frontFaceType = dsc.render.frontFaceType;

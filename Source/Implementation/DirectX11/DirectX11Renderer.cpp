@@ -933,7 +933,13 @@ S_API SResult DirectX11Renderer::PresentTargetViewport(void)
 	SP_ASSERTR(pDXTargetViewport, S_ERROR);
 
 	IDXGISwapChain* pSwapChain = *pDXTargetViewport->GetSwapChainPtr();
-	if (Failure(pSwapChain->Present(0, 0)))
+	
+	unsigned int syncInterval = 0;
+	SSettingsDesc& engSettingsDesc = m_pEngine->GetSettings()->Get();
+	if (engSettingsDesc.render.bEnableVSync)
+		syncInterval = engSettingsDesc.render.vsyncInterval;
+
+	if (Failure(pSwapChain->Present(syncInterval, 0)))
 		return S_ERROR;
 
 	return S_SUCCESS;
@@ -1224,6 +1230,12 @@ S_API SResult DirectX11Renderer::UpdatePolygonType(S_PRIMITIVE_TYPE type)
 	return S_SUCCESS;
 }
 
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::UpdateSettings(const SSettingsDesc& dsc)
+{
+	return S_SUCCESS;
+}
 
 
 SP_NMSPACE_END

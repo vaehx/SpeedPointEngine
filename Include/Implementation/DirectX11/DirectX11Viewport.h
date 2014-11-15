@@ -73,6 +73,8 @@ public:
 		
 	virtual SIZE GetSize(void);		
 	virtual SResult SetSize(int nX, int nY);
+
+	virtual SResult EnableVSync(bool enable = true);
 		
 	virtual SVector2 GetOrthographicVolume(void);
 		

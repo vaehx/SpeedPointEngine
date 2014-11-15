@@ -77,6 +77,8 @@ public:
 	// Set the size of this viewport
 	virtual SResult SetSize( int nX, int nY ) = 0;
 
+	virtual SResult EnableVSync(bool enable = true) = 0;
+
 	// Get the orthographic view volume size
 	virtual SVector2 GetOrthographicVolume( void ) = 0;
 	

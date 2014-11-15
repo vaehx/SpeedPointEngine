@@ -14,6 +14,7 @@
 #include "IViewport.h"	// for SViewportDescription
 #include "IGeometry.h" // for STransformation
 #include "IObject.h"
+#include "IGameEngine.h"
 
 using std::vector;
 
@@ -25,7 +26,6 @@ struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
 class S_API STransformable;
 struct S_API ITexture;
-struct S_API IGameEngine;
 struct S_API IRendererSettings;
 enum S_API EFrontFace;
 struct S_API IResourcePool;
@@ -275,6 +275,11 @@ public:
 	// Summary:
 	//	Draws the given geometry desc directly to the back buffer and the depth buffer
 	virtual SResult DrawForward(const SDrawCallDesc& desc) = 0;
+
+
+	// Summary:
+	//	Updates settings of the device if needed and flagged in SettingsDesc mask
+	virtual SResult UpdateSettings(const SSettingsDesc& dsc) = 0;
 
 
 	// This function will return nullptr as IRenderer is just an interface!

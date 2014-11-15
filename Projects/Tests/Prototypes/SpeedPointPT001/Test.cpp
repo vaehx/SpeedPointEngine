@@ -29,14 +29,15 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.app.nXResolution = 1024;
 	dsc.app.nYResolution = 768;
 	dsc.app.hWnd = hWnd;	
-	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND;
+	dsc.render.bEnableVSync = true;
+	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND | ENGSETTING_ENABLEVSYNC;
 
 	m_pEngine->GetSettings()->Set(dsc);
 	m_pEngine->InitializeLogger();
 	m_pEngine->InitializeFramePipeline();		
 	m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true);
-	m_pEngine->InitializeResourcePool();
-	
+	m_pEngine->InitializeResourcePool();	
+
 	m_pEngine->FinishInitialization();
 
 	return true;

@@ -236,6 +236,8 @@ public:
 	virtual SResult DrawForward(const SDrawCallDesc& desc);
 
 
+	virtual SResult UpdateSettings(const SSettingsDesc& dsc);
+
 	virtual IRendererSettings* GetSettings()
 	{
 		return (IRendererSettings*)&m_Settings;

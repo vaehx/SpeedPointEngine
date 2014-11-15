@@ -84,11 +84,12 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	swapChainDesc.BufferCount = m_nBackBuffers;
 	swapChainDesc.BufferDesc = m_pRenderer->GetD3D11AutoSelectedDisplayModeDesc();
-	if (!engineSet.render.bEnableVSync)
+	/*if (!engineSet.render.bEnableVSync)
 	{
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	}
+	*/
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.Flags = 0;
 	swapChainDesc.OutputWindow = desc.hWnd;
@@ -101,7 +102,7 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	swapChainDesc.Windowed = engineSet.app.bWindowed;
 
 
-	// Create the swapchain	
+	// Create the swapchain		
 	if (Failure(m_pRenderer->D3D11_CreateSwapChain(&swapChainDesc, &m_pSwapChain)))
 	{
 		return m_pEngine->LogE("Failed create swap chain!");
@@ -287,6 +288,12 @@ S_API SResult DirectX11Viewport::SetSize(int nX, int nY)
 		return m_pEngine->LogE("Failed Resize Backbuffers of Viewport!");
 	}
 
+	return S_SUCCESS;
+}
+
+// -------------------------------------------------------------------
+S_API SResult DirectX11Viewport::EnableVSync(bool enable)
+{
 	return S_SUCCESS;
 }
 

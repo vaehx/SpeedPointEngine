@@ -63,6 +63,7 @@ namespace SpeedPoint
 #define ENGSETTING_CLIPPLANES		BITN(13)
 #define ENGSETTING_ENABLETEXTURES	BITN(14)
 #define ENGSETTING_RENDERAPI		BITN(15)
+#define ENGSETTING_VSYNCINTERVAL	BITN(16)
 
 
 	// specifying in which direction the vertices are set if the polygon is front-faced
@@ -140,7 +141,8 @@ namespace SpeedPoint
 		{
 			S_RENDERER_TYPE tyRendererType; // maybe put this into a separate struct Iface sometimes
 
-			bool		bEnableVSync;	// (default 1) is not evaluated by DX9 !			
+			bool		bEnableVSync;
+			unsigned int	vsyncInterval;
 			EAntiAliasingQuality antiAliasingQuality;
 			EShadowQuality shadowQuality;
 
@@ -182,6 +184,7 @@ namespace SpeedPoint
 			// RenderSet
 			render.tyRendererType = S_DIRECTX11;
 			render.bEnableVSync = true;
+			render.vsyncInterval = 2;
 			render.antiAliasingQuality = eAAQUALITY_LOW;
 			render.bRenderTextures = false;	// TODO: Swith this to true as soon as non-texturing was tested
 			render.fClipNear = 2.0f;
@@ -217,6 +220,7 @@ namespace SpeedPoint
 			// RenderSet
 			render.tyRendererType = o.render.tyRendererType;
 			render.bEnableVSync = o.render.bEnableVSync;
+			render.vsyncInterval = o.render.vsyncInterval;
 			render.antiAliasingQuality = o.render.antiAliasingQuality;
 			render.bRenderTextures = o.render.bRenderTextures;
 			render.fClipFar = o.render.fClipFar;
