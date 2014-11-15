@@ -49,7 +49,7 @@ void Test::OnInitGeometry()
 	// Load resources
 
 	SpeedPoint::ITexture* pTestTexture;
-	SpeedPoint::SResult res = m_pEngine->GetResources()->AddTexture("..\\..\\res\\tex01.bmp", 512, 512, "tex01", &pTestTexture, nullptr);
+	SpeedPoint::SResult res = m_pEngine->GetResources()->AddTexture("..\\..\\res\\tex02.bmp", 512, 512, "tex01", &pTestTexture, nullptr);
 
 	// Add first geometry	
 

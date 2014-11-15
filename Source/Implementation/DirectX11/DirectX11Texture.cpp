@@ -105,6 +105,7 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	// some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
 	WICPixelFormatGUID pxlFmtGUIDOrig = pxlFmtGUID;
 	if (pxlFmtGUID == GUID_WICPixelFormat24bppBGR) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
+	else if (pxlFmtGUID == GUID_WICPixelFormat8bppIndexed) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
 
 	// we'll probably need a dxgi format to create the dx texture instance	
 	DXGI_FORMAT loadedTextureFmt;	
