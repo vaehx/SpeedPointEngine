@@ -465,7 +465,10 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 	delete[] pForwardFXFile;
 #endif
 
-
+	// Create unset texture dummy
+	m_DummyTexture.Initialize(m_pEngine, "notexture", false);
+	if (Failure(m_DummyTexture.CreateEmpty(64, 64, 0, S_TEXTURE_RGBA, SColor(0.0f, 1.0f, 0.0f))))
+		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");
 
 
 	return S_SUCCESS;
@@ -696,7 +699,7 @@ S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(pTex, S_INVALIDPARAM);
+	SP_ASSERTR(IS_VALID_PTR(pTex), S_INVALIDPARAM);
 
 	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
 	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
@@ -832,11 +835,16 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	{
 
 
-		SRenderDesc* pDesc = &itRenderDesc->second;
+		SRenderDesc* pDesc = &itRenderDesc->second;		
 
 		if (pDesc->technique == eRENDER_FORWARD)
 		{
-			// Render single forward pass directly to backbuffer
+			// Render single forward pass directly to backbuffer			
+			if (IS_VALID_PTR(pDesc->material.textureMap))
+				BindTexture(pDesc->material.textureMap);
+			else
+				BindTexture((ITexture*)&m_DummyTexture);
+
 			DrawForward(pDesc->drawCallDesc);
 		}
 		else if (pDesc->technique == eRENDER_DEFERRED)
@@ -874,6 +882,7 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 	if (Failure(BindSingleFBO(m_pTargetViewport)))
 		return S_ERROR;		
 
+	// This is just for debugging
 	m_rsDesc.CullMode = D3D11_CULL_NONE;
 	UpdateRasterizerState();
 
@@ -1045,6 +1054,7 @@ S_API SResult DirectX11Renderer::UpdateMatrixCB()
 		//pBuffer->mtxProjection = m_Matrices.mtxProjection;
 		//SPMatrixPerspectiveFovRH(&pBuffer->mtxProjection, 3.1415f * 0.25f, 1024.0f / 768.0f, 1.0f, 200.0f);
 		XMMATRIX mtxProj = XMMatrixPerspectiveFovRH(XM_PI * 0.25f, 1024.0f / 768.0f, 1.0f, 200.0f);
+		//mtxProj = XMMatrixIdentity();
 		pBuffer->mtxProjection = SMatrix(
 			mtxProj._11, mtxProj._12, mtxProj._13, mtxProj._14,
 			mtxProj._21, mtxProj._22, mtxProj._23, mtxProj._24,
@@ -1062,7 +1072,7 @@ S_API SResult DirectX11Renderer::UpdateMatrixCB()
 			mtxView._41, mtxView._42, mtxView._43, mtxView._44
 			);
 
-		pBuffer->mtxWorld = m_Matrices.mtxWorld;
+		pBuffer->mtxWorld = SMatrixTranspose(m_Matrices.mtxWorld);
 	}
 
 	return D3D11_UnlockConstantsBuffer(m_pDXMatrixCB);
@@ -1137,7 +1147,7 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(const SMatrix& mtxView, con
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformationDesc& transform)
 {
-	m_Matrices.mtxWorld = transform.BuildSRT();
+	m_Matrices.mtxWorld = transform.BuildTRS();
 	return S_SUCCESS;
 }
 

@@ -6,10 +6,9 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\Objects.h>
+#include <Abstract\IObject.h>
 #include <Abstract\IOctree.h>
 #include <Util\SBoundBox.h>
-#include "Material.h"
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
 #include "Geometry.h"
@@ -23,10 +22,11 @@ SP_NMSPACE_BEG
 class S_API StaticObject : public IStaticObject, public STransformable
 {
 private:
-	Geometry m_Geometry;
-	Material m_Material;	// maybe use index to an element in a buffer of materials	
+	Geometry m_Geometry;	
+	Material m_Material;	// maybe use index to an element in a buffer of materials
 
-public:		
+public:			
+
 	StaticObject();
 	virtual ~StaticObject();
 
@@ -42,9 +42,9 @@ public:
 	{
 		return &m_Geometry;
 	}
-	virtual IMaterial* GetMaterial()
+	virtual Material& GetMaterial()
 	{
-		return &m_Material;
+		return m_Material;
 	}	
 
 	virtual SResult Render();

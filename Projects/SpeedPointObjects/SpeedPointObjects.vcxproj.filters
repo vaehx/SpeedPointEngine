@@ -32,9 +32,6 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\RawGeometrical.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\StaticObject.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -62,9 +59,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationBundle.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h">

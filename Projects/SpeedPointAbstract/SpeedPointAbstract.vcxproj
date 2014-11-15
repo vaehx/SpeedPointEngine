@@ -96,7 +96,7 @@
     <ClInclude Include="..\..\Include\Abstract\IRenderPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
     <ClInclude Include="..\..\Include\Abstract\IScene.h" />
-    <ClInclude Include="..\..\Include\Abstract\Objects.h" />
+    <ClInclude Include="..\..\Include\Abstract\IObject.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
     <ClInclude Include="..\..\Include\Abstract\IVisible.h" />
     <ClInclude Include="..\..\Include\Abstract\ISolidSystem.h" />

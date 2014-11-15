@@ -15,6 +15,7 @@
 #include "DirectX11Viewport.h"
 #include "DirectX11FBO.h"
 #include "DirectX11Effect.h"
+#include "DirectX11Texture.h"
 #include <Util\SQueue.h>
 
 // DirectX11 Specific headers
@@ -105,6 +106,8 @@ private:
 	ID3D11Buffer* m_pDXMatrixCB;
 
 
+
+	DirectX11Texture m_DummyTexture;
 
 	// The Frame Buffer objects
 

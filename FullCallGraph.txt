@@ -1,6 +1,7 @@
 
 // Engine does not yet create it's own thread !
 
+Application = SpeedPoint::<<IApplication>>
 
 Application::Start()
 |  |- SpeedPoint::<<IGameEngine>>::RegisterApplication()
@@ -9,7 +10,7 @@ Application::Start()
 |  |- SpeedPoint::<<IGameEngine>>::InitializeRenderer()
 |  |- SpeedPoint::<<IGameEngine>>::InitializeResourcePool()
 |  |- SpeedPoint::<<IGameEngine>>::FinishInitialization()
-|  |  |- SpeedPoint::<<IFramePipeline>>::RegisterSection()
+|  |  |- SpeedPoint::<<IFramePipeline>>::RegisterSection(RenderPipe)
 
 Application::RenderThreadFunc()
 |  |- SpeedPoint::<<IGameEngine>>::ExecuteFramePipeline()
@@ -25,6 +26,14 @@ Application::RenderThreadFunc()
 |  |  |  |  |  |  |- for all render descs
 |  |  |  |  |  |  |  |- if (desc.technique == forward)
 |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::DrawForward()
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetVBStream()
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetIBStream()
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IShader>>::Enable()	// DirectX11Effect m_ForwardEffect;
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetViewportMatrices()
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetWorldMatrix()
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::UpdateMatrixCB()
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::BindSingleFBO(targetViewport)
+|  |  |  |  |  |  |  |  |  |- <<IRenderAPI>>::DrawIndexed()
 |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::PresentTargetViewport()
 |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::BindSingleFBO()
 |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::ClearBoundRTs()

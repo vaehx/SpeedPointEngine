@@ -172,19 +172,23 @@ static void SMatrixIdentity( SMatrix* pMtx )
 	}
 }
 
+static void SSwapFloat(float& f1, float& f2)
+{
+	float t = f1;
+	f1 = f2;
+	f2 = t;
+}
+
 static void SMatrixTranspose( SMatrix* pMtx )
 {
 	if( pMtx != 0)
 	{
-		for( int n = 0; n < 4-2; n++ )
-		{
-			for( int m = n + 1; m < 4-1; m++ )
-			{
-				float fCache = pMtx->m[n][m];
-				pMtx->m[n][m] = pMtx->m[m][n];
-				pMtx->m[m][n] = fCache;
-			}
-		}
+		SSwapFloat(pMtx->_21, pMtx->_12);
+		SSwapFloat(pMtx->_31, pMtx->_13);
+		SSwapFloat(pMtx->_41, pMtx->_14);
+		SSwapFloat(pMtx->_42, pMtx->_24);
+		SSwapFloat(pMtx->_43, pMtx->_34);
+		SSwapFloat(pMtx->_32, pMtx->_23);
 	}
 }
 

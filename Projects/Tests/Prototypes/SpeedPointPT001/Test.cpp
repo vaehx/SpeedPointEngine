@@ -45,7 +45,12 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Test::OnInitGeometry()
-{
+{	
+	// Load resources
+
+	SpeedPoint::ITexture* pTestTexture;
+	SpeedPoint::SResult res = m_pEngine->GetResources()->AddTexture("..\\..\\res\\tex01.bmp", 512, 512, "tex01", &pTestTexture, nullptr);
+
 	// Add first geometry	
 
 	SpeedPoint::SInitialGeometryDesc initialGeom;
@@ -53,10 +58,10 @@ void Test::OnInitGeometry()
 	initialGeom.pIndices = new SpeedPoint::SIndex[6];
 
 	//						  Position		   Normal		Tangent		    UV
-	initialGeom.pVertices[0] = SpeedPoint::SVertex(-1.0f, 0, -1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	0.0f, 0.0f);
-	initialGeom.pVertices[1] = SpeedPoint::SVertex(-1.0f, 0, 1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	1.0f, 1.0f);
-	initialGeom.pVertices[2] = SpeedPoint::SVertex( 1.0f, 0, 1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	1.0f, 0.0f);
-	initialGeom.pVertices[3] = SpeedPoint::SVertex( 1.0f, 0, -1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	0.0f, 1.0f);
+	initialGeom.pVertices[0] = SpeedPoint::SVertex(-1.0f, 0, -1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	1.0f, 0.0f);
+	initialGeom.pVertices[1] = SpeedPoint::SVertex(-1.0f, 1.0f, 1.0f,	0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	1.0f, 1.0f);
+	initialGeom.pVertices[2] = SpeedPoint::SVertex( 1.0f, 1.0f, 1.0f,	0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	0.0f, 1.0f);
+	initialGeom.pVertices[3] = SpeedPoint::SVertex( 1.0f, 0, -1.0f,		0, 0, -1.0f,	-1.0f, 0.0f, 0.0f,	0.0f, 0.0f);
 	initialGeom.nVertices = 4;
 
 	initialGeom.pIndices[0] = 0; initialGeom.pIndices[1] = 1; initialGeom.pIndices[2] = 3;
@@ -64,7 +69,12 @@ void Test::OnInitGeometry()
 	initialGeom.nIndices = 6;
 
 	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);
-	testObject.Init(m_pEngine, m_pEngine->GetRenderer(), &initialGeom);			
+	testObject.Init(m_pEngine, m_pEngine->GetRenderer(), &initialGeom);
+
+	SpeedPoint::Material& testObjMat = testObject.GetMaterial();
+	testObjMat.textureMap = pTestTexture;
+
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +95,8 @@ void Test::Render()
 
 
 
-	testObject.vRotation += SpeedPoint::SVector3(0.001f, 0.001f, 0.00f);
+	testObject.vRotation += SpeedPoint::SVector3(0, 0.0003f, 0.00f);
+	testObject.vPosition = SpeedPoint::SVector3(0, 0, -4.0f);
 	testObject.Render();
 
 

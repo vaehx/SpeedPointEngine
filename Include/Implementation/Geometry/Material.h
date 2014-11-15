@@ -27,60 +27,6 @@ using std::map;
 
 SP_NMSPACE_BEG
 
-class S_API MaterialLayer : public IMaterialLayer
-{
-private:
-	SP_ID m_iDiffuseTex;
-	SP_ID m_iSpecularTex;
-	MaterialLayerID m_ID;
-
-public:
-	MaterialLayer()
-	{
-	}
-
-	MaterialLayer(const SP_ID& diffuseTex, const SP_ID& specTex)
-		: m_iDiffuseTex(diffuseTex),
-		m_iSpecularTex(specTex)
-	{
-	}
-
-	MaterialLayer(const MaterialLayer& o)
-		: m_iDiffuseTex(o.m_iDiffuseTex),
-		m_iSpecularTex(o.m_iSpecularTex)
-	{
-	}
-	
-	virtual ~MaterialLayer()
-	{
-		Clear();
-	}
-
-	virtual MaterialLayerID GetLayerID() const { return m_ID; }	
-	virtual void Clear()
-	{
-	}
-};
-
-
-
-class S_API Material : public IMaterial
-{
-private:
-	MaterialLayerID m_iMaterialLayerIDCounter;
-	map<MaterialLayerID, MaterialLayer>* m_pLayers;
-
-public:
-	virtual ~Material()
-	{
-	}
-
-	virtual IMaterialLayer* GetLayer(const MaterialLayerID& id) const;
-	virtual SResult AddLayer(const SMaterialLayerDesc& layerDesc);
-	virtual SResult DelLayer(const MaterialLayerID& id);
-	virtual void Clear();
-};
-
 
 SP_NMSPACE_END
 #endif

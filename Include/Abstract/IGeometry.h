@@ -62,50 +62,6 @@ struct S_API SInitialGeometryDesc
 ///////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////////////////////////
-
-struct S_API SMaterialLayerDesc
-{
-	SP_ID iDiffuseTex;
-	SP_ID iSpecularTex;
-
-	SMaterialLayerDesc() {}
-	SMaterialLayerDesc(const SP_ID& diffTex, const SP_ID& specTex)
-		: iDiffuseTex(diffTex), iSpecularTex(specTex)
-	{
-	}
-
-	SMaterialLayerDesc(const SMaterialLayerDesc& o)
-		: iDiffuseTex(o.iDiffuseTex), iSpecularTex(o.iSpecularTex)
-	{
-	}
-};
-
-typedef usint32 S_API MaterialLayerID;
-
-struct S_API IMaterialLayer
-{
-	virtual ~IMaterialLayer() {}
-
-	virtual MaterialLayerID GetLayerID() const = 0;
-	virtual void Clear() = 0;
-};
-
-// Summary:
-//	A material wrapper that contains and manages all the material layers
-struct S_API IMaterial
-{
-	virtual ~IMaterial()
-	{
-	}
-
-	virtual IMaterialLayer* GetLayer(const MaterialLayerID& id) const = 0;
-	virtual SResult AddLayer(const SMaterialLayerDesc& layerDesc) = 0;
-	virtual SResult DelLayer(const MaterialLayerID& id) = 0;
-	virtual void Clear() = 0;
-};
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 

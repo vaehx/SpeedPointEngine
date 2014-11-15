@@ -11,7 +11,7 @@
 #define SP_NO_PHYSICS
 #include <SpeedPoint.h>
 #include <SpeedPointApplication.h>
-#include <Abstract\Objects.h>
+#include <Abstract\IObject.h>
 #include <Implementation\Geometry\StaticObject.h>
 #include <Windows.h>
 

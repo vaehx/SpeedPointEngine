@@ -86,12 +86,12 @@ S_API SResult StaticObject::Render()
 	dsc.drawCallDesc.iEndIBIndex = pIB->GetIndexCount() - 1;
 
 	dsc.pGeometry = &m_Geometry;
-	dsc.technique = eRENDER_FORWARD;
+	dsc.technique = eRENDER_FORWARD;	
 	dsc.drawCallDesc.transform.translation = SMatrix::MakeTranslationMatrix(vPosition);
 	dsc.drawCallDesc.transform.rotation = SMatrix::MakeRotationMatrix(vRotation);
 	dsc.drawCallDesc.transform.scale = SMatrix::MakeScaleMatrix(vSize);
 
-	// Set Textures here....	
+	dsc.material = m_Material;
 
 	return pRenderer->RenderGeometry(dsc);
 }

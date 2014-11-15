@@ -102,7 +102,11 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	if (Failure(pBmpFrameDecode->GetPixelFormat(&pxlFmtGUID)))
 		return m_pEngine->LogE("Failed Get Pixel Format of desired frame!");
 
-	// we'll probably need a dxgi format to create the dx texture instance
+	// some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
+	WICPixelFormatGUID pxlFmtGUIDOrig = pxlFmtGUID;
+	if (pxlFmtGUID == GUID_WICPixelFormat24bppBGR) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
+
+	// we'll probably need a dxgi format to create the dx texture instance	
 	DXGI_FORMAT loadedTextureFmt;	
 	if (pxlFmtGUID == GUID_WICPixelFormat128bppRGBAFloat)		loadedTextureFmt = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	else if (pxlFmtGUID == GUID_WICPixelFormat64bppRGBAHalf)	loadedTextureFmt = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -125,11 +129,9 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 #endif
 	else
 	{
-		return m_pEngine->LogE("Unsupported pixel fmt of texture: Unkown format!");
+		return m_pEngine->LogE("Unsupported pixel fmt of texture: Unkown format!");		
 		// m_pEngine->LogE << "Failed convert pixel fmt: Unknown format: " << pxlFmtGUID << "!";
-	}
-
-	// and get the bpp out of the pxl fmt guid
+	}	
 
 
 	// copy the pixels into a temporary buffer	
@@ -145,14 +147,14 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 
 	std::unique_ptr<uint8_t[]> temp(new uint8_t[imageSize]);
 
-	// check whether we need to scale the loaded image
-	if (nLoadedWidth == w && nLoadedHeight == h)
+	// check whether we need to scale or convert the loaded image
+	if (nLoadedWidth == w && nLoadedHeight == h && memcmp(&pxlFmtGUID, &pxlFmtGUIDOrig, sizeof(GUID)) == 0)
 	{
 		hRes = pBmpFrameDecode->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp.get());
 		if (Failure(hRes))
 			return m_pEngine->LogE("Failed to buffer texture!");
 	}
-	else
+	else if (nLoadedWidth != w && nLoadedHeight != h)
 	{
 		ScopedTextureLoadingObject<IWICBitmapScaler> pScaler;
 		if (Failure(pImgFactory->CreateBitmapScaler(&pScaler)))
@@ -168,10 +170,41 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 		if (Failure(pScaler->GetPixelFormat(&pfScaler)))
 			return S_ERROR;
 
-		hRes = pScaler->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp.get());
+		if (memcmp(&pxlFmtGUID, &pfScaler, sizeof(GUID)) == 0)
+		{
+			hRes = pScaler->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp.get());
+			if (Failure(hRes))
+				return m_pEngine->LogE("Failed to buffer scaled texture!");
+		}
+		else
+		{
+			ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
+			if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
+				return m_pEngine->LogE("Failed to create pixel format convert (1)!");
+
+			hRes = formatConverter->Initialize(pScaler.Get(), pxlFmtGUID, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
+			if (Failure(hRes))
+				return m_pEngine->LogE("Failed to initialize format converter (1)!");
+
+			hRes = formatConverter->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp.get());
+			if (Failure(hRes))
+				return m_pEngine->LogE("Failed to convert and copy pixels (1)!");
+		}
+	}	
+	else // convert only
+	{
+		ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
+		if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
+			return m_pEngine->LogE("Failed to create pixel format convert (2)!");
+
+		hRes = formatConverter->Initialize(pBmpFrameDecode, pxlFmtGUID, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
 		if (Failure(hRes))
-			return m_pEngine->LogE("Failed to buffer scaled texture!");
-	}		
+			return m_pEngine->LogE("Failed to initialize format converter (2)!");
+
+		hRes = formatConverter->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp.get());
+		if (Failure(hRes))
+			return m_pEngine->LogE("Failed to convert and copy pixels (2)!");
+	}
 
 
 	// Check if autogeneration of mip levels is supported 	

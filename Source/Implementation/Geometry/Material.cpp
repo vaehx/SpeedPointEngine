@@ -15,12 +15,6 @@
 
 SP_NMSPACE_BEG
 
-
-S_API IMaterialLayer* Material::GetLayer(const MaterialLayerID& id) const
-{
-	return nullptr;
-}
-
 S_API SResult Material::AddLayer(const SMaterialLayerDesc& layerDesc)
 {
 	return S_SUCCESS;

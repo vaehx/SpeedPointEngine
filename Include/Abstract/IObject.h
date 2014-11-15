@@ -19,20 +19,70 @@
 #endif
 
 #include <SPrerequisites.h>
+#include "ITexture.h"
 
 SP_NMSPACE_BEG
 
-struct S_API ITexture;
 struct S_API IIndexBuffer;
 struct S_API IVertexBuffer;
 struct S_API IGeometry;
 struct S_API STransformation;
-struct S_API IMaterial;
-class S_API Material;
 struct S_API IGameEngine;
 struct S_API IRenderer;
 struct S_API SInitialGeometryDesc;
 
+
+///////////////////////////////////////////////////////////////////////////////////
+
+// Summary:
+//	Description of the material of an objects surface.
+//	The texture are only pointers (aggregations) and are not destructed by Material.
+struct S_API Material
+{
+	ITexture* textureMap;	// aggregation, color for full unlit roughness
+	ITexture* ambientOcclusionMap;
+	float emissive;
+
+	ITexture* glossinessMap;
+	float globalGlossFactor;
+	bool useGlobalGloss;
+
+	Material()
+		: textureMap(nullptr),
+		ambientOcclusionMap(nullptr),
+		emissive(0.0f),
+		glossinessMap(nullptr),
+		globalGlossFactor(0.0f),
+		useGlobalGloss(true)
+	{
+	}
+
+	Material(const Material& m)
+		: textureMap(m.textureMap),
+		ambientOcclusionMap(m.ambientOcclusionMap),
+		emissive(m.emissive),
+		glossinessMap(m.glossinessMap),
+		globalGlossFactor(m.globalGlossFactor),
+		useGlobalGloss(m.useGlobalGloss)
+	{
+	}
+
+	~Material()
+	{
+		Clear();
+	}
+
+	void Clear()
+	{
+		textureMap = nullptr;
+		ambientOcclusionMap = nullptr;
+		glossinessMap = nullptr;
+	}
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
 
 enum S_API EObjectType
 {
@@ -68,7 +118,7 @@ struct S_API IStaticObject : public IObject
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const Material& material, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
 
 	virtual IGeometry* GetGeometry() = 0;	
-	virtual IMaterial* GetMaterial() = 0;	
+	virtual Material& GetMaterial() = 0;	
 
 	virtual SResult Render() = 0;
 	virtual void Clear() = 0;

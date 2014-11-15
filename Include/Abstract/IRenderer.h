@@ -5,9 +5,6 @@
 //	This is a virtual class. You cannot instantiate it.
 //	Please use Specific Implementation to instantiate.
 
-//	Note: Each Renderer instance has its own render pipeline.
-//		And this render pipeline cannot be changed!
-
 // ********************************************************************************************
 
 #pragma once
@@ -16,6 +13,7 @@
 #include <Util\SMatrix.h> // for Matrix CB
 #include "IViewport.h"	// for SViewportDescription
 #include "IGeometry.h" // for STransformation
+#include "IObject.h"
 
 using std::vector;
 
@@ -165,6 +163,7 @@ struct S_API SRenderDesc
 	ERenderPipelineTechnique technique;
 	SDrawCallDesc drawCallDesc;
 	IGeometry* pGeometry;	
+	Material material;
 };
 
 
@@ -217,7 +216,7 @@ public:
 	// Arguments:
 	//	Pass nullptr as pTex to empty this texture level
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0) = 0;
-	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;
+	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;	
 
 	// Get the current target viewport
 	virtual IViewport* GetTargetViewport( void ) = 0;
