@@ -236,7 +236,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
 
 
-	
+
 
 	// In DX11 we fist need a RSState interface	
 	memset((void*)&m_rsDesc, 0, sizeof(D3D11_RASTERIZER_DESC));
@@ -248,7 +248,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	m_rsDesc.DepthClipEnable = false;
 	m_rsDesc.FillMode = renderSettings.bRenderWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 	m_rsDesc.FrontCounterClockwise = (renderSettings.frontFaceType == eFF_CW);
-	m_rsDesc.MultisampleEnable = renderSettings.antiAliasingQuality != eAAQUALITY_LOW;	
+	m_rsDesc.MultisampleEnable = renderSettings.antiAliasingQuality != eAAQUALITY_LOW;
 	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday	
 
 	HRESULT hRes;
@@ -258,6 +258,28 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	}
 
 	m_pD3DDeviceContext->RSSetState(m_pRSState);
+
+
+	// Setup default Sampler State
+	D3D11_SAMPLER_DESC defSamplerDesc;	
+	defSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;	
+	defSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;	
+	defSamplerDesc.MinLOD = -FLT_MAX;
+	defSamplerDesc.MaxLOD = FLT_MAX;
+	defSamplerDesc.MipLODBias = 0.0f;
+	defSamplerDesc.MaxAnisotropy = 1;	
+	defSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	defSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;	
+	defSamplerDesc.BorderColor[0] = 0;
+	defSamplerDesc.BorderColor[1] = 0;
+	defSamplerDesc.BorderColor[2] = 0;
+	defSamplerDesc.BorderColor[3] = 0;
+
+	if (Failure(m_pD3DDevice->CreateSamplerState(&defSamplerDesc, &m_pDefaultSamplerState)))
+		return m_pEngine->LogE("Failed create default Sampler State!");
+
+	m_pD3DDeviceContext->PSSetSamplers(0, 1, &m_pDefaultSamplerState);
 
 	return S_SUCCESS;
 }
@@ -483,6 +505,8 @@ S_API bool DirectX11Renderer::IsInited(void)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::Shutdown(void)
 {
+	m_DummyTexture.Clear();
+
 	if (IS_VALID_PTR(m_pResourcePool))
 	{
 		m_pResourcePool->ClearAll();

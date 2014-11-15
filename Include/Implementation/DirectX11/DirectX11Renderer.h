@@ -80,6 +80,7 @@ private:
 	D3D_FEATURE_LEVEL m_D3DFeatureLevel;
 	D3D11_RASTERIZER_DESC m_rsDesc;
 	ID3D11RasterizerState* m_pRSState;
+	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
 
 	IDXGIFactory* m_pDXGIFactory;
 
