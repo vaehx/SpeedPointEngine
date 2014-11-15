@@ -52,7 +52,7 @@
 #endif
 
 
-#define SP_SAFE_RELEASE(x) if(IS_VALID_PTR(x)) x->Release();
+#define SP_SAFE_RELEASE(x) if(IS_VALID_PTR(x)) { x->Release(); x = nullptr; }
 
 // Delete an array safely, avoids memory heap violations if array has length 1
 #define SP_SAFE_DELETE_ARR(x, len) \

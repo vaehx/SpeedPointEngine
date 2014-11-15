@@ -527,60 +527,33 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	m_ForwardEffect.Clear();	
 	m_Viewport.Clear();
 
-	if (IS_VALID_PTR(m_pDepthStencilState))
-	{
-		m_pDepthStencilState->Release();
-		m_pDepthStencilState = nullptr;
-	}
-
-	if (IS_VALID_PTR(m_pRSState))
-	{
-		m_pRSState->Release();
-		m_pRSState = nullptr;
-	}
-
-	if (IS_VALID_PTR(m_pDXMatrixCB))
-	{
-		m_pDXMatrixCB->Release();
-		m_pDXMatrixCB = nullptr;
-	}
-
+	SP_SAFE_RELEASE(m_pDefaultSamplerState);
+	SP_SAFE_RELEASE(m_pDepthStencilState);
+	SP_SAFE_RELEASE(m_pRSState);
+	SP_SAFE_RELEASE(m_pDXMatrixCB);		
 	if (IS_VALID_PTR(m_pD3DDeviceContext))
-	{
+	{		
 		m_pD3DDeviceContext->ClearState();
 		m_pD3DDeviceContext->Flush();
 	}
+			
 
-	if (IS_VALID_PTR(m_pD3DDevice))
-	{
-		m_pD3DDevice->Release();
-		m_pD3DDevice = nullptr;
-	}
+	SP_SAFE_RELEASE(m_pD3DDevice);	
+	SP_SAFE_RELEASE(m_pD3DDeviceContext);	
 
-	if (IS_VALID_PTR(m_pD3DDeviceContext))
-	{
-		m_pD3DDeviceContext->Release();
-		m_pD3DDeviceContext = nullptr;
-	}
-
-	if (IS_VALID_PTR(m_pRenderSchedule))
-	{
-		m_pRenderSchedule->clear();
-		delete m_pRenderSchedule;
-	}
-	m_pRenderSchedule = nullptr;
-
-	m_ForwardEffect.Clear();
-
-
-
-		
 #ifdef _DEBUG	
 	// Print live objects to detect memory leaks
 	IDXGIDebug1* pDXGIDebug;
 	DXGIGetDebugInterface1(0, __uuidof(IDXGIDebug1), reinterpret_cast<void**>(&pDXGIDebug));
 	pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);	
-#endif
+#endif		
+
+	if (IS_VALID_PTR(m_pRenderSchedule))
+	{
+		m_pRenderSchedule->clear();
+		delete m_pRenderSchedule;
+		m_pRenderSchedule = nullptr;
+	}		
 
 	return S_SUCCESS;
 }
