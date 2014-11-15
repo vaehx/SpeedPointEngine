@@ -28,6 +28,7 @@ struct S_API IVertexBuffer;
 struct S_API IGeometry;
 struct S_API STransformation;
 struct S_API IMaterial;
+class S_API Material;
 struct S_API IGameEngine;
 struct S_API IRenderer;
 struct S_API SInitialGeometryDesc;

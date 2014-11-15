@@ -7,15 +7,18 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\ITerrain.h>
-#include "RawGeometrical.h"
+#include "Geometry.h"
 
 
 SP_NMSPACE_BEG
 
 
 // SpeedPoint Terrain
-class S_API Terrain : public ITerrain, public RawGeometrical
+class S_API Terrain : public ITerrain
 {
+private:
+	Geometry m_Geometry;
+
 public:
 	int		nXResolution;
 	int		nZResolution;		

@@ -30,8 +30,8 @@
 #endif
 
 #include <Util\SVertex.h>
-#include <Abstract\IGeometrical.h>
-#include <Abstract\ITerrain.h>
+#include <Abstract\IGeometry.h>
+//#include <Abstract\ITerrain.h>
 
 // ******************************************************************************************
 

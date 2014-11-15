@@ -28,7 +28,7 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
     VS_OUTPUT OUT;
 
     // Convert Position from Object into World-, Camera- and Projection Space
-    float4 wPos = IN.Position;
+    float4 wPos = mul(mtxWorld, IN.Position);
     float4 sPos = mul(mtxView, wPos);
     float4 rPos = mul(mtxProjection, sPos);
     OUT.Position = rPos;

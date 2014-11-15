@@ -19,4 +19,4 @@
 #include <Lighting\SLightSystem.h>
 
 // of course we want to render solids...
-#include <Abstract\IGeometrical.h>
+#include <Abstract\IGeometry.h>

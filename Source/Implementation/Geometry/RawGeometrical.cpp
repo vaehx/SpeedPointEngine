@@ -11,7 +11,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\Geometry\RawGeometrical.h>
+#include <Implementation\Geometry\Geometry.h>
 #include <Implementation\Geometry\Material.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IRenderer.h>
@@ -21,36 +21,41 @@
 SP_NMSPACE_BEG
 
 // ----------------------------------------------------------------------------------------
-S_API RawGeometrical::RawGeometrical()
+S_API Geometry::Geometry()
 : m_pRenderer(nullptr)
 {
-	m_pMaterial = new Material();
+	//m_pMaterial = new Material();
 }
 
 // ----------------------------------------------------------------------------------------
-S_API RawGeometrical::~RawGeometrical()
+S_API Geometry::~Geometry()
 {
 	Clear();
 }
 
 // ----------------------------------------------------------------------------------------
-S_API void RawGeometrical::Clear()
-{
-	m_pRenderer = nullptr;
-	m_pRenderer->GetResourcePool()->RemoveIndexBuffer(m_iIndexBuffer);
-	m_pRenderer->GetResourcePool()->RemoveVertexBuffer(m_iVertexBuffer);
+S_API void Geometry::Clear()
+{	
+	if (IS_VALID_PTR(m_pRenderer))
+	{
+		m_pRenderer->GetResourcePool()->RemoveIndexBuffer(m_iIndexBuffer);
+		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(m_iVertexBuffer);
+		m_pRenderer = nullptr;
+	}	
 
 	m_iIndexBuffer = SP_ID();
 	m_iVertexBuffer = SP_ID();
 
+	/*
 	if (IS_VALID_PTR(m_pMaterial))
 		delete m_pMaterial;
 
 	m_pMaterial = nullptr;
+	*/
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SResult RawGeometrical::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom /* = nullptr */)
+S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom /* = nullptr */)
 {
 	Clear();
 
@@ -87,7 +92,7 @@ S_API SResult RawGeometrical::Init(IGameEngine* pEngine, IRenderer* pRenderer, S
 }
 
 // ----------------------------------------------------------------------------------------
-S_API IIndexBuffer* RawGeometrical::GetIndexBuffer() const
+S_API IIndexBuffer* Geometry::GetIndexBuffer() const
 {
 	if (!IS_VALID_PTR(m_pRenderer))
 		return nullptr;
@@ -96,7 +101,7 @@ S_API IIndexBuffer* RawGeometrical::GetIndexBuffer() const
 }
 
 // ----------------------------------------------------------------------------------------
-S_API IVertexBuffer* RawGeometrical::GetVertexBuffer() const
+S_API IVertexBuffer* Geometry::GetVertexBuffer() const
 {
 	if (!IS_VALID_PTR(m_pRenderer))
 		return nullptr;
@@ -117,7 +122,8 @@ S_API IVertexBuffer* RawGeometrical::GetVertexBuffer() const
 
 
 // ----------------------------------------------------------------------------------------
-S_API SResult RawGeometrical::Render()
+/*
+S_API SResult Geometry::Render()
 {
 	if (!IS_VALID_PTR(m_pRenderer))
 		return S_NOTINIT;
@@ -143,7 +149,7 @@ S_API SResult RawGeometrical::Render()
 
 	return m_pRenderer->RenderGeometry(dsc);
 }
-
+*/
 
 
 

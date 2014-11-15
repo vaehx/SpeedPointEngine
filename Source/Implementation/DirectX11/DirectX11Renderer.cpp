@@ -1135,7 +1135,7 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(const SMatrix& mtxView, con
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformation& transform)
+S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformationDesc& transform)
 {
 	m_Matrices.mtxWorld = transform.BuildSRT();
 	return S_SUCCESS;

@@ -85,6 +85,7 @@ void Test::Render()
 
 
 
+	testObject.vRotation += SpeedPoint::SVector3(0.001f, 0.001f, 0.00f);
 	testObject.Render();
 
 

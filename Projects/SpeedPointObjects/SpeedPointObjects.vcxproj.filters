@@ -26,9 +26,6 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicTerrain.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -39,6 +36,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\StaticObject.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Terrain.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
