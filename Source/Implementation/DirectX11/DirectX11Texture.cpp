@@ -23,7 +23,9 @@ SP_NMSPACE_BEG
 DirectX11Texture::DirectX11Texture()
 : m_pEngine(0),
 m_bDynamic(false),
-m_pDXTexture(0)
+m_pDXTexture(0),
+m_pDXRenderer(nullptr),
+m_pDXSRV(nullptr)
 {
 }
 
@@ -331,17 +333,8 @@ S_API SResult DirectX11Texture::Clear(void)
 	m_pEngine = 0;
 	m_pDXRenderer = 0;
 
-	if (m_pDXSRV)
-	{
-		m_pDXSRV->Release();
-		m_pDXSRV = nullptr;
-	}
-
-	if (m_pDXTexture)
-	{
-		m_pDXTexture->Release();
-		m_pDXTexture = nullptr;
-	}
+	SP_SAFE_RELEASE(m_pDXSRV);
+	SP_SAFE_RELEASE(m_pDXTexture);
 
 	return S_SUCCESS;
 }
