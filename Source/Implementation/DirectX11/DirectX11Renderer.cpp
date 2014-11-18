@@ -230,10 +230,16 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 	if (Failure(m_pD3DDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState)))
-	{
 		return m_pEngine->LogE("Failed create depth stencil state!");
-	}
+#ifdef _DEBUG
+	else
+		m_pEngine->LogD("Created depth stencil state.");
+#endif
+
 	m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
+#ifdef _DEBUG
+	m_pEngine->LogD("Set Depth Stencil state to default one.");
+#endif
 
 
 
@@ -262,9 +268,9 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 
 	// Setup default Sampler State
 	D3D11_SAMPLER_DESC defSamplerDesc;	
-	defSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;	
-	defSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;	
+	defSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;	
+	defSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;	
 	defSamplerDesc.MinLOD = -FLT_MAX;
 	defSamplerDesc.MaxLOD = FLT_MAX;
 	defSamplerDesc.MipLODBias = 0.0f;
@@ -626,6 +632,7 @@ S_API SResult DirectX11Renderer::BindRTCollection(ERenderTargetCollectionID coll
 			++nAddedRenderTargets;
 		}
 
+		// Note: We do not yet use a DSV here. TODO: Allow specifying a DSV for a RT Collection
 		m_pD3DDeviceContext->OMSetRenderTargets(nAddedRenderTargets, pRenderTargets, 0);
 		m_iCurRTCollection = collectionID;
 	}	
@@ -647,10 +654,11 @@ S_API SResult DirectX11Renderer::BindSingleFBO(IFBO* pFBO)
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 	SP_ASSERTR(pFBO, S_INVALIDPARAM);
 
-	ID3D11RenderTargetView* pDXFBO = ((DirectX11FBO*)pFBO)->GetRTV();
-	m_pD3DDeviceContext->OMSetRenderTargets(1, &pDXFBO, 0);
+	DirectX11FBO* pSPDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);
+	ID3D11RenderTargetView* pDXFBO = pSPDXFBO->GetRTV();
+	m_pD3DDeviceContext->OMSetRenderTargets(1, &pDXFBO, pSPDXFBO->GetDSV());
 
-	m_pTargetFBO = dynamic_cast<DirectX11FBO*>(pFBO);	
+	m_pTargetFBO = pSPDXFBO;	
 	m_iCurRTCollection = eRENDERTARGETS_NONE; // single FBO bound
 
 	return S_SUCCESS;
