@@ -64,7 +64,7 @@ int main(void)
 			L"SpeedPoint Prototype Test Application",
 			WS_VISIBLE | WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, CW_USEDEFAULT,
-			1280, 768,
+			1024, 768,
 			0,
 			0,
 			hInstance,

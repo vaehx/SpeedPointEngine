@@ -45,6 +45,7 @@ S_API void SpeedPointApplication::OnLogReport(SResult res, const SString& msg)
 {
 #ifdef _DEBUG
 	OutputDebugString(msg);
+	OutputDebugString("\n");
 #endif
 }
 

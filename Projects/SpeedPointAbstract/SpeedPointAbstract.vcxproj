@@ -84,6 +84,7 @@
     <ClInclude Include="..\..\Include\Abstract\IGeometry.h" />
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IInteractive.h" />
+    <ClInclude Include="..\..\Include\Abstract\ILight.h" />
     <ClInclude Include="..\..\Include\Abstract\ILog.h" />
     <ClInclude Include="..\..\Include\Abstract\IOctree.h" />
     <ClInclude Include="..\..\Include\Abstract\IOctreeNode.h" />
@@ -107,6 +108,7 @@
     <ClInclude Include="..\..\Include\Abstract\ITexture.h" />
     <ClInclude Include="..\..\Include\Abstract\IVertexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IViewport.h" />
+    <ClInclude Include="..\..\Include\Abstract\MathGeom.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

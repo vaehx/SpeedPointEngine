@@ -1064,7 +1064,7 @@ S_API SResult DirectX11Renderer::UpdateMatrixCB()
 	{
 		//pBuffer->mtxProjection = m_Matrices.mtxProjection;
 		//SPMatrixPerspectiveFovRH(&pBuffer->mtxProjection, 3.1415f * 0.25f, 1024.0f / 768.0f, 1.0f, 200.0f);
-		XMMATRIX mtxProj = XMMatrixPerspectiveFovRH(XM_PI * 0.25f, 1024.0f / 768.0f, 1.0f, 200.0f);
+		XMMATRIX mtxProj = XMMatrixPerspectiveFovRH(50.0f * (XM_PI / 180.f), 1024.0f / 768.0f, 1.0f, 200.0f);
 		//mtxProj = XMMatrixIdentity();
 		pBuffer->mtxProjection = SMatrix(
 			mtxProj._11, mtxProj._12, mtxProj._13, mtxProj._14,
@@ -1083,7 +1083,7 @@ S_API SResult DirectX11Renderer::UpdateMatrixCB()
 			mtxView._41, mtxView._42, mtxView._43, mtxView._44
 			);
 
-		pBuffer->mtxWorld = SMatrixTranspose(m_Matrices.mtxWorld);
+		pBuffer->mtxWorld = SMatrixTranspose(m_Matrices.mtxWorld);	
 	}
 
 	return D3D11_UnlockConstantsBuffer(m_pDXMatrixCB);

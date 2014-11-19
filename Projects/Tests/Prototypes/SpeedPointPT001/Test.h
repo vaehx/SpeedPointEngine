@@ -32,6 +32,7 @@ protected:
 	void OnInitGeometry();
 
 public:		
+	virtual void OnLogReport(SpeedPoint::SResult res, const SpeedPoint::SString& msg);
 	bool Start(HWND hWnd, HINSTANCE hInstance);
 	bool Tick();
 

@@ -130,5 +130,11 @@
     <ClInclude Include="..\..\Include\Abstract\ILog.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\ILight.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\MathGeom.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
