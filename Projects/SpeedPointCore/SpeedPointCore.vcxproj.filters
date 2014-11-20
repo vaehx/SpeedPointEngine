@@ -92,9 +92,6 @@
     <ClInclude Include="..\..\Include\Util\SBoundBox.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SCamera.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SColor.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -218,9 +215,6 @@
       <Filter>Sources\Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Util\SString.cpp">
-      <Filter>Sources\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Util\SCamera.cpp">
       <Filter>Sources\Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Lighting\SLight.cpp">

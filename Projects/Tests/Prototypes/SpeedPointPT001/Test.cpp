@@ -37,14 +37,28 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.render.bEnableVSync = true;
 	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND | ENGSETTING_ENABLEVSYNC;
 
+	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;
 	m_pEngine->GetSettings()->Set(dsc);
-	m_pEngine->InitializeLogger(&logHandler);
-	m_pEngine->GetLog()->SetLogLevel(SpeedPoint::ELOGLEVEL_DEBUG);
-	m_pEngine->InitializeFramePipeline();		
-	m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true);
-	m_pEngine->InitializeResourcePool();	
+	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeLogger(&logHandler));
+	EXEC_CONDITIONAL(initResult, m_pEngine->GetLog()->SetLogLevel(SpeedPoint::ELOGLEVEL_DEBUG));
+	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeFramePipeline());
+	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true));
+	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeResourcePool());
+
+	if (Failure(initResult))
+	{
+		delete m_pEngine;
+		return false;
+	}
 
 	m_pEngine->FinishInitialization();
+
+	// Initialize viewport
+
+	m_pEngine->GetRenderer()->GetTargetViewport()->Set3DProjection(SpeedPoint::S_PROJECTION_PERSPECTIVE, 50, 0, 0);
+	pCamera = m_pEngine->GetRenderer()->GetTargetViewport()->GetCamera();
+	pCamera->position = SpeedPoint::SVector3(0, 5.0f, 10.0f);
+	pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
 
 	return true;
 }
@@ -157,7 +171,8 @@ void Test::Render()
 	testObject.vRotation += SpeedPoint::SVector3(0.02f, 0.03f, 0.01f);
 	testObject.vRotation.z = 0.3f;
 	testObject.vPosition = SpeedPoint::SVector3(0, 3.0f, -6.0f);
-	testObject.Render();
+	if (Failure(testObject.Render()))
+		Stop();
 
 
 

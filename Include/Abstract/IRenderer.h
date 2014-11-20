@@ -111,12 +111,53 @@ struct S_API SRenderTargetCollection
 
 
 
-struct S_API SDefMtxCB
+
+
+enum S_API EConstantBufferType
 {
-	SMatrix4 mtxWorld;
+	CONSTANTBUFFER_PERSCENE,
+	CONSTANTBUFFER_PEROBJECT
+};
+
+
+// Notice:
+// - Constant Buffers must have a size which is a multiple of 16. That means you should
+//   only use SMatrix4 or SVector4 (=float4) data types in here.
+
+struct S_API SPerSceneConstantBuffer
+{
+
+	// mtxView and mtxProjection could also be in a separate CB, but we want to
+	// save memory bandwidth. Also it might be that the camera or projection changes
+	// per scene.
+
 	SMatrix4 mtxView;
 	SMatrix4 mtxProjection;
+
+	float4 sunPosition;	// sun dir = (0,0,0,0) - sunPosition
+
+	SPerSceneConstantBuffer& operator = (const SPerSceneConstantBuffer& b)
+	{
+		mtxView = b.mtxView;
+		mtxProjection = b.mtxProjection;
+		sunPosition = b.sunPosition;
+		return *this;
+	}
 };
+
+struct S_API SPerObjectConstantBuffer
+{
+	SMatrix4 mtxTransform;
+
+	SPerObjectConstantBuffer& operator = (const SPerObjectConstantBuffer& b)
+	{
+		mtxTransform = b.mtxTransform;
+		return *this;
+	}
+};
+
+
+
 
 
 // Summary:
@@ -222,16 +263,7 @@ public:
 	virtual IViewport* GetTargetViewport( void ) = 0;
 
 	// Get the default viewport
-	virtual IViewport* GetDefaultViewport( void ) = 0;
-
-	// Summary:
-	//	Update projection and View matrix in Constants Buffer to those of the given viewport
-	// Arguments:
-	//	If pViewport is 0 then the current target-viewport is used (default 0)
-	virtual SResult SetViewportMatrices(IViewport* pViewport = 0) = 0;
-	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
-
-	virtual SResult SetWorldMatrix(const STransformationDesc& transform) = 0;
+	virtual IViewport* GetDefaultViewport( void ) = 0;	
 
 	// Create an an addition viewport
 	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc) = 0;
@@ -288,6 +320,17 @@ public:
 	{
 		return nullptr;
 	}
+
+
+protected:
+	// Summary:
+	//	Update projection and View matrix in Constants Buffer to those of the given viewport
+	// Arguments:
+	//	If pViewport is 0 then the current target-viewport is used (default 0)
+	virtual SResult SetViewportMatrices(IViewport* pViewport = 0) = 0;
+	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
+
+	virtual SResult SetWorldMatrix(const STransformationDesc& transform) = 0;
 };
 
 SP_NMSPACE_END

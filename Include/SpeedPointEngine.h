@@ -15,6 +15,7 @@
 
 #include "Abstract\IGameEngine.h"
 #include "Abstract\IResourcePool.h"
+#include "Abstract\IRenderer.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -117,7 +118,7 @@ private:
 	EngineComponent<IFramePipeline> m_pFramePipeline;
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
-	EngineComponent<ILog> m_pLog;
+	ILog* m_pLog;
 
 
 	void CheckFinishInit();
@@ -168,6 +169,7 @@ public:
 	virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	virtual IResourcePool* GetResources() const { return m_pResourcePool; }
 	virtual ILog* GetLog() const { return m_pLog; }	
+	virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 };
 
 

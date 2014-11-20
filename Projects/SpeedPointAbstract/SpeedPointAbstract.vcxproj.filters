@@ -136,5 +136,8 @@
     <ClInclude Include="..\..\Include\Abstract\MathGeom.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Util\Camera.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

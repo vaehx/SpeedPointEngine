@@ -253,9 +253,9 @@ static inline void SPMatrixPerspectiveFovRH(SMatrix* pMtx, float fovy, float asp
 	float yScale = cotf(fovy * 0.5f);
 	*pMtx = SMatrix(
 		(float)(yScale / aspect),	0,		0,			0,
-		0,					(float)yScale,	0,			0,
-		0,					0,		zf / (zn-zf),		-1.0f,
-		0,					0,		zn * zf / (zn-zf),	0
+		0,				(float)yScale,	0,			0,
+		0,				0,		zf / (zn-zf),		-1.0f,
+		0,				0,		zn * zf / (zn-zf),	0
 		);
 }
 

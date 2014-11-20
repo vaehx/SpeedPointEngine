@@ -134,13 +134,20 @@ S_API void SpeedPointEngine::Shutdown(void)
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool
 	m_pRenderer.Clear();
 
-	m_pFramePipeline.Clear();
-	m_pLog.Clear();
+	m_pFramePipeline.Clear();	
 	
 	if (m_pSettings)
 	{
 		delete m_pSettings;
 		m_pSettings = nullptr;
+	}
+
+	if (IS_VALID_PTR(m_pLog))
+	{
+		m_pLog->LogI("Engine shut down");
+		m_pLog->Clear();
+		delete m_pLog;
+		m_pLog = nullptr;
 	}
 }
 
@@ -160,7 +167,7 @@ S_API void SpeedPointEngine::CheckFinishInit()
 	if (IS_VALID_PTR(m_pFramePipeline.pComponent)
 		&& IS_VALID_PTR(m_pRenderer.pComponent)
 		&& IS_VALID_PTR(m_pResourcePool.pComponent)
-		&& IS_VALID_PTR(m_pLog.pComponent))
+		&& IS_VALID_PTR(m_pLog))
 	{		
 		m_pApplication->OnInit(m_pFramePipeline, this);
 	}
@@ -231,7 +238,7 @@ S_API SResult SpeedPointEngine::InitializeResourcePool()
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::InitializeLogger(ILogHandler* pCustomLogHandler /* = 0 */)
 {
-	m_pLog.SetOwn(new EngineLog());
+	m_pLog = new EngineLog();
 
 	if (IS_VALID_PTR(pCustomLogHandler))
 		m_pLog->RegisterLogHandler(pCustomLogHandler);
@@ -296,7 +303,7 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& msg )
 {
-	if( !IS_VALID_PTR(m_pLog.pComponent) )
+	if( !IS_VALID_PTR(m_pLog) )
 		return S_ABORTED;		
 
 	char* cPrefix;

@@ -109,6 +109,7 @@
     <ClInclude Include="..\..\Include\Abstract\IVertexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IViewport.h" />
     <ClInclude Include="..\..\Include\Abstract\MathGeom.h" />
+    <ClInclude Include="..\..\Include\Util\Camera.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

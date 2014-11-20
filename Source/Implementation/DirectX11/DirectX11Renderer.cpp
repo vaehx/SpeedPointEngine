@@ -75,7 +75,8 @@ m_pDXGIFactory(0),
 m_pRenderTargetCollections(0),
 m_iCurRTCollection(eRENDERTARGETS_NONE),
 m_pDepthStencilState(0),
-m_pDXMatrixCB(0),
+m_pPerSceneCB(nullptr),
+m_pPerObjectCB(nullptr),
 m_bInScene(false),
 m_pRenderSchedule(nullptr)
 {
@@ -247,7 +248,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	// In DX11 we fist need a RSState interface	
 	memset((void*)&m_rsDesc, 0, sizeof(D3D11_RASTERIZER_DESC));
 	m_rsDesc.AntialiasedLineEnable = false;	// ???
-	m_rsDesc.CullMode = D3D11_CULL_BACK;
+	m_rsDesc.CullMode = D3D11_CULL_NONE;
 	m_rsDesc.DepthBias = 0;
 	m_rsDesc.DepthBiasClamp = 0;
 	m_rsDesc.SlopeScaledDepthBias = 0;
@@ -299,7 +300,7 @@ S_API SResult DirectX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 	SViewportDescription vpDesc;
 	
 	
-	vpDesc.fov = 60.0f;	// maybe you want to change this sometimes...
+	vpDesc.fov = 60;	// maybe you want to change this sometimes...	
 
 
 	vpDesc.width = nW;
@@ -468,7 +469,7 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 
 
 	// Initialize the matrix Constants buffer
-	if (Failure(InitMatrixCB()))
+	if (Failure(InitConstantBuffers()))
 		return S_ERROR;
 
 
@@ -536,7 +537,8 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pDefaultSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	SP_SAFE_RELEASE(m_pRSState);
-	SP_SAFE_RELEASE(m_pDXMatrixCB);		
+	SP_SAFE_RELEASE(m_pPerSceneCB);
+	SP_SAFE_RELEASE(m_pPerObjectCB);
 	if (IS_VALID_PTR(m_pD3DDeviceContext))
 	{		
 		m_pD3DDeviceContext->ClearState();
@@ -661,6 +663,9 @@ S_API SResult DirectX11Renderer::BindSingleFBO(IFBO* pFBO)
 	m_pTargetFBO = pSPDXFBO;	
 	m_iCurRTCollection = eRENDERTARGETS_NONE; // single FBO bound
 
+	SetViewportMatrices(m_pTargetViewport);
+	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
 	return S_SUCCESS;
 }
 
@@ -778,6 +783,8 @@ S_API SResult DirectX11Renderer::CreateAdditionalViewport(IViewport** pViewport,
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::BeginScene(void)
 {
+	SP_ASSERTR(IS_VALID_PTR(m_pRenderSchedule), S_NOTINITED);
+
 	if (m_bInScene)
 		return S_ERROR;
 
@@ -836,6 +843,10 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	if (m_pRenderSchedule->empty())
 		return S_SUCCESS;
 
+	ERenderPipelineTechnique previousTechnique = eRENDER_FORWARD;
+	if (Failure(BindSingleFBO(m_pTargetViewport)))
+		return S_ERROR;
+
 	for (auto itRenderDesc = m_pRenderSchedule->begin(); itRenderDesc != m_pRenderSchedule->end(); itRenderDesc++)
 	{
 
@@ -844,6 +855,12 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 		if (pDesc->technique == eRENDER_FORWARD)
 		{
+			if (previousTechnique != eRENDER_FORWARD)
+			{
+				if (Failure(BindSingleFBO(m_pTargetViewport)))
+					return S_ERROR;
+			}
+
 			// Render single forward pass directly to backbuffer			
 			if (IS_VALID_PTR(pDesc->material.textureMap))
 				BindTexture(pDesc->material.textureMap);
@@ -878,18 +895,10 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 	// Enable the effect
 	if (Failure(m_ForwardEffect.Enable()))
 		return S_ERROR;
-
-	SetViewportMatrices(m_pTargetViewport);
+	
 	SetWorldMatrix(desc.transform);
-	if (Failure(UpdateMatrixCB()))
-		return S_ERROR;
-
-	if (Failure(BindSingleFBO(m_pTargetViewport)))
-		return S_ERROR;		
-
-	// This is just for debugging
-	m_rsDesc.CullMode = D3D11_CULL_NONE;
-	UpdateRasterizerState();
+	if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
+		return S_ERROR;	
 
 	m_pD3DDeviceContext->DrawIndexed(desc.iEndIBIndex - desc.iStartIBIndex + 1, desc.iStartIBIndex, desc.iStartVBIndex);
 
@@ -1004,7 +1013,7 @@ S_API SResult DirectX11Renderer::BindSingleFBO(IViewport* pViewport)
 		return S_INVALIDPARAM;
 
 	if (Failure(BindSingleFBO(pBackBuffer)))
-		return S_ERROR;
+		return S_ERROR;	
 
 	return S_SUCCESS;
 }
@@ -1043,23 +1052,52 @@ S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::InitMatrixCB()
+S_API SResult DirectX11Renderer::InitConstantBuffers()
 {
-	if (Failure(D3D11_CreateConstantsBuffer(&m_pDXMatrixCB, sizeof(SDefMtxCB))))
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerSceneCB, sizeof(SPerSceneConstantBuffer))))
 		return S_ERROR;
 
-	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pDXMatrixCB);
+	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+	m_pEngine->LogD("Created and set per scene CB");
+
+
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerObjectCB, sizeof(SPerObjectConstantBuffer))))
+		return S_ERROR;
+	
+	m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pPerObjectCB);
+	m_pEngine->LogD("Created and set per object CB");
 
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdateMatrixCB()
+S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb)
 {
-	SDefMtxCB* pBuffer;
-	if (Failure(D3D11_LockConstantsBuffer(m_pDXMatrixCB, (void**)&pBuffer)))
-		return S_ERROR;
+	switch (cb)
+	{
+	case CONSTANTBUFFER_PERSCENE:
+		SPerSceneConstantBuffer* pSceneBuffer;
+		if (Failure(D3D11_LockConstantsBuffer(m_pPerSceneCB, (void**)&pSceneBuffer)))
+			return S_ERROR;
 
+		assert(IS_VALID_PTR(pSceneBuffer));
+		*pSceneBuffer = m_PerSceneCB;
+		D3D11_UnlockConstantsBuffer(m_pPerSceneCB);
+		break;
+	case CONSTANTBUFFER_PEROBJECT:
+		SPerObjectConstantBuffer* pObjectBuffer;
+		if (Failure(D3D11_LockConstantsBuffer(m_pPerObjectCB, (void**)&pObjectBuffer)))
+			return S_ERROR;
+
+		assert(IS_VALID_PTR(pObjectBuffer));
+		*pObjectBuffer = m_PerObjectCB;
+		D3D11_UnlockConstantsBuffer(m_pPerObjectCB);
+		break;
+	}
+
+	return S_SUCCESS;
+
+	/*
 	if (pBuffer)
 	{
 		//pBuffer->mtxProjection = m_Matrices.mtxProjection;
@@ -1085,8 +1123,7 @@ S_API SResult DirectX11Renderer::UpdateMatrixCB()
 
 		pBuffer->mtxWorld = SMatrixTranspose(m_Matrices.mtxWorld);	
 	}
-
-	return D3D11_UnlockConstantsBuffer(m_pDXMatrixCB);
+	*/	
 }
 
 // --------------------------------------------------------------------
@@ -1105,7 +1142,7 @@ S_API SResult DirectX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB
 
 
 	if (Failure(m_pD3DDevice->CreateBuffer(&cbDesc, 0, ppCB)))
-		return m_pEngine->LogE("Failed Create constants buffer!");
+		return m_pEngine->LogE("Failed Create constants buffer! See stdout for more info.");
 
 
 	return S_SUCCESS;
@@ -1119,9 +1156,9 @@ S_API SResult DirectX11Renderer::D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, vo
 
 	D3D11_MAPPED_SUBRESOURCE cbSubRes;	
 	if (Failure(m_pD3DDeviceContext->Map(pCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbSubRes)))
-		return m_pEngine->LogE("Failed Map Constant buffer!");
+		return m_pEngine->LogE("Failed lock constants buffer (map failed)!");
 
-	*pData = cbSubRes.pData;
+	*pData = cbSubRes.pData;	
 
 	return S_SUCCESS;
 }
@@ -1142,23 +1179,25 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
 {	
 	IViewport* pV = (pViewport) ? pViewport : GetTargetViewport();
 
-	m_Matrices.mtxProjection = pV->GetProjectionMatrix();
-	m_Matrices.mtxView = pV->GetCameraViewMatrix();	
+	m_PerSceneCB.mtxProjection = pV->GetProjectionMatrix();
+
+	pV->RecalculateCameraViewMatrix();
+	m_PerSceneCB.mtxView = pV->GetCameraViewMatrix();	
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
-	m_Matrices.mtxProjection = mtxProj;
-	m_Matrices.mtxView = mtxView;
+	m_PerSceneCB.mtxProjection = mtxProj;
+	m_PerSceneCB.mtxView = mtxView;
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformationDesc& transform)
 {
-	m_Matrices.mtxWorld = transform.BuildTRS();
+	m_PerObjectCB.mtxTransform = SMatrixTranspose(transform.BuildTRS());
 	return S_SUCCESS;
 }
 

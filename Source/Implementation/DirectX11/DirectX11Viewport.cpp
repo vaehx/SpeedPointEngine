@@ -11,7 +11,6 @@
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <Implementation\DirectX11\DirectX11FBO.h>
 #include <Implementation\DirectX11\DirectX11Utilities.h>
-#include <Util\SCamera.h>
 #include <Util\SMatrix.h>
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
@@ -31,11 +30,10 @@ m_bIsAdditional(false),
 m_pDepthStencilBuffer(0),	
 m_pDepthStencilView(0),
 m_pSwapChain(0),
-m_pCamera(0),
-m_bCustomCamera(false),
 m_nBackBuffers(0)
 {
 	m_pFBO = new DirectX11FBO();
+	m_pCamera = &m_OwnCamera;
 }
 
 // -------------------------------------------------------------------
@@ -72,8 +70,8 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	m_Desc = desc;
 	m_nBackBuffers = 1;// only one buffer. render targets will be handled externally	
 
-	m_DXViewportDesc.Width = desc.width;
-	m_DXViewportDesc.Height = desc.height;
+	m_DXViewportDesc.Width = (float)desc.width;
+	m_DXViewportDesc.Height = (float)desc.height;
 	m_DXViewportDesc.MinDepth = 0;
 	m_DXViewportDesc.MaxDepth = 1.0f;
 	m_DXViewportDesc.TopLeftX = 0.0f;
@@ -242,9 +240,6 @@ S_API SResult DirectX11Viewport::Clear(void)
 		m_pSwapChain = nullptr;
 	}
 
-	if (!m_bCustomCamera && m_pCamera)
-		delete m_pCamera;	
-
 	m_pEngine = 0;
 	m_pRenderer = 0;
 	m_pRenderTarget = 0;	
@@ -253,7 +248,7 @@ S_API SResult DirectX11Viewport::Clear(void)
 	m_pDepthStencilView = 0;	
 	m_pCamera = 0;
 	m_pFBO = 0;
-	m_bCustomCamera = false;
+	m_pCamera = nullptr;
 
 	return S_SUCCESS;
 }
@@ -314,13 +309,13 @@ S_API SVector2 DirectX11Viewport::GetOrthographicVolume(void)
 }
 
 // -------------------------------------------------------------------
-S_API float DirectX11Viewport::GetPerspectiveFOV(void)
+S_API unsigned int DirectX11Viewport::GetPerspectiveFOV(void)
 {
 	return m_Desc.fov;
 }
 
 // -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::Set3DProjection(S_PROJECTION_TYPE type, float fPerspDegFOV, float fOrthoW, float fOrthoH)
+S_API SResult DirectX11Viewport::Set3DProjection(S_PROJECTION_TYPE type, unsigned int fPerspDegFOV, float fOrthoW, float fOrthoH)
 {
 	SSettingsDesc& engineSettings = m_pEngine->GetSettings()->Get();
 
@@ -329,7 +324,7 @@ S_API SResult DirectX11Viewport::Set3DProjection(S_PROJECTION_TYPE type, float f
 	case S_PROJECTION_PERSPECTIVE:		
 		SPMatrixPerspectiveFovRH(
 			&m_ProjectionMtx,
-			fPerspDegFOV,
+			SP_DEG_TO_RAD(fPerspDegFOV),
 			m_DXViewportDesc.Width / m_DXViewportDesc.Height,
 			engineSettings.render.fClipNear,
 			engineSettings.render.fClipFar);
@@ -348,61 +343,28 @@ S_API SResult DirectX11Viewport::Set3DProjection(S_PROJECTION_TYPE type, float f
 }
 
 // -------------------------------------------------------------------
-S_API SMatrix4 DirectX11Viewport::GetProjectionMatrix()
+S_API SMatrix4& DirectX11Viewport::GetProjectionMatrix()
 {
 	return m_ProjectionMtx;
 }
 
 // -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::RecalculateCameraViewMatrix(SCamera* tempCam)
+S_API SMatrix& DirectX11Viewport::GetCameraViewMatrix()
 {
-	if (tempCam)
-	{
-		tempCam->RecalculateViewMatrix();
-	}
-	else
-	{
-		if (!m_pCamera)
-			return S_ERROR;
-
-		m_pCamera->RecalculateViewMatrix();
-	}
-
-	return S_SUCCESS;
+	return m_pCamera->viewMatrix;
 }
 
 // -------------------------------------------------------------------
-S_API SMatrix4 DirectX11Viewport::GetCameraViewMatrix()
+S_API SResult DirectX11Viewport::RecalculateCameraViewMatrix()
 {
-	SP_ASSERT(m_pCamera);
-
-	return m_pCamera->GetViewMatrix();
+	m_pCamera->RecalculateViewMatrix();
+	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------
 S_API IFBO* DirectX11Viewport::GetBackBuffer(void)
 {
 	return (IFBO*)m_pFBO;
-}
-
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::SetCamera(SCamera* pCamera)
-{
-	SP_ASSERTR(pCamera, S_INVALIDPARAM);
-
-	// destruct old camera instance if necessary
-	if (!m_bCustomCamera && m_pCamera)
-		delete m_pCamera;
-
-	m_pCamera = pCamera;
-
-	return S_SUCCESS;
-}
-
-// -------------------------------------------------------------------
-S_API SCamera* DirectX11Viewport::GetCamera(void)
-{
-	return m_pCamera;
 }
 
 

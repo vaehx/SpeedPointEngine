@@ -19,7 +19,6 @@ SP_NMSPACE_BEG
 // forward declarations
 struct S_API IGameEngine;
 class S_API DirectX11Renderer;
-class S_API SCamera;	
 class S_API DirectX11FBO;
 
 // DirectX11 implementation of the viewport interface
@@ -45,8 +44,8 @@ private:
 
 	SMatrix m_ProjectionMtx;
 
+	SCamera m_OwnCamera;
 	SCamera* m_pCamera;
-	bool m_bCustomCamera;
 
 public:		
 	DirectX11Viewport();
@@ -78,13 +77,13 @@ public:
 		
 	virtual SVector2 GetOrthographicVolume(void);
 		
-	virtual float GetPerspectiveFOV(void);
+	virtual unsigned int GetPerspectiveFOV(void);
 		
-	virtual SResult Set3DProjection(S_PROJECTION_TYPE type, float fPerspDegFOV, float fOrthoW, float fOrthoH);		
-	virtual SMatrix4 GetProjectionMatrix();
+	virtual SResult Set3DProjection(S_PROJECTION_TYPE type, unsigned int fPerspDegFOV, float fOrthoW, float fOrthoH);		
+	virtual SMatrix4& GetProjectionMatrix();
 		
-	virtual SResult RecalculateCameraViewMatrix(SCamera* tempCam);		
-	virtual SMatrix4 GetCameraViewMatrix();
+	virtual SResult RecalculateCameraViewMatrix();		
+	virtual SMatrix4& GetCameraViewMatrix();
 
 	virtual HWND GetWindow() { return m_Desc.hWnd;  }
 	virtual void SetWindow(HWND hWnd) // does NOT update swapchain hwnd!
@@ -94,8 +93,22 @@ public:
 				
 	virtual IFBO* GetBackBuffer(void);
 		
-	virtual SResult SetCamera(SCamera* pCamera);		
-	virtual SCamera* GetCamera(void);				
+	virtual SResult SetCamera(SCamera* pCamera)
+	{
+		if (!IS_VALID_PTR(pCamera))
+			return S_INVALIDPARAM;	
+			
+		m_pCamera = pCamera;
+		return S_SUCCESS;
+	}
+	virtual SCamera* GetCamera(void)
+	{
+		return m_pCamera;
+	}
+	virtual SCamera* GetDefaultCamera()
+	{
+		return &m_OwnCamera;
+	}
 };
 
 

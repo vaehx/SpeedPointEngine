@@ -16,6 +16,9 @@
 #include <Windows.h>
 
 
+#define EXEC_CONDITIONAL(res, exec) if (SpeedPoint::Success(res)) { res = exec; }
+
+
 class TestLogHandler : public SpeedPoint::ILogHandler
 {
 public:
@@ -26,6 +29,7 @@ class Test : public SpeedPoint::SpeedPointApplication
 {
 private:
 	SpeedPoint::StaticObject testObject;
+	SpeedPoint::SCamera* pCamera;
 	TestLogHandler logHandler;
 
 protected:

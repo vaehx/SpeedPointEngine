@@ -86,6 +86,8 @@
 
 SP_NMSPACE_BEG
 
+#define ILINE inline
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Basic datatypes
@@ -107,6 +109,12 @@ typedef usint32 SP_UNIQUE;
 static inline float cotf(float val) { return (1.0f / tanf(val)); }
 static inline double cot(double val) { return (1.0f / tan(val)); }
 static inline double cot(float val) { return (1.0f / tan((double)val)); }
+
+#define SP_PI 3.14159265358979323f
+#define SP_UNIT_DEG_RAD 0.01745329251994f
+#define SP_UNIT_RAD_DEG 57.29577951308232f
+#define SP_DEG_TO_RAD(deg) deg * SP_UNIT_DEG_RAD
+#define SP_RAD_TO_DEG(rad) rad * SP_UNIT_RAD_DEG
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 /*

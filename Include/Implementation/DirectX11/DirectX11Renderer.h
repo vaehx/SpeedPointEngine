@@ -60,12 +60,6 @@ private:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SpeedPoint DirectX 11 Renderer Implementation
 
-enum S_API EDirectX11CBSizeType
-{
-	eDX11CBSZ_MATRICES,
-	eDX11CBSZ_CUSTOM
-};
-
 class S_API DirectX11Renderer : public IRenderer
 {
 private:
@@ -103,8 +97,10 @@ private:
 
 	ID3D11DepthStencilState* m_pDepthStencilState;
 
-	SDefMtxCB m_Matrices;
-	ID3D11Buffer* m_pDXMatrixCB;
+	SPerSceneConstantBuffer m_PerSceneCB;
+	SPerObjectConstantBuffer m_PerObjectCB;
+	ID3D11Buffer* m_pPerSceneCB;
+	ID3D11Buffer* m_pPerObjectCB;
 
 
 
@@ -161,8 +157,8 @@ public:
 	SResult D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 customByteSize);
 	SResult D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData);	
 	SResult D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB);
-	SResult InitMatrixCB();
-	SResult UpdateMatrixCB();
+	SResult InitConstantBuffers();
+	SResult UpdateConstantBuffer(EConstantBufferType cb);
 
 	// Draw all things schedule in the render schedule
 	SResult UnleashRenderSchedule();
@@ -215,11 +211,7 @@ public:
 	virtual SResult SetTargetViewport(IViewport* pViewport);
 	virtual IViewport* GetTargetViewport(void);
 
-	virtual IViewport* GetDefaultViewport(void);
-
-	virtual SResult SetViewportMatrices(IViewport* pViewport = 0);
-	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj);
-	virtual SResult SetWorldMatrix(const STransformationDesc& transform);
+	virtual IViewport* GetDefaultViewport(void);	
 
 
 
@@ -259,6 +251,11 @@ public:
 	{
 		return new DirectX11Renderer();
 	}
+
+protected:
+	virtual SResult SetViewportMatrices(IViewport* pViewport = 0);
+	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj);
+	virtual SResult SetWorldMatrix(const STransformationDesc& transform);
 };
 
 

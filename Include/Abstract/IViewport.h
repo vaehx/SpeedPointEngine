@@ -13,11 +13,12 @@
 #include <Util\SVector2.h>
 #include <Util\SMatrix.h>
 
+#include <Util\Camera.h>
+
 SP_NMSPACE_BEG
 
 
 struct S_API IFBO;
-class S_API SCamera;
 struct S_API IGameEngine;
 
 
@@ -25,7 +26,7 @@ struct S_API SViewportDescription
 {
 	usint32 width;
 	usint32 height;		
-	float fov;
+	unsigned int fov;	// in degree
 	S_PROJECTION_TYPE projectionType;
 	float orthoW, orthoH;
 
@@ -82,25 +83,27 @@ public:
 	// Get the orthographic view volume size
 	virtual SVector2 GetOrthographicVolume( void ) = 0;
 	
-	virtual float GetPerspectiveFOV( void ) = 0;
+	virtual unsigned int GetPerspectiveFOV( void ) = 0;
 	
-	virtual SResult Set3DProjection( S_PROJECTION_TYPE type, float fPerspDegFOV, float fOrthoW, float fOrthoH ) = 0;		
-	virtual SMatrix4 GetProjectionMatrix() = 0;
+	virtual SResult Set3DProjection( S_PROJECTION_TYPE type, unsigned int fPerspDegFOV, float fOrthoW, float fOrthoH ) = 0;		
+	virtual SMatrix4& GetProjectionMatrix() = 0;
 	
-	virtual SResult RecalculateCameraViewMatrix( SCamera* tempCam ) = 0;		
-	virtual SMatrix4 GetCameraViewMatrix() = 0;
+	virtual SResult RecalculateCameraViewMatrix() = 0;		
+	virtual SMatrix4& GetCameraViewMatrix() = 0;
 	
 	virtual HWND GetWindow() = 0;		
 	virtual void SetWindow(HWND hWnd) = 0;		
 
 	// Get a pointer to the backbuffer framebuffer object
-	virtual IFBO* GetBackBuffer( void ) = 0;
+	virtual IFBO* GetBackBuffer() = 0;
 
 	// Set the pointer of the camera.
 	virtual SResult SetCamera( SCamera* pCamera ) = 0;
 
 	// Get the pointer to the camera
-	virtual SCamera* GetCamera( void ) = 0;
+	virtual SCamera* GetCamera() = 0;
+
+	virtual SCamera* GetDefaultCamera() = 0;
 
 	// Clearout the backbuffer + viewport
 	virtual SResult Clear( void ) = 0;

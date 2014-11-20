@@ -6,11 +6,14 @@
 //
 /////////////////////////////////////////////////////////////////////////
 
-cbuffer MatrixCB : register(b0)
-{
-    float4x4 mtxWorld;
+cbuffer SceneCB : register(cb0)
+{    
     float4x4 mtxView;
     float4x4 mtxProjection;
+}
+cbuffer ObjectCB : register(cb1)
+{
+    float4x4 mtxWorld;
 }
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
