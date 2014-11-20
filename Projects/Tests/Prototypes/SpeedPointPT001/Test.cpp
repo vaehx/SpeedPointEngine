@@ -56,7 +56,7 @@ void Test::OnInitGeometry()
 	// Load resources
 
 	SpeedPoint::ITexture* pTestTexture;
-	SpeedPoint::SResult res = m_pEngine->GetResources()->AddTexture("..\\..\\res\\tex02.bmp", 512, 512, "tex01", &pTestTexture, nullptr);
+	SpeedPoint::SResult res = m_pEngine->GetResources()->AddTexture("..\\..\\res\\tex04.bmp", 1024, 1024, "tex01", &pTestTexture, nullptr);
 
 	// Add first geometry	
 
@@ -154,7 +154,8 @@ void Test::Render()
 
 
 
-	testObject.vRotation += SpeedPoint::SVector3(0.02f, 0.03f, 0.00f);
+	testObject.vRotation += SpeedPoint::SVector3(0.02f, 0.03f, 0.01f);
+	testObject.vRotation.z = 0.3f;
 	testObject.vPosition = SpeedPoint::SVector3(0, 3.0f, -6.0f);
 	testObject.Render();
 

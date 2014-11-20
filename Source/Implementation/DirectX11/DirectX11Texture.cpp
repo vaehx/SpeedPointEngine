@@ -216,6 +216,12 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	bool bMipAutoGenSupported = Success(hRes) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN);
 
 
+	SP_SAFE_RELEASE(pImgDecoder);
+	SP_SAFE_RELEASE(pImgFactory);
+
+	m_pEngine->LogD(SString("Loaded Texture ") + cFileName + "!");
+
+
 	// Now create the directx texture
 	D3D11_TEXTURE2D_DESC textureDesc;
 	textureDesc.ArraySize = 1;
@@ -257,6 +263,8 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 		pDXDevCon->UpdateSubresource(m_pDXTexture, 0, nullptr, temp.get(), static_cast<UINT>(imageStride), static_cast<UINT>(imageSize));
 		pDXDevCon->GenerateMips(m_pDXSRV);
 	}
+
+	m_pEngine->LogD("Creating new texture from file succeeded!");
 
 	return S_SUCCESS;
 }
