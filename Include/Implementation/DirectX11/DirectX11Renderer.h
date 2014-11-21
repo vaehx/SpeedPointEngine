@@ -129,7 +129,52 @@ private:
 
 
 
-	SResult UpdateRasterizerState();
+
+
+	// TODO: Do this framedump stuff way better (e.g. by using a macro)
+
+	bool m_bDumpFrame;
+	void FrameDump(const SString& msg)
+	{		
+		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
+			m_pEngine->LogD(msg);
+	}
+	void FrameDump(const SString& str, const SString& strname)
+	{
+		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
+			m_pEngine->LogD(str, strname);
+	}
+	void FrameDump(const SMatrix4& mtx, const SString& mtxname)
+	{
+		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
+			m_pEngine->LogD(mtx, mtxname);
+	}
+	void FrameDump(const SVector3& vec, const SString& vecname)
+	{
+		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
+			m_pEngine->LogD(vec, vecname);
+	}
+	void FrameDump(unsigned int i, const SString& intname)
+	{
+		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
+			m_pEngine->LogD(i, intname);
+	}
+	void FrameDump(float f, const SString& floatname)
+	{
+		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
+			m_pEngine->LogD(f, floatname);
+	}
+	void FrameDump(bool b, const SString& boolname)
+	{
+		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
+			m_pEngine->LogD(b, boolname);
+	}
+
+
+
+
+
+	SResult UpdateRasterizerState();	
 
 public:				
 	DirectX11Renderer();
@@ -241,6 +286,10 @@ public:
 
 	virtual IResourcePool* GetResourcePool();
 
+	virtual void DumpFrameOnce()
+	{
+		m_bDumpFrame = true;
+	}
 
 
 	// Summary:

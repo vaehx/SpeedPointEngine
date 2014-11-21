@@ -153,6 +153,12 @@ public:
 	virtual SResult LogW(const SString& msg);
 	virtual SResult LogI(const SString& msg);
 	virtual SResult LogD(const SString& msg);
+	virtual void LogD(const SMatrix4& mtx, const SString& mtxname);
+	virtual void LogD(const SVector3& vec, const SString& vecname);
+	virtual void LogD(bool b, const SString& boolname);
+	virtual void LogD(unsigned int i, const SString& intname);
+	virtual void LogD(float f, const SString& floatname);
+	virtual void LogD(const SString& str, const SString& strname);
 
 	// Implement IExceptionProxy methods
 	virtual void HandleException(char* msg);	

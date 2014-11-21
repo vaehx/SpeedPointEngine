@@ -33,6 +33,8 @@ namespace SpeedPoint
 		
 		SVector3( float xx, float yy, float zz ) : x(xx), y(yy), z(zz) {};
 
+		SVector3(const SVector3& v) : x(v.x), y(v.y), z(v.z) {};
+
 		// ---
 
 		SVector3& operator += ( const SVector3& v ) { this->x += v.x; this->y += v.y; this->z += v.z; return *this; }
@@ -58,12 +60,13 @@ namespace SpeedPoint
 		// ---
 		
 		// Cross product with another vector
-		SVector3& Cross ( const SVector3& o )
-		{			
-			this->x = y * o.z - z * o.y;
-			this->y = z * o.x - x * o.z;
-			this->z = x * o.y - y * o.x;
-			return *this;		
+		SVector3 Cross ( const SVector3& o ) const
+		{		
+			SVector3 res;
+			res.x = y * o.z - z * o.y;
+			res.y = z * o.x - x * o.z;
+			res.z = x * o.y - y * o.x;
+			return res;
 		}
 		
 		// Dot product with another vector
@@ -119,8 +122,7 @@ namespace SpeedPoint
 // TODO: Refactor all occurencies of following functions to the corresponding member functions
 	inline SVector3 SVector3Cross( const SVector3& va, const SVector3& vb )
 	{	
-		SVector3 a(va);
-		return a.Cross(vb);
+		return SVector3(va.Cross(vb));
 	}
 	
 	inline float SVector3Dot( const SVector3& va, const SVector3& vb )
@@ -138,7 +140,8 @@ namespace SpeedPoint
 	inline SVector3 SVector3Normalize(const SVector3& v)
 	{
 		SVector3 a(v);
-		return a.Normalize();
+		a.Normalize();
+		return a;
 	}
 /////////////	
 }

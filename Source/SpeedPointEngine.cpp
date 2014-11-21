@@ -332,6 +332,56 @@ S_API SResult SpeedPointEngine::LogE(const SString& msg) { return LogReport(S_ER
 S_API SResult SpeedPointEngine::LogW(const SString& msg) { return LogReport(S_WARN, msg); }
 S_API SResult SpeedPointEngine::LogI(const SString& msg) { return LogReport(S_INFO, msg); }
 S_API SResult SpeedPointEngine::LogD(const SString& msg) { return LogReport(S_DEBUG, msg); }
+S_API void SpeedPointEngine::LogD(const SMatrix4& mtx, const SString& mtxname)
+{
+	LogD(SString("Dump matrix ") + mtxname);
+
+	char* cDumpLn = new char[256];
+
+	for (unsigned short i = 0; i < 4; ++i)
+	{
+		memset(cDumpLn, 0, 256);
+		sprintf_s(cDumpLn, 256, "[ %f  %f  %f  %f ]",
+			mtx.m[i][0], mtx.m[i][1], mtx.m[i][2], mtx.m[i][3]);
+
+		LogD(cDumpLn);
+	}
+
+	delete[] cDumpLn;
+}
+S_API void SpeedPointEngine::LogD(const SVector3& vec, const SString& vecname)
+{
+	LogD(SString("Dump vector ") + vecname);
+	char* cDumpLn = new char[256];
+	memset(cDumpLn, 0, 256);
+	sprintf_s(cDumpLn, 256, "( %f  %f  %f )", vec.x, vec.y, vec.z);
+	LogD(cDumpLn);
+	delete[] cDumpLn;
+}
+S_API void SpeedPointEngine::LogD(bool b, const SString& boolname)
+{
+	LogD(SString("Dump: ") + boolname + (b ? " = true" : " = false"));
+}
+S_API void SpeedPointEngine::LogD(unsigned int i, const SString& intname)
+{
+	char* cDump = new char[60];
+	memset(cDump, 0, 60);
+	sprintf_s(cDump, 60, "%d", i);
+	LogD(SString("Dump: ") + intname + " = " + cDump);
+	delete[] cDump;
+}
+S_API void SpeedPointEngine::LogD(float f, const SString& floatname)
+{
+	char* cDump = new char[60];
+	memset(cDump, 0, 60);
+	sprintf_s(cDump, 60, "%f", f);
+	LogD(SString("Dump: ") + floatname + " = " + cDump);
+	delete[] cDump;
+}
+S_API void SpeedPointEngine::LogD(const SString& str, const SString& strname)
+{
+	LogD(SString("Dump: ") + strname + " = \"" + str + "\"");	
+}
 
 // ----------------------------------------------------------------------------------
 S_API void SpeedPointEngine::HandleException(char* msg)

@@ -78,7 +78,8 @@ m_pDepthStencilState(0),
 m_pPerSceneCB(nullptr),
 m_pPerObjectCB(nullptr),
 m_bInScene(false),
-m_pRenderSchedule(nullptr)
+m_pRenderSchedule(nullptr),
+m_bDumpFrame(false)
 {
 };
 
@@ -656,8 +657,13 @@ S_API SResult DirectX11Renderer::BindSingleFBO(IFBO* pFBO)
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 	SP_ASSERTR(pFBO, S_INVALIDPARAM);
 
+	// check if already bound
+	if (m_pTargetFBO == pFBO)
+		return S_SUCCESS;
+
 	DirectX11FBO* pSPDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);
 	ID3D11RenderTargetView* pDXFBO = pSPDXFBO->GetRTV();
+
 	m_pD3DDeviceContext->OMSetRenderTargets(1, &pDXFBO, pSPDXFBO->GetDSV());
 
 	m_pTargetFBO = pSPDXFBO;	
@@ -788,7 +794,11 @@ S_API SResult DirectX11Renderer::BeginScene(void)
 	if (m_bInScene)
 		return S_ERROR;
 
-	m_pRenderSchedule->clear();
+	if (m_bDumpFrame)
+		m_pEngine->LogD("Beginning rendering of scene... (Begin Frame)");
+
+	m_pRenderSchedule->clear();	
+
 	m_RenderScheduleIDCounter = 0;
 	m_bInScene = true;	
 
@@ -828,6 +838,7 @@ S_API SResult DirectX11Renderer::EndScene(void)
 		return S_ERROR;
 
 	m_bInScene = false;
+	m_bDumpFrame = false;
 	return S_SUCCESS;
 }
 
@@ -847,6 +858,9 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	if (Failure(BindSingleFBO(m_pTargetViewport)))
 		return S_ERROR;
 
+	FrameDump("Unleashing render schedule now...");
+	FrameDump((unsigned int)m_pRenderSchedule->size(), SString("RenderScheduleSize"));
+
 	for (auto itRenderDesc = m_pRenderSchedule->begin(); itRenderDesc != m_pRenderSchedule->end(); itRenderDesc++)
 	{
 
@@ -857,6 +871,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		{
 			if (previousTechnique != eRENDER_FORWARD)
 			{
+				FrameDump("Rebind Target Viewport for Forward rendering (previously bound deferred RTs)");
 				if (Failure(BindSingleFBO(m_pTargetViewport)))
 					return S_ERROR;
 			}
@@ -1081,7 +1096,7 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb)
 			return S_ERROR;
 
 		assert(IS_VALID_PTR(pSceneBuffer));
-		*pSceneBuffer = m_PerSceneCB;
+		*pSceneBuffer = m_PerSceneCB;		
 		D3D11_UnlockConstantsBuffer(m_pPerSceneCB);
 		break;
 	case CONSTANTBUFFER_PEROBJECT:
@@ -1096,34 +1111,6 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb)
 	}
 
 	return S_SUCCESS;
-
-	/*
-	if (pBuffer)
-	{
-		//pBuffer->mtxProjection = m_Matrices.mtxProjection;
-		//SPMatrixPerspectiveFovRH(&pBuffer->mtxProjection, 3.1415f * 0.25f, 1024.0f / 768.0f, 1.0f, 200.0f);
-		XMMATRIX mtxProj = XMMatrixPerspectiveFovRH(50.0f * (XM_PI / 180.f), 1024.0f / 768.0f, 1.0f, 200.0f);
-		//mtxProj = XMMatrixIdentity();
-		pBuffer->mtxProjection = SMatrix(
-			mtxProj._11, mtxProj._12, mtxProj._13, mtxProj._14,
-			mtxProj._21, mtxProj._22, mtxProj._23, mtxProj._24,
-			mtxProj._31, mtxProj._32, mtxProj._33, mtxProj._34,
-			mtxProj._41, mtxProj._42, mtxProj._43, mtxProj._44
-			);
-
-		//pBuffer->mtxView = m_Matrices.mtxView;
-		//SPMatrixLookAtLH(&pBuffer->mtxView, SVector3(0, 5.0f, -10.0f), SVector3(0, 0, 0), SVector3(0, 1.0f, 0));	
-		XMMATRIX mtxView = XMMatrixLookAtRH(XMVectorSet(0, 5.0f, -10.0f, 1.0f), XMVectorSet(0, 0, 0, 1.0f), XMVectorSet(0, 1.0f, 0, 0.0f));
-		pBuffer->mtxView = SMatrix(
-			mtxView._11, mtxView._12, mtxView._13, mtxView._14,
-			mtxView._21, mtxView._22, mtxView._23, mtxView._24,
-			mtxView._31, mtxView._32, mtxView._33, mtxView._34,
-			mtxView._41, mtxView._42, mtxView._43, mtxView._44
-			);
-
-		pBuffer->mtxWorld = SMatrixTranspose(m_Matrices.mtxWorld);	
-	}
-	*/	
 }
 
 // --------------------------------------------------------------------
@@ -1179,10 +1166,43 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
 {	
 	IViewport* pV = (pViewport) ? pViewport : GetTargetViewport();
 
+
+
+
+	// PROJECTION MATRIX
+
+
 	m_PerSceneCB.mtxProjection = pV->GetProjectionMatrix();
+	//SPMatrixPerspectiveFovRH(&m_PerSceneCB.mtxProjection, 50.0f * (XM_PI / 180.f), 1024.0f / 768.0f, 1.0f, 200.0f);	
+	FrameDump(m_PerSceneCB.mtxProjection, "Projection matrix");
+
+
+
+
+
+	// VIEW MATRIX
+
 
 	pV->RecalculateCameraViewMatrix();
-	m_PerSceneCB.mtxView = pV->GetCameraViewMatrix();	
+	m_PerSceneCB.mtxView = pV->GetCameraViewMatrix();
+	
+	//SPMatrixLookAtRH(&m_PerSceneCB.mtxView, SVector3(0, 5.0f, -10.0f), SVector3(0, 0, 0), SVector3(0, 1.0f, 0));
+	FrameDump(m_PerSceneCB.mtxView, "View matrix");
+
+
+	/*
+	XMMATRIX mtxView = XMMatrixLookAtRH(XMVectorSet(0, 5.0f, -10.0f, 1.0f), XMVectorSet(0, 0, 0, 1.0f), XMVectorSet(0, 1.0f, 0, 0.0f));
+	m_PerSceneCB.mtxView = SMatrix(
+		mtxView._11, mtxView._12, mtxView._13, mtxView._14,
+		mtxView._21, mtxView._22, mtxView._23, mtxView._24,
+		mtxView._31, mtxView._32, mtxView._33, mtxView._34,
+		mtxView._41, mtxView._42, mtxView._43, mtxView._44
+		);
+	*/
+
+
+
+
 	return S_SUCCESS;
 }
 

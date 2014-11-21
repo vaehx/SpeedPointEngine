@@ -205,14 +205,14 @@ static inline void SPMatrixLookAtRH(SMatrix* pMtx, const SVector3& eye, const SV
 	if (!pMtx)
 		return;
 
-	SVector3& zaxis = SVector3Normalize(eye - at);
-	SVector3& xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
-	SVector3& yaxis = SVector3Cross(zaxis, xaxis);
+	SVector3 zaxis = SVector3Normalize(eye - at);
+	SVector3 xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
+	SVector3 yaxis = SVector3Cross(zaxis, xaxis);
 
 	*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
 		SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
 		SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
-		SVector4(SVector3Dot(xaxis, eye), SVector3Dot(yaxis, eye), SVector3Dot(zaxis, eye), 1.0f));
+		SVector4(-SVector3Dot(xaxis, eye), -SVector3Dot(yaxis, eye), -SVector3Dot(zaxis, eye), 1.0f));
 }
 
 // calculate view matrix
@@ -221,14 +221,14 @@ static inline void SPMatrixLookAtLH(SMatrix* pMtx, const SVector3& eye, const SV
 	if (!pMtx)
 		return;
 
-	SVector3& zaxis = SVector3Normalize(at - eye);
-	SVector3& xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
-	SVector3& yaxis = SVector3Cross(zaxis, xaxis);
+	SVector3 zaxis = SVector3Normalize(at - eye);
+	SVector3 xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
+	SVector3 yaxis = SVector3Cross(zaxis, xaxis);
 
 	*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
 		SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
 		SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
-		SVector4(-SVector3Dot(xaxis, eye), -SVector3Dot(yaxis, eye), -SVector3Dot(zaxis, eye), 1.0f));
+		SVector4(SVector3Dot(xaxis, eye), SVector3Dot(yaxis, eye), SVector3Dot(zaxis, eye), 1.0f));
 }
 
 // calculate orthographic projection matrix

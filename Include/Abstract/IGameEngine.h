@@ -12,6 +12,7 @@
 #include <Util\SColor.h>
 #include "Abstract\IFramePipeline.h"	// for default skipsections
 #include <Util\SLogStream.h>
+#include <Util\SMatrix.h>
 
 namespace SpeedPoint
 {
@@ -25,6 +26,7 @@ namespace SpeedPoint
 	struct S_API IResourcePool;
 	struct S_API ILogHandler;
 	struct S_API ILog;
+	struct S_API SVector3;
 
 
 
@@ -322,6 +324,12 @@ namespace SpeedPoint
 		virtual SResult LogI(const SString& msg) = 0;
 		virtual SResult LogE(const SString& msg) = 0;
 		virtual SResult LogD(const SString& msg) = 0;
+		virtual void LogD(const SMatrix4& mtx, const SString& mtxname) = 0;
+		virtual void LogD(const SVector3& vec, const SString& vecname) = 0;
+		virtual void LogD(bool b, const SString& boolname) = 0;
+		virtual void LogD(unsigned int i, const SString& intname) = 0;
+		virtual void LogD(float f, const SString& floatname) = 0;
+		virtual void LogD(const SString& str, const SString& strname) = 0;
 		virtual SResult LogW(const SString& msg) = 0;
 	};	
 

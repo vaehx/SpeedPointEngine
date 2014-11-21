@@ -314,6 +314,9 @@ public:
 	virtual SResult UpdateSettings(const SSettingsDesc& dsc) = 0;
 
 
+	virtual void DumpFrameOnce() = 0;
+
+
 	// This function will return nullptr as IRenderer is just an interface!
 	// Use implementation instead!
 	static IRenderer* GetInstance()

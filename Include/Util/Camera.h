@@ -61,9 +61,9 @@ struct S_API SCamera
 		SVector3 lookAt;
 		if (!roll)
 		{
-			lookAt.x = -sinf(rotation.y) * cosf(rotation.x);
-			lookAt.y = sinf(rotation.y);
-			lookAt.z = cosf(rotation.y) * cosf(rotation.x);
+			lookAt.x = position.x - sinf(rotation.y) * cosf(rotation.x);
+			lookAt.y = position.y + sinf(rotation.y);
+			lookAt.z = position.z + cosf(rotation.y) * cosf(rotation.x);
 		}
 		else
 		{
@@ -74,7 +74,8 @@ struct S_API SCamera
 
 		}
 
-		SPMatrixLookAtRH(&viewMatrix, position, lookAt, SVector3(0,1.0f,0));
+		//SPMatrixLookAtRH(&viewMatrix, position, lookAt, SVector3(0,1.0f,0));
+		SPMatrixLookAtRH(&viewMatrix, SVector3(0, 5.0f, -10.0f), SVector3(0,0,0), SVector3(0,1.0f,0));	
 		return viewMatrix;
 	}
 };

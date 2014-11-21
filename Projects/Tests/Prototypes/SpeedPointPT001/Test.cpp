@@ -146,7 +146,7 @@ void Test::OnInitGeometry()
 
 	SpeedPoint::Material& testObjMat = testObject.GetMaterial();
 	testObjMat.textureMap = pTestTexture;
-
+	m_pEngine->GetRenderer()->DumpFrameOnce();
 
 }
 
@@ -172,9 +172,10 @@ void Test::Render()
 	testObject.vRotation.z = 0.3f;
 	testObject.vPosition = SpeedPoint::SVector3(0, 3.0f, -6.0f);
 	if (Failure(testObject.Render()))
+	{
+		m_pEngine->LogE("Rendering failed. Stopping engine...");
 		Stop();
-
-
+	}
 
 
 }
