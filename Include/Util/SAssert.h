@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <cstdio> // for sprintf_s
+#include <iostream>
 
 #include "SResult.h"	// for ThrowException~ -Functions
 
@@ -196,3 +196,16 @@
 
 #undef assert_trace
 #define assert_trace SP_ASSERTD
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+static void OutputException(const char* msg, const char* func, const char* file, unsigned int ln)
+{	
+	std::cout << "Exception: " << msg << " @" << func << " (" << file << ", " << ln << ")" << std::endl;
+}
+
+#define exception(msg) \
+	do { OutputException(msg, __FUNCTION__, __FILE__, __LINE__); } while (0)

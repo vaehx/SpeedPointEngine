@@ -718,6 +718,8 @@ S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 	SP_ASSERTR(IS_VALID_PTR(pTex), S_INVALIDPARAM);
 
 	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
+	SP_ASSERTR(IS_VALID_PTR(pSRV), S_ERROR);
+
 	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
 
 	return S_SUCCESS;
@@ -874,13 +876,23 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 				FrameDump("Rebind Target Viewport for Forward rendering (previously bound deferred RTs)");
 				if (Failure(BindSingleFBO(m_pTargetViewport)))
 					return S_ERROR;
-			}
+			}		
 
-			// Render single forward pass directly to backbuffer			
+			// Render single forward pass directly to backbuffer						
 			if (IS_VALID_PTR(pDesc->material.textureMap))
-				BindTexture(pDesc->material.textureMap);
+				BindTexture(pDesc->material.textureMap, 0);
 			else
-				BindTexture((ITexture*)&m_DummyTexture);
+				BindTexture((ITexture*)&m_DummyTexture, 0);
+
+
+
+			// TODO: Disable Bumpmapping shader section if normalmap not a valid ptr!
+
+			if (IS_VALID_PTR(pDesc->material.normalMap))
+				BindTexture(pDesc->material.normalMap, 1);		
+
+
+
 
 			DrawForward(pDesc->drawCallDesc);
 		}

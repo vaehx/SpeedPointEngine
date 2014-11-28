@@ -13,7 +13,7 @@
 #include "DirectX11VertexBuffer.h"
 #include "DirectX11Effect.h"
 #include "DirectX11Texture.h"
-#include <Util\SPool.h>
+#include <Abstract\ChunkPool.h>
 
 SP_NMSPACE_BEG
 
@@ -23,81 +23,42 @@ struct S_API IGameEngine;
 // SpeedPoint DirectX11 Resource Pool
 class S_API DirectX11ResourcePool : public IResourcePool
 {
-public:
-	IGameEngine*		pEngine;
-	DirectX11Renderer*		pDXRenderer;
+private:
+	IGameEngine* m_pEngine;
+	DirectX11Renderer* m_pDXRenderer;
 
-	SPool<DirectX11IndexBuffer>	plIndexBuffers;
-	SPool<DirectX11VertexBuffer>	plVertexBuffers;
-	SPool<DirectX11Effect>		plShaders;
-	SPool<DirectX11Texture>		plTextures;
+	ChunkPool<DirectX11IndexBuffer>	m_plIndexBuffers;
+	ChunkPool<DirectX11VertexBuffer> m_plVertexBuffers;
+	ChunkPool<DirectX11Effect> m_plShaders;
+	ChunkPool<DirectX11Texture> m_plTextures;
 
-	// **************************************************************************
-	//				GENERAL
-	// **************************************************************************
+public:		
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer);
+	virtual SResult ClearAll();
 
-	// Initialize the Resource pool
-	SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer);
 
-	// **************************************************************************
-	//				VertexBuffer
-	// **************************************************************************
 
-	// Add a new VertexBuffer
-	SResult	AddVertexBuffer(IVertexBuffer** pVBuffer, SP_ID* pUID);
+	virtual SResult AddVertexBuffer(IVertexBuffer** pVBuffer);	
+	virtual SResult RemoveVertexBuffer(IVertexBuffer** pVB);
 
-	// Get a pointer to a VertexBuffer by id
-	IVertexBuffer* GetVertexBuffer(SP_ID iUID);
 
-	// Remove a VertexBuffer by id from the pool
-	SResult RemoveVertexBuffer(SP_ID iUID);
 
-	// **************************************************************************
-	//				IndexBuffer
-	// **************************************************************************
+	virtual SResult AddIndexBuffer(IIndexBuffer** pIBuffer);
+	virtual SResult RemoveIndexBuffer(IIndexBuffer** pIB);
 
-	// Add a new IndexBuffer
-	SResult	AddIndexBuffer(IIndexBuffer** pIBuffer, SP_ID* pUID);
 
-	// Get a pointer to a IndexBuffer by id
-	IIndexBuffer* GetIndexBuffer(SP_ID iUID);
 
-	// Remove a IndexBuffer by id from the pool
-	SResult RemoveIndexBuffer(SP_ID iUID);
 
-	// **************************************************************************
-	//				Texturing
-	// **************************************************************************
 
-	// Add a new Texture
-	SResult AddTexture(SString src, UINT w, UINT h, SString spec, ITexture** pTex, SP_ID* pUID);
+	virtual SResult LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTex);
+	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, S_TEXTURE_TYPE ty, ITexture** pTex);
 
-	SResult AddTexture(UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, ITexture** pTex, SP_ID* pUID);
+	// is case sensitive
+	virtual ITexture* GetTexture(const SString& spec);
+	virtual SString GetTextureSpecification(const ITexture* pTex) const;
 
-	// Get a Texture Instance by its id
-	ITexture* GetTexture(SP_ID iUID);
-
-	// Get a Texture Instance by its specification
-	ITexture* GetTexture(SString spec);
-
-	// Get Texture Specification
-	char* GetTextureSpecification(SP_ID iUID);
-
-	// Get Texture Unique ID by specification
-	SP_ID GetTextureUID(SString spec);
-
-	// Remove Texture
-	SResult RemoveTexture(SP_ID iUID);
-
-	// ForEach Texture
-	SResult ForEachTexture(void(*iterationFunc)(ITexture*, const SP_ID&));
-
-	// **************************************************************************
-	//				All
-	// **************************************************************************
-
-	// Clear all Pools
-	SResult	ClearAll(VOID);
+	virtual SResult RemoveTexture(ITexture** pTex);
+	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);	
 };
 
 

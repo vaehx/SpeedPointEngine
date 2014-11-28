@@ -323,7 +323,7 @@ namespace SpeedPoint
 		virtual SResult LogReport(const SResult& res, const SString& msg) = 0;
 		virtual SResult LogI(const SString& msg) = 0;
 		virtual SResult LogE(const SString& msg) = 0;
-		virtual SResult LogD(const SString& msg) = 0;
+		virtual SResult LogD(const SString& msg, SResultType defRetVal = S_DEBUG) = 0;
 		virtual void LogD(const SMatrix4& mtx, const SString& mtxname) = 0;
 		virtual void LogD(const SVector3& vec, const SString& vecname) = 0;
 		virtual void LogD(bool b, const SString& boolname) = 0;

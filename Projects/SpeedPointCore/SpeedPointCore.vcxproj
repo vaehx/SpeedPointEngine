@@ -109,8 +109,6 @@
     <ClInclude Include="..\..\Include\Util\SPoolIndex.h" />
     <ClInclude Include="..\..\Include\Util\SPrimitive.h" />
     <ClInclude Include="..\..\Include\Util\SQueue.h" />
-    <ClInclude Include="..\..\Include\Util\SResult.h" />
-    <ClInclude Include="..\..\Include\Util\SString.h" />
     <ClInclude Include="..\..\Include\Util\STransformable.h" />
     <ClInclude Include="..\..\Include\Util\SVector2.h" />
     <ClInclude Include="..\..\Include\Util\SVector3.h" />
@@ -136,7 +134,6 @@
     <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />
-    <ClCompile Include="..\..\Source\Util\SString.cpp" />
     <ClCompile Include="..\..\Source\Util\STransformable.cpp" />
   </ItemGroup>
   <ItemGroup>

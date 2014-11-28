@@ -309,17 +309,17 @@ S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& ms
 	char* cPrefix;
 	switch( m_pSettings->Get().render.tyRendererType )
 	{
-	case S_DIRECTX9: cPrefix = "[SpeedPoint:DX9]"; break;
-	case S_DIRECTX10: cPrefix = "[SpeedPoint:DX10]"; break;
-	case S_DIRECTX11: cPrefix = "[SpeedPoint:DX11]"; break;
-	case S_OPENGL: cPrefix = "[SpeedPoint:GL]"; break;
-	default: cPrefix = "[SpeedPoint:??]"; break;
+	case S_DIRECTX9: cPrefix = "[SpeedPoint:DX9] "; break;
+	case S_DIRECTX10: cPrefix = "[SpeedPoint:DX10] "; break;
+	case S_DIRECTX11: cPrefix = "[SpeedPoint:DX11] "; break;
+	case S_OPENGL: cPrefix = "[SpeedPoint:GL] "; break;
+	default: cPrefix = "[SpeedPoint:??] "; break;
 	}
 		
-	usint32 nActualMsgLen = msg.GetLength() + strlen(cPrefix) + 10;		
-	SString sActualMsg(nActualMsgLen);
+	//usint32 nActualMsgLen = msg.GetLength() + strlen(cPrefix) + 10;			
+	SString sActualMsg;
 		
-	sprintf_s((char*)sActualMsg, nActualMsgLen, "%s %s", cPrefix, (char*)msg);		
+	sActualMsg = cPrefix + msg;	
 
 	if (IS_VALID_PTR(m_pApplication))
 		m_pApplication->OnLogReport(res, sActualMsg);
@@ -331,7 +331,12 @@ S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& ms
 S_API SResult SpeedPointEngine::LogE(const SString& msg) { return LogReport(S_ERROR, msg); }
 S_API SResult SpeedPointEngine::LogW(const SString& msg) { return LogReport(S_WARN, msg); }
 S_API SResult SpeedPointEngine::LogI(const SString& msg) { return LogReport(S_INFO, msg); }
-S_API SResult SpeedPointEngine::LogD(const SString& msg) { return LogReport(S_DEBUG, msg); }
+S_API SResult SpeedPointEngine::LogD(const SString& msg, SResultType defRetVal /* = S_DEBUG */)
+{
+	LogReport(S_DEBUG, msg);
+	return defRetVal;
+}
+
 S_API void SpeedPointEngine::LogD(const SMatrix4& mtx, const SString& mtxname)
 {
 	LogD(SString("Dump matrix ") + mtxname);

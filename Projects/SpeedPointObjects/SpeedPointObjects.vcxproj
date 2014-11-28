@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\RawGeometrical.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationJoint.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationKey.cpp" />

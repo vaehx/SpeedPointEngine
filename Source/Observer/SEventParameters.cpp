@@ -32,7 +32,7 @@ namespace SpeedPoint
 
 	S_API SResult SEventParameters::Add(SEventParameterIndex index, SEventParameterType tType, void* pData)
 	{
-		unsigned int nIndexLength;
+		//unsigned int nIndexLength;
 
 		if (m_pParameters == 0 || m_nMaxParameters == 0)
 		{

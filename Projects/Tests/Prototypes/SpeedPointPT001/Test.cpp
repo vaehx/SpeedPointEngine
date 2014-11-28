@@ -69,8 +69,11 @@ void Test::OnInitGeometry()
 {	
 	// Load resources
 
-	SpeedPoint::ITexture* pTestTexture;
-	SpeedPoint::SResult res = m_pEngine->GetResources()->AddTexture("..\\..\\res\\tex04.bmp", 1024, 1024, "tex01", &pTestTexture, nullptr);
+	SpeedPoint::ITexture* pTestTextureMap;
+	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\brick.bmp", 768, 768, "tex01", &pTestTextureMap);
+
+	SpeedPoint::ITexture* pTestNormalMap;
+	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\brick_n.bmp", 768, 768, "tex01n", &pTestNormalMap);
 
 	// Add first geometry	
 
@@ -115,6 +118,14 @@ void Test::OnInitGeometry()
 	initialGeom.pVertices[22] = SpeedPoint::SVertex(-0.5f, 0.5f, 0.5f,	-1.0f, 0.0f, 0.0f,	0, 0, 0,		1.0f, 1.0f);
 	initialGeom.pVertices[23] = SpeedPoint::SVertex(-0.5f, 0.5f,-0.5f,	-1.0f, 0.0f, 0.0f,	0, 0, 0,		0.0f, 1.0f);
 
+	// calculate tangents
+	SpeedPoint::SVector3 upVec(0, 1.0f, 0);
+	for (unsigned int iVtx = 0; iVtx < 24; ++iVtx)
+	{
+		initialGeom.pVertices[iVtx].CalcTangent(upVec);
+	}
+
+
 	initialGeom.nVertices = 24;
 
 	// Top:
@@ -145,7 +156,8 @@ void Test::OnInitGeometry()
 	testObject.Init(m_pEngine, m_pEngine->GetRenderer(), &initialGeom);
 
 	SpeedPoint::Material& testObjMat = testObject.GetMaterial();
-	testObjMat.textureMap = pTestTexture;
+	testObjMat.textureMap = pTestTextureMap;
+	testObjMat.normalMap = pTestNormalMap;
 	m_pEngine->GetRenderer()->DumpFrameOnce();
 
 }

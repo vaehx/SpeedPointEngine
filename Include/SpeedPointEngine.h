@@ -152,7 +152,7 @@ public:
 	virtual SResult LogE(const SString& msg);
 	virtual SResult LogW(const SString& msg);
 	virtual SResult LogI(const SString& msg);
-	virtual SResult LogD(const SString& msg);
+	virtual SResult LogD(const SString& msg, SResultType defRetVal = S_DEBUG);
 	virtual void LogD(const SMatrix4& mtx, const SString& mtxname);
 	virtual void LogD(const SVector3& vec, const SString& vecname);
 	virtual void LogD(bool b, const SString& boolname);

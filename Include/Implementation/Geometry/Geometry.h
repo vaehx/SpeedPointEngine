@@ -32,8 +32,8 @@ class S_API Geometry : public IGeometry
 protected:
 	IRenderer* m_pRenderer;
 
-	SP_ID m_iIndexBuffer;
-	SP_ID m_iVertexBuffer;	
+	IIndexBuffer* m_pIndexBuffer;
+	IVertexBuffer* m_pVertexBuffer;	
 
 public:
 	Geometry();
@@ -46,10 +46,8 @@ public:
 		return m_pRenderer;
 	}
 
-	virtual IIndexBuffer* GetIndexBuffer() const;
-	virtual const SP_ID& GetIndexBufferResIndex() const { return m_iIndexBuffer; }
-	virtual IVertexBuffer* GetVertexBuffer() const;
-	virtual const SP_ID& GetVertexBufferResIndex() const { return m_iVertexBuffer; }
+	virtual IIndexBuffer* GetIndexBuffer();	
+	virtual IVertexBuffer* GetVertexBuffer();	
 	
 	virtual void Clear();
 };

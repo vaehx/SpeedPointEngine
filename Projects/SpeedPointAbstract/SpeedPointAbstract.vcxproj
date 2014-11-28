@@ -67,6 +67,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Abstract\ChunkPool.h" />
     <ClInclude Include="..\..\Include\Abstract\IDynamicsPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IAI.h" />
     <ClInclude Include="..\..\Include\Abstract\IAnimationBundle.h" />
@@ -109,7 +110,10 @@
     <ClInclude Include="..\..\Include\Abstract\IVertexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IViewport.h" />
     <ClInclude Include="..\..\Include\Abstract\MathGeom.h" />
+    <ClInclude Include="..\..\Include\SPrerequisites.h" />
     <ClInclude Include="..\..\Include\Util\Camera.h" />
+    <ClInclude Include="..\..\Include\Util\SResult.h" />
+    <ClInclude Include="..\..\Include\Util\SString.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

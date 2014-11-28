@@ -87,6 +87,23 @@ namespace SpeedPoint
 		{			
 		}
 
+		// Calculate Tangent vector from stored normal and given up vector
+		SVertex& CalcTangent(const SVector3& upVec)
+		{
+			SVector3 n(nx, ny, nz);
+
+			// make sure that normal does not equal the up-Vec
+			float nDotU = SVector3Dot(upVec, n);
+			if (nDotU > 0.99f)
+				n = SVector3(n.y, n.z, n.x);	// arbitrary shift
+
+			SVector3 t = SVector3Cross(SVector3Normalize(n), SVector3Normalize(upVec));
+			tangent.x = t.x;
+			tangent.y = t.y;
+			tangent.z = t.z;
+			return *this;
+		}
+
 		// Get the binormal of this Vertex
 		SXYZ GetBinormal()
 		{

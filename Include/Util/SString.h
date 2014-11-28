@@ -15,8 +15,14 @@
 #include "SAssert.h"
 #include <cstring>
 
+#ifndef ILINE
+#define ILINE inline
+#endif
+
+
 namespace SpeedPoint
 {
+
 	//!!!!!!!!!!!!!!!!!!!!!!
 	//!!
 	//!! WARNING: SString must NOT use Assertions as the Assertions use SString itself!
@@ -46,17 +52,6 @@ namespace SpeedPoint
 			CopyFromOther(s);
 		}
 
-		// intialize with size
-		SString(unsigned int size)
-		{
-			if (size <= 1)
-				size = 2;
-
-			pBuffer = new char[size];
-			nLength = size;
-			memset(pBuffer, 0, nLength);
-		}
-
 		// assignment, copies data
 		SString(const char* str)
 		{
@@ -81,12 +76,18 @@ namespace SpeedPoint
 			return nLength;
 		}
 
+		// returns true if string buffer is set and not empty
+		inline bool IsValidString() const
+		{
+			return pBuffer != 0 && nLength > 1;
+		}
+
 		// Get the length of a char* buffer without terminated 0
 		static unsigned int GetCharArrLen(const char* str)
 		{
 			if (!str)
 			{
-				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
+				exception("Given char buffer is empty!");
 
 				return 0;
 			}
@@ -102,7 +103,7 @@ namespace SpeedPoint
 			} while (nCurrentLen <= nMaxLen); // catch endless loop
 
 			if (nCurrentLen > nMaxLen)
-				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Char buf length exceeded 2 MB");
+				exception("Char buf length exceeded 2 MB");
 
 			return nCurrentLen;
 		}
@@ -111,10 +112,10 @@ namespace SpeedPoint
 		// size is with terminated 0
 		// returns cound of bytes copied (including terminated 0)
 		static unsigned int CopyCharS(char* Dst, unsigned int nSize, const char* Src, ...)
-		{			
+		{
 			if (!Dst || !nSize || !Src)
 			{
-				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given parameters are invalid!");
+				exception("Given parameters are invalid!");
 
 				return 0;
 			}
@@ -138,10 +139,10 @@ namespace SpeedPoint
 		// Catch CopyCharS with no given Source argument
 		// returns 0 as nothing has been copied (not even a terminated 0)
 		static unsigned int CopyCharS(char* Dst, unsigned int nSize, ...)
-		{		
+		{
 			if (!Dst || !nSize)
 			{
-				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given parameters are invalid!");
+				exception("Given parameters are invalid!");
 
 				return 0;
 			}
@@ -156,9 +157,9 @@ namespace SpeedPoint
 		{
 			if (!str)
 			{
-				SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Given char buffer is empty!");
+				exception("Given char buffer is empty!");
 				return;
-			}			
+			}
 
 			unsigned int nLen = GetCharArrLen(str);
 			nLength = nLen;
@@ -196,7 +197,7 @@ namespace SpeedPoint
 		operator char*() const
 		{
 			return pBuffer;
-		}		
+		}
 
 		// Concatenates strings
 		SString operator + (const SString& s) const
@@ -253,7 +254,7 @@ namespace SpeedPoint
 			nLength += s.GetLength();
 			return *this;
 		}
-	};	 
+	};
 
 	// check if string buffer pointer againt integer	
 	inline bool operator == (const SString& sa, const int& i)
@@ -282,11 +283,68 @@ namespace SpeedPoint
 
 		if (i > nMaxLen)
 		{
-			SResult::ThrowExceptionAssertion(__FUNCTION__, __LINE__, __FILE__, "Exceeded 2MB data to compare!");
+			exception("Exceeded 2MB data to compare!");
 
 			return false;
 		}
 
 		return true;
 	}
+
+	inline SString operator + (const char* l, const SString& r)
+	{
+		return SString(l) + r;
+	}
+
+
+
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////
+	// String comparison functions.
+	// Note: Have to be external functions and not an operator because there would
+	// otherwise be multiple possible comparison operators. (Because of SString constructor from const char* -Parameter
+
+
+	// Case sensitive compare. To compare ci, use StrCompCI()
+	ILINE static bool StrCmp(const SString& l, const char* r)
+	{
+		const char* pBuffer = (char*)l;
+		if (r == pBuffer)
+			return true;
+
+		unsigned int i = 0;
+		unsigned int nMaxLen = 2097152; // 2MB
+		do
+		{
+			if (pBuffer[i] != r[i]) return false;
+			if (pBuffer[i] == 0) return true;
+
+			++i;
+		} while (i < nMaxLen);
+		return false;
+	}
+
+
+	// case insensitive compare. To compare cs, use l == r
+	ILINE static bool StrCmpCI(const SString& l, const char* r)
+	{
+		const char* pBuffer = (char*)l;
+		if (r == pBuffer)
+			return true;
+
+		unsigned int i = 0;
+		unsigned int nMaxLen = 2097152; // 2MB
+		do
+		{
+			if (tolower(pBuffer[i]) != tolower(r[i])) return false;
+			if (pBuffer[i] == 0) return true;
+
+			++i;
+		} while (i < nMaxLen);
+		return false;
+	}
+
+
+
 }

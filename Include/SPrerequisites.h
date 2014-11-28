@@ -22,6 +22,8 @@
 #define SP_NMSPACE_BEG namespace SpeedPoint {
 #define SP_NMSPACE_END }
 
+#define ILINE inline
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Important core headers.
 
@@ -86,8 +88,6 @@
 
 SP_NMSPACE_BEG
 
-#define ILINE inline
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Basic datatypes
@@ -102,6 +102,8 @@ typedef double f64; // 64bit (double-)precision float value
 // SpeedPoint unique identifier index (unsigned)
 typedef usint32 SP_UNIQUE;
 
+#define MAX_UINT32 0xffffffffui32
+//#define MAX_UINT64 0xffffffffffffffff
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Some math utility functions
@@ -115,6 +117,26 @@ static inline double cot(float val) { return (1.0f / tan((double)val)); }
 #define SP_UNIT_RAD_DEG 57.29577951308232f
 #define SP_DEG_TO_RAD(deg) deg * SP_UNIT_DEG_RAD
 #define SP_RAD_TO_DEG(rad) rad * SP_UNIT_RAD_DEG
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum S_API EForEachHandlerState
+{
+	FOREACH_CONTINUE = 0,
+	FOREACH_BREAK = 1,
+	FOREACH_ABORT_ERR = 2
+};
+
+template<typename T>
+struct S_API IForEachHandler
+{
+public:
+	ILINE virtual EForEachHandlerState Handle(const T* t, void* pCustomData = nullptr) = 0;	
+};
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 /*

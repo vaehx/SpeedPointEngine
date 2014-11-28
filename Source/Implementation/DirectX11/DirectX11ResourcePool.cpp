@@ -31,8 +31,8 @@ S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* ren
 {
 	if (eng == NULL || renderer == NULL) return S_ABORTED;
 
-	pEngine = eng;
-	pDXRenderer = (DirectX11Renderer*)renderer;
+	m_pEngine = eng;
+	m_pDXRenderer = (DirectX11Renderer*)renderer;
 
 	return S_SUCCESS;
 }
@@ -43,20 +43,21 @@ S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* ren
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer, SP_ID* pUID)
+S_API SResult DirectX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
 {
-	if (pEngine == NULL) return S_ABORTED;
+	if (m_pEngine == NULL) return S_ABORTED;
 
-	if (pDXRenderer == NULL)
-		return pEngine->LogReport(S_ABORTED, "Cannot add Vertex Buffer Resource: Renderer not initialized!");
+	if (m_pDXRenderer == NULL)
+		return m_pEngine->LogReport(S_ABORTED, "Cannot add Vertex Buffer Resource: Renderer not initialized!");
 
-	DirectX11VertexBuffer dxVertexBuffer;
 	DirectX11VertexBuffer* pdxVertexBuffer;
 
-	if (NULL == (pdxVertexBuffer = plVertexBuffers.AddItem(dxVertexBuffer, pUID)))
+	if (Failure(m_plVertexBuffers.AddItem(&pdxVertexBuffer)))
 		return S_ERROR;
 
-	if (pVBuffer != NULL)
+	SP_ASSERTR(IS_VALID_PTR(pdxVertexBuffer), S_ERROR);
+
+	if (IS_VALID_PTR(pVBuffer))
 		*pVBuffer = (IVertexBuffer*)pdxVertexBuffer;
 
 	return S_SUCCESS;
@@ -64,26 +65,14 @@ S_API SResult DirectX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer, S
 
 // **********************************************************************************
 
-S_API IVertexBuffer* DirectX11ResourcePool::GetVertexBuffer(SP_ID iUID)
+S_API SResult DirectX11ResourcePool::RemoveVertexBuffer(IVertexBuffer** pVB)
 {
-	if (pEngine == NULL) return NULL;
+	SP_ASSERTR(IS_VALID_PTR(pVB), S_INVALIDPARAM);
 
-	DirectX11VertexBuffer* pdxVertexBuffer = plVertexBuffers.GetItemByUID(iUID);
+	if (IS_VALID_PTR(*pVB))
+		(*pVB)->Clear();
 
-	return (IVertexBuffer*)pdxVertexBuffer;
-}
-
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::RemoveVertexBuffer(SP_ID iUID)
-{
-	DirectX11VertexBuffer* pDXVB = plVertexBuffers.GetItemByUID(iUID);
-	if (IS_VALID_PTR(pDXVB))
-		pDXVB->Clear();
-
-	plVertexBuffers.DeleteItem(iUID);
-
-	return S_SUCCESS;
+	return m_plVertexBuffers.Delete((DirectX11VertexBuffer**)pVB);		
 }
 
 // **************************************************************************
@@ -92,19 +81,18 @@ S_API SResult DirectX11ResourcePool::RemoveVertexBuffer(SP_ID iUID)
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer, SP_ID* pUID)
+S_API SResult DirectX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer)
 {
-	if (pEngine == NULL) return S_ABORTED;
-
-	DirectX11IndexBuffer dxIndexBuffer;
+	if (m_pEngine == NULL) return S_ABORTED;
+	
 	DirectX11IndexBuffer* pdxIndexBuffer;
 
-	if (NULL == (pdxIndexBuffer = plIndexBuffers.AddItem(dxIndexBuffer, pUID)))
-	{
+	if (Failure(m_plIndexBuffers.AddItem(&pdxIndexBuffer)))
 		return S_ERROR;
-	}
 
-	if (pIBuffer != NULL)
+	SP_ASSERTR(IS_VALID_PTR(pdxIndexBuffer), S_ERROR);
+
+	if (IS_VALID_PTR(pIBuffer))
 		*pIBuffer = (IIndexBuffer*)pdxIndexBuffer;
 
 	return S_SUCCESS;
@@ -112,26 +100,14 @@ S_API SResult DirectX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer, SP_
 
 // **********************************************************************************
 
-S_API IIndexBuffer* DirectX11ResourcePool::GetIndexBuffer(SP_ID iUID)
+S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 {
-	if (pDXRenderer == NULL || plIndexBuffers.GetSize() == 0) return NULL;
+	SP_ASSERTR(IS_VALID_PTR(pIB), S_INVALIDPARAM);
 
-	DirectX11IndexBuffer* pdxIndexBuffer = plIndexBuffers.GetItemByUID(iUID);
+	if (IS_VALID_PTR(*pIB))
+		(*pIB)->Clear();
 
-	return (IIndexBuffer*)pdxIndexBuffer;
-}
-
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(SP_ID iUID)
-{
-	if (pDXRenderer == NULL || plIndexBuffers.GetSize() == 0) return S_ABORTED;
-
-	DirectX11IndexBuffer* pDXIB = plIndexBuffers.GetItemByUID(iUID);
-	if (IS_VALID_PTR(pDXIB))
-		pDXIB->Clear();
-
-	plIndexBuffers.DeleteItem(iUID);
+	m_plIndexBuffers.Delete((DirectX11IndexBuffer**)pIB);
 
 	return S_SUCCESS;
 }
@@ -142,22 +118,26 @@ S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(SP_ID iUID)
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddTexture(SString src, UINT w, UINT h, SString spec, ITexture** pTexture, SP_ID* pUID)
-{
-	if (pDXRenderer == NULL || (char*)src == NULL || w <= 64 || h <= 64 || (char*)spec == NULL)
-	{
-		return S_ABORTED;
-	}
+S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTexture)
+{	
+	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
+		"Cannot load Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
 
-	DirectX11Texture dxTexture;
+	if (w <= 64 || h <= 64)
+		return m_pEngine->LogD("Cannot load textures with width or height < 64", S_ERROR);	
+
+	if (!src.IsValidString())
+		return m_pEngine->LogE("Invalid texture src specified: " + src);
+
+	if (!spec.IsValidString())
+		m_pEngine->LogW("Invalid or no specification for loaded texture (" + src + ")!");	
+
 	DirectX11Texture* pdxTexture;
 
-	if (NULL == (pdxTexture = plTextures.AddItem(dxTexture, pUID)))
-	{
-		return S_ERROR;
-	}
+	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
+		return m_pEngine->LogE("Failed add texture (" + src + ")");
 
-	if (Failure(pdxTexture->Initialize(pEngine, spec, false)))
+	if (Failure(pdxTexture->Initialize(m_pEngine, spec, false)))
 	{
 		return S_ERROR;
 	}
@@ -167,28 +147,33 @@ S_API SResult DirectX11ResourcePool::AddTexture(SString src, UINT w, UINT h, SSt
 		return S_ERROR;
 	}
 
-	if (pTexture != NULL) *pTexture = (ITexture*)pdxTexture;
+	m_pEngine->LogD("Loaded Texture " + src + ", spec: '" + spec + "'");
+
+	if (pTexture != NULL)
+		*pTexture = (ITexture*)pdxTexture;
 
 	return S_SUCCESS;
 }
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, SString spec, S_TEXTURE_TYPE ty, ITexture** pTexture, SP_ID* pUID)
+S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, S_TEXTURE_TYPE ty, ITexture** pTexture)
 {
-	if (pDXRenderer == NULL || w <= 0 || h <= 0 || (char*)spec == 0)
-	{
-		return S_ABORTED;
-	}
+	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
+		"Cannot add Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
+
+	if (w <= 64 || h <= 64)
+		return m_pEngine->LogD("Tried add texture with width or height < 64", S_ERROR);
+
+	if (!spec.IsValidString())
+		m_pEngine->LogW("Invalid or no specification for new texture!");
 
 	DirectX11Texture* pdxTexture;
 
-	if (NULL == (pdxTexture = plTextures.AddItem(DirectX11Texture(), pUID)))
-	{
-		return S_ERROR;
-	}
+	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
+		return m_pEngine->LogE("Failed add texture (" + spec + ")");
 
-	if (Failure(pdxTexture->Initialize(pEngine, spec, true)))
+	if (Failure(pdxTexture->Initialize(m_pEngine, spec, false)))
 	{
 		return S_ERROR;
 	}
@@ -198,132 +183,84 @@ S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, SString spec, S_
 		return S_ERROR;
 	}
 
-	if (pTexture != NULL) *pTexture = (ITexture*)pdxTexture;
+	m_pEngine->LogD("Added Texture " + spec + "'");
+
+	if (pTexture != NULL)
+		*pTexture = (ITexture*)pdxTexture;
 
 	return S_SUCCESS;
 }
 
 // **********************************************************************************
 
-S_API ITexture* DirectX11ResourcePool::GetTexture(SP_ID iUID)
+S_API ITexture* DirectX11ResourcePool::GetTexture(const SString& spec)
 {
-	if (pDXRenderer == NULL || plTextures.GetSize() <= 0) return NULL;
+	if (!IS_VALID_PTR(m_pDXRenderer) || !m_plTextures.HasElements())
+		return nullptr;
 
-	DirectX11Texture* pdxTexture = plTextures.GetItemByUID(iUID);
-
-	return (ITexture*)pdxTexture;
+	DirectX11Texture* pDXTexture = m_plTextures.GetBySpecification(spec);
+	return (ITexture*)pDXTexture;
 }
 
 // **********************************************************************************
 
-S_API ITexture* DirectX11ResourcePool::GetTexture(SString spec)
-{
-	if (pDXRenderer == NULL || plTextures.GetSize() <= 0) return NULL;
-
-	DirectX11Texture* pdxTexture = NULL;
-
-	UINT iItems = (UINT)plTextures.GetSize();
-	for (UINT iItem = 0; iItem < iItems; ++iItem)
-	{
-		DirectX11Texture* pdxTempTexture = plTextures.GetItemByIndirectionIndex(iItem);
-		if (pdxTempTexture->GetSpecification() == spec)
-		{
-			pdxTexture = pdxTempTexture;
-			break;
-		}
-	}
-
-	return (ITexture*)pdxTexture;
-}
-
-// **********************************************************************************
-
-S_API char* DirectX11ResourcePool::GetTextureSpecification(SP_ID iUID)
+S_API SString DirectX11ResourcePool::GetTextureSpecification(const ITexture* pTexture) const
 {
 	char* pRes = new char[1]; pRes[0] = 0;
 
-	if (pDXRenderer == NULL || plTextures.GetSize() <= 0)
-	{
-		return pRes;
-	}
+	if (m_plTextures.GetUsedSlotCount() <= 0)
+		return "???";
 
-	// Get the texture
-	DirectX11Texture* pdxTexture = plTextures.GetItemByUID(iUID);
+	DirectX11Texture* pDXTex = (DirectX11Texture*)pTexture;	// probably does reinterpret_cast ??
+	auto pSlot = m_plTextures.GetSlot(pDXTex);
+	if (!IS_VALID_PTR(pSlot))
+		return "???";
 
-	if (pdxTexture == NULL)
-	{
-		return pRes;
-	}
-
-	SString sSpec = pdxTexture->GetSpecification();
-	if (sSpec == 0 || sSpec.GetLength() == 0) return pRes;
-
-	delete[] pRes;
-	pRes = new char[sSpec.GetLength()];
-	strcpy_s(pRes, sSpec.GetLength(), sSpec);
-	return pRes;
+	return SString(pSlot->specification);
 }
 
 // **********************************************************************************
 
-S_API SP_ID DirectX11ResourcePool::GetTextureUID(SString spec)
+S_API SResult DirectX11ResourcePool::RemoveTexture(ITexture** pTexture)
 {
-	if (pDXRenderer == NULL || plTextures.GetSize() <= 0) return SP_ID();
+	if (!IS_VALID_PTR(pTexture))
+		return S_INVALIDPARAM;
 
-	SPool<DirectX11Texture>::SPoolObject* pDXPoolObject = NULL;
+	DirectX11Texture** pDXTexture = (DirectX11Texture**)pTexture;
+	return m_plTextures.Delete(pDXTexture);
+}
 
-	UINT iItems = (UINT)plTextures.GetSize();
-	for (UINT iItem = 0; iItem < iItems; ++iItem)
+// **********************************************************************************
+
+S_API SResult DirectX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler)
+{
+	if (!IS_VALID_PTR(pForEachHandler))
+		return S_INVALIDPARAM;
+
+	// need to wrap ForEach() function of ChunkPool here, because we cannot implicitly convert
+	// from DirectX11Texture* to ITexture*
+	if (m_plTextures.GetUsedSlotCount() == 0)
+		return S_SUCCESS;
+
+	auto pChunks = m_plTextures.GetChunks();
+	unsigned int nChunks = m_plTextures.GetChunkCount();
+	for (unsigned int iChnk = 0; iChnk < nChunks; ++iChnk)
 	{
-		DirectX11Texture* pdxTempTexture = plTextures.GetItemByIndirectionIndex(iItem);
-		if (pdxTempTexture->GetSpecification() == spec)
+		auto pChnk = pChunks[iChnk];
+		if (pChnk->nUsedSlots == 0) continue;
+
+		for (unsigned int iSlot = 0; iSlot < pChnk->nSlots; ++iSlot)
 		{
-			pDXPoolObject = plTextures.GetPoolObjectByIndirectionIndex(iItem);
-			break;
+			ChunkSlot<DirectX11Texture>* pSlot = &pChnk->pSlots[iSlot];
+			if (!pSlot->bUsed) continue;
+			
+			ITexture* pTex = (ITexture*)&pSlot->instance;
+			EForEachHandlerState state = pForEachHandler->Handle(&pTex);
+			if (state == FOREACH_ABORT_ERR)
+				return S_ERROR;
+			else if (state == FOREACH_BREAK)
+				return S_SUCCESS;
 		}
-	}
-
-	if (pDXPoolObject == NULL) return SP_ID();
-
-	SP_ID iRes;
-	iRes.iIndex = pDXPoolObject->iIndirectionIndex;
-	iRes.iVersion = pDXPoolObject->iVersion;
-
-	return iRes;
-}
-
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::RemoveTexture(SP_ID iUID)
-{
-	if (pDXRenderer == NULL || plTextures.GetSize() <= 0) return S_ABORTED;
-
-	DirectX11Texture* pDXTex = plTextures.GetItemByUID(iUID);
-	if (IS_VALID_PTR(pDXTex))
-		pDXTex->Clear();
-
-	plTextures.DeleteItem(iUID);
-
-	return S_SUCCESS;
-}
-
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::ForEachTexture(void(*pIterationFunc)(ITexture*, const SP_ID&))
-{
-	if (pDXRenderer == NULL || plTextures.GetSize() <= 0) return S_ABORTED;
-
-	UINT iItems = (UINT)plTextures.GetSize();
-	for (UINT iItem = 0; iItem < iItems; ++iItem)
-	{
-		SPool<DirectX11Texture>::SPoolObject* pDXPoolObject
-			= plTextures.GetPoolObjectByIndirectionIndex(iItem);
-
-		SP_ID iCurrent;
-		iCurrent.iIndex = pDXPoolObject->iIndirectionIndex;
-		iCurrent.iVersion = pDXPoolObject->iVersion;
-
-		pIterationFunc((ITexture*)&pDXPoolObject->tInstance, iCurrent);
 	}
 
 	return S_SUCCESS;
@@ -340,56 +277,14 @@ S_API SResult DirectX11ResourcePool::ClearAll(VOID)
 {
 	SResult res = S_SUCCESS;
 
-	// Clear Index Buffers
-	for (UINT iIndexBuffer = 0; iIndexBuffer < (UINT)plIndexBuffers.GetUsageSize(); iIndexBuffer++)
-	{
-		DirectX11IndexBuffer* pDXIndexBuffer = plIndexBuffers.GetItemByIndirectionIndex(iIndexBuffer);
-		if (pDXIndexBuffer == NULL)
-		{
-			res = S_ERROR;
-			continue;
-		}
+	// Destructors of instances are called by the pool when the slot buffer is destroyed
+	m_plVertexBuffers.Clear();
+	m_plIndexBuffers.Clear();
+	//m_plShaders.Clear();
+	m_plTextures.Clear();	
 
-		if (Failure(pDXIndexBuffer->Clear()))
-			res = S_ERROR;
-	}
-
-	plIndexBuffers.Clear();
-
-	// Clear Vertex Buffers
-	for (UINT iVertexBuffer = 0; iVertexBuffer < (UINT)plVertexBuffers.GetUsageSize(); iVertexBuffer++)
-	{
-		DirectX11VertexBuffer* pDXVertexBuffer = plVertexBuffers.GetItemByIndirectionIndex(iVertexBuffer);
-		if (pDXVertexBuffer == NULL)
-		{
-			res = S_ERROR;
-			continue;
-		}
-
-		if (Failure(pDXVertexBuffer->Clear()))
-			res = S_ERROR;
-	}
-
-	plVertexBuffers.Clear();
-
-	// Clear textures
-	for (UINT iTexture = 0; iTexture < (UINT)plTextures.GetUsageSize(); iTexture++)
-	{
-		DirectX11Texture* pDXTexture = plTextures.GetItemByIndirectionIndex(iTexture);
-		if (pDXTexture == NULL)
-		{
-			res = S_ERROR;
-			continue;
-		}
-
-		if (Failure(pDXTexture->Clear()))
-			res = S_ERROR;
-	}
-
-	plTextures.Clear();
-
-	pEngine = NULL;
-	pDXRenderer = NULL;
+	m_pEngine = NULL;
+	m_pDXRenderer = NULL;
 
 	return res;
 }

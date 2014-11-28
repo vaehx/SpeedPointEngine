@@ -125,6 +125,8 @@ namespace SpeedPoint
 			return Failure(result);
 		}
 
+		operator SResultType() const { return result; }
+
 		// WARNING: out needs to be initialized with a minimum of 16 chars when passed to this function!
 		static void GetResultTypeDesc(const SResultType& type, char* out)
 		{

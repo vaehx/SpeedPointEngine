@@ -17,9 +17,16 @@ cbuffer ObjectCB : register(cb1)
 }
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
+Texture2D normalMap : register(t1);
 SamplerState TextureMapSampler
 {
     Filter = MIN_MAG_MIP_POINT;
+    AddressU = WRAP;
+    AddressV = WRAP;
+};
+SamplerState NormalMapSampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
     AddressU = WRAP;
     AddressV = WRAP;
 };
@@ -30,6 +37,7 @@ struct VS_INPUT
 {
     float4 Position : POSITION;
     float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
     float2 TexCoord : TEXCOORD0;
 };
 
@@ -38,7 +46,8 @@ struct VS_OUTPUT
     float4 Position : SV_Position;
     float3 WorldPos : TEXCOORD0;
     float3 Normal : TEXCOORD1;
-    float2 TexCoord : TEXCOORD2;
+    float3 Tangent : TEXCOORD2;    
+    float2 TexCoord : TEXCOORD3;
 };
 
 VS_OUTPUT VS_forward(VS_INPUT IN)
@@ -57,7 +66,8 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
     float4 sPos = mul(mtxView, wPos);
     float4 rPos = mul(mtxProjection, sPos);
     OUT.Position = rPos;
-    OUT.Normal = mul(mtxWorld, float4(normal,0.0f)).xyz;         
+    OUT.Normal = mul(mtxWorld, float4(normal,0.0f)).xyz;
+    OUT.Tangent = mul(mtxWorld, float4(IN.Tangent, 0.0f)).xyz;         
     OUT.TexCoord = IN.TexCoord;
     
     return OUT;
@@ -69,8 +79,9 @@ struct PS_INPUT
 {
     float4 Position : SV_Position;
     float3 WorldPos : TEXCOORD0;
-    float3 Normal : TEXCOORD1;    
-    float2 TexCoord : TEXCOORD2;
+    float3 Normal : TEXCOORD1;
+    float3 Tangent : TEXCOORD2;    
+    float2 TexCoord : TEXCOORD3;
 };
 
 struct PS_OUTPUT
@@ -126,6 +137,20 @@ float calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness,
 PS_OUTPUT PS_forward(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
+    
+    // calc binormal. Everything in World space!
+    float3 normal = IN.Normal;
+    float3 tangent = IN.Tangent;
+    float3 binormal = cross(normal, tangent);                 
+    
+    // Calculate Tangent to World Space Rotation Matrix
+    float3x3 matWT = float3x3(tangent, binormal, normal);
+    float3x3 matTW = transpose(matWT);
+    
+    // Sample normal change in tangent space from NormalMap
+    float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord);
+    
+    
     
     // Get texture map color
     float4 texColor = textureMap.Sample(TextureMapSampler, IN.TexCoord);

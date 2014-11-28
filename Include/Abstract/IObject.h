@@ -40,6 +40,7 @@ struct S_API SInitialGeometryDesc;
 struct S_API Material
 {
 	ITexture* textureMap;	// aggregation, color for full unlit roughness
+	ITexture* normalMap;
 	ITexture* ambientOcclusionMap;
 	float emissive;
 
@@ -49,6 +50,7 @@ struct S_API Material
 
 	Material()
 		: textureMap(nullptr),
+		normalMap(nullptr),
 		ambientOcclusionMap(nullptr),
 		emissive(0.0f),
 		glossinessMap(nullptr),
@@ -59,6 +61,7 @@ struct S_API Material
 
 	Material(const Material& m)
 		: textureMap(m.textureMap),
+		normalMap(m.normalMap),
 		ambientOcclusionMap(m.ambientOcclusionMap),
 		emissive(m.emissive),
 		glossinessMap(m.glossinessMap),

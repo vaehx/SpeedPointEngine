@@ -107,10 +107,8 @@ struct S_API IGeometry
 	
 	virtual IRenderer* GetRenderer() = 0;
 
-	virtual IIndexBuffer* GetIndexBuffer() const = 0;
-	virtual const SP_ID& GetIndexBufferResIndex() const = 0;
-	virtual IVertexBuffer* GetVertexBuffer() const = 0;
-	virtual const SP_ID& GetVertexBufferResIndex() const = 0;
+	virtual IIndexBuffer* GetIndexBuffer() = 0;	
+	virtual IVertexBuffer* GetVertexBuffer() = 0;
 
 	virtual void Clear() = 0;
 };

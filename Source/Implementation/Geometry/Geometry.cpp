@@ -3,7 +3,7 @@
 // This file is part of the SpeedPointEngine
 // Copyright (c) 2011-2014, iSmokiieZz
 // ------------------------------------------------------------------------------
-// Filename:	RawGeometrical.cpp
+// Filename:	Geometry.cpp
 // Created:	8/18/2014 by iSmokiieZz
 // Description:
 // -------------------------------------------------------------------------------
@@ -38,13 +38,10 @@ S_API void Geometry::Clear()
 {	
 	if (IS_VALID_PTR(m_pRenderer))
 	{
-		m_pRenderer->GetResourcePool()->RemoveIndexBuffer(m_iIndexBuffer);
-		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(m_iVertexBuffer);
+		m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pIndexBuffer);
+		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(&m_pVertexBuffer);
 		m_pRenderer = nullptr;
 	}	
-
-	m_iIndexBuffer = SP_ID();
-	m_iVertexBuffer = SP_ID();
 
 	/*
 	if (IS_VALID_PTR(m_pMaterial))
@@ -61,29 +58,27 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 
 	assert(pRenderer);
 	m_pRenderer = pRenderer;
-
-	IVertexBuffer* pVB;
-	IIndexBuffer* pIB;
-	if (Failure(pRenderer->GetResourcePool()->AddVertexBuffer(&pVB, &m_iVertexBuffer)))
+	
+	if (Failure(pRenderer->GetResourcePool()->AddVertexBuffer(&m_pVertexBuffer)) ||
+		Failure(pRenderer->GetResourcePool()->AddIndexBuffer(&m_pIndexBuffer)))
+	{
 		return S_ERROR;
-
-	if (Failure(pRenderer->GetResourcePool()->AddIndexBuffer(&pIB, &m_iIndexBuffer)))
-		return S_ERROR;
+	}
 
 	// Init and fill pVB with initial geometry if given
-	if (Failure(pVB->Initialize(pEngine, pRenderer, eVBUSAGE_STATIC, 0)))
+	if (Failure(m_pVertexBuffer->Initialize(pEngine, pRenderer, eVBUSAGE_STATIC, 0)) ||
+		Failure(m_pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0)))
+	{
 		return S_ERROR;
-
-	if (Failure(pIB->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0)))
-		return S_ERROR;
+	}	
 
 
 	if (IS_VALID_PTR(pInitialGeom))
 	{
-		if (Failure(pVB->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices, false)))
+		if (Failure(m_pVertexBuffer->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices, false)))
 			return S_ERROR;
 
-		if (Failure(pIB->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false)))
+		if (Failure(m_pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false)))
 			return S_ERROR;
 	}
 
@@ -92,21 +87,15 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 }
 
 // ----------------------------------------------------------------------------------------
-S_API IIndexBuffer* Geometry::GetIndexBuffer() const
+S_API IIndexBuffer* Geometry::GetIndexBuffer()
 {
-	if (!IS_VALID_PTR(m_pRenderer))
-		return nullptr;
-
-	return m_pRenderer->GetResourcePool()->GetIndexBuffer(m_iIndexBuffer);
+	return m_pIndexBuffer;
 }
 
 // ----------------------------------------------------------------------------------------
-S_API IVertexBuffer* Geometry::GetVertexBuffer() const
+S_API IVertexBuffer* Geometry::GetVertexBuffer()
 {
-	if (!IS_VALID_PTR(m_pRenderer))
-		return nullptr;
-
-	return m_pRenderer->GetResourcePool()->GetVertexBuffer(m_iVertexBuffer);
+	return m_pVertexBuffer;
 }
 
 

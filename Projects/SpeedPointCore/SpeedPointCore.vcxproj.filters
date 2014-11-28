@@ -122,12 +122,6 @@
     <ClInclude Include="..\..\Include\Util\SPrimitive.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SResult.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SString.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\STransformable.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -212,9 +206,6 @@
       <Filter>Sources\Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Util\SBoundBox.cpp">
-      <Filter>Sources\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Util\SString.cpp">
       <Filter>Sources\Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Lighting\SLight.cpp">

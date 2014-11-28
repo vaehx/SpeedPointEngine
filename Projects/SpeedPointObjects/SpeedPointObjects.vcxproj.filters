@@ -29,13 +29,13 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\RawGeometrical.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\StaticObject.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\Terrain.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
