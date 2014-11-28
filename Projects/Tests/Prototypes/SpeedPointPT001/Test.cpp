@@ -182,7 +182,7 @@ void Test::Render()
 
 	testObject.vRotation += SpeedPoint::SVector3(0.02f, 0.03f, 0.01f);
 	testObject.vRotation.z = 0.3f;
-	testObject.vPosition = SpeedPoint::SVector3(0, 3.0f, -6.0f);
+	testObject.vPosition = SpeedPoint::SVector3(0, 3.0f, -8.0f);
 	if (Failure(testObject.Render()))
 	{
 		m_pEngine->LogE("Rendering failed. Stopping engine...");

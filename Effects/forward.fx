@@ -138,6 +138,8 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
     
+    
+    
     // calc binormal. Everything in World space!
     float3 normal = IN.Normal;
     float3 tangent = IN.Tangent;
@@ -149,6 +151,9 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     
     // Sample normal change in tangent space from NormalMap
     float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord);
+    float3 bumpNormal = mul(matTW, sampledNormal);    
+    
+    normal = bumpNormal;
     
     
     
@@ -157,12 +162,12 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     
     // Surface constants
     float glossiness = 0.0f;
-    float roughness = 0.3f;       
+    float roughness = 0.6f;       
     
     // Calculate lighting factor. Using a fixed light dir and eye pos for now
     float3 eyePos = float3(0, 5.0f, -10.0f);
     float3 lightDir = normalize(float3(1.0f, -1.0f, 0.4f));        
-    float phong = calc_phong(normalize(IN.Normal), -lightDir, normalize(eyePos - IN.WorldPos), roughness, 1.0f);  
+    float phong = calc_phong(normalize(normal), -lightDir, normalize(eyePos - IN.WorldPos), roughness, 1.0f);  
     
     // Global illumination "Ambient" fake
     float ambient = 0.3f;
