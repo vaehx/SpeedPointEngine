@@ -16,6 +16,7 @@
 #include "Abstract\IGameEngine.h"
 #include "Abstract\IResourcePool.h"
 #include "Abstract\IRenderer.h"
+#include <fstream>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,15 +34,15 @@ struct S_API IRenderer;
 class S_API EngineLog : public ILog
 {
 private:
-	ELogLevel m_LogLevel;
-	SString m_Buffer;
+	ELogLevel m_LogLevel;	
+	std::ofstream m_LogFile;
 	std::vector<ILogHandler*> m_LogHandlers;
 
 public:
 	~EngineLog() {}
 
 	virtual void Clear();
-	virtual SResult SaveToFile(const SString& file, bool replace = false);
+	virtual SResult SetLogFile(const SString& file);
 	virtual SResult RegisterLogHandler(ILogHandler* pLogHandler);
 	virtual SResult SetLogLevel(ELogLevel loglevel);
 	virtual ELogLevel GetLogLevel() const;

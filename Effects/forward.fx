@@ -35,7 +35,7 @@ SamplerState NormalMapSampler
 
 struct VS_INPUT
 {
-    float4 Position : POSITION;
+    float3 Position : POSITION;
     float3 Normal : NORMAL;
     float3 Tangent : TANGENT;
     float2 TexCoord : TEXCOORD0;
@@ -52,22 +52,23 @@ struct VS_OUTPUT
 
 VS_OUTPUT VS_forward(VS_INPUT IN)
 {
-    VS_OUTPUT OUT;
+    VS_OUTPUT OUT;        
 
-    float4 objPos = IN.Position;
-    float4 scaledObjPos = normalize(objPos) * 0.3f;    
-    float3 normal = normalize(IN.Normal);
-    //normal = normalize(normal + scaledObjPos.xyz);
-    //normal = normalize(objPos.xyz);    
+    float4x4 mtxWorldInv = transpose(mtxWorld);
 
     // Convert Position from Object into World-, Camera- and Projection Space
-    float4 wPos = mul(mtxWorld, IN.Position);
+    float4 wPos = mul(mtxWorld, float4(IN.Position,1.0f));
     OUT.WorldPos = wPos.xyz;
+    
     float4 sPos = mul(mtxView, wPos);
     float4 rPos = mul(mtxProjection, sPos);
     OUT.Position = rPos;
-    OUT.Normal = mul(mtxWorld, float4(normal,0.0f)).xyz;
-    OUT.Tangent = mul(mtxWorld, float4(IN.Tangent, 0.0f)).xyz;         
+    
+    
+    
+    
+    OUT.Normal = normalize(mul(mtxWorld, normalize(float4(IN.Normal,0.0f))).xyz);
+    OUT.Tangent = normalize(mul(mtxWorldInv, normalize(float4(IN.Tangent,0.0f))).xyz);         
     OUT.TexCoord = IN.TexCoord;
     
     return OUT;
@@ -108,7 +109,7 @@ float saturate_negpos(float val)
 
 float calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness, float intensityIn)
 {
-    float diffuseFactor = roughness;
+    float diffuseFactor = roughness + 0.5f;
     float specularFactor = 1.0f - roughness;
     
     // Diffuse:
@@ -139,10 +140,10 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     PS_OUTPUT OUT;
     
     
-    
     // calc binormal. Everything in World space!
     float3 normal = IN.Normal;
-    float3 tangent = IN.Tangent;
+    float3 tangent = IN.Tangent;    
+    
     float3 binormal = cross(normal, tangent);                 
     
     // Calculate Tangent to World Space Rotation Matrix
@@ -150,10 +151,13 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float3x3 matTW = transpose(matWT);
     
     // Sample normal change in tangent space from NormalMap
-    float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord);
+    float3 sampledNormal = normalize(normalMap.Sample(NormalMapSampler, IN.TexCoord).rgb);
     float3 bumpNormal = mul(matTW, sampledNormal);    
     
     normal = bumpNormal;
+    
+    //OUT.Color = float4(normalize(normal), 1.0f);
+    //return OUT;
     
     
     
@@ -161,12 +165,11 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float4 texColor = textureMap.Sample(TextureMapSampler, IN.TexCoord);
     
     // Surface constants
-    float glossiness = 0.0f;
-    float roughness = 0.6f;       
+    float roughness = 0.1f;       
     
     // Calculate lighting factor. Using a fixed light dir and eye pos for now
     float3 eyePos = float3(0, 5.0f, -10.0f);
-    float3 lightDir = normalize(float3(1.0f, -1.0f, 0.4f));        
+    float3 lightDir = normalize(float3(1.0f, -1.0f, 0.3f));        
     float phong = calc_phong(normalize(normal), -lightDir, normalize(eyePos - IN.WorldPos), roughness, 1.0f);  
     
     // Global illumination "Ambient" fake

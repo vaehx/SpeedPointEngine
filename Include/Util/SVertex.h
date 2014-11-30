@@ -12,6 +12,21 @@
 
 namespace SpeedPoint
 {
+	// Texture coordinates (UV) structure
+	struct S_API TextureCoordsUV
+	{
+		float u, v;
+		
+		TextureCoordsUV()
+			: u(0.0f), v(0.0f) {}
+		TextureCoordsUV(const TextureCoordsUV& o)
+			: u(o.u), v(o.v) {}
+		TextureCoordsUV(const SVector2& vec)
+			: u(vec.x), v(vec.y) {}
+		TextureCoordsUV(float uu, float vv)
+			: u(uu), v(vv) {}
+	};
+
 	// SpeedPoint Vertex structure
 	struct S_API SVertex 
 	{	
@@ -45,8 +60,8 @@ namespace SpeedPoint
 			SXYZ tangent;		
 		};											
 
-		// texture coords							
-		SVector2 textureCoords[2];
+		// texture coords									
+		TextureCoordsUV textureCoords[1];
 
 		// ---------------------------------------------------------------------------------		
 		
@@ -57,10 +72,10 @@ namespace SpeedPoint
 			tx(tx_), ty(ty_), tz(tz_)
 		{				
 			//binormal = SVector3( nx, ny, nz ).Cross( SVector3( tx, ty, ty ) );				
-			textureCoords[0].x = tu_;
-			textureCoords[0].y = tv_;
-			textureCoords[1].x = tu2_;
-			textureCoords[1].y = tv2_;
+			textureCoords[0].u = tu_;
+			textureCoords[0].v = tv_;
+			//textureCoords[1].x = tu2_;
+			//textureCoords[1].y = tv2_;
 		}
 		
 		// constructor with single components and custom normal, 1 texturecoord pair
@@ -88,19 +103,16 @@ namespace SpeedPoint
 		}
 
 		// Calculate Tangent vector from stored normal and given up vector
-		SVertex& CalcTangent(const SVector3& upVec)
+		inline SVertex& CalcTangent(const SVertex& v2, const SVertex& v3)
 		{
-			SVector3 n(nx, ny, nz);
-
-			// make sure that normal does not equal the up-Vec
-			float nDotU = SVector3Dot(upVec, n);
-			if (nDotU > 0.99f)
-				n = SVector3(n.y, n.z, n.x);	// arbitrary shift
-
-			SVector3 t = SVector3Cross(SVector3Normalize(n), SVector3Normalize(upVec));
-			tangent.x = t.x;
-			tangent.y = t.y;
-			tangent.z = t.z;
+			float s1 = v2.textureCoords[0].u - textureCoords[0].u, t1 = v2.textureCoords[0].v - textureCoords[0].v;
+			float s2 = v3.textureCoords[0].u - textureCoords[0].u, t2 = v3.textureCoords[0].v - textureCoords[0].v;
+			SVector3 q1(v2.x - x, v2.y - y, v2.z - z), q2(v3.x - x, v3.y - y, v3.z - z);
+			float r = 1.0f / (s1 * t2 - s2 * t1);
+			float rt1neg = -r * t1, rt2 = r * t2;
+			tx = rt2 * q1.x + rt1neg * q2.x;
+			ty = rt2 * q1.y + rt1neg * q2.y;
+			tz = rt2 * q1.z + rt1neg * q2.z;
 			return *this;
 		}
 

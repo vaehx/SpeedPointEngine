@@ -31,7 +31,7 @@ enum S_API ELogLevel
 struct S_API ILog
 {
 	virtual void Clear() = 0;
-	virtual SResult SaveToFile(const SString& file, bool replace = false) = 0;
+	virtual SResult SetLogFile(const SString& file) = 0;
 	virtual SResult RegisterLogHandler(ILogHandler* pLogHandler) = 0;
 	virtual SResult SetLogLevel(ELogLevel loglevel) = 0;
 	virtual ELogLevel GetLogLevel() const = 0;

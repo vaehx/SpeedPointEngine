@@ -8,4 +8,8 @@
 
 - overwrite cpp assert macro
 - Implement SCamera::RecalculateMatrix() for roll = true
-- 
+- Prevent unnecessary calls when shader does not change:
+	- IASetInputLayout()
+	- IASetVertexBuffer()
+	- IASetIndexBuffer()
+	- VSSetShader()

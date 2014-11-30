@@ -149,8 +149,8 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 
 	// 5. Create the polygon layout for the SVertex structure
 	
-	D3D11_INPUT_ELEMENT_DESC vtxDesc[5];
-	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * 5);
+	D3D11_INPUT_ELEMENT_DESC vtxDesc[4];
+	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * 4);
 
 	vtxDesc[0].AlignedByteOffset = 0;
 	vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -174,7 +174,7 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 	vtxDesc[2].SemanticName = "TANGENT";
 
 	vtxDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	vtxDesc[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[3].Format = DXGI_FORMAT_R32G32_FLOAT;
 	vtxDesc[3].InputSlot = 0;
 	vtxDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	vtxDesc[3].SemanticIndex = 0;

@@ -23,21 +23,19 @@ SP_NMSPACE_BEG
 
 S_API void EngineLog::Clear()
 {
-	m_Buffer = "";
+	if (m_LogFile.is_open())
+		m_LogFile.close();
 }
 
-S_API SResult EngineLog::SaveToFile(const SString& file, bool replace)
+S_API SResult EngineLog::SetLogFile(const SString& file)
 {
-	std::ofstream of;
-	of.open(file, std::ofstream::out | (replace ? std::ofstream::trunc : std::ofstream::app));
-	if (!of.is_open())
-	{
-		OutputDebugString(SString("Could not open file: ") + file);
-		return S_ERROR;
-	}
+	if (m_LogFile.is_open())
+		m_LogFile.close();
 
-	of << m_Buffer;
-	of.close();
+	m_LogFile.open(file, std::ofstream::trunc);
+	if (!m_LogFile.is_open())
+		return S_ERROR;
+
 	return S_SUCCESS;
 }
 
@@ -96,12 +94,14 @@ S_API SResult EngineLog::Log(SResult res, const SString& msg)
 	}
 
 	formattedMsg += "\n";
-	m_Buffer += formattedMsg;	
 	if (m_LogHandlers.size() > 0)
 	{
 		for (auto itLH = m_LogHandlers.begin(); itLH != m_LogHandlers.end(); itLH++)
 			(*itLH)->OnLog(res, formattedMsg);
 	}
+
+	if (m_LogFile.is_open())
+		m_LogFile << formattedMsg << std::endl;
 
 	return res;
 }
