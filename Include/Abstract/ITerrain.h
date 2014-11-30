@@ -14,27 +14,21 @@
 
 SP_NMSPACE_BEG
 
-class S_API SpeedPointEngine;
+struct S_API IGameEngine;
 
 
 // SpeedPoint Terrain Solid (abstract)
 struct S_API ITerrain
 {
 public:
+	virtual ~ITerrain() {}
+
 	// Initialize with the engine
 	// nX and nZ is the resolution
-	virtual SResult Initialize( SpeedPointEngine* pEngine, int nX, int nZ ) = 0;
+	virtual SResult Initialize( IGameEngine* pEngine, unsigned int nX, unsigned int nZ ) = 0;
 
-	// Get pointers to the resolution to edit them
-	virtual void GetResolution( int* nX, int* nZ ) = 0;
-
-	// Create a planar one
-	// fW and fD the actual world size
-	virtual SResult CreatePlanar( float fW, float fD ) = 0;
-
-	// Load a terrain from a heightmap
-	// fW and fD is the actual world size
-	virtual SResult CreateFromHeightMap( SP_ID iTexture, float fW, float fD ) = 0;
+	// Create a planar terrain with Size fW x fD and resolution nX, nY	
+	virtual SResult CreatePlanar( float fW, float fD, float baseHeight) = 0;
 
 
 	/////////////////////

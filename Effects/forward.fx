@@ -151,7 +151,8 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float3x3 matTW = transpose(matWT);
     
     // Sample normal change in tangent space from NormalMap
-    float3 sampledNormal = normalize(normalMap.Sample(NormalMapSampler, IN.TexCoord).rgb);
+    float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord).rgb;
+    sampledNormal.rg = sampledNormal.rg * 2.0f - 1.0f;
     float3 bumpNormal = mul(matTW, sampledNormal);    
     
     normal = bumpNormal;

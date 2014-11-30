@@ -105,6 +105,7 @@ private:
 
 
 	DirectX11Texture m_DummyTexture;
+	DirectX11Texture m_DummyNormalMap;	// contains pure (128,128,0) color.
 
 	// The Frame Buffer objects
 

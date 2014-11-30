@@ -23,9 +23,9 @@
 #include "IIndexBuffer.h"	// because we cannot forward-declare SIndex (due to delete command)
 #include <Util\SVertex.h>	// because we cannot forward-declare SVertex (due to delete command)
 #include <Util\SMatrix.h>
+#include "IGameEngine.h"	// for IShutdownHandler
 SP_NMSPACE_BEG
 
-struct S_API IGameEngine;
 struct S_API ITexture;
 struct S_API IVertexBuffer;
 
@@ -99,7 +99,7 @@ struct S_API STransformationDesc
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-struct S_API IGeometry
+struct S_API IGeometry : public IShutdownHandler
 {
 	virtual ~IGeometry() {}
 
@@ -108,7 +108,7 @@ struct S_API IGeometry
 	virtual IRenderer* GetRenderer() = 0;
 
 	virtual IIndexBuffer* GetIndexBuffer() = 0;	
-	virtual IVertexBuffer* GetVertexBuffer() = 0;
+	virtual IVertexBuffer* GetVertexBuffer() = 0;	
 
 	virtual void Clear() = 0;
 };

@@ -30,6 +30,7 @@ SP_NMSPACE_BEG
 class S_API Geometry : public IGeometry
 {
 protected:
+	IGameEngine* m_pEngine;
 	IRenderer* m_pRenderer;
 
 	IIndexBuffer* m_pIndexBuffer;
@@ -50,6 +51,16 @@ public:
 	virtual IVertexBuffer* GetVertexBuffer();	
 	
 	virtual void Clear();
+
+	virtual SResult HandleShutdown()
+	{
+		Clear();
+		return S_SUCCESS;
+	}
+	virtual SString GetShutdownHandlerDesc() const
+	{
+		return SString("Geometry");
+	}
 };
 
 

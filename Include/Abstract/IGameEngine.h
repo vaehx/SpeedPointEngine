@@ -268,6 +268,19 @@ namespace SpeedPoint
 
 
 
+	// Summary:
+	//	An object that keeps a pointer to the engine or the renderer can implement this interface
+	//	to get informed about the shutdown. This prevents memory access violations.
+	//
+	// TODO: Maybe better do this using smart pointers to the engine / the renderer someday
+	struct S_API IShutdownHandler
+	{
+		virtual SResult HandleShutdown() = 0;
+		virtual SString GetShutdownHandlerDesc() const { return SString("unknown"); }
+	};
+
+
+
 
 
 
@@ -300,6 +313,8 @@ namespace SpeedPoint
 		virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0) = 0;
 
 		virtual bool IsRunning() const = 0;
+		virtual void RegisterShutdownHandler(IShutdownHandler* pShutdownHandler) = 0;
+		virtual void UnregisterShutdownHandler(IShutdownHandler* pShutdownHandler) = 0;
 		virtual void Shutdown() = 0;		
 
 

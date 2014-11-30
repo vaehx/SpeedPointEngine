@@ -78,6 +78,8 @@ void Test::OnInitGeometry()
 	SpeedPoint::ITexture* pTestNormalMap;
 	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\brick_n.bmp", 768, 768, "tex01n", &pTestNormalMap);
 
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Add first geometry	
 
 	SpeedPoint::SInitialGeometryDesc initialGeom;
@@ -167,6 +169,15 @@ void Test::OnInitGeometry()
 	SpeedPoint::Material& testObjMat = testObject.GetMaterial();
 	testObjMat.textureMap = pTestTextureMap;
 	testObjMat.normalMap = pTestNormalMap;
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Create terrain
+	
+	testTerrain.Initialize(m_pEngine, 20, 20);
+	testTerrain.CreatePlanar(10.0f, 10.0f, 0.0f);
+
+
 	m_pEngine->GetRenderer()->DumpFrameOnce();
 
 }
@@ -189,18 +200,14 @@ void Test::Render()
 
 
 
-	testObject.vRotation += SpeedPoint::SVector3(0.03f, 0.00f, 0.00f);		
-	testObject.vPosition = SpeedPoint::SVector3(0, 4.0f, -8.0f);	
-	
+	testObject.vRotation += SpeedPoint::SVector3(0.03f, 0.00f, 0.03f);		
+	testObject.vPosition = SpeedPoint::SVector3(0, 0.0f, 0.0f);	
+		
 	pCamera->LookAt(testObject.vPosition);
 	pCamera->RecalculateViewMatrix();
-
-	if (Failure(testObject.Render()))
-	{
-		m_pEngine->LogE("Rendering failed. Stopping engine...");
-		Stop();
-	}
-
+	
+	testTerrain.RenderTerrain();
+	testObject.Render();
 
 }
 
@@ -208,6 +215,7 @@ void Test::Render()
 
 bool Test::Stop()
 {
+	testTerrain.Clear();
 	testObject.Clear();
 	
 	m_pEngine->Shutdown();	

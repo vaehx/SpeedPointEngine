@@ -128,11 +128,6 @@ struct S_API IStaticObject : public IObject
 };
 
 
-
-struct S_API ITerrain
-{
-};
-
 struct S_API IWaterVolume
 {
 };

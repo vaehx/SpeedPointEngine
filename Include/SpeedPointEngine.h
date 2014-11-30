@@ -121,6 +121,7 @@ private:
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
 	ILog* m_pLog;
 
+	std::vector<IShutdownHandler*> m_ShutdownHandlers;
 
 	void CheckFinishInit();
 
@@ -134,6 +135,13 @@ public:
 	{
 		return m_pApplication;
 	}
+
+	virtual void RegisterShutdownHandler(IShutdownHandler* pShutdownHandler);
+	virtual void UnregisterShutdownHandler(IShutdownHandler* pShutdownHandler);
+
+	// returns next iterator after first found instance. If not found, increment cur (if possible) is returned.
+	virtual std::vector<IShutdownHandler*>::iterator UnregisterShutdownHandlerIntrnl(
+		IShutdownHandler* pShutdownHandler, std::vector<IShutdownHandler*>::iterator cur);
 
 	virtual void Shutdown();
 

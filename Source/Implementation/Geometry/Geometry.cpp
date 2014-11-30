@@ -22,7 +22,8 @@ SP_NMSPACE_BEG
 
 // ----------------------------------------------------------------------------------------
 S_API Geometry::Geometry()
-: m_pRenderer(nullptr)
+: m_pRenderer(nullptr),
+m_pEngine(nullptr)
 {
 	//m_pMaterial = new Material();
 }
@@ -36,19 +37,18 @@ S_API Geometry::~Geometry()
 // ----------------------------------------------------------------------------------------
 S_API void Geometry::Clear()
 {	
+	if (IS_VALID_PTR(m_pEngine))
+	{
+		m_pEngine->UnregisterShutdownHandler(this);
+		m_pEngine = nullptr;
+	}
+
 	if (IS_VALID_PTR(m_pRenderer))
 	{
 		m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pIndexBuffer);
 		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(&m_pVertexBuffer);
 		m_pRenderer = nullptr;
-	}	
-
-	/*
-	if (IS_VALID_PTR(m_pMaterial))
-		delete m_pMaterial;
-
-	m_pMaterial = nullptr;
-	*/
+	}
 }
 
 // ----------------------------------------------------------------------------------------
@@ -58,6 +58,9 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 
 	assert(pRenderer);
 	m_pRenderer = pRenderer;
+
+	m_pEngine = pEngine;
+	m_pEngine->RegisterShutdownHandler(this);
 	
 	if (Failure(pRenderer->GetResourcePool()->AddVertexBuffer(&m_pVertexBuffer)) ||
 		Failure(pRenderer->GetResourcePool()->AddIndexBuffer(&m_pIndexBuffer)))

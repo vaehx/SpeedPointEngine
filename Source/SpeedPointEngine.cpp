@@ -131,6 +131,32 @@ S_API void SpeedPointEngine::Shutdown(void)
 {
 	m_bRunning = false;
 
+	// Handle all shutdown handlers first	
+	unsigned int nHandled = m_ShutdownHandlers.size();
+	for (auto itShutdownHandler = m_ShutdownHandlers.begin(); itShutdownHandler != m_ShutdownHandlers.end();)
+	{	
+		IShutdownHandler* pSH = *itShutdownHandler;
+
+		// definetly increments, no matter if pSH was found or not.
+		itShutdownHandler = UnregisterShutdownHandlerIntrnl(pSH, itShutdownHandler);
+
+		if (Failure(pSH->HandleShutdown()))
+			LogD("Shutdown-Handler failed: " + (*itShutdownHandler)->GetShutdownHandlerDesc() + "!");
+	}
+	
+	if (nHandled > 0)
+	{
+		char* pWarnStr = new char[200];
+		memset(pWarnStr, 0, 200);
+		sprintf_s(pWarnStr, 200, "Cleared %d objects via shutdown handler!", nHandled);
+		LogW(pWarnStr);
+		delete[] pWarnStr;
+	}
+
+	m_ShutdownHandlers.clear();
+
+
+
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool
 	m_pRenderer.Clear();
 
@@ -148,6 +174,71 @@ S_API void SpeedPointEngine::Shutdown(void)
 		m_pLog->Clear();
 		delete m_pLog;
 		m_pLog = nullptr;
+	}
+}
+
+// ----------------------------------------------------------------------------------
+S_API void SpeedPointEngine::RegisterShutdownHandler(IShutdownHandler* pShutdownHandler)
+{
+	// no search for probably already existing handler. Probability that this is the case is very low
+	// and a multiple call of Clear() should not be the problem.
+	m_ShutdownHandlers.push_back(pShutdownHandler);
+}
+
+// ----------------------------------------------------------------------------------
+S_API std::vector<IShutdownHandler*>::iterator SpeedPointEngine::UnregisterShutdownHandlerIntrnl(
+	IShutdownHandler* pShutdownHandler, std::vector<IShutdownHandler*>::iterator cur)
+{
+	if (m_ShutdownHandlers.empty())
+		return m_ShutdownHandlers.end();
+
+	int iSHFirstPrev = -1;
+	unsigned int iSHFirstPrevCnt = 0;
+	for (auto itShutdownHandler = m_ShutdownHandlers.begin(); itShutdownHandler != m_ShutdownHandlers.end();)
+	{
+		if (*itShutdownHandler == pShutdownHandler)
+		{
+			itShutdownHandler = m_ShutdownHandlers.erase(itShutdownHandler);
+			if (m_ShutdownHandlers.size() == 0)
+				return m_ShutdownHandlers.end();
+
+			if (iSHFirstPrev < 0)
+				iSHFirstPrev = iSHFirstPrevCnt;
+		}
+		else
+		{
+			itShutdownHandler++;
+			if (iSHFirstPrev < 0)
+				iSHFirstPrevCnt++;
+		}
+	}	
+
+	// not found
+	if (iSHFirstPrev < 0)
+		return (cur != m_ShutdownHandlers.end() ? cur++ : cur);
+
+	if (iSHFirstPrev == m_ShutdownHandlers.size())
+		return m_ShutdownHandlers.end();	
+
+	auto itFirstPrev = m_ShutdownHandlers.begin() + iSHFirstPrev;
+	if (itFirstPrev != m_ShutdownHandlers.end())
+		return itFirstPrev++;
+	else
+		return m_ShutdownHandlers.end();
+}
+
+// ----------------------------------------------------------------------------------
+S_API void SpeedPointEngine::UnregisterShutdownHandler(IShutdownHandler* pShutdownHandler)
+{	
+	if (m_ShutdownHandlers.empty())
+		return;
+
+	for (auto itShutdownHandler = m_ShutdownHandlers.begin(); itShutdownHandler != m_ShutdownHandlers.end();)
+	{
+		if (*itShutdownHandler == pShutdownHandler)
+			itShutdownHandler = m_ShutdownHandlers.erase(itShutdownHandler);
+		else
+			itShutdownHandler++;
 	}
 }
 

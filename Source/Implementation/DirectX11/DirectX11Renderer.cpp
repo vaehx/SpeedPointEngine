@@ -269,6 +269,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 
 
 	// Setup default Sampler State
+	// NOTE: Currently using same default sampler state for Texturemap and Normalmap!
 	D3D11_SAMPLER_DESC defSamplerDesc;	
 	defSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;	
@@ -288,6 +289,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 		return m_pEngine->LogE("Failed create default Sampler State!");
 
 	m_pD3DDeviceContext->PSSetSamplers(0, 1, &m_pDefaultSamplerState);
+	m_pD3DDeviceContext->PSSetSamplers(1, 1, &m_pDefaultSamplerState);
 
 	return S_SUCCESS;
 }
@@ -498,7 +500,14 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 	// Create unset texture dummy
 	m_DummyTexture.Initialize(m_pEngine, "notexture", false);
 	if (Failure(m_DummyTexture.CreateEmpty(64, 64, 0, S_TEXTURE_RGBA, SColor(0.0f, 1.0f, 0.0f))))
-		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");
+		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");	
+
+
+
+	// Create (128,128,0) replacement normal map
+	m_DummyNormalMap.Initialize(m_pEngine, "nonormalmap", false);
+	if (Failure(m_DummyNormalMap.CreateEmpty(64, 64, 0, S_TEXTURE_RGBA, SColor(0.5f, 0.5f, 0.0f))))
+		m_pEngine->LogE("Could not create empty dummy normal map (nonormalmap)!");
 
 
 	return S_SUCCESS;
@@ -718,7 +727,7 @@ S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 	SP_ASSERTR(IS_VALID_PTR(pTex), S_INVALIDPARAM);
 
 	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
-	SP_ASSERTR(IS_VALID_PTR(pSRV), S_ERROR);
+	SP_ASSERTRD(IS_VALID_PTR(pSRV), S_ERROR, "SRV of Texture not set or invalid!");
 
 	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
 
@@ -884,13 +893,11 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 			else
 				BindTexture((ITexture*)&m_DummyTexture, 0);
 
-
-
-			// TODO: Disable Bumpmapping shader section if normalmap not a valid ptr!
-
+			
 			if (IS_VALID_PTR(pDesc->material.normalMap))
-				BindTexture(pDesc->material.normalMap, 1);		
-
+				BindTexture(pDesc->material.normalMap, 1);
+			else
+				BindTexture((ITexture*)&m_DummyNormalMap, 1);
 
 
 

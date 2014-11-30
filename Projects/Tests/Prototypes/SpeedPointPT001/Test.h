@@ -13,6 +13,7 @@
 #include <SpeedPointApplication.h>
 #include <Abstract\IObject.h>
 #include <Implementation\Geometry\StaticObject.h>
+#include <Implementation\Geometry\Terrain.h>
 #include <Windows.h>
 
 
@@ -29,6 +30,7 @@ class Test : public SpeedPoint::SpeedPointApplication
 {
 private:
 	SpeedPoint::StaticObject testObject;
+	SpeedPoint::Terrain testTerrain;
 	SpeedPoint::SCamera* pCamera;
 	TestLogHandler logHandler;
 
