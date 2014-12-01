@@ -49,8 +49,9 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		for (unsigned int x = 0; x <= m_nX; ++x)
 		{
 			unsigned int iVtxCur = z * (m_nX + 1) + x;
+			float h = baseHeight + (sinf(2.0f * SP_PI * ratioU * x) + sinf(2.0f * SP_PI * ratioV * z)) * 0.7f;
 			initGeom.pVertices[iVtxCur] = SVertex(
-				x * diffX - posOffsetX, baseHeight, z * diffZ - posOffsetZ,		// position
+				x * diffX - posOffsetX, h, z * diffZ - posOffsetZ,		// position
 				0.0f, 1.0f, 0.0f,				// normal
 				-1.0f, 0.0f, 0.0f,				// tangent
 				x * ratioU, z * ratioV);			// texcoord [0;1]
@@ -66,6 +67,78 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 				initGeom.pIndices[idxCur + 5] = iVtxCur;
 			}
 		}
+	}	
+
+	// Calculate normals
+	for (unsigned int iVtx = 0; iVtx < initGeom.nVertices; ++iVtx)
+	{
+		SVertex& vtx = initGeom.pVertices[iVtx];
+		unsigned int iX = iVtx % (m_nX + 1),
+			iZ = (unsigned int)((iVtx - iX) / (m_nX + 1));
+
+		SVector3 dirAcc(0,0,0);
+		unsigned int nAffectedVertices = 1;				
+		
+		// 1-2
+		if (iX > 0 && iZ > 0)
+		{
+			const SVertex& vtx1 = initGeom.pVertices[iVtx - 1],
+				&vtx2 = initGeom.pVertices[iVtx - (m_nX + 1)];
+
+			dirAcc += SVector3Normalize(SVector3Cross(
+				SVector3(vtx1.x - vtx.x, vtx1.y - vtx.y, vtx1.z - vtx.z),
+				SVector3(vtx2.x - vtx.x, vtx2.y - vtx.y, vtx2.z - vtx.z)));
+		}
+		else
+			dirAcc += SVector3(0, 1.0f, 0);
+
+		// 2-3
+		if (iX < m_nX && iZ > 0)
+		{
+			const SVertex& vtx2 = initGeom.pVertices[iVtx - (m_nX + 1)],
+				&vtx3 = initGeom.pVertices[iVtx + 1];
+
+			dirAcc += SVector3Normalize(SVector3Cross(
+				SVector3(vtx2.x - vtx.x, vtx2.y - vtx.y, vtx2.z - vtx.z),
+				SVector3(vtx3.x - vtx.x, vtx3.y - vtx.y, vtx3.z - vtx.z)));
+		}
+		else
+			dirAcc += SVector3(0, 1.0f, 0);
+
+		// 3 - 4
+		if (iX < m_nX && iZ < m_nZ)
+		{
+			const SVertex& vtx3 = initGeom.pVertices[iVtx + 1],
+				&vtx4 = initGeom.pVertices[iVtx + (m_nX + 1)];
+
+			dirAcc += SVector3Normalize(SVector3Cross(
+				SVector3(vtx3.x - vtx.x, vtx3.y - vtx.y, vtx3.z - vtx.z),
+				SVector3(vtx4.x - vtx.x, vtx4.y - vtx.y, vtx4.z - vtx.z)));
+		}
+		else
+			dirAcc += SVector3(0, 1.0f, 0);
+
+		// 4 - 1
+		if (iX > 0 && iZ < m_nZ)
+		{
+			const SVertex& vtx4 = initGeom.pVertices[iVtx + (m_nX + 1)],
+				&vtx1 = initGeom.pVertices[iVtx - 1];
+
+			dirAcc += SVector3Normalize(SVector3Cross(
+				SVector3(vtx4.x - vtx.x, vtx4.y - vtx.y, vtx4.z - vtx.z),
+				SVector3(vtx1.x - vtx.x, vtx1.y - vtx.y, vtx1.z - vtx.z)));
+		}
+		else
+			dirAcc += SVector3(0, 1.0f, 0);
+
+		SVector3 dirAccN = SVector3Normalize(dirAcc);
+
+		if (dirAccN.y < 0)
+			dirAccN = -dirAccN;
+
+		vtx.nx = dirAccN.x;
+		vtx.ny = dirAccN.y;
+		vtx.nz = dirAccN.z;
 	}
 
 	return m_Geometry.Init(m_pEngine, m_pEngine->GetRenderer(), &initGeom);

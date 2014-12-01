@@ -254,7 +254,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	m_rsDesc.DepthBiasClamp = 0;
 	m_rsDesc.SlopeScaledDepthBias = 0;
 	m_rsDesc.DepthClipEnable = false;
-	m_rsDesc.FillMode = renderSettings.bRenderWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+	m_rsDesc.FillMode = renderSettings.bRenderWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;	
 	m_rsDesc.FrontCounterClockwise = (renderSettings.frontFaceType == eFF_CW);
 	m_rsDesc.MultisampleEnable = renderSettings.antiAliasingQuality != eAAQUALITY_LOW;
 	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday	
@@ -506,7 +506,7 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 
 	// Create (128,128,0) replacement normal map
 	m_DummyNormalMap.Initialize(m_pEngine, "nonormalmap", false);
-	if (Failure(m_DummyNormalMap.CreateEmpty(64, 64, 0, S_TEXTURE_RGBA, SColor(0.5f, 0.5f, 0.0f))))
+	if (Failure(m_DummyNormalMap.CreateEmpty(64, 64, 0, S_TEXTURE_RGBA, SColor(0.5f, 0.5f, 1.0f))))
 		m_pEngine->LogE("Could not create empty dummy normal map (nonormalmap)!");
 
 

@@ -322,7 +322,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, S_TEXTU
 
 	unsigned int nPixels = w * h;
 	char* pEmptyPixels = new char[nPixels * 4];
-	for (unsigned int iPxl = 0; iPxl < nPixels; iPxl += 4)
+	for (unsigned int iPxl = 0; iPxl < nPixels * 4; iPxl += 4)
 	{
 		pEmptyPixels[iPxl] = (char)(clearcolor.r * 255.0f);
 		pEmptyPixels[iPxl + 1] = (char)(clearcolor.g * 255.0f);

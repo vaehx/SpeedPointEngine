@@ -36,7 +36,8 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.app.hWnd = hWnd;	
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.bEnableVSync = true;
-	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND | ENGSETTING_ENABLEVSYNC | ENGSETTING_CLIPPLANES;
+	dsc.render.bRenderWireframe = false;
+	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND | ENGSETTING_ENABLEVSYNC | ENGSETTING_CLIPPLANES | ENGSETTING_WIREFRAME;
 
 	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;
 	m_pEngine->GetSettings()->Set(dsc);
@@ -200,8 +201,8 @@ void Test::Render()
 
 
 
-	testObject.vRotation += SpeedPoint::SVector3(0.03f, 0.00f, 0.03f);		
-	testObject.vPosition = SpeedPoint::SVector3(0, 0.0f, 0.0f);	
+	testObject.vRotation += SpeedPoint::SVector3(0.01f, 0.00f, 0.01f);		
+	testObject.vPosition = SpeedPoint::SVector3(0, 4.0f, -8.0f);	
 		
 	pCamera->LookAt(testObject.vPosition);
 	pCamera->RecalculateViewMatrix();

@@ -102,7 +102,6 @@
     <ClInclude Include="..\..\Include\Util\SConfigFile.h" />
     <ClInclude Include="..\..\Include\Util\SLogFile.h" />
     <ClInclude Include="..\..\Include\Util\SLogStream.h" />
-    <ClInclude Include="..\..\Include\Util\SMaterial.h" />
     <ClInclude Include="..\..\Include\Util\SMatrix.h" />
     <ClInclude Include="..\..\Include\Util\SPlane.h" />
     <ClInclude Include="..\..\Include\Util\SPool.h" />

@@ -8,6 +8,7 @@
 #include <SPrerequisites.h>
 #include <Abstract\ITerrain.h>
 #include "Geometry.h"
+#include <Abstract\IObject.h>
 
 
 SP_NMSPACE_BEG
@@ -21,6 +22,7 @@ private:
 	float m_DetailTextureScale;
 	Geometry m_Geometry;
 	IGameEngine* m_pEngine;
+	Material m_Material;
 
 public:
 	Terrain()

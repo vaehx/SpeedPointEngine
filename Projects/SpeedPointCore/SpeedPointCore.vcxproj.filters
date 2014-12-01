@@ -104,9 +104,6 @@
     <ClInclude Include="..\..\Include\Util\SLogStream.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SMaterial.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SMatrix.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>

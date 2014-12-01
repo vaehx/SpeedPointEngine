@@ -10,6 +10,7 @@ cbuffer SceneCB : register(cb0)
 {    
     float4x4 mtxView;
     float4x4 mtxProjection;
+    float4 sunPos;
 }
 cbuffer ObjectCB : register(cb1)
 {
@@ -109,7 +110,7 @@ float saturate_negpos(float val)
 
 float calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness, float intensityIn)
 {
-    float diffuseFactor = roughness + 0.5f;
+    float diffuseFactor = roughness;
     float specularFactor = 1.0f - roughness;
     
     // Diffuse:
@@ -118,13 +119,13 @@ float calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness,
     // Specular:
     float alpha = 2.0f;
     if (roughness > 0.0f)
-        alpha = 1.0f / saturate(roughness); // the rougher the surface, the wider the specular highlight
+        alpha = 1.0f / saturate(roughness - 0.5f); // the rougher the surface, the wider the specular highlight
         
-    float3 R = 2.0f * saturate(dot(lightDirOut, N)) * N - lightDirOut; 
-    float specular = pow(saturate(dot(R, dirToEye)), alpha) * 1.0f;
+    float3 R = 2.0f * dot(lightDirOut, N) * N - lightDirOut; 
+    float specular = pow(saturate(dot(R, dirToEye)), 4.0f) * 1.0f;
     
     // compose:
-    float intensityOut = intensityIn * (diffuseFactor * lambert + specularFactor * specular);
+    float intensityOut = (intensityIn * (diffuseFactor * lambert + specularFactor * specular));
     return intensityOut;
 }
 
@@ -152,12 +153,12 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     
     // Sample normal change in tangent space from NormalMap
     float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord).rgb;
-    sampledNormal.rg = sampledNormal.rg * 2.0f - 1.0f;
-    float3 bumpNormal = mul(matTW, sampledNormal);    
+    sampledNormal = 2.0f * sampledNormal - 1.0f;    
+    float3 bumpNormal = mul(matTW, normalize(sampledNormal));    
     
     normal = bumpNormal;
     
-    //OUT.Color = float4(normalize(normal), 1.0f);
+    //OUT.Color = float4(normalize(sampledNormal), 1.0f);
     //return OUT;
     
     
@@ -169,15 +170,15 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float roughness = 0.1f;       
     
     // Calculate lighting factor. Using a fixed light dir and eye pos for now
-    float3 eyePos = float3(0, 5.0f, -10.0f);
-    float3 lightDir = normalize(float3(1.0f, -1.0f, 0.3f));        
+    float3 eyePos = float3(0, 5.0f, 10.0f);
+    float3 lightDir = normalize(float3(0, -0.8f, 0.8f));        
     float phong = calc_phong(normalize(normal), -lightDir, normalize(eyePos - IN.WorldPos), roughness, 1.0f);  
     
     // Global illumination "Ambient" fake
     float ambient = 0.3f;
     
     // Final lighting factor
-    float lightingFactor = ambient + phong;    
+    float lightingFactor = phong + ambient;        
     
     OUT.Color = texColor * lightingFactor;
     //OUT.Color = lightingFactor; 
