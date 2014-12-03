@@ -136,11 +136,14 @@ struct S_API SPerSceneConstantBuffer
 
 	float4 sunPosition;	// sun dir = (0,0,0,0) - sunPosition
 
+	float4 eyePosition;
+
 	SPerSceneConstantBuffer& operator = (const SPerSceneConstantBuffer& b)
 	{
 		mtxView = b.mtxView;
 		mtxProjection = b.mtxProjection;
 		sunPosition = b.sunPosition;
+		eyePosition = b.eyePosition;
 		return *this;
 	}
 };

@@ -22,6 +22,17 @@ void Test::OnLogReport(SpeedPoint::SResult res, const SpeedPoint::SString& msg)
 {
 }
 
+void CalcLookAt(SpeedPoint::SCamera& cam, const SpeedPoint::SVector3& lookAt)
+{
+	SpeedPoint::SVector3 dir = SpeedPoint::SVector3Normalize(lookAt - cam.position);
+	cam.rotation.x = asinf(dir.y);	
+	cam.rotation.y = acosf(dir.z / sqrtf(1.0f - (dir.y * dir.y)));
+	if (dir.x < 0.0f)
+		cam.rotation.y = (2.0f * SP_PI) - cam.rotation.y;
+
+	cam.rotation.z = 0.0f;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -61,8 +72,9 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 
 	m_pEngine->GetRenderer()->GetTargetViewport()->Set3DProjection(SpeedPoint::S_PROJECTION_PERSPECTIVE, 50, 0, 0);
 	pCamera = m_pEngine->GetRenderer()->GetTargetViewport()->GetCamera();
-	pCamera->position = SpeedPoint::SVector3(0, 5.0f, 10.0f);
+	pCamera->position = SpeedPoint::SVector3(0, 5.0f, -10.0f);
 	pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
+	alpha = 0.0f;
 
 	return true;
 }
@@ -172,14 +184,24 @@ void Test::OnInitGeometry()
 	testObjMat.normalMap = pTestNormalMap;
 
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Create terrain
 	
 	testTerrain.Initialize(m_pEngine, 20, 20);
 	testTerrain.CreatePlanar(10.0f, 10.0f, 0.0f);
 
 
-	m_pEngine->GetRenderer()->DumpFrameOnce();
+	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
+
+	m_pEngine->GetRenderer()->DumpFrameOnce();	
+
+	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
+	// Debug stuff
+
+	SpeedPoint::SCamera testCam;
+	testCam.position = SpeedPoint::SVector3(-5.0f, 10.0f, -5.0f);
+	testCam.rotation = SpeedPoint::SVector3(-0.7f, 0.0f, 0.0f);
+	//testCam.LookAt(SpeedPoint::SVector3(0, 0, 0));
 
 }
 
@@ -187,6 +209,10 @@ void Test::OnInitGeometry()
 
 bool Test::Tick()
 {	
+	alpha += 0.01f;
+	if (alpha > 2.0f * SP_PI)
+		alpha = 0.0f;	
+
 	// Start the frame pipeline
 	if (Failure(m_pEngine->ExecuteFramePipeline()))
 		return false;
@@ -197,14 +223,20 @@ bool Test::Tick()
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Test::Render()
-{
+{	
 
 
-
-	testObject.vRotation += SpeedPoint::SVector3(0.01f, 0.00f, 0.01f);		
+	testObject.vRotation += SpeedPoint::SVector3(0.01f, 0.00f, 0.00f);		
 	testObject.vPosition = SpeedPoint::SVector3(0, 4.0f, -8.0f);	
-		
-	pCamera->LookAt(testObject.vPosition);
+	
+
+	float camTurnRad = 5.0f;
+	pCamera->position.x = sinf(alpha) * camTurnRad;
+	pCamera->position.y = 3.0f;
+	pCamera->position.z = cosf(alpha) * camTurnRad;
+	
+	pCamera->LookAt(SpeedPoint::SVector3(0,0,0));
+	//CalcLookAt(*pCamera, testObject.vPosition);
 	pCamera->RecalculateViewMatrix();
 	
 	testTerrain.RenderTerrain();

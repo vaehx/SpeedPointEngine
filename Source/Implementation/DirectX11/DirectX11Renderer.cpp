@@ -666,6 +666,9 @@ S_API SResult DirectX11Renderer::BindSingleFBO(IFBO* pFBO)
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 	SP_ASSERTR(pFBO, S_INVALIDPARAM);
 
+	SetViewportMatrices(m_pTargetViewport);
+	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
 	// check if already bound
 	if (m_pTargetFBO == pFBO)
 		return S_SUCCESS;
@@ -676,10 +679,7 @@ S_API SResult DirectX11Renderer::BindSingleFBO(IFBO* pFBO)
 	m_pD3DDeviceContext->OMSetRenderTargets(1, &pDXFBO, pSPDXFBO->GetDSV());
 
 	m_pTargetFBO = pSPDXFBO;	
-	m_iCurRTCollection = eRENDERTARGETS_NONE; // single FBO bound
-
-	SetViewportMatrices(m_pTargetViewport);
-	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+	m_iCurRTCollection = eRENDERTARGETS_NONE; // single FBO bound	
 
 	return S_SUCCESS;
 }
@@ -878,6 +878,8 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 		SRenderDesc* pDesc = &itRenderDesc->second;		
 
+
+
 		if (pDesc->technique == eRENDER_FORWARD)
 		{
 			if (previousTechnique != eRENDER_FORWARD)
@@ -898,7 +900,6 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 				BindTexture(pDesc->material.normalMap, 1);
 			else
 				BindTexture((ITexture*)&m_DummyNormalMap, 1);
-
 
 
 			DrawForward(pDesc->drawCallDesc);
@@ -1044,8 +1045,9 @@ S_API SResult DirectX11Renderer::BindSingleFBO(IViewport* pViewport)
 	SP_ASSERTR(m_pD3DDevice && m_pEngine && m_pD3DDeviceContext, S_NOTINIT);
 
 	if (!pBackBuffer->IsInitialized())
-		return S_INVALIDPARAM;
+		return S_INVALIDPARAM;		
 
+	// updates View matrices using target buffer matrices
 	if (Failure(BindSingleFBO(pBackBuffer)))
 		return S_ERROR;	
 
@@ -1092,6 +1094,7 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 		return S_ERROR;
 
 	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
 	m_pEngine->LogD("Created and set per scene CB");
 
 
@@ -1099,6 +1102,7 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 		return S_ERROR;
 	
 	m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pPerObjectCB);
+	m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pPerObjectCB);
 	m_pEngine->LogD("Created and set per object CB");
 
 	return S_SUCCESS;
@@ -1115,7 +1119,7 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb)
 			return S_ERROR;
 
 		assert(IS_VALID_PTR(pSceneBuffer));
-		*pSceneBuffer = m_PerSceneCB;		
+		memcpy((void*)pSceneBuffer, (void*)&m_PerSceneCB, sizeof(SPerSceneConstantBuffer));
 		D3D11_UnlockConstantsBuffer(m_pPerSceneCB);
 		break;
 	case CONSTANTBUFFER_PEROBJECT:
@@ -1192,7 +1196,7 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
 
 
 	m_PerSceneCB.mtxProjection = pV->GetProjectionMatrix();
-	//SPMatrixPerspectiveFovRH(&m_PerSceneCB.mtxProjection, 50.0f * (XM_PI / 180.f), 1024.0f / 768.0f, 1.0f, 200.0f);	
+
 	FrameDump(m_PerSceneCB.mtxProjection, "Projection matrix");
 
 
@@ -1204,21 +1208,13 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
 
 	pV->RecalculateCameraViewMatrix();
 	m_PerSceneCB.mtxView = pV->GetCameraViewMatrix();
-	
-	//SPMatrixLookAtRH(&m_PerSceneCB.mtxView, SVector3(0, 5.0f, -10.0f), SVector3(0, 0, 0), SVector3(0, 1.0f, 0));
 	FrameDump(m_PerSceneCB.mtxView, "View matrix");
 
+	m_PerSceneCB.eyePosition = float4(pV->GetCamera()->position, 1.0f);	
 
-	/*
-	XMMATRIX mtxView = XMMatrixLookAtRH(XMVectorSet(0, 5.0f, -10.0f, 1.0f), XMVectorSet(0, 0, 0, 1.0f), XMVectorSet(0, 1.0f, 0, 0.0f));
-	m_PerSceneCB.mtxView = SMatrix(
-		mtxView._11, mtxView._12, mtxView._13, mtxView._14,
-		mtxView._21, mtxView._22, mtxView._23, mtxView._24,
-		mtxView._31, mtxView._32, mtxView._33, mtxView._34,
-		mtxView._41, mtxView._42, mtxView._43, mtxView._44
-		);
-	*/
-
+	SCamera* pCamera = pV->GetCamera();
+	FrameDump(pCamera->position, "Camera position");	
+	FrameDump(pCamera->rotation, "Camera rotation");
 
 
 

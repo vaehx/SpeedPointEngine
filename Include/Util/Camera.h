@@ -40,11 +40,15 @@ struct S_API SCamera
 	//	Calculate and store rotation angles by look direction to a specified point
 	ILINE SVector3& LookAt(const SVector3& lookAt)
 	{
-		SVector3 dir = SVector3Normalize(lookAt - position);	
-		SVector3 dirsq = dir * dir;
-		rotation.x = asinf(dir.z / sqrtf(dirsq.z + dirsq.y));
-		rotation.y = asinf(dir.z / sqrtf(dirsq.z + dirsq.x));
-		rotation.z = asinf(dir.x / sqrtf(dirsq.x + dirsq.y));
+		SVector3 dir = SVector3Normalize(lookAt - position);
+		rotation.x = asinf(dir.y);
+		rotation.y = acosf(dir.z / sqrtf(1.0f - (dir.y * dir.y)));
+		
+		// Todo: is there a way to eliminate dynamic branching here?
+		if (dir.x < 0.0f)
+			rotation.y = (2.0f * SP_PI) - rotation.y;
+
+		rotation.z = 0.0f;
 		return rotation;
 	}
 
@@ -61,8 +65,8 @@ struct S_API SCamera
 		SVector3 lookAt;
 		if (!roll)
 		{
-			lookAt.x = position.x - sinf(rotation.y) * cosf(rotation.x);
-			lookAt.y = position.y + sinf(rotation.y);
+			lookAt.x = position.x + sinf(rotation.y) * cosf(rotation.x);
+			lookAt.y = position.y + sinf(rotation.x);
 			lookAt.z = position.z + cosf(rotation.y) * cosf(rotation.x);
 		}
 		else
@@ -74,8 +78,8 @@ struct S_API SCamera
 
 		}
 
-		//SPMatrixLookAtRH(&viewMatrix, position, lookAt, SVector3(0,1.0f,0));
-		SPMatrixLookAtRH(&viewMatrix, SVector3(0, 5.0f, -10.0f), SVector3(0,0,0), SVector3(0,1.0f,0));	
+		SPMatrixLookAtRH(&viewMatrix, position, lookAt, SVector3(0,1.0f,0));
+		//SPMatrixLookAtRH(&viewMatrix, SVector3(0, 5.0f, -10.0f), SVector3(0,0,0), SVector3(0,1.0f,0));	
 		return viewMatrix;
 	}
 };

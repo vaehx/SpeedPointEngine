@@ -7,6 +7,7 @@
 #pragma once
 #include "SAPI.h"
 #include <cmath>
+#include "SVector3.h"
 
 namespace SpeedPoint
 {
@@ -22,6 +23,8 @@ namespace SpeedPoint
 		// ---
 
 		SVector4() : x(0), y(0), z(0), w(0) {};
+
+		SVector4(const SVector3& v, float ww) : x(v.x), y(v.y), z(v.z), w(ww) {}
 
 		SVector4(float aa) : x(aa), y(aa), z(aa), w(aa) {};
 
@@ -40,6 +43,15 @@ namespace SpeedPoint
 		SVector4& operator /= (const SVector4& v) { this->x /= v.x; this->y /= v.y; this->z /= v.z; this->w /= v.w; return *this; }
 
 		SVector4 operator - () { return SVector4(-x, -y, -z, -w); }
+
+		SVector4& operator = (const SVector4& v)
+		{
+			x = v.x;
+			y = v.y;
+			z = v.z;
+			w = v.w;
+			return *this;
+		}
 	};
 
 	typedef struct S_API SVector4 float4;

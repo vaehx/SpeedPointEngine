@@ -29,6 +29,8 @@ public:
 class Test : public SpeedPoint::SpeedPointApplication
 {
 private:
+	float alpha;
+	unsigned int nDumpedFrames;
 	SpeedPoint::StaticObject testObject;
 	SpeedPoint::Terrain testTerrain;
 	SpeedPoint::SCamera* pCamera;
