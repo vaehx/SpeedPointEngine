@@ -19,14 +19,24 @@ class S_API Terrain : public ITerrain
 {
 private:
 	unsigned int m_nX, m_nZ;
-	float m_DetailTextureScale;
+	float m_fDMTexScaleU, m_fDMTexScaleV;
 	Geometry m_Geometry;
 	IGameEngine* m_pEngine;
-	Material m_Material;
+	ITexture* m_pColorMap;
+	ITexture* m_pDetailMap;	
+
+	bool m_bRendererdOnce;
 
 public:
 	Terrain()
-		: m_nX(0), m_nZ(0), m_DetailTextureScale(0.1f), m_pEngine(nullptr) {}
+		: m_nX(0), m_nZ(0),
+		m_fDMTexScaleU(1.0f),
+		m_fDMTexScaleV(1.0f),
+		m_pEngine(nullptr),
+		m_pColorMap(nullptr),
+		m_pDetailMap(nullptr),
+		m_bRendererdOnce(false)
+		{}
 
 	virtual ~Terrain();
 
@@ -36,6 +46,9 @@ public:
 
 	// Create a planar terrain with Size fW x fD
 	virtual SResult CreatePlanar(float fW, float fD, float baseHeight);	
+
+	virtual SResult SetColorMap(ITexture* pColorMap);
+	virtual SResult SetDetailMap(ITexture* pDetailMap);
 
 	virtual SResult RenderTerrain(void);	
 	virtual SResult Clear(void);

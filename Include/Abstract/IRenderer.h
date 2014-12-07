@@ -116,7 +116,8 @@ struct S_API SRenderTargetCollection
 enum S_API EConstantBufferType
 {
 	CONSTANTBUFFER_PERSCENE,
-	CONSTANTBUFFER_PEROBJECT
+	CONSTANTBUFFER_PEROBJECT,
+	CONSTANTBUFFER_TERRAIN
 };
 
 
@@ -155,6 +156,19 @@ struct S_API SPerObjectConstantBuffer
 	SPerObjectConstantBuffer& operator = (const SPerObjectConstantBuffer& b)
 	{
 		mtxTransform = b.mtxTransform;
+		return *this;
+	}
+};
+
+struct S_API STerrainConstantBuffer
+{
+	float dmTexRatioU, dmTexRatioV;
+	float _struct_padding[2];
+
+	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
+	{
+		dmTexRatioU = b.dmTexRatioU;
+		dmTexRatioV = b.dmTexRatioV;
 		return *this;
 	}
 };
@@ -208,6 +222,26 @@ struct S_API SRenderDesc
 	SDrawCallDesc drawCallDesc;
 	IGeometry* pGeometry;	
 	Material material;
+};
+
+struct S_API STerrainRenderDesc
+{
+	SDrawCallDesc drawCallDesc;
+	IGeometry* pGeometry;		// TODO: For what is this member??
+	ITexture* pColorMap;
+	ITexture* pDetailMap;
+	STerrainConstantBuffer constants;
+	bool bUpdateCB;
+	bool bRender;
+
+	STerrainRenderDesc()
+		: pGeometry(nullptr),
+		pColorMap(nullptr),
+		pDetailMap(nullptr),
+		bUpdateCB(true),
+		bRender(true)
+	{
+	}
 };
 
 
@@ -299,6 +333,11 @@ public:
 	// Summary:
 	//	Schedules an object to be rendered using given render desc
 	virtual SResult RenderGeometry(const SRenderDesc& dsc) = 0;
+
+	// Summary:
+	//	Set up terrain render description that is used when rendering the terrain (immediately
+	//	before unleashing render schedule.
+	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc) = 0;
 
 
 	// Summary:

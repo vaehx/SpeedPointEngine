@@ -77,9 +77,11 @@ m_iCurRTCollection(eRENDERTARGETS_NONE),
 m_pDepthStencilState(0),
 m_pPerSceneCB(nullptr),
 m_pPerObjectCB(nullptr),
+m_pTerrainCB(nullptr),
 m_bInScene(false),
 m_pRenderSchedule(nullptr),
-m_bDumpFrame(false)
+m_bDumpFrame(false),
+m_bPerObjectCBBound(false)
 {
 };
 
@@ -482,19 +484,26 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 
 
 	// initialize the shaders
-	char* pForwardFXFile = 0;
+	char* pForwardFXFile = 0, *pTerrainFXFile = 0;
 #ifdef _DEBUG
 	pForwardFXFile = new char[500];
+	pTerrainFXFile = new char[500];
 	sprintf_s(pForwardFXFile, 500, "%s..\\Effects\\forward.fx", SOL_DIR);
+	sprintf_s(pTerrainFXFile, 500, "%s..\\Effects\\terrain.fx", SOL_DIR);
 #else
 	pGBufferFXFile = "Effects\\forward.fx";
+	pTerrainFXFile = "Effects\\terrain.fx";
 #endif
 
 	if (Failure(m_ForwardEffect.Initialize(m_pEngine, pForwardFXFile, "forward")))
 		return S_ERROR;
 
+	if (Failure(m_TerrainEffect.Initialize(m_pEngine, pTerrainFXFile, "terrain")))
+		return S_ERROR;
+
 #ifdef _DEBUG
 	delete[] pForwardFXFile;
+	delete[] pTerrainFXFile;
 #endif
 
 	// Create unset texture dummy
@@ -541,6 +550,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	}
 	m_pRenderTargetCollections = nullptr;
 
+	m_TerrainEffect.Clear();
 	m_ForwardEffect.Clear();	
 	m_Viewport.Clear();
 
@@ -549,6 +559,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pRSState);
 	SP_SAFE_RELEASE(m_pPerSceneCB);
 	SP_SAFE_RELEASE(m_pPerObjectCB);
+	SP_SAFE_RELEASE(m_pTerrainCB);
 	if (IS_VALID_PTR(m_pD3DDeviceContext))
 	{		
 		m_pD3DDeviceContext->ClearState();
@@ -832,23 +843,32 @@ S_API SResult DirectX11Renderer::RenderGeometry(const SRenderDesc& dsc)
 }
 
 // --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& tdsc)
+{
+	if (!m_bInScene)
+		return S_INVALIDSTAGE;
+
+	memcpy(&m_TerrainRenderDesc, &tdsc, sizeof(STerrainRenderDesc));
+	FrameDump("Set terrain Render Desc.");
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::EndScene(void)
 {
 	if (!m_bInScene)
 		return S_ERROR;
 
-	if (Failure(UnleashRenderSchedule()))
-		return S_ERROR;
+	m_bInScene = false;
 
-	if (Failure(PresentTargetViewport()))
-		return S_ERROR;
+	RETURN_ON_ERR(UnleashRenderSchedule());
+	RETURN_ON_ERR(PresentTargetViewport());
 
 	m_Settings.SetClearColor(SColor(.0f, 0.05f, .0f));
-	BindSingleFBO(m_pTargetViewport);
-	if (Failure(ClearBoundRTs()))
-		return S_ERROR;
-
-	m_bInScene = false;
+	RETURN_ON_ERR(BindSingleFBO(m_pTargetViewport));
+	RETURN_ON_ERR(ClearBoundRTs());
+	
 	m_bDumpFrame = false;
 	return S_SUCCESS;
 }
@@ -856,18 +876,69 @@ S_API SResult DirectX11Renderer::EndScene(void)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 {
-	if (!m_bInScene)
+	if (m_bInScene)
 		return S_INVALIDSTAGE;
 
 	if (!IS_VALID_PTR(m_pRenderSchedule))
 		return S_ERROR;
 
 	if (m_pRenderSchedule->empty())
+	{
+		FrameDump("Render schedule empty in UnleashRenderSchedule()");
 		return S_SUCCESS;
+	}
 
 	ERenderPipelineTechnique previousTechnique = eRENDER_FORWARD;
-	if (Failure(BindSingleFBO(m_pTargetViewport)))
-		return S_ERROR;
+	RETURN_ON_ERR(BindSingleFBO(m_pTargetViewport));
+
+
+
+
+	// TODO: Decide whether extra terrain render desc is good.
+
+
+
+
+	// Render Terrain
+	if (m_TerrainRenderDesc.bRender)
+	{
+		bool bTerrainRenderState = true;	// true = success
+		FrameDump("Rendering Terrain...");
+
+		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMap))) m_pEngine->LogE("Invalid detail map in Terrain render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
+
+		BindTexture(m_TerrainRenderDesc.pColorMap, 0);
+		BindTexture(m_TerrainRenderDesc.pDetailMap, 1);
+
+		m_pD3DDeviceContext->PSSetConstantBuffers(1, 0, nullptr);
+		m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);
+
+		UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &m_TerrainRenderDesc.constants);
+
+		// bind terrain cb
+		m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pTerrainCB);
+		m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
+		m_bPerObjectCBBound = false;
+
+		//if (m_TerrainRenderDesc.bUpdateCB)		
+
+		// TODO: Draw Section based different lod levels
+
+		// binds terrain cb
+		DrawTerrain(m_TerrainRenderDesc.drawCallDesc);
+	}
+	else
+	{
+		FrameDump("Terrain not scheduled to be rendered this frame.");
+	}
+
+
+
+	return S_SUCCESS;
+
+
+
 
 	FrameDump("Unleashing render schedule now...");
 	FrameDump((unsigned int)m_pRenderSchedule->size(), SString("RenderScheduleSize"));
@@ -887,7 +958,14 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 				FrameDump("Rebind Target Viewport for Forward rendering (previously bound deferred RTs)");
 				if (Failure(BindSingleFBO(m_pTargetViewport)))
 					return S_ERROR;
-			}		
+			}
+
+			if (!m_bPerObjectCBBound)
+			{
+				m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pPerObjectCB);
+				m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pPerObjectCB);
+				m_bPerObjectCBBound = true;
+			}
 
 			// Render single forward pass directly to backbuffer						
 			if (IS_VALID_PTR(pDesc->material.textureMap))
@@ -936,6 +1014,20 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 		return S_ERROR;	
 
 	m_pD3DDeviceContext->DrawIndexed(desc.iEndIBIndex - desc.iStartIBIndex + 1, desc.iStartIBIndex, desc.iStartVBIndex);
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::DrawTerrain(const SDrawCallDesc& dcd)
+{
+	if (Failure(SetVBStream(dcd.pVertexBuffer))) return S_ERROR;
+	if (Failure(SetIBStream(dcd.pIndexBuffer))) return S_ERROR;
+
+	if (Failure(m_TerrainEffect.Enable()))
+		return m_pEngine->LogE("Enabling terrain effect failed");
+
+	m_pD3DDeviceContext->DrawIndexed(dcd.iEndIBIndex - dcd.iStartIBIndex + 1, dcd.iStartIBIndex, dcd.iStartVBIndex);
 
 	return S_SUCCESS;
 }
@@ -1090,6 +1182,7 @@ S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::InitConstantBuffers()
 {
+	// Per-Scene CB
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerSceneCB, sizeof(SPerSceneConstantBuffer))))
 		return S_ERROR;
 
@@ -1098,18 +1191,29 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 	m_pEngine->LogD("Created and set per scene CB");
 
 
+
+	// Per-Object CB
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerObjectCB, sizeof(SPerObjectConstantBuffer))))
 		return S_ERROR;
 	
 	m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pPerObjectCB);
 	m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pPerObjectCB);
-	m_pEngine->LogD("Created and set per object CB");
+	m_bPerObjectCBBound = true;
+	m_pEngine->LogD("Created and set per object CB");	
+
+
+
+	// Terrain CB
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pTerrainCB, sizeof(STerrainConstantBuffer))))
+		return m_pEngine->LogE("Failed create terrain CB");
+
+
 
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb)
+S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb, const STerrainConstantBuffer* pTerrainCB)
 {
 	switch (cb)
 	{
@@ -1122,6 +1226,8 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb)
 		memcpy((void*)pSceneBuffer, (void*)&m_PerSceneCB, sizeof(SPerSceneConstantBuffer));
 		D3D11_UnlockConstantsBuffer(m_pPerSceneCB);
 		break;
+
+
 	case CONSTANTBUFFER_PEROBJECT:
 		SPerObjectConstantBuffer* pObjectBuffer;
 		if (Failure(D3D11_LockConstantsBuffer(m_pPerObjectCB, (void**)&pObjectBuffer)))
@@ -1130,6 +1236,18 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb)
 		assert(IS_VALID_PTR(pObjectBuffer));
 		*pObjectBuffer = m_PerObjectCB;
 		D3D11_UnlockConstantsBuffer(m_pPerObjectCB);
+		break;
+
+
+	case CONSTANTBUFFER_TERRAIN:
+		assert(IS_VALID_PTR(pTerrainCB));
+		STerrainConstantBuffer* pTerrainBuffer;		
+		if (Failure(D3D11_LockConstantsBuffer(m_pTerrainCB, (void**)&pTerrainBuffer)))
+			return S_ERROR;		
+
+		assert(IS_VALID_PTR(pTerrainBuffer));
+		memcpy((void*)pTerrainBuffer, (void*)pTerrainCB, sizeof(STerrainConstantBuffer));		
+		D3D11_UnlockConstantsBuffer(m_pTerrainCB);
 		break;
 	}
 

@@ -98,9 +98,11 @@ private:
 	ID3D11DepthStencilState* m_pDepthStencilState;
 
 	SPerSceneConstantBuffer m_PerSceneCB;
-	SPerObjectConstantBuffer m_PerObjectCB;
+	SPerObjectConstantBuffer m_PerObjectCB;	
 	ID3D11Buffer* m_pPerSceneCB;
 	ID3D11Buffer* m_pPerObjectCB;
+	ID3D11Buffer* m_pTerrainCB;	// instance of STerrainConstantBuffer stored in Terrain Render Desc
+	bool m_bPerObjectCBBound;
 
 
 
@@ -122,11 +124,13 @@ private:
 	DirectX11Effect m_DeferredMergeEffect;
 	
 	DirectX11Effect m_ForwardEffect;
+	DirectX11Effect m_TerrainEffect;
 
 
 	bool m_bInScene;
 	map<usint32, SRenderDesc>* m_pRenderSchedule;	// The Render schedule filled by RenderGeometrical()
 	usint32 m_RenderScheduleIDCounter;	// counter for the id used to resort the render schedule to get the highest performance while rendering
+	STerrainRenderDesc m_TerrainRenderDesc;
 
 
 
@@ -175,7 +179,9 @@ private:
 
 
 
-	SResult UpdateRasterizerState();	
+	SResult UpdateRasterizerState();
+
+	SResult DrawTerrain(const SDrawCallDesc& dcd);
 
 public:				
 	DirectX11Renderer();
@@ -204,7 +210,10 @@ public:
 	SResult D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData);	
 	SResult D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB);
 	SResult InitConstantBuffers();
-	SResult UpdateConstantBuffer(EConstantBufferType cb);
+
+	// Arguments:
+	//	pTerrainCB - only required if cb == CONSTANTBUFFER_TERRAIN
+	SResult UpdateConstantBuffer(EConstantBufferType cb, const STerrainConstantBuffer* pTerrainCB = nullptr);
 
 	// Draw all things schedule in the render schedule
 	SResult UnleashRenderSchedule();
@@ -262,6 +271,7 @@ public:
 
 
 	virtual SResult RenderGeometry(const SRenderDesc& dsc);
+	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc);
 	
 	// Summary:
 	//	Draws the given geometry desc to the GBuffer and its depth buffer

@@ -91,6 +91,12 @@ void Test::OnInitGeometry()
 	SpeedPoint::ITexture* pTestNormalMap;
 	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\brick_n.bmp", 768, 768, "tex01n", &pTestNormalMap);
 
+	SpeedPoint::ITexture* pTestDetailMap;
+	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\grass_dm.bmp", 640, 640, "terrain_dm", &pTestDetailMap);
+
+	SpeedPoint::ITexture* pTestColorMap;
+	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\grass_cm.bmp", 64, 64, "terrain_cm", &pTestColorMap);
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Add first geometry	
@@ -187,9 +193,10 @@ void Test::OnInitGeometry()
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Create terrain
 	
-	testTerrain.Initialize(m_pEngine, 20, 20);
-	testTerrain.CreatePlanar(10.0f, 10.0f, 0.0f);
-
+	testTerrain.Initialize(m_pEngine, 60, 60);
+	testTerrain.CreatePlanar(40.0f, 40.0f, 0.0f);
+	testTerrain.SetColorMap(pTestColorMap);
+	testTerrain.SetDetailMap(pTestDetailMap);
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 
@@ -199,7 +206,7 @@ void Test::OnInitGeometry()
 	// Debug stuff
 
 	SpeedPoint::SCamera testCam;
-	testCam.position = SpeedPoint::SVector3(-5.0f, 10.0f, -5.0f);
+	testCam.position = SpeedPoint::SVector3(-30.0f, 14.0f, -30.0f);
 	testCam.rotation = SpeedPoint::SVector3(-0.7f, 0.0f, 0.0f);
 	//testCam.LookAt(SpeedPoint::SVector3(0, 0, 0));
 
@@ -230,13 +237,19 @@ void Test::Render()
 	testObject.vPosition = SpeedPoint::SVector3(0, 4.0f, -8.0f);	
 	
 
-	float camTurnRad = 5.0f;
-	pCamera->position.x = sinf(alpha) * camTurnRad;
+
+
 	pCamera->position.y = 3.0f;
-	pCamera->position.z = cosf(alpha) * camTurnRad;
+	pCamera->position.x = 0.0f;
+	pCamera->position.z = 0.0f;
+
+	float camTurnRad = 3.0f;
+	SpeedPoint::SVector3 camLookAt;
+	camLookAt.x = sinf(alpha) * camTurnRad;
+	camLookAt.y = 2.0f;
+	camLookAt.z = cosf(alpha) * camTurnRad;
 	
-	pCamera->LookAt(SpeedPoint::SVector3(0,0,0));
-	//CalcLookAt(*pCamera, testObject.vPosition);
+	pCamera->LookAt(camLookAt);	
 	pCamera->RecalculateViewMatrix();
 	
 	testTerrain.RenderTerrain();

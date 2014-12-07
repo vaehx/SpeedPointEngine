@@ -123,8 +123,10 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
 		"Cannot load Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
 
+	/*
 	if (w <= 64 || h <= 64)
 		return m_pEngine->LogD("Cannot load textures with width or height < 64", S_ERROR);	
+	*/
 
 	if (!src.IsValidString())
 		return m_pEngine->LogE("Invalid texture src specified: " + src);

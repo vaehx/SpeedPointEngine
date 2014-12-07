@@ -15,7 +15,7 @@
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
-
+struct S_API ITexture;
 
 // SpeedPoint Terrain Solid (abstract)
 struct S_API ITerrain
@@ -30,6 +30,9 @@ public:
 	// Create a planar terrain with Size fW x fD and resolution nX, nY	
 	virtual SResult CreatePlanar( float fW, float fD, float baseHeight) = 0;
 
+
+	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
+	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;
 
 	/////////////////////
 	///// TODO: Implement function to add / remove assigned texture

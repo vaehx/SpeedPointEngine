@@ -18,17 +18,26 @@ Application::RenderThreadFunc()
 |  |  |  |- SpeedPoint::<<IRenderPipeline>>::Run()
 |  |  |  |  |- SpeedPoint::<<Renderer>>::BeginScene()
 |  |  |  |  |- SpeedPoint::<<IApplication>>::Render()
+|  |  |  |  |  |- SpeedPoint::<<ITerrain>>::RenderTerrain()
+|  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::RenderTerrain(const STerrainRenderDesc& dsc)
+|  |  |  |  |  |  |  |- memcpy dsc --> m_TerrainRenderDesc
 |  |  |  |  |  |- SpeedPoint::<<IObject>>::Render()
 |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::RenderGeometry(const SRenderDesc& dsc)
 |  |  |  |  |  |  |  |- pRenderSchedule->insert(...)
 |  |  |  |  |- SpeedPoint::<<IRenderer>>::EndScene()
 |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::UnleashRenderSchedule()
+|  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::BindTexture(m_TerrainRenderDesc.pColorMap, 0)
+|  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::BindTexture(m_TerrainRenderDesc.pDetailMap, 0)
+|  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, ...)
+|  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::DrawTerrain(m_TerrainRenderDesc.drawCallDesc);
+|  |  |  |  |  |  |  |- SpeedPoint::<<IEffect>>::Enable() // DirectX11Effect m_TerrainEffect;
+|  |  |  |  |  |  |  |- <<IRenderAPI>>::DrawIndexed()
 |  |  |  |  |  |  |- for all render descs
 |  |  |  |  |  |  |  |- if (desc.technique == forward)
 |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::DrawForward()
 |  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetVBStream()
 |  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetIBStream()
-|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IShader>>::Enable()	// DirectX11Effect m_ForwardEffect;
+|  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IEffect>>::Enable()	// DirectX11Effect m_ForwardEffect;
 |  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetViewportMatrices()
 |  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::SetWorldMatrix()
 |  |  |  |  |  |  |  |  |  |- SpeedPoint::<<IRenderer>>::UpdateMatrixCB()

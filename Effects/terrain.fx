@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////
 //
 //
-//		GBuffer Shader
+//		SpeedPoint Terrain Shader
 //
 //
 /////////////////////////////////////////////////////////////////////////
@@ -13,22 +13,19 @@ cbuffer SceneCB : register(b0)
     float4 sunPos;
     float4 eyePos;
 }
-cbuffer ObjectCB : register(b1)
+
+cbuffer TerrainCB : register(b1)
 {
-    float4x4 mtxWorld;
+    float terrainTexRatioU;
+    float terrainTexRatioV;
+    float2 padding;
 }
-float4x4 mtxWorldViewProj;
-Texture2D textureMap : register(t0);
-Texture2D normalMap : register(t1);
-SamplerState TextureMapSampler
+
+Texture2D colorMap : register(t0);
+Texture2D detailMap : register(t1);
+SamplerState MapSampler
 {
     Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
-SamplerState NormalMapSampler
-{
-    Filter = MIN_MAG_MIP_LINEAR;
     AddressU = WRAP;
     AddressV = WRAP;
 };
@@ -39,38 +36,30 @@ struct VS_INPUT
 {
     float3 Position : POSITION;
     float3 Normal : NORMAL;
-    float3 Tangent : TANGENT;
     float2 TexCoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
-    float4 Position : SV_Position;
-    float3 WorldPos : TEXCOORD0;
-    float3 Normal : TEXCOORD1;
-    float3 Tangent : TEXCOORD2;    
-    float2 TexCoord : TEXCOORD3;
+    float4 Position : SV_Position;    
+    float3 Normal : TEXCOORD0;
+    float3 WorldPos : TEXCOORD1;        
+    float2 TexCoord : TEXCOORD2;
 };
 
-VS_OUTPUT VS_forward(VS_INPUT IN)
+VS_OUTPUT VS_terrain(VS_INPUT IN)
 {
-    VS_OUTPUT OUT;        
-
-    float4x4 mtxWorldInv = transpose(mtxWorld);
+    VS_OUTPUT OUT;    
 
     // Convert Position from Object into World-, Camera- and Projection Space
-    float4 wPos = mul(mtxWorld, float4(IN.Position,1.0f));
+    float4 wPos = float4(IN.Position, 1.0f);
     OUT.WorldPos = wPos.xyz;
-    
+        
     float4 sPos = mul(mtxView, wPos);
     float4 rPos = mul(mtxProjection, sPos);
     OUT.Position = rPos;
     
-    
-    
-    
-    OUT.Normal = normalize(mul(mtxWorld, normalize(float4(IN.Normal,0.0f))).xyz);
-    OUT.Tangent = normalize(mul(mtxWorldInv, normalize(float4(IN.Tangent,0.0f))).xyz);         
+    OUT.Normal = normalize(IN.Normal);             
     OUT.TexCoord = IN.TexCoord;
     
     return OUT;
@@ -80,11 +69,10 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
 
 struct PS_INPUT
 {
-    float4 Position : SV_Position;
-    float3 WorldPos : TEXCOORD0;
-    float3 Normal : TEXCOORD1;
-    float3 Tangent : TEXCOORD2;    
-    float2 TexCoord : TEXCOORD3;
+    float4 Position : SV_Position;    
+    float3 Normal : TEXCOORD0;    
+    float3 WorldPos : TEXCOORD1;
+    float2 TexCoord : TEXCOORD2;
 };
 
 struct PS_OUTPUT
@@ -137,53 +125,35 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
 //
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-PS_OUTPUT PS_forward(PS_INPUT IN)
+PS_OUTPUT PS_terrain(PS_INPUT IN)
 {
-    PS_OUTPUT OUT;
+    PS_OUTPUT OUT;              
+    
+    float3 normal = normalize(IN.Normal);
     
     
-    // calc binormal. Everything in World space!
-    float3 normal = IN.Normal;
-    float3 tangent = IN.Tangent;    
+    //OUT.Color = float4(0.0f, 1.0f, 0.0f, 1.0f);
+    //return OUT;    
     
-    float3 binormal = cross(normal, tangent);                 
+    // Sample CM and DM
+    float4 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord);
+    float4 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz);           
     
-    // Calculate Tangent to World Space Rotation Matrix
-    float3x3 matWT = float3x3(tangent, binormal, normal);
-    float3x3 matTW = transpose(matWT);
+    // Calculate lighting factor. Using a fixed light dir    
+    float3 lightDir = normalize(float3(0, -0.3f, 0.8f));
+    float lightIntensity = 3.0f;                    
+    float lambert = max(dot(-lightDir, normal),0);  
     
-    // Sample normal change in tangent space from NormalMap
-    float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord).rgb;
-    sampledNormal = 2.0f * sampledNormal - 1.0f;    
-    float3 bumpNormal = mul(matTW, normalize(sampledNormal));    
-    
-    normal = bumpNormal;
-    
-    //OUT.Color = float4(normalize(normal), 1.0f);
+    //OUT.Color = float4(normal, 1.0f);
     //return OUT;
-    
-    
-    
-    // Get texture map color
-    float4 texColor = textureMap.Sample(TextureMapSampler, IN.TexCoord);
-    
-    // Surface constants
-    float roughness = 0.5f;       
-    
-    // Calculate lighting factor. Using a fixed light dir and eye pos for now    
-    float3 lightDir = normalize(float3(0, -0.8f, 0.8f));        
-    
-    float3 dirToEye = normalize(eyePos.xyz - IN.WorldPos);
-            
-    float3 phong = calc_phong(normalize(normal), -lightDir, dirToEye, roughness, 1.0f);  
     
     // Global illumination "Ambient" fake
     float ambient = 0.3f;
     
     // Final lighting factor
-    float3 lightingFactor = phong + float3(ambient, ambient, ambient);        
-    
-    OUT.Color = texColor * float4(lightingFactor, 1.0f);
+    float lightingFactor = lambert + ambient;        
+        
+    OUT.Color = (sampleCM * sampleDM) * (lightingFactor * lightIntensity);
     //OUT.Color = lightingFactor; 
     
     return OUT;

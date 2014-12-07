@@ -42,6 +42,9 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 	float ratioU = 1.0f / (float)(m_nX),
 		ratioV = 1.0f / (float)(m_nZ);
 
+	m_fDMTexScaleU = diffX;
+	m_fDMTexScaleV = diffZ;
+
 	float posOffsetX = fW * 0.5f, posOffsetZ = fD * 0.5f;
 
 	for (unsigned int z = 0; z <= m_nZ; ++z)
@@ -49,7 +52,7 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		for (unsigned int x = 0; x <= m_nX; ++x)
 		{
 			unsigned int iVtxCur = z * (m_nX + 1) + x;
-			float h = baseHeight + (sinf(2.0f * SP_PI * ratioU * x) + sinf(2.0f * SP_PI * ratioV * z)) * 0.7f;
+			float h = baseHeight + (sinf(8.0f * SP_PI * ratioU * x) + sinf(8.0f * SP_PI * ratioV * z)) * 0.7f;
 			initGeom.pVertices[iVtxCur] = SVertex(
 				x * diffX - posOffsetX, h, z * diffZ - posOffsetZ,		// position
 				0.0f, 1.0f, 0.0f,				// normal
@@ -141,6 +144,8 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		vtx.nz = dirAccN.z;
 	}
 
+	m_bRendererdOnce = false;
+
 	return m_Geometry.Init(m_pEngine, m_pEngine->GetRenderer(), &initGeom);
 }
 
@@ -148,8 +153,8 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 S_API SResult Terrain::RenderTerrain(void)
 {
 	IRenderer* pRenderer = m_pEngine->GetRenderer();
-	
-	SRenderDesc dsc;
+
+	STerrainRenderDesc dsc;
 	dsc.drawCallDesc.pVertexBuffer = m_Geometry.GetVertexBuffer();
 	dsc.drawCallDesc.pIndexBuffer = m_Geometry.GetIndexBuffer();
 	dsc.drawCallDesc.iStartVBIndex = 0;
@@ -158,10 +163,42 @@ S_API SResult Terrain::RenderTerrain(void)
 	dsc.drawCallDesc.iEndIBIndex = dsc.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
 
 	dsc.pGeometry = &m_Geometry;
-	dsc.technique = eRENDER_FORWARD;
+	dsc.pColorMap = m_pColorMap;
+	dsc.pDetailMap = m_pDetailMap;
+	dsc.bRender = true;
 	SMatrixIdentity(&dsc.drawCallDesc.transform.scale);
 
-	return pRenderer->RenderGeometry(dsc);
+	dsc.constants.dmTexRatioU = m_fDMTexScaleU;
+	dsc.constants.dmTexRatioV = m_fDMTexScaleV;
+	
+	dsc.bUpdateCB = false;
+	if (!m_bRendererdOnce)
+	{
+		dsc.bUpdateCB = true;
+		m_bRendererdOnce = true;
+	}
+
+	return pRenderer->RenderTerrain(dsc);
+}
+
+// -------------------------------------------------------------------------------------------------------------------
+S_API SResult Terrain::SetColorMap(ITexture* pColorMap)
+{
+	if (!IS_VALID_PTR(pColorMap))
+		EngLog(S_INVALIDPARAM, m_pEngine, "Invalid ptr passed to Terrain::SetColorMap!");
+
+	m_pColorMap = pColorMap;
+	return S_SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------------------------
+S_API SResult Terrain::SetDetailMap(ITexture* pDetailMap)
+{
+	if (!IS_VALID_PTR(pDetailMap))
+		EngLog(S_INVALIDPARAM, m_pEngine, "Invalid trp passed to Terrain::SetDetailMap!");
+
+	m_pDetailMap = pDetailMap;
+	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------------------------

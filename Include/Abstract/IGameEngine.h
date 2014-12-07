@@ -359,4 +359,18 @@ namespace SpeedPoint
 		{
 		}
 	};
+
+
+	// Useful logging methods that shortens the check if pEng is a valid ptr and supports varargs.
+	// TODO: Support varargs, How to access varargs???
+	inline static SpeedPoint::SResult EngLog(const SpeedPoint::SResult& r, SpeedPoint::IGameEngine* pEng, const char* fmt, ...)
+	{
+		if (!IS_VALID_PTR(pEng))
+			return r;
+
+		char pOut[300];
+		sprintf_s(pOut, fmt /*, varargs???? */);
+
+		return pEng->LogReport(r, pOut);		
+	}
 }
