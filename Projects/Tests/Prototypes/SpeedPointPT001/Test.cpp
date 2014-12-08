@@ -198,6 +198,7 @@ void Test::OnInitGeometry()
 	// Create terrain
 
 	m_pScene->CreateTerrain(40.0f, 40.0f, 60, 60, 0.0f, pTestColorMap, pTestDetailMap);
+	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);
 	
 	/*
 	testTerrain.Initialize(m_pEngine, 60, 60);
@@ -254,10 +255,11 @@ void Test::Render()
 	float camTurnRad = 3.0f;
 	SpeedPoint::SVector3 camLookAt;
 	camLookAt.x = sinf(alpha) * camTurnRad;
-	camLookAt.y = 2.0f;
+	camLookAt.y = 3.0f;
 	camLookAt.z = cosf(alpha) * camTurnRad;
 	
-	pCamera->LookAt(camLookAt);	
+	pCamera->position = camLookAt;
+	pCamera->LookAt(camLookAt + SpeedPoint::SVector3(0,-1.0f,2.0f));	
 	pCamera->RecalculateViewMatrix();
 	
 	m_pScene->GetTerrain()->RenderTerrain();

@@ -914,14 +914,13 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 0, nullptr);
 		m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);
 
-		UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &m_TerrainRenderDesc.constants);
+		if (m_TerrainRenderDesc.bUpdateCB)
+			UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &m_TerrainRenderDesc.constants);
 
 		// bind terrain cb
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pTerrainCB);
 		m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
 		m_bPerObjectCBBound = false;
-
-		//if (m_TerrainRenderDesc.bUpdateCB)		
 
 		// TODO: Draw Section based different lod levels
 

@@ -1,6 +1,8 @@
 // SpeedPoint Engine Settings
 
 #include <EngineSettings.h>
+#include <Abstract\IScene.h>
+#include <Abstract\ITerrain.h>
 
 SP_NMSPACE_BEG
 
@@ -27,6 +29,8 @@ S_API SResult EngineSettings::Initialize(IGameEngine* pGameEngine)
 S_API void EngineSettings::SetTerrainDetailMapFadeRadius(float radius)
 {
 	m_Desc.render.fTerrainDMFadeRange = radius;
+	if (IS_VALID_PTR(m_pGameEngine))
+		m_pGameEngine->GetLoadedScene()->GetTerrain()->RequireCBUpdate();
 }
 
 // ------------------------------------------------------------------------------------------

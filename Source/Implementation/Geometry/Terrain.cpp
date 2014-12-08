@@ -168,15 +168,16 @@ S_API SResult Terrain::RenderTerrain(void)
 	dsc.pColorMap = m_pColorMap;
 	dsc.pDetailMap = m_pDetailMap;
 	dsc.bRender = true;
-	SMatrixIdentity(&dsc.drawCallDesc.transform.scale);
-
-	dsc.constants.dmTexRatioU = m_fDMTexScaleU;
-	dsc.constants.dmTexRatioV = m_fDMTexScaleV;
-	dsc.constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
+	SMatrixIdentity(&dsc.drawCallDesc.transform.scale);	
+	
+	dsc.bUpdateCB = false;
 
 	if (m_bRequireCBUpdate)
 	{
-		dsc.bUpdateCB = true;		
+		dsc.bUpdateCB = true;
+		dsc.constants.dmTexRatioU = m_fDMTexScaleU;
+		dsc.constants.dmTexRatioV = m_fDMTexScaleV;
+		dsc.constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
 		m_bRequireCBUpdate = false;
 	}
 	
