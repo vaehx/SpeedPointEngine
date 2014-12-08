@@ -170,7 +170,7 @@ struct S_API STerrainConstantBuffer
 	{
 		dmTexRatioU = b.dmTexRatioU;
 		dmTexRatioV = b.dmTexRatioV;
-		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;
+		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;		
 		return *this;
 	}
 };

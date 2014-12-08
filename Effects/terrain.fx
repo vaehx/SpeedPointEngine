@@ -18,7 +18,7 @@ cbuffer TerrainCB : register(b1)
 {
     float terrainTexRatioU;
     float terrainTexRatioV;
-    float2 padding;
+    float terrainDMFadeRadius;
 }
 
 Texture2D colorMap : register(t0);
@@ -118,6 +118,12 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
     return float3(intensityOut, intensityOut, intensityOut);
 }
 
+float terrain_fade_factor(float radius)
+{
+    float factor = -0.05f * (radius - terrainDMFadeRadius) + 1.0f;
+    return saturate(factor);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -153,8 +159,15 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     // Final lighting factor
     float lightingFactor = lambert + ambient;        
         
-    OUT.Color = (sampleCM * sampleDM) * (lightingFactor * lightIntensity);
-    //OUT.Color = lightingFactor; 
+    float dirln = length(eyePos.xz - IN.WorldPos.xz);
+    float terrainFadeFactor = terrain_fade_factor(dirln);
+    OUT.Color = (sampleCM * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity); 
     
     return OUT;
+}
+
+
+// Terrain Pixel Shader without detailmap
+PS_OUTPUT PS_terrain_nodm(PS_INPUT IN)
+{
 }
