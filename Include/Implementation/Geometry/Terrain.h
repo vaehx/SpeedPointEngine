@@ -25,7 +25,7 @@ private:
 	ITexture* m_pColorMap;
 	ITexture* m_pDetailMap;	
 
-	bool m_bRendererdOnce;
+	bool m_bRequireCBUpdate;
 
 public:
 	Terrain()
@@ -35,7 +35,7 @@ public:
 		m_pEngine(nullptr),
 		m_pColorMap(nullptr),
 		m_pDetailMap(nullptr),
-		m_bRendererdOnce(false)
+		m_bRequireCBUpdate(true)
 		{}
 
 	virtual ~Terrain();
@@ -49,6 +49,8 @@ public:
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
 	virtual SResult SetDetailMap(ITexture* pDetailMap);
+
+	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 
 	virtual SResult RenderTerrain(void);	
 	virtual SResult Clear(void);

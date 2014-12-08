@@ -163,12 +163,14 @@ struct S_API SPerObjectConstantBuffer
 struct S_API STerrainConstantBuffer
 {
 	float dmTexRatioU, dmTexRatioV;
-	float _struct_padding[2];
+	float fTerrainDMFadeRadius;
+	float _struct_padding;
 
 	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
 	{
 		dmTexRatioU = b.dmTexRatioU;
 		dmTexRatioV = b.dmTexRatioV;
+		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;
 		return *this;
 	}
 };

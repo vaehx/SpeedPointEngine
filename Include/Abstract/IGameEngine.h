@@ -27,10 +27,13 @@ namespace SpeedPoint
 	struct S_API ILogHandler;
 	struct S_API ILog;
 	struct S_API SVector3;
+	struct S_API IScene;
 
 
 
 	// -------------------------------------------------------------------------
+
+/*
 
 	// use 64 bits for engsetting mask
 #define ENGSETTINGMASKLENGTH 64
@@ -66,6 +69,9 @@ namespace SpeedPoint
 #define ENGSETTING_ENABLETEXTURES	BITN(14)
 #define ENGSETTING_RENDERAPI		BITN(15)
 #define ENGSETTING_VSYNCINTERVAL	BITN(16)
+#define ENGSETTING_TERRAINDMFADERADIUS	BITN(17)
+
+*/
 
 
 	// specifying in which direction the vertices are set if the polygon is front-faced
@@ -93,10 +99,7 @@ namespace SpeedPoint
 
 
 	struct S_API SSettingsDesc
-	{
-		ENGSETTING_MASKTYPE mask;
-
-
+	{		
 		////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		// Summary:
@@ -152,6 +155,8 @@ namespace SpeedPoint
 			float		fClipNear;		// Near-Clipping depth
 			float		fClipFar;		// Far-Clipping depth
 
+			float		fTerrainDMFadeRange;	// Radius from camera where Detailmap of terrain should fade out
+
 			bool		bRenderWireframe;		// is the wireframe shader enabled or not						
 			EFrontFace	frontFaceType;
 
@@ -191,6 +196,7 @@ namespace SpeedPoint
 			render.bRenderTextures = false;	// TODO: Swith this to true as soon as non-texturing was tested
 			render.fClipNear = 2.0f;
 			render.fClipFar = 200.0f;
+			render.fTerrainDMFadeRange = 20.0f;
 			render.bRenderLighting = false;	///// TODO: Switch this to true as soon as lighting shader is implemented									
 			render.bRenderWireframe = false;
 			render.frontFaceType = eFF_CW;		
@@ -199,9 +205,7 @@ namespace SpeedPoint
 
 		// Default copy constructor
 		SSettingsDesc::SSettingsDesc(const SSettingsDesc& o)
-		{
-			mask = ENGSETTING_ALL;
-
+		{			
 			// ApplicationSet
 			app.hWnd = o.app.hWnd;
 			app.nXResolution = o.app.nXResolution;
@@ -227,24 +231,19 @@ namespace SpeedPoint
 			render.bRenderTextures = o.render.bRenderTextures;
 			render.fClipFar = o.render.fClipFar;
 			render.fClipNear = o.render.fClipNear;
+			render.fTerrainDMFadeRange = o.render.fTerrainDMFadeRange;
 			render.frontFaceType = o.render.frontFaceType;
 			render.bRenderWireframe = o.render.bRenderWireframe;
 			render.bRenderLighting = o.render.bRenderLighting;		
 			render.shadowQuality = o.render.shadowQuality;
-		}
-
-
-		bool CheckMask(ENGSETTING_MASKTYPE checkVal) const
-		{
-			return (mask & checkVal) != 0;
-		}
+		}		
 	};
 
 
 
 
 	struct S_API IEngineSettings
-	{
+	{	
 		virtual ~IEngineSettings()
 		{
 		}
@@ -252,18 +251,17 @@ namespace SpeedPoint
 		// Summary:
 		//	The ptr to game engine is used to immediately update the component settings.
 		//	If nullptr is passed, then no settings will be set.
-		virtual SResult Initialize(IGameEngine* pGameEngine) = 0;
-
-		virtual SResult Set(const SSettingsDesc& dsc) = 0;
+		virtual SResult Initialize(IGameEngine* pGameEngine) = 0;		
 
 		virtual operator const SSettingsDesc&() const = 0;
-		virtual SSettingsDesc& Get() const = 0;
+		virtual SSettingsDesc& Get() = 0;
 
 
 
 		// TODO: specific set functions
 
-
+		virtual void SetTerrainDetailMapFadeRadius(float radius) = 0;
+		virtual bool SetFrontFaceType(EFrontFace ffType) = 0;
 	};
 
 
@@ -311,6 +309,9 @@ namespace SpeedPoint
 //		virtual SResult InitializeScriptEngine() = 0;		
 		virtual SResult InitializeResourcePool() = 0;
 		virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0) = 0;
+		
+		// instance is deleted by engine on shutdown
+		virtual SResult InitializeScene(IScene* pScene) = 0;
 
 		virtual bool IsRunning() const = 0;
 		virtual void RegisterShutdownHandler(IShutdownHandler* pShutdownHandler) = 0;
@@ -325,7 +326,8 @@ namespace SpeedPoint
 //		virtual IScriptEngine* GetScriptEngine() const = 0;
 		virtual IResourcePool* GetResources() const = 0;
 		virtual ILog* GetLog() const = 0;	
-		virtual IEngineSettings* GetSettings() const = 0;		
+		virtual IEngineSettings* GetSettings() const = 0;	
+		virtual IScene* GetLoadedScene() const = 0;
 
 		
 		// Summary:

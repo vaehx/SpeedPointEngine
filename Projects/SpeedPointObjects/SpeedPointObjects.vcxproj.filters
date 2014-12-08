@@ -38,6 +38,9 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Scene.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h">
@@ -65,6 +68,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\StaticObject.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

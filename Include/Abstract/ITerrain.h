@@ -34,6 +34,9 @@ public:
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
 	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;
 
+	// be careful to not call this during rendering of the terrain, as it might be reset before taking effect
+	virtual void RequireCBUpdate() = 0;
+
 	/////////////////////
 	///// TODO: Implement function to add / remove assigned texture
 	/// this is not really clear as of now:

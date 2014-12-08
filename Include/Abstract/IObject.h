@@ -103,15 +103,25 @@ struct S_API IObject
 {
 	virtual ~IObject() {}
 
-	virtual EObjectType GetType() const = 0;
+	virtual EObjectType GetType() const = 0;	
+	virtual bool IsRenderable() const = 0;	
 	//virtual SBoundBox& GetBoundBox() = 0;
+};
+
+struct S_API IRenderableObject : public IObject
+{
+	// Notes:
+	// - renderable object not necessarily has geometry.
+
+	virtual SResult Render() = 0;	
+	virtual bool IsRenderable() const { return true; }
 };
 
 
 // Summary:
 //	An simple object that can be rendered and positioned in the world
 //	When implementing, also inherit from STransformable to add support for transformation tools
-struct S_API IStaticObject : public IObject
+struct S_API IStaticObject : public IRenderableObject
 {
 	virtual ~IStaticObject()
 	{
@@ -122,8 +132,7 @@ struct S_API IStaticObject : public IObject
 
 	virtual IGeometry* GetGeometry() = 0;	
 	virtual Material& GetMaterial() = 0;	
-
-	virtual SResult Render() = 0;
+	
 	virtual void Clear() = 0;
 };
 

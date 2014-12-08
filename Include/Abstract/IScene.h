@@ -8,25 +8,36 @@
 #pragma once
 #include <SPrerequisites.h>
 
-namespace SpeedPoint
+SP_NMSPACE_BEG
+
+struct S_API ITerrain;
+struct S_API IObject;
+struct S_API IGameEngine;
+struct S_API ITexture;
+
+// Scene Graph Node
+struct S_API ISceneNode
 {
-	// Scene Graph Node
-	struct S_API ISceneNode
-	{
-	public:		
-		ISceneNode*	m_pParent;	// node will inherit position of this node
-		ISceneNode**	m_pChilds;	// array of ptrs to child nodes. this array has fixed size (nMaxSceneNodeChilds in SSettings)
-		SP_ID		m_ID;		// the id of the solid bound to this node
-	};
+public:		
+	ISceneNode*	m_pParent;	// node will inherit position of this node
+	ISceneNode**	m_pChilds;	// array of ptrs to child nodes. this array has fixed size (nMaxSceneNodeChilds in SSettings)
+	IObject**	m_pObjects;
+};
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// Holding IDs to the objects of a scene (SceneGraph)
-	class S_API IScene
-	{
-	public:
-		// Summary:
-		//	Allocate new node instance and (if set) gives ptr to instance
-		virtual SResult AddNode(const SP_ID& id, ISceneNode** pOutputNode) = 0;
-	};
-}
+// Holding IDs to the objects of a scene (SceneGraph)
+struct S_API IScene
+{
+	virtual ~IScene() {}
+
+	virtual SResult Initialize(IGameEngine* pGameEngine) = 0;
+
+	virtual ITerrain* GetTerrain() = 0;
+	virtual ITerrain* CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ, float baseHeight, ITexture* pColorMap, ITexture* pDetailMap) = 0;
+
+	virtual void Clear() = 0;	
+};
+
+
+SP_NMSPACE_END

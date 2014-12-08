@@ -24,36 +24,15 @@ S_API SResult EngineSettings::Initialize(IGameEngine* pGameEngine)
 }
 
 // ------------------------------------------------------------------------------------------
-S_API SResult EngineSettings::Set(const SSettingsDesc& dsc)
+S_API void EngineSettings::SetTerrainDetailMapFadeRadius(float radius)
 {
-	// APPLICATION
-	if (dsc.CheckMask(ENGSETTING_HWND)) m_Desc.app.hWnd = dsc.app.hWnd;
-	if (dsc.CheckMask(ENGSETTING_RESOLUTION))
-	{
-		m_Desc.app.nXResolution = dsc.app.nXResolution;
-		m_Desc.app.nYResolution = dsc.app.nYResolution;
-	}
-	if (dsc.CheckMask(ENGSETTING_MULTITHREADING)) m_Desc.app.bMultithreaded = dsc.app.bMultithreaded;
-	if (dsc.CheckMask(ENGSETTING_WINDOWEDMODE)) m_Desc.app.bWindowed = dsc.app.bMultithreaded;
+	m_Desc.render.fTerrainDMFadeRange = radius;
+}
 
-
-	// RENDER
-	if (dsc.CheckMask(ENGSETTING_ENABLEVSYNC)) m_Desc.render.bEnableVSync = dsc.render.bEnableVSync;
-	if (dsc.CheckMask(ENGSETTING_VSYNCINTERVAL)) m_Desc.render.vsyncInterval = dsc.render.vsyncInterval;
-	if (dsc.CheckMask(ENGSETTING_AAQUALITY)) m_Desc.render.antiAliasingQuality = dsc.render.antiAliasingQuality;
-	if (dsc.CheckMask(ENGSETTING_SHADOWQUALITY)) m_Desc.render.shadowQuality = dsc.render.shadowQuality;
-	if (dsc.CheckMask(ENGSETTING_FRONTFACE_TYPE)) m_Desc.render.frontFaceType = dsc.render.frontFaceType;
-	if (dsc.CheckMask(ENGSETTING_LIGHTING)) m_Desc.render.bRenderLighting = dsc.render.bRenderLighting;
-	if (dsc.CheckMask(ENGSETTING_WIREFRAME)) m_Desc.render.bRenderWireframe = dsc.render.bRenderWireframe;
-	if (dsc.CheckMask(ENGSETTING_CLIPPLANES))
-	{
-		m_Desc.render.fClipNear = dsc.render.fClipNear;
-		m_Desc.render.fClipFar = dsc.render.fClipFar;
-	}
-	if (dsc.CheckMask(ENGSETTING_ENABLETEXTURES)) m_Desc.render.bRenderTextures = dsc.render.bRenderTextures;	
-	if (dsc.CheckMask(ENGSETTING_RENDERAPI)) m_Desc.render.tyRendererType = dsc.render.tyRendererType;
-
-	return S_SUCCESS;
+// ------------------------------------------------------------------------------------------
+S_API bool EngineSettings::SetFrontFaceType(EFrontFace ffType)
+{
+	ENGSETTING_SET_GETEQ(m_Desc.render.frontFaceType, ffType);
 }
 
 

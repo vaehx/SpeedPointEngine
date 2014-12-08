@@ -144,7 +144,7 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		vtx.nz = dirAccN.z;
 	}
 
-	m_bRendererdOnce = false;
+	m_bRequireCBUpdate = true;
 
 	return m_Geometry.Init(m_pEngine, m_pEngine->GetRenderer(), &initGeom);
 }
@@ -152,6 +152,8 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 // -------------------------------------------------------------------------------------------------------------------
 S_API SResult Terrain::RenderTerrain(void)
 {
+	SP_ASSERTR(IS_VALID_PTR(m_pEngine), S_NOTINIT);
+
 	IRenderer* pRenderer = m_pEngine->GetRenderer();
 
 	STerrainRenderDesc dsc;
@@ -168,16 +170,15 @@ S_API SResult Terrain::RenderTerrain(void)
 	dsc.bRender = true;
 	SMatrixIdentity(&dsc.drawCallDesc.transform.scale);
 
-	dsc.constants.dmTexRatioU = m_fDMTexScaleU;
-	dsc.constants.dmTexRatioV = m_fDMTexScaleV;
-	
-	dsc.bUpdateCB = false;
-	if (!m_bRendererdOnce)
+	if (m_bRequireCBUpdate)
 	{
 		dsc.bUpdateCB = true;
-		m_bRendererdOnce = true;
+		dsc.constants.dmTexRatioU = m_fDMTexScaleU;
+		dsc.constants.dmTexRatioV = m_fDMTexScaleV;
+		dsc.constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;				
+		m_bRequireCBUpdate = false;
 	}
-
+	
 	return pRenderer->RenderTerrain(dsc);
 }
 

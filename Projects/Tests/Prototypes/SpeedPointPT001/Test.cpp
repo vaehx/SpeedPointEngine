@@ -41,22 +41,22 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	m_pEngine = new SpeedPoint::SpeedPointEngine();
 	m_pEngine->RegisterApplication(this);
 	
-	SpeedPoint::SSettingsDesc dsc;
+	SpeedPoint::SSettingsDesc& dsc = m_pEngine->GetSettings()->Get();	
 	dsc.app.nXResolution = 1024;
 	dsc.app.nYResolution = 768;
 	dsc.app.hWnd = hWnd;	
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.bEnableVSync = true;
-	dsc.render.bRenderWireframe = false;
-	dsc.mask = ENGSETTING_RESOLUTION | ENGSETTING_HWND | ENGSETTING_ENABLEVSYNC | ENGSETTING_CLIPPLANES | ENGSETTING_WIREFRAME;
+	dsc.render.bRenderWireframe = false;	
+	dsc.render.fTerrainDMFadeRange = 5.0f;
 
-	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;
-	m_pEngine->GetSettings()->Set(dsc);
+	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;	
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeLogger(&logHandler));
 	EXEC_CONDITIONAL(initResult, m_pEngine->GetLog()->SetLogLevel(SpeedPoint::ELOGLEVEL_DEBUG));	
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeFramePipeline());
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true));
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeResourcePool());
+	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeScene(new SpeedPoint::Scene()));
 
 	if (Failure(initResult))
 	{
@@ -66,6 +66,10 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 
 	m_pEngine->GetLog()->SetLogFile("App.log");
 
+
+	m_pScene = m_pEngine->GetLoadedScene();
+	
+	// pay attention that FinishINitialization() will call OnInitGeometry()!
 	m_pEngine->FinishInitialization();
 
 	// Initialize viewport
@@ -74,7 +78,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	pCamera = m_pEngine->GetRenderer()->GetTargetViewport()->GetCamera();
 	pCamera->position = SpeedPoint::SVector3(0, 5.0f, -10.0f);
 	pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
-	alpha = 0.0f;
+	alpha = 0.0f;	
 
 	return true;
 }
@@ -192,11 +196,15 @@ void Test::OnInitGeometry()
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Create terrain
+
+	m_pScene->CreateTerrain(40.0f, 40.0f, 60, 60, 0.0f, pTestColorMap, pTestDetailMap);
 	
+	/*
 	testTerrain.Initialize(m_pEngine, 60, 60);
 	testTerrain.CreatePlanar(40.0f, 40.0f, 0.0f);
 	testTerrain.SetColorMap(pTestColorMap);
 	testTerrain.SetDetailMap(pTestDetailMap);
+	*/
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 
@@ -252,7 +260,7 @@ void Test::Render()
 	pCamera->LookAt(camLookAt);	
 	pCamera->RecalculateViewMatrix();
 	
-	testTerrain.RenderTerrain();
+	m_pScene->GetTerrain()->RenderTerrain();
 	testObject.Render();
 
 }
@@ -261,7 +269,7 @@ void Test::Render()
 
 bool Test::Stop()
 {
-	testTerrain.Clear();
+	m_pScene->Clear();
 	testObject.Clear();
 	
 	m_pEngine->Shutdown();	

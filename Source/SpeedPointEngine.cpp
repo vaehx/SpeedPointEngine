@@ -16,6 +16,7 @@
 #include <Abstract\IApplication.h>
 #include <Pipelines\RenderPipeline.h>
 #include <fstream>
+#include <Abstract\IScene.h>
 
 SP_NMSPACE_BEG
 	
@@ -155,7 +156,9 @@ S_API void SpeedPointEngine::Shutdown(void)
 
 	m_ShutdownHandlers.clear();
 
-
+	// clear scene
+	if (IS_VALID_PTR(m_pScene.pComponent))
+		m_pScene->Clear();
 
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool
 	m_pRenderer.Clear();
@@ -340,7 +343,14 @@ S_API SResult SpeedPointEngine::InitializeLogger(ILogHandler* pCustomLogHandler 
 	return S_SUCCESS;
 }
 
-
+// ----------------------------------------------------------------------------------
+S_API SResult SpeedPointEngine::InitializeScene(IScene* pScene)
+{
+	SP_ASSERTR(IS_VALID_PTR(pScene), S_INVALIDPARAM);
+	m_pScene.SetOwn(pScene);
+	m_pScene->Initialize(this);
+	return S_SUCCESS;
+}
 
 
 

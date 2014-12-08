@@ -1356,37 +1356,29 @@ S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformationDesc& trans
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::UpdateRasterizerState()
-{
-	// delete old rasterizer state
-	if (m_pRSState)
-		m_pRSState->Release();
-
-	// and create new one
+{	
+	SP_SAFE_RELEASE(m_pRSState);
 	if (Failure(m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
-		return S_ERROR;
+		return EngLog(S_ERROR, m_pEngine, "Failed recreate rasterizer state for updating rasterizer state.");
 
 	m_pD3DDeviceContext->RSSetState(m_pRSState);
-
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::UpdateCullMode(EFrontFace ff)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
-
-	if (m_rsDesc.FrontCounterClockwise == (ff == eFF_CCW))
-		return S_SUCCESS;
+	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
 	// update the rasterizer settings
-	SSettingsDesc setDesc;
-	setDesc.render.frontFaceType = ff;
-	setDesc.mask = ENGSETTING_FRONTFACE_TYPE;
-	m_pEngine->GetSettings()->Set(setDesc);
+	if (m_pEngine->GetSettings()->SetFrontFaceType(ff))
+	{
+		m_rsDesc.FrontCounterClockwise = (ff == eFF_CCW);
+		return UpdateRasterizerState();
+	}
+	
 
-	m_rsDesc.FrontCounterClockwise = (ff == eFF_CCW);	
-
-	return UpdateRasterizerState();
+	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------

@@ -15,6 +15,10 @@ SP_NMSPACE_BEG
 
 
 
+// requires comparison operator (==)
+#define ENGSETTING_SET_GETEQ(param, val) \
+	if ((param == val)) { return true; } else { param = val; return false; }
+
 
 // SpeedPoint Engine settings
 class S_API EngineSettings : public IEngineSettings
@@ -34,16 +38,16 @@ public:
 	{
 		return m_Desc;
 	}
-	virtual SSettingsDesc& Get() const
+	virtual SSettingsDesc& Get()
 	{
-		return (SSettingsDesc&)m_Desc;
-	}
-
-
-	virtual SResult Set(const SSettingsDesc& dsc);
+		return m_Desc;
+	}	
 
 
 
+
+	virtual void SetTerrainDetailMapFadeRadius(float radius);
+	virtual bool SetFrontFaceType(EFrontFace ffType);
 
 
 

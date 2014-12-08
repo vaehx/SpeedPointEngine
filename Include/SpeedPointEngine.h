@@ -119,6 +119,7 @@ private:
 	EngineComponent<IFramePipeline> m_pFramePipeline;
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
+	EngineComponent<IScene> m_pScene;
 	ILog* m_pLog;
 
 	std::vector<IShutdownHandler*> m_ShutdownHandlers;
@@ -149,6 +150,7 @@ public:
 	virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true);
 	virtual SResult InitializeResourcePool();
 	virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0);
+	virtual SResult InitializeScene(IScene* pScene);
 
 
 public:
@@ -185,6 +187,7 @@ public:
 	virtual IResourcePool* GetResources() const { return m_pResourcePool; }
 	virtual ILog* GetLog() const { return m_pLog; }	
 	virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
+	virtual IScene* GetLoadedScene() const { return m_pScene; }
 };
 
 

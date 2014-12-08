@@ -14,6 +14,7 @@
 #include <Abstract\IObject.h>
 #include <Implementation\Geometry\StaticObject.h>
 #include <Implementation\Geometry\Terrain.h>
+#include <Implementation\Geometry\Scene.h>
 #include <Windows.h>
 
 
@@ -32,7 +33,7 @@ private:
 	float alpha;
 	unsigned int nDumpedFrames;
 	SpeedPoint::StaticObject testObject;
-	SpeedPoint::Terrain testTerrain;
+	SpeedPoint::IScene* m_pScene;
 	SpeedPoint::SCamera* pCamera;
 	TestLogHandler logHandler;
 
