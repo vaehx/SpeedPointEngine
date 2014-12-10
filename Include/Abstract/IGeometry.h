@@ -35,10 +35,10 @@ struct S_API IVertexBuffer;
 //	This structure deletes the vertices and indices arrays when being destructed!
 struct S_API SInitialGeometryDesc
 {
-	SVertex* pVertices;
+	SVertex* pVertices;	// gets deleted automatically when constructed. Otherwise make sure to set pointer to 0
 	usint32 nVertices;
 
-	SIndex* pIndices;
+	SIndex* pIndices;	// gets deleted automatically when constructed. Otherwise make sure to set pointer to 0
 	usint32 nIndices;
 
 	SInitialGeometryDesc()

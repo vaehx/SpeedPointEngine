@@ -21,6 +21,18 @@
 #define EXEC_CONDITIONAL(res, exec) if (SpeedPoint::Success(res)) { res = exec; }
 
 
+enum EKey
+{
+	KEY_MOVE_FORWARD,
+	KEY_MOVE_BACKWARD,
+	KEY_MOVE_LEFT,
+	KEY_MOVE_RIGHT,
+	KEY_MOVE_UP,
+	KEY_MOVE_DOWN,
+	KEY_SHIFT
+};
+
+
 class TestLogHandler : public SpeedPoint::ILogHandler
 {
 public:
@@ -42,6 +54,7 @@ protected:
 
 public:		
 	virtual void OnLogReport(SpeedPoint::SResult res, const SpeedPoint::SString& msg);
+	bool KeyPressed(EKey key) const;
 	bool Start(HWND hWnd, HINSTANCE hInstance);
 	bool Tick();
 

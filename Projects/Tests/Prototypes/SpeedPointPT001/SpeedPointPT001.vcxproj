@@ -85,6 +85,7 @@
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Geometry.h" />
     <ClInclude Include="Test.h" />
     <ClInclude Include="TestUtil.h" />
   </ItemGroup>

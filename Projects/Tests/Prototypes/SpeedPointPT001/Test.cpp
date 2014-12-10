@@ -8,6 +8,7 @@
 
 #include "Test.h"
 #include "TestUtil.h"
+#include "Geometry.h"
 
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 
@@ -31,6 +32,24 @@ void CalcLookAt(SpeedPoint::SCamera& cam, const SpeedPoint::SVector3& lookAt)
 		cam.rotation.y = (2.0f * SP_PI) - cam.rotation.y;
 
 	cam.rotation.z = 0.0f;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Test::KeyPressed(EKey key) const
+{
+	switch (key)
+	{
+	case KEY_MOVE_FORWARD: return ::GetAsyncKeyState(0x57) < 0;	//W
+	case KEY_MOVE_BACKWARD: return ::GetAsyncKeyState(0x53) < 0;	//S
+	case KEY_MOVE_LEFT: return ::GetAsyncKeyState(0x41) < 0;	//A
+	case KEY_MOVE_RIGHT: return ::GetAsyncKeyState(0x44) < 0;	//D
+	case KEY_MOVE_UP: return ::GetAsyncKeyState(0x45) < 0;		//E
+	case KEY_MOVE_DOWN: return ::GetAsyncKeyState(0x51) < 0;	//Q
+	case KEY_SHIFT: return ::GetAsyncKeyState(VK_SHIFT) < 0;
+	default:
+		return false;
+	}	
 }
 
 
@@ -103,91 +122,10 @@ void Test::OnInitGeometry()
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Add first geometry	
+	// Add first geometry
 
-	SpeedPoint::SInitialGeometryDesc initialGeom;
-	initialGeom.pVertices = new SpeedPoint::SVertex[24];
-	initialGeom.pIndices = new SpeedPoint::SIndex[36];
-
-	//						  Position		   Normal		Tangent		    UV
-	// Top:
-	initialGeom.pVertices[ 0] = SpeedPoint::SVertex( 0.5f, 0.5f,-0.5f,	 0.0f, 1.0f, 0.0f,	0.0f, 0.0f, 0.0f,	0.0f, 0.0f);
-	initialGeom.pVertices[ 1] = SpeedPoint::SVertex(-0.5f, 0.5f,-0.5f,	 0.0f, 1.0f, 0.0f,	0.0f, 0.0f, 0.0f,	1.0f, 0.0f);
-	initialGeom.pVertices[ 2] = SpeedPoint::SVertex(-0.5f, 0.5f, 0.5f,	 0.0f, 1.0f, 0.0f,	0.0f, 0.0f, 0.0f,	1.0f, 1.0f);
-	initialGeom.pVertices[ 3] = SpeedPoint::SVertex( 0.5f, 0.5f, 0.5f,	 0.0f, 1.0f, 0.0f,	0.0f, 0.0f, 0.0f,	0.0f, 1.0f);
-			       
-	// Back:
-	initialGeom.pVertices[ 4] = SpeedPoint::SVertex( 0.5f, 0.5f, 0.5f,	 0.0f, 0.0f, 1.0f,	0,0,0,			0.0f, 0.0f);
-	initialGeom.pVertices[ 5] = SpeedPoint::SVertex(-0.5f, 0.5f, 0.5f,	 0.0f, 0.0f, 1.0f,	0,0,0,			1.0f, 0.0f);
-	initialGeom.pVertices[ 6] = SpeedPoint::SVertex(-0.5f,-0.5f, 0.5f,	 0.0f, 0.0f, 1.0f,	0,0,0,			1.0f, 1.0f);
-	initialGeom.pVertices[ 7] = SpeedPoint::SVertex( 0.5f,-0.5f, 0.5f,	 0.0f, 0.0f, 1.0f,	0,0,0,			0.0f, 1.0f);
-		
-	// Bottom:
-	initialGeom.pVertices[ 8] = SpeedPoint::SVertex( 0.5f,-0.5f, 0.5f,	 0.0f,-1.0f, 0.0f,	0,0,0,			0.0f, 0.0f);
-	initialGeom.pVertices[ 9] = SpeedPoint::SVertex(-0.5f,-0.5f, 0.5f,	 0.0f,-1.0f, 0.0f,	0,0,0,			1.0f, 0.0f);
-	initialGeom.pVertices[10] = SpeedPoint::SVertex(-0.5f,-0.5f,-0.5f,	 0.0f,-1.0f, 0.0f,	0,0,0,			1.0f, 1.0f);
-	initialGeom.pVertices[11] = SpeedPoint::SVertex( 0.5f,-0.5f,-0.5f,	 0.0f,-1.0f, 0.0f,	0,0,0,			0.0f, 1.0f);
-
-	// Front:
-	initialGeom.pVertices[12] = SpeedPoint::SVertex( 0.5f,-0.5f,-0.5f,	 0.0f, 0.0f,-1.0f,	0,0,0,			0.0f, 0.0f);
-	initialGeom.pVertices[13] = SpeedPoint::SVertex(-0.5f,-0.5f,-0.5f,	 0.0f, 0.0f,-1.0f,	0,0,0,			1.0f, 0.0f);
-	initialGeom.pVertices[14] = SpeedPoint::SVertex(-0.5f, 0.5f,-0.5f,	 0.0f, 0.0f,-1.0f,	0, 0, 0,		1.0f, 1.0f);
-	initialGeom.pVertices[15] = SpeedPoint::SVertex( 0.5f, 0.5f,-0.5f,	 0.0f, 0.0f,-1.0f,	0, 0, 0,		0.0f, 1.0f);
-
-	// Left:
-	initialGeom.pVertices[16] = SpeedPoint::SVertex( 0.5f,-0.5f, 0.5f,	 1.0f, 0.0f, 0.0f,	0, 0, 0,		0.0f, 0.0f);
-	initialGeom.pVertices[17] = SpeedPoint::SVertex( 0.5f,-0.5f,-0.5f,	 1.0f, 0.0f, 0.0f,	0, 0, 0,		1.0f, 0.0f);
-	initialGeom.pVertices[18] = SpeedPoint::SVertex( 0.5f, 0.5f,-0.5f,	 1.0f, 0.0f, 0.0f,	0, 0, 0,		1.0f, 1.0f);
-	initialGeom.pVertices[19] = SpeedPoint::SVertex( 0.5f, 0.5f, 0.5f,	 1.0f, 0.0f, 0.0f,	0, 0, 0,		0.0f, 1.0f);
-
-	// Right:
-	initialGeom.pVertices[20] = SpeedPoint::SVertex(-0.5f,-0.5f,-0.5f,	-1.0f, 0.0f, 0.0f,	0, 0, 0,		0.0f, 0.0f);
-	initialGeom.pVertices[21] = SpeedPoint::SVertex(-0.5f,-0.5f, 0.5f,	-1.0f, 0.0f, 0.0f,	0, 0, 0,		1.0f, 0.0f);
-	initialGeom.pVertices[22] = SpeedPoint::SVertex(-0.5f, 0.5f, 0.5f,	-1.0f, 0.0f, 0.0f,	0, 0, 0,		1.0f, 1.0f);
-	initialGeom.pVertices[23] = SpeedPoint::SVertex(-0.5f, 0.5f,-0.5f,	-1.0f, 0.0f, 0.0f,	0, 0, 0,		0.0f, 1.0f);	
-
-
-	initialGeom.nVertices = 24;
-
-	// Top:
-	initialGeom.pIndices[0] = 0; initialGeom.pIndices[1] = 1; initialGeom.pIndices[2] = 2;
-	initialGeom.pIndices[3] = 2; initialGeom.pIndices[4] = 3; initialGeom.pIndices[5] = 0;
-
-	// Back:
-	initialGeom.pIndices[6] = 4; initialGeom.pIndices[7] = 5; initialGeom.pIndices[8] = 6;
-	initialGeom.pIndices[9] = 6; initialGeom.pIndices[10] = 7; initialGeom.pIndices[11] = 4;
-
-	// Bottom:
-	initialGeom.pIndices[12] = 8; initialGeom.pIndices[13] = 9; initialGeom.pIndices[14] = 10;
-	initialGeom.pIndices[15] = 10; initialGeom.pIndices[16] = 11; initialGeom.pIndices[17] = 8;
-
-	// Front:
-	initialGeom.pIndices[18] = 12; initialGeom.pIndices[19] = 13; initialGeom.pIndices[20] = 14;
-	initialGeom.pIndices[21] = 14; initialGeom.pIndices[22] = 15; initialGeom.pIndices[23] = 12;
-
-	// Left:
-	initialGeom.pIndices[24] = 16; initialGeom.pIndices[25] = 17; initialGeom.pIndices[26] = 18;
-	initialGeom.pIndices[27] = 18; initialGeom.pIndices[28] = 19; initialGeom.pIndices[29] = 16;
-
-	initialGeom.pIndices[30] = 20; initialGeom.pIndices[31] = 21; initialGeom.pIndices[32] = 22;
-	initialGeom.pIndices[33] = 22; initialGeom.pIndices[34] = 23; initialGeom.pIndices[35] = 20;
-	initialGeom.nIndices = 36;
-
-	m_pEngine->LogD("Generating tangents of initialGeom...");
-
-	// calculate tangents	
-	for (unsigned int i = 0; i < initialGeom.nIndices; i += 3)
-	{
-		unsigned int i1 = initialGeom.pIndices[i], i2 = initialGeom.pIndices[i + 1], i3 = initialGeom.pIndices[i + 2];
-		SpeedPoint::SVertex &v1 = initialGeom.pVertices[i1], &v2 = initialGeom.pVertices[i2], &v3 = initialGeom.pVertices[i3];
-		v1.CalcTangent(v2, v3);
-		v2.tx = v1.tx; v2.ty = v1.ty; v2.tz = v1.tz;
-		v3.tx = v1.tx; v3.ty = v1.ty; v3.tz = v1.tz;
-	}
-
-
-	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);
-	testObject.Init(m_pEngine, m_pEngine->GetRenderer(), &initialGeom);
+	GeometryLib::GenerateBox(m_pEngine, testObject.GetGeometry(), 1.0f, 1.0f, 1.0f);
+	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);	
 
 	SpeedPoint::Material& testObjMat = testObject.GetMaterial();
 	testObjMat.textureMap = pTestTextureMap;
@@ -199,13 +137,6 @@ void Test::OnInitGeometry()
 
 	m_pScene->CreateTerrain(40.0f, 40.0f, 60, 60, 0.0f, pTestColorMap, pTestDetailMap);
 	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);
-	
-	/*
-	testTerrain.Initialize(m_pEngine, 60, 60);
-	testTerrain.CreatePlanar(40.0f, 40.0f, 0.0f);
-	testTerrain.SetColorMap(pTestColorMap);
-	testTerrain.SetDetailMap(pTestDetailMap);
-	*/
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 
@@ -216,8 +147,7 @@ void Test::OnInitGeometry()
 
 	SpeedPoint::SCamera testCam;
 	testCam.position = SpeedPoint::SVector3(-30.0f, 14.0f, -30.0f);
-	testCam.rotation = SpeedPoint::SVector3(-0.7f, 0.0f, 0.0f);
-	//testCam.LookAt(SpeedPoint::SVector3(0, 0, 0));
+	testCam.rotation = SpeedPoint::SVector3(-0.7f, 0.0f, 0.0f);	
 
 }
 
@@ -239,29 +169,42 @@ bool Test::Tick()
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Test::Render()
-{	
+{
 
+	// UPDATE:
 
 	testObject.vRotation += SpeedPoint::SVector3(0.01f, 0.00f, 0.00f);		
 	testObject.vPosition = SpeedPoint::SVector3(0, 4.0f, -8.0f);	
-	
 
-
-
-	pCamera->position.y = 3.0f;
-	pCamera->position.x = 0.0f;
-	pCamera->position.z = 0.0f;
-
+	/*
 	float camTurnRad = 3.0f;
 	SpeedPoint::SVector3 camLookAt;
 	camLookAt.x = sinf(alpha) * camTurnRad;
 	camLookAt.y = 3.0f;
 	camLookAt.z = cosf(alpha) * camTurnRad;
-	
-	pCamera->position = camLookAt;
-	pCamera->LookAt(camLookAt + SpeedPoint::SVector3(0,-1.0f,2.0f));	
+	*/
+
+	float moveDiff = (KeyPressed(KEY_SHIFT) ? 0.3f : 0.1f);
+
+	if (KeyPressed(KEY_MOVE_FORWARD)) pCamera->position.z += moveDiff;
+	if (KeyPressed(KEY_MOVE_BACKWARD)) pCamera->position.z -= moveDiff;
+	if (KeyPressed(KEY_MOVE_LEFT)) pCamera->position.x += moveDiff;
+	if (KeyPressed(KEY_MOVE_RIGHT)) pCamera->position.x -= moveDiff;
+	if (KeyPressed(KEY_MOVE_UP)) pCamera->position.y += moveDiff;
+	if (KeyPressed(KEY_MOVE_DOWN)) pCamera->position.y -= moveDiff;
+
+	pCamera->rotation.x = -0.7f;
+
 	pCamera->RecalculateViewMatrix();
 	
+
+
+
+
+
+
+	// RENDER
+
 	m_pScene->GetTerrain()->RenderTerrain();
 	testObject.Render();
 
