@@ -2,14 +2,38 @@
 
 @written on: 4/23/2014 4:51pm
 
-@update on: 11/20/2014
+@update on: 12/08/2014
 
- 11:41 pm
+ 16:10 pm
 
-- overwrite cpp assert macro
-- Implement SCamera::RecalculateMatrix() for roll = true
-- Prevent unnecessary calls when shader does not change:
-	- IASetInputLayout()
-	- IASetVertexBuffer()
-	- IASetIndexBuffer()
-	- VSSetShader()
+
+Product Backlog:
+- HDR
+- Deferred Rendering
+
+
+Tasks:
+
+#0001 - overwrite cpp assert macro
+#0002 - Prevent unnecessary calls when shader does not change:
+		- IASetInputLayout()
+		- IASetVertexBuffer()
+		- IASetIndexBuffer()
+		- VSSetShader()
+#0003 - Create the OutputPlane with 2 Triangles only
+#0004 - Rewrite FBO usage pipeline
+		- Create SPRT
+		- Forward RT: SPRT
+		- Deferred RT:
+			- Stage 1: GBuffer A (px, py, pz, ?), B (nx, ny, nz, ?), C (tx, ty, tz, ?)
+			- Stage 2: ...
+			- Stage 3: SPRT
+		   PROBLEM: WHERE TO PUT MATERIAL INFORMATION??
+		- needs more discussion !!!!
+#0005 - Render to the speedpoint render target
+#0006 - Render SpeedPoint Render target using a new post-fx effect and the OutputPlane as geometry to render the SPRT to
+  	the backbuffer. Then present / swap.
+#0007 - Tonemapping in post-fx
+#0008 - Create Direct2D Rendertarget / surface, render text on it
+#0009 - Render Direct2D Rendertarget (pConsoleD2DSurface) to the SPRT
+#0010 - Implement SCamera::RecalculateMatrix() for roll = true
