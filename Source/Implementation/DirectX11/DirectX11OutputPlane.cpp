@@ -10,8 +10,8 @@
 #include <Implementation\DirectX11\DirectX11OutputPlane.h>
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
-#include <Util\SMatrix.h>
-#include <Util\SVector3.h>
+#include <Abstract\Matrix.h>
+#include <Abstract\Vector3.h>
 #include <SpeedPointEngine.h>
 #include <Util\SVertex.h>
 #include <Implementation\DirectX11\DirectX11VertexBuffer.h>

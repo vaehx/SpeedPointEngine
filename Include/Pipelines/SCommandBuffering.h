@@ -9,7 +9,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Util\SVector3.h>
+#include <Abstract\Vector3.h>
 #include <Util\SQueue.h>
 
 namespace SpeedPoint

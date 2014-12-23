@@ -154,11 +154,15 @@ S_API SResult Terrain::RenderTerrain(void)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), S_NOTINIT);
 
+	SGeometryIndexBuffer* pGeomIndexBuffers = m_Geometry.GetIndexBuffers();
+	if (!IS_VALID_PTR(pGeomIndexBuffers) || m_Geometry.GetIndexBufferCount() == 0)
+		return S_ERROR;
+
 	IRenderer* pRenderer = m_pEngine->GetRenderer();
 
 	STerrainRenderDesc dsc;
 	dsc.drawCallDesc.pVertexBuffer = m_Geometry.GetVertexBuffer();
-	dsc.drawCallDesc.pIndexBuffer = m_Geometry.GetIndexBuffer();
+	dsc.drawCallDesc.pIndexBuffer = pGeomIndexBuffers[0].pIndexBuffer;
 	dsc.drawCallDesc.iStartVBIndex = 0;
 	dsc.drawCallDesc.iEndVBIndex = dsc.drawCallDesc.pVertexBuffer->GetVertexCount() - 1;
 	dsc.drawCallDesc.iStartIBIndex = 0;

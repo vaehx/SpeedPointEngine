@@ -45,7 +45,21 @@ S_API void Geometry::Clear()
 
 	if (IS_VALID_PTR(m_pRenderer))
 	{
-		m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pIndexBuffer);
+		if (m_nIndexBuffers == 1)
+		{
+			m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pIndexBuffers->pIndexBuffer);
+			delete m_pIndexBuffers;
+		}
+		else if (m_nIndexBuffers > 1)
+		{
+			for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
+				m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pIndexBuffers[iIndexBuffer].pIndexBuffer);		
+
+			delete[] m_pIndexBuffers;
+		}
+		m_pIndexBuffers = 0;
+		m_nIndexBuffers = 0;
+
 		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(&m_pVertexBuffer);
 		m_pRenderer = nullptr;
 	}
@@ -62,43 +76,54 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 	m_pEngine = pEngine;
 	m_pEngine->RegisterShutdownHandler(this);
 	
-	if (Failure(pRenderer->GetResourcePool()->AddVertexBuffer(&m_pVertexBuffer)) ||
-		Failure(pRenderer->GetResourcePool()->AddIndexBuffer(&m_pIndexBuffer)))
+	RETURN_ON_ERR(pRenderer->GetResourcePool()->AddVertexBuffer(&m_pVertexBuffer));
+	RETURN_ON_ERR(m_pVertexBuffer->Initialize(pEngine, pRenderer, eVBUSAGE_STATIC, 0));
+
+	if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pVertices))
+		RETURN_ON_ERR(m_pVertexBuffer->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices, false));
+
+	if (!IS_VALID_PTR(pInitialGeom) || !IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) || pInitialGeom->nMatIndexAssigns == 0)
 	{
-		return S_ERROR;
+		m_pIndexBuffers = new SGeometryIndexBuffer();
+		m_nIndexBuffers = 1;
+		RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&m_pIndexBuffers->pIndexBuffer));
+		RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0));
+		
+		if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pIndices))
+			RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false));
+
+				
+		m_pIndexBuffers->pMaterial = (IS_VALID_PTR(pInitialGeom) ? pInitialGeom->pSingleMaterial : m_pEngine->GetDefaultMaterial());
 	}
-
-	// Init and fill pVB with initial geometry if given
-	if (Failure(m_pVertexBuffer->Initialize(pEngine, pRenderer, eVBUSAGE_STATIC, 0)) ||
-		Failure(m_pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0)))
+	else
 	{
-		return S_ERROR;
-	}	
+		// Create and fill one Index buffer per material
+		m_nIndexBuffers = pInitialGeom->nMatIndexAssigns;
+		m_pIndexBuffers = new SGeometryIndexBuffer[m_nIndexBuffers];
+		for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
+		{
+			SMaterialIndices& matIndices = pInitialGeom->pMatIndexAssigns[iIndexBuffer];
+			SGeometryIndexBuffer& geomIndexBuffer = m_pIndexBuffers[iIndexBuffer];
+			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&geomIndexBuffer.pIndexBuffer));
+			RETURN_ON_ERR(geomIndexBuffer.pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0));
+			geomIndexBuffer.pMaterial = matIndices.pMaterial;
 
+			// fill index buffer with according indices
+			SIndex* pIndices = new SIndex[matIndices.nIdxIndices];
+			for (unsigned int iIdxIndex = 0; iIdxIndex < matIndices.nIdxIndices; ++iIdxIndex)
+				pIndices[iIdxIndex] = pInitialGeom->pIndices[matIndices.pIdxIndices[iIdxIndex]];		
 
-	if (IS_VALID_PTR(pInitialGeom))
-	{
-		if (Failure(m_pVertexBuffer->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices, false)))
-			return S_ERROR;
+			if (Failure(geomIndexBuffer.pIndexBuffer->Fill(pIndices, matIndices.nIdxIndices, false)))
+			{
+				delete[] pIndices;
+				return S_ERROR;
+			}
 
-		if (Failure(m_pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false)))
-			return S_ERROR;
+			delete[] pIndices;
+		}
 	}
-
 
 	return S_SUCCESS;
-}
-
-// ----------------------------------------------------------------------------------------
-S_API IIndexBuffer* Geometry::GetIndexBuffer()
-{
-	return m_pIndexBuffer;
-}
-
-// ----------------------------------------------------------------------------------------
-S_API IVertexBuffer* Geometry::GetVertexBuffer()
-{
-	return m_pVertexBuffer;
 }
 
 

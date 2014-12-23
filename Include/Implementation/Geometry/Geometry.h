@@ -33,8 +33,10 @@ protected:
 	IGameEngine* m_pEngine;
 	IRenderer* m_pRenderer;
 
-	IIndexBuffer* m_pIndexBuffer;
-	IVertexBuffer* m_pVertexBuffer;	
+	unsigned short m_nIndexBuffers;
+	SGeometryIndexBuffer* m_pIndexBuffers;
+
+	IVertexBuffer* m_pVertexBuffer;
 
 public:
 	Geometry();
@@ -47,8 +49,18 @@ public:
 		return m_pRenderer;
 	}
 
-	virtual IIndexBuffer* GetIndexBuffer();	
-	virtual IVertexBuffer* GetVertexBuffer();	
+	virtual SGeometryIndexBuffer* GetIndexBuffers()
+	{
+		return m_pIndexBuffers;
+	}
+	virtual unsigned short GetIndexBufferCount() const
+	{
+		return m_nIndexBuffers;
+	}
+	virtual IVertexBuffer* GetVertexBuffer()
+	{
+		return m_pVertexBuffer;
+	}
 	
 	virtual void Clear();
 

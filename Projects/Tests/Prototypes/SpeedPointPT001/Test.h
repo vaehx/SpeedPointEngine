@@ -45,6 +45,7 @@ private:
 	float alpha;
 	unsigned int nDumpedFrames;
 	SpeedPoint::StaticObject testObject;
+	SpeedPoint::IStaticObject* pTest3DSObject;
 	SpeedPoint::IScene* m_pScene;
 	SpeedPoint::SCamera* pCamera;
 	TestLogHandler logHandler;

@@ -86,9 +86,6 @@
     <ClInclude Include="..\..\Include\Observer\SEventCallbackTableEntry.h">
       <Filter>Headers\Observer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SAPI.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SBoundBox.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -104,9 +101,6 @@
     <ClInclude Include="..\..\Include\Util\SLogStream.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SMatrix.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SPlane.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -119,23 +113,8 @@
     <ClInclude Include="..\..\Include\Util\SPrimitive.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\STransformable.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SVector2.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SVector3.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SVector4.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SVertex.h">
       <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\SPrerequisites.h">
-      <Filter>Headers\Frontend</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Lighting\SLight.h">
       <Filter>Headers\Lighting</Filter>
@@ -197,9 +176,6 @@
       <Filter>Sources\Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Util\SLogStream.cpp">
-      <Filter>Sources\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Util\STransformable.cpp">
       <Filter>Sources\Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Util\SBoundBox.cpp">

@@ -26,6 +26,8 @@ public:
 	virtual ITerrain* GetTerrain() { return m_pTerrain; }
 	virtual ITerrain* CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ, float baseHeight, ITexture* pColorMap, ITexture* pDetailMap);
 
+	virtual IStaticObject* LoadStaticObjectFromFile(const char* file);
+
 	virtual void Clear();
 };
 

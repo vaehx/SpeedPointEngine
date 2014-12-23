@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Util\SMatrix.h> // for Matrix CB
+#include "Matrix.h" // for Matrix CB
 #include "IViewport.h"	// for SViewportDescription
 #include "IGeometry.h" // for STransformation
 #include "IObject.h"
@@ -223,7 +223,7 @@ struct S_API SRenderDesc
 	ERenderPipelineTechnique technique;
 	SDrawCallDesc drawCallDesc;
 	IGeometry* pGeometry;	
-	Material material;
+	SMaterial material;
 };
 
 struct S_API STerrainRenderDesc

@@ -19,7 +19,7 @@
 
 // Include abstract geometry component classes
 
-#include <Util\STransformable.h>
+#include <Abstract\Transformable.h>
 #include <Abstract\ITexture.h>
 #include <Abstract\IOctreeNode.h>
 #include <Abstract\IOctree.h>

@@ -12,7 +12,7 @@
 #include <SPrerequisites.h>
 #include <Abstract\IViewport.h>
 #include "DirectX11.h"
-#include <Util\SMatrix.h>
+#include <Abstract\Matrix.h>
 
 SP_NMSPACE_BEG
 

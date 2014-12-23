@@ -10,10 +10,10 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Util\SVector2.h>
-#include <Util\SMatrix.h>
+#include "Vector2.h"
+#include "Matrix.h"
 
-#include <Util\Camera.h>
+#include "Camera.h"
 
 SP_NMSPACE_BEG
 

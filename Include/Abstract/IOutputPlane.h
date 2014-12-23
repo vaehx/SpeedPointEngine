@@ -10,13 +10,13 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Util\SMatrix.h>
+#include "Matrix.h"
 
 namespace SpeedPoint
 {
 
 	// Forward declarations
-	class S_API IFBO;
+	struct S_API IFBO;
 	class S_API SpeedPointEngine;
 	struct S_API IRenderer;
 	struct S_API IIndexBuffer;

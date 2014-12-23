@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Util\SVector3.h>
+#include <Abstract\Vector3.h>
 #include <Util\SColor.h>
 
 namespace SpeedPoint

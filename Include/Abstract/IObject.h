@@ -20,6 +20,7 @@
 
 #include <SPrerequisites.h>
 #include "ITexture.h"
+#include "Transformable.h"
 
 SP_NMSPACE_BEG
 
@@ -30,59 +31,7 @@ struct S_API STransformation;
 struct S_API IGameEngine;
 struct S_API IRenderer;
 struct S_API SInitialGeometryDesc;
-
-
-///////////////////////////////////////////////////////////////////////////////////
-
-// Summary:
-//	Description of the material of an objects surface.
-//	The texture are only pointers (aggregations) and are not destructed by Material.
-struct S_API Material
-{
-	ITexture* textureMap;	// aggregation, color for full unlit roughness
-	ITexture* normalMap;
-	ITexture* ambientOcclusionMap;
-	float emissive;
-
-	ITexture* glossinessMap;
-	float globalGlossFactor;
-	bool useGlobalGloss;
-
-	Material()
-		: textureMap(nullptr),
-		normalMap(nullptr),
-		ambientOcclusionMap(nullptr),
-		emissive(0.0f),
-		glossinessMap(nullptr),
-		globalGlossFactor(0.0f),
-		useGlobalGloss(true)
-	{
-	}
-
-	Material(const Material& m)
-		: textureMap(m.textureMap),
-		normalMap(m.normalMap),
-		ambientOcclusionMap(m.ambientOcclusionMap),
-		emissive(m.emissive),
-		glossinessMap(m.glossinessMap),
-		globalGlossFactor(m.globalGlossFactor),
-		useGlobalGloss(m.useGlobalGloss)
-	{
-	}
-
-	~Material()
-	{
-		Clear();
-	}
-
-	void Clear()
-	{
-		textureMap = nullptr;
-		ambientOcclusionMap = nullptr;
-		glossinessMap = nullptr;
-	}
-};
-
+struct S_API SMaterial;
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +47,17 @@ enum S_API EObjectType
 };
 
 
+///////////////////////////////////////////////////////////////////////////////////
+
+
+struct S_API SInitialMaterials
+{
+	unsigned short nMaterials;
+	SMaterial* pMaterials;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////
 
 struct S_API IObject
 {
@@ -121,17 +81,26 @@ struct S_API IRenderableObject : public IObject
 // Summary:
 //	An simple object that can be rendered and positioned in the world
 //	When implementing, also inherit from STransformable to add support for transformation tools
-struct S_API IStaticObject : public IRenderableObject
+struct S_API IStaticObject : public IRenderableObject, public STransformable
 {
 	virtual ~IStaticObject()
 	{
 	}
 
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const Material& material, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
+	// pInitialMaterials - If nullptr, then the engine's default material is taken
+	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const SInitialMaterials* pInitialMaterials = nullptr, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
 
 	virtual IGeometry* GetGeometry() = 0;	
-	virtual Material& GetMaterial() = 0;	
+	virtual SMaterial* GetMaterials() = 0;	
+	virtual unsigned short GetMaterialCount() const = 0;
+
+	// Summary:
+	//	Sets first material (=single Material)
+	virtual void SetMaterial(const SMaterial& singleMat) = 0;
+
+	// Summary:
+	//	Verifies that there is a single material and returns always a non-null pointer
+	virtual SMaterial* GetSingleMaterial() = 0;
 	
 	virtual void Clear() = 0;
 };

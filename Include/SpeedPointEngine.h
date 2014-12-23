@@ -124,6 +124,8 @@ private:
 
 	std::vector<IShutdownHandler*> m_ShutdownHandlers;
 
+	SMaterial m_DefaultMaterial;
+
 	void CheckFinishInit();
 
 public:
@@ -188,6 +190,8 @@ public:
 	virtual ILog* GetLog() const { return m_pLog; }	
 	virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 	virtual IScene* GetLoadedScene() const { return m_pScene; }
+
+	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
 };
 
 

@@ -27,7 +27,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Important core headers.
 
-#include "Util\SAPI.h" // __declspec macro S_API
+#include <Abstract\SAPI.h> // __declspec macro S_API
 
 #include "Util\SWindowsSpecific.h"
 #include <vector>
@@ -104,6 +104,38 @@ typedef usint32 SP_UNIQUE;
 
 #define MAX_UINT32 0xffffffffui32
 //#define MAX_UINT64 0xffffffffffffffff
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Note: This function assumes that the string properly terminates with a 0!
+//	Otherwise a memory access violation occurs.
+static unsigned short sp_strlen(const char* str)
+{
+	if (!IS_VALID_PTR(str))
+		return 0;
+
+	unsigned short cnt = 0;
+	while (str[cnt] != 0)
+		cnt++;
+
+	return cnt;
+}
+
+// Note: This function assumes that src properly terminates with a 0!
+//	DST IS CREATED BY THIS FUNCTION IF NOT A VALID POINTER!
+//	Otherwise a memory access violation occurs.
+static void sp_strcpy(char** dst, const char* src)
+{
+	if (!IS_VALID_PTR(dst))
+		return;
+
+	unsigned short srcLn = sp_strlen(src);
+	if (!IS_VALID_PTR(*dst))
+		*dst = new char[srcLn + 1];
+
+	memcpy(*dst, src, srcLn);
+	(*dst)[srcLn] = 0;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Some math utility functions

@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include "STransformable.h"
+#include "Transformable.h"
 #include <math.h>
 
 SP_NMSPACE_BEG

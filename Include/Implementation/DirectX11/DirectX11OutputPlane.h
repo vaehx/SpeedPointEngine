@@ -11,7 +11,7 @@
 
 #include <SPrerequisites.h>
 #include <Abstract\IOutputPlane.h>
-#include <Util\SMatrix.h>
+#include <Abstract\Matrix.h>
 
 SP_NMSPACE_BEG
 

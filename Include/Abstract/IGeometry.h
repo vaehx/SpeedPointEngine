@@ -22,12 +22,50 @@
 #include <SPrerequisites.h>
 #include "IIndexBuffer.h"	// because we cannot forward-declare SIndex (due to delete command)
 #include <Util\SVertex.h>	// because we cannot forward-declare SVertex (due to delete command)
-#include <Util\SMatrix.h>
+#include "Matrix.h"
+#include "Material.h"
 #include "IGameEngine.h"	// for IShutdownHandler
+
 SP_NMSPACE_BEG
 
 struct S_API ITexture;
 struct S_API IVertexBuffer;
+struct S_API SMaterial;
+
+///////////////////////////////////////////////////////////////////////////////////
+
+// Summary:
+//	Stores a list of indices to indices that are affected by specific material.
+struct S_API SMaterialIndices
+{
+	char* materialName;
+	SMaterial* pMaterial;	// accumulation
+	unsigned long* pIdxIndices;	// array of indices to indices
+	unsigned int nIdxIndices;
+	unsigned int nFilledIdxIndices;
+
+	SMaterialIndices()
+		: nIdxIndices(0),
+		pIdxIndices(0),
+		materialName(0),
+		nFilledIdxIndices(0),
+		pMaterial(0) {}
+
+	~SMaterialIndices()
+	{
+		if (IS_VALID_PTR(pIdxIndices))
+			delete[] pIdxIndices;
+
+		if (IS_VALID_PTR(materialName))
+			delete[] materialName;
+
+		materialName = 0;
+		pIdxIndices = 0;
+		nIdxIndices = 0;
+		nFilledIdxIndices = 0;
+		pMaterial = 0;
+	}
+};
 
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -41,21 +79,39 @@ struct S_API SInitialGeometryDesc
 	SIndex* pIndices;	// gets deleted automatically when constructed. Otherwise make sure to set pointer to 0
 	usint32 nIndices;
 
+	SMaterial* pSingleMaterial;
+
+	SMaterialIndices* pMatIndexAssigns;
+	unsigned int nMatIndexAssigns;
+
 	SInitialGeometryDesc()
 		: pVertices(nullptr),
 		nVertices(0),
 		pIndices(nullptr),
-		nIndices(0)
+		nIndices(0),
+		pMatIndexAssigns(0),
+		nMatIndexAssigns(0),
+		pSingleMaterial(0)
 	{
 	}
 
 	~SInitialGeometryDesc()
 	{
 		if (IS_VALID_PTR(pVertices))	
-			delete pVertices;	
+			delete pVertices;			
 
 		if (IS_VALID_PTR(pIndices))
 			delete pIndices;
+
+		if (IS_VALID_PTR(pMatIndexAssigns))
+			delete[] pMatIndexAssigns;
+
+		pVertices = 0;
+		pIndices = 0;
+		nVertices = 0;
+		nIndices = 0;
+		nMatIndexAssigns = 0;
+		pSingleMaterial = 0;
 	}
 };
 
@@ -99,6 +155,17 @@ struct S_API STransformationDesc
 
 ///////////////////////////////////////////////////////////////////////////////////
 
+// Summary:
+//	Binds an Index Buffer to a specific material
+struct S_API SGeometryIndexBuffer
+{
+	IIndexBuffer* pIndexBuffer;
+	SMaterial* pMaterial;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
 struct S_API IGeometry : public IShutdownHandler
 {
 	virtual ~IGeometry() {}
@@ -107,7 +174,8 @@ struct S_API IGeometry : public IShutdownHandler
 	
 	virtual IRenderer* GetRenderer() = 0;
 
-	virtual IIndexBuffer* GetIndexBuffer() = 0;	
+	virtual SGeometryIndexBuffer* GetIndexBuffers() = 0;
+	virtual unsigned short GetIndexBufferCount() const = 0;
 	virtual IVertexBuffer* GetVertexBuffer() = 0;	
 
 	virtual void Clear() = 0;

@@ -136,12 +136,6 @@
     <ClInclude Include="..\..\Include\Abstract\MathGeom.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\Camera.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\SPrerequisites.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\ChunkPool.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -149,6 +143,33 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Util\SString.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Material.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Transformable.h">
+      <Filter>Headers\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Matrix.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Vector3.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Vector2.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Vector4.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\SAPI.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\SPrerequisites.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Camera.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

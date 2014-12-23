@@ -5,7 +5,7 @@
 // ********************************************************************************************
 
 #pragma once
-#include "SAPI.h"
+#include <Abstract\SAPI.h>
 
 namespace SpeedPoint
 {

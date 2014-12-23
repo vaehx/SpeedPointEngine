@@ -11,7 +11,7 @@
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <Implementation\DirectX11\DirectX11FBO.h>
 #include <Implementation\DirectX11\DirectX11Utilities.h>
-#include <Util\SMatrix.h>
+#include <Abstract\Matrix.h>
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
 

@@ -12,7 +12,7 @@
 #include <Util\SColor.h>
 #include "Abstract\IFramePipeline.h"	// for default skipsections
 #include <Util\SLogStream.h>
-#include <Util\SMatrix.h>
+#include "Matrix.h"
 
 namespace SpeedPoint
 {
@@ -28,6 +28,7 @@ namespace SpeedPoint
 	struct S_API ILog;
 	struct S_API SVector3;
 	struct S_API IScene;
+	struct S_API SMaterial;
 
 
 
@@ -328,6 +329,8 @@ namespace SpeedPoint
 		virtual ILog* GetLog() const = 0;	
 		virtual IEngineSettings* GetSettings() const = 0;	
 		virtual IScene* GetLoadedScene() const = 0;
+
+		virtual SMaterial* GetDefaultMaterial() = 0;
 
 		
 		// Summary:

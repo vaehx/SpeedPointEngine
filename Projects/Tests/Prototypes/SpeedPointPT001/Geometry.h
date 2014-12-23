@@ -9,7 +9,9 @@ namespace GeometryLib
 	
 	// Summary:
 	//	Generate a box with given sizes, each side made of 2 triangles. 24 Vertices, 36 Indices
-	static SpeedPoint::SResult GenerateBox(SpeedPoint::IGameEngine* pEngine, SpeedPoint::IGeometry* pGeometry, float w, float h, float d)
+	// Warning:
+	//	Only pass a pMat that is a pointer to a material stored in the object itself!
+	static SpeedPoint::SResult GenerateBox(SpeedPoint::IGameEngine* pEngine, SpeedPoint::IGeometry* pGeometry, SpeedPoint::SMaterial* pMat, float w, float h, float d)
 	{
 		if (!IS_VALID_PTR(pGeometry))
 			return SpeedPoint::S_INVALIDPARAM;
@@ -17,6 +19,7 @@ namespace GeometryLib
 		pGeometry->Clear();
 
 		SpeedPoint::SInitialGeometryDesc initialGeom;
+		initialGeom.pSingleMaterial = pMat;
 		initialGeom.pVertices = new SpeedPoint::SVertex[24];
 		initialGeom.pIndices = new SpeedPoint::SIndex[36];
 

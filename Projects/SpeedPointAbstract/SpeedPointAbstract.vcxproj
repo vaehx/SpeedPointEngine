@@ -67,6 +67,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Abstract\Camera.h" />
     <ClInclude Include="..\..\Include\Abstract\ChunkPool.h" />
     <ClInclude Include="..\..\Include\Abstract\IDynamicsPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IAI.h" />
@@ -109,9 +110,15 @@
     <ClInclude Include="..\..\Include\Abstract\ITexture.h" />
     <ClInclude Include="..\..\Include\Abstract\IVertexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IViewport.h" />
+    <ClInclude Include="..\..\Include\Abstract\Material.h" />
     <ClInclude Include="..\..\Include\Abstract\MathGeom.h" />
+    <ClInclude Include="..\..\Include\Abstract\Matrix.h" />
+    <ClInclude Include="..\..\Include\Abstract\SAPI.h" />
+    <ClInclude Include="..\..\Include\Abstract\Transformable.h" />
+    <ClInclude Include="..\..\Include\Abstract\Vector2.h" />
+    <ClInclude Include="..\..\Include\Abstract\Vector3.h" />
+    <ClInclude Include="..\..\Include\Abstract\Vector4.h" />
     <ClInclude Include="..\..\Include\SPrerequisites.h" />
-    <ClInclude Include="..\..\Include\Util\Camera.h" />
     <ClInclude Include="..\..\Include\Util\SResult.h" />
     <ClInclude Include="..\..\Include\Util\SString.h" />
   </ItemGroup>

@@ -7,8 +7,8 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include "SVector2.h"
-#include "SVector3.h"
+#include <Abstract\Vector2.h>
+#include <Abstract\Vector3.h>
 
 namespace SpeedPoint
 {

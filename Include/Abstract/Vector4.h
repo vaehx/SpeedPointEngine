@@ -7,7 +7,7 @@
 #pragma once
 #include "SAPI.h"
 #include <cmath>
-#include "SVector3.h"
+#include "Vector3.h"
 
 namespace SpeedPoint
 {

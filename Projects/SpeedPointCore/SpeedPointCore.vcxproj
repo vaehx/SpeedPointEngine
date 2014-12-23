@@ -94,24 +94,17 @@
     <ClInclude Include="..\..\Include\SpeedPointRendering.h" />
     <ClInclude Include="..\..\Include\SpeedPointScripting.h" />
     <ClInclude Include="..\..\Include\SpeedPointSound.h" />
-    <ClInclude Include="..\..\Include\SPrerequisites.h" />
-    <ClInclude Include="..\..\Include\Util\SAPI.h" />
     <ClInclude Include="..\..\Include\Util\SAssert.h" />
     <ClInclude Include="..\..\Include\Util\SBoundBox.h" />
     <ClInclude Include="..\..\Include\Util\SColor.h" />
     <ClInclude Include="..\..\Include\Util\SConfigFile.h" />
     <ClInclude Include="..\..\Include\Util\SLogFile.h" />
     <ClInclude Include="..\..\Include\Util\SLogStream.h" />
-    <ClInclude Include="..\..\Include\Util\SMatrix.h" />
     <ClInclude Include="..\..\Include\Util\SPlane.h" />
     <ClInclude Include="..\..\Include\Util\SPool.h" />
     <ClInclude Include="..\..\Include\Util\SPoolIndex.h" />
     <ClInclude Include="..\..\Include\Util\SPrimitive.h" />
     <ClInclude Include="..\..\Include\Util\SQueue.h" />
-    <ClInclude Include="..\..\Include\Util\STransformable.h" />
-    <ClInclude Include="..\..\Include\Util\SVector2.h" />
-    <ClInclude Include="..\..\Include\Util\SVector3.h" />
-    <ClInclude Include="..\..\Include\Util\SVector4.h" />
     <ClInclude Include="..\..\Include\Util\SVertex.h" />
     <ClInclude Include="..\..\Include\Util\SWindowsSpecific.h" />
   </ItemGroup>
@@ -133,7 +126,6 @@
     <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />
-    <ClCompile Include="..\..\Source\Util\STransformable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

@@ -8,7 +8,7 @@
 #include <SPrerequisites.h>
 #include <Util\SPool.h>
 #include <Abstract\IAnimationKey.h>
-#include <Util\SVector3.h>
+#include <Abstract\Vector3.h>
 
 
 SP_NMSPACE_BEG

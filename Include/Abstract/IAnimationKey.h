@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Util\SVector3.h>
+#include <Abstract\Vector3.h>
 
 
 SP_NMSPACE_BEG

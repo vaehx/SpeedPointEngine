@@ -12,26 +12,29 @@
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
 #include "Geometry.h"
-#include <Util\STransformable.h>
+#include <Abstract\Transformable.h>
 
 
 SP_NMSPACE_BEG
 
 
 // SpeedPoint Solid implementation
-class S_API StaticObject : public IStaticObject, public STransformable
+class S_API StaticObject : public IStaticObject
 {
 private:
+	IGameEngine* m_pEngine;
+
 	Geometry m_Geometry;	
-	Material m_Material;	// maybe use index to an element in a buffer of materials
+	
+	unsigned short m_nMaterials;
+	SMaterial* m_pMaterials;
 
 public:			
 
 	StaticObject();
 	virtual ~StaticObject();
-
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr);
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const Material& material, SInitialGeometryDesc* pInitialGeom = nullptr);
+	
+	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const SInitialMaterials* pInitialMaterials = nullptr, SInitialGeometryDesc* pInitialGeom = nullptr);
 
 	virtual EObjectType GetType() const
 	{
@@ -42,10 +45,17 @@ public:
 	{
 		return &m_Geometry;
 	}
-	virtual Material& GetMaterial()
+	virtual SMaterial* GetMaterials()
 	{
-		return m_Material;
+		return m_pMaterials;
 	}	
+	virtual unsigned short GetMaterialCount() const
+	{
+		return m_nMaterials;
+	}
+
+	virtual void SetMaterial(const SMaterial& singleMat);
+	virtual SMaterial* GetSingleMaterial();
 
 	virtual SResult Render();
 	virtual void Clear();

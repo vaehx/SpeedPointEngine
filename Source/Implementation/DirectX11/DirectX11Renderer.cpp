@@ -481,6 +481,9 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 
 	// Initialize the render schedule
 	m_pRenderSchedule = new map<usint32, SRenderDesc>();
+	
+	// Do not render terrain immediately
+	m_TerrainRenderDesc.bRender = false;
 
 
 	// initialize the shaders
@@ -926,15 +929,12 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 		// binds terrain cb
 		DrawTerrain(m_TerrainRenderDesc.drawCallDesc);
+		m_TerrainRenderDesc.bRender = false;
 	}
 	else
 	{
 		FrameDump("Terrain not scheduled to be rendered this frame.");
-	}
-
-
-
-	return S_SUCCESS;
+	}	
 
 
 

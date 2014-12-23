@@ -122,14 +122,25 @@ void Test::OnInitGeometry()
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Load first 3ds model
+
+	SpeedPoint::Scene myScene;
+	myScene.Initialize(m_pEngine);
+	pTest3DSObject = myScene.LoadStaticObjectFromFile("..\\..\\res\\haus.3ds");
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Add first geometry
 
-	GeometryLib::GenerateBox(m_pEngine, testObject.GetGeometry(), 1.0f, 1.0f, 1.0f);
-	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);	
+	GeometryLib::GenerateBox(m_pEngine, testObject.GetGeometry(), testObject.GetSingleMaterial(), 1.0f, 1.0f, 1.0f);
+	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);
 
-	SpeedPoint::Material& testObjMat = testObject.GetMaterial();
-	testObjMat.textureMap = pTestTextureMap;
-	testObjMat.normalMap = pTestNormalMap;
+	// Set object material
+	SpeedPoint::SMaterial testMat;
+	testMat.textureMap = pTestTextureMap;
+	testMat.normalMap = pTestNormalMap;
+
+	testObject.SetMaterial(testMat);
 
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
@@ -173,8 +184,12 @@ void Test::Render()
 
 	// UPDATE:
 
-	testObject.vRotation += SpeedPoint::SVector3(0.01f, 0.00f, 0.00f);		
-	testObject.vPosition = SpeedPoint::SVector3(0, 4.0f, -8.0f);	
+	testObject.vRotation += SpeedPoint::SVector3(0.0, 0.01f, 0.00f);			
+	testObject.vPosition = SpeedPoint::SVector3(0, 0.0f, 0.0f);
+
+	pTest3DSObject->vPosition = testObject.vPosition;
+	pTest3DSObject->vRotation = testObject.vRotation;
+	pTest3DSObject->vSize = SpeedPoint::SVector3(5.0f, 5.0f, 5.0f);
 
 	/*
 	float camTurnRad = 3.0f;
@@ -182,7 +197,7 @@ void Test::Render()
 	camLookAt.x = sinf(alpha) * camTurnRad;
 	camLookAt.y = 3.0f;
 	camLookAt.z = cosf(alpha) * camTurnRad;
-	*/
+	*/	
 
 	float moveDiff = (KeyPressed(KEY_SHIFT) ? 0.3f : 0.1f);
 
@@ -193,7 +208,7 @@ void Test::Render()
 	if (KeyPressed(KEY_MOVE_UP)) pCamera->position.y += moveDiff;
 	if (KeyPressed(KEY_MOVE_DOWN)) pCamera->position.y -= moveDiff;
 
-	pCamera->rotation.x = -0.7f;
+	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
 
 	pCamera->RecalculateViewMatrix();
 	
@@ -206,7 +221,8 @@ void Test::Render()
 	// RENDER
 
 	m_pScene->GetTerrain()->RenderTerrain();
-	testObject.Render();
+	//testObject.Render();
+	pTest3DSObject->Render();
 
 }
 
