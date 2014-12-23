@@ -80,7 +80,33 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 	RETURN_ON_ERR(m_pVertexBuffer->Initialize(pEngine, pRenderer, eVBUSAGE_STATIC, 0));
 
 	if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pVertices))
+	{
+		SVertex* pVertices = pInitialGeom->pVertices;		
+		if (pInitialGeom->bRequireNormalRecalc)
+		{			
+			for (usint32 iIndex = 0; iIndex < pInitialGeom->nIndices; iIndex += 3)
+			{
+				SVertex& vtx1 = pVertices[pInitialGeom->pIndices[iIndex]];
+				SVertex& vtx2 = pVertices[pInitialGeom->pIndices[iIndex + 1]];
+				SVertex& vtx3 = pVertices[pInitialGeom->pIndices[iIndex + 2]];
+
+				SVector3 v1(vtx1.x, vtx1.y, vtx1.z), v2(vtx2.x, vtx2.y, vtx2.z), v3(vtx3.x, vtx3.y, vtx3.z);
+
+				SVector3 normal = SVector3Normalize(SVector3Cross(v2 - v1, v3 - v1));
+				vtx1.nx = normal.x;
+				vtx1.ny = normal.y;
+				vtx1.nz = normal.z;
+				vtx2.nx = normal.x;
+				vtx2.ny = normal.y;
+				vtx2.nz = normal.z;
+				vtx3.nx = normal.x;
+				vtx3.ny = normal.y;
+				vtx3.nz = normal.z;
+			}
+		}
+
 		RETURN_ON_ERR(m_pVertexBuffer->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices, false));
+	}
 
 	if (!IS_VALID_PTR(pInitialGeom) || !IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) || pInitialGeom->nMatIndexAssigns == 0)
 	{

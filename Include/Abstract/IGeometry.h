@@ -84,6 +84,8 @@ struct S_API SInitialGeometryDesc
 	SMaterialIndices* pMatIndexAssigns;
 	unsigned int nMatIndexAssigns;
 
+	bool bRequireNormalRecalc;
+
 	SInitialGeometryDesc()
 		: pVertices(nullptr),
 		nVertices(0),
@@ -91,7 +93,8 @@ struct S_API SInitialGeometryDesc
 		nIndices(0),
 		pMatIndexAssigns(0),
 		nMatIndexAssigns(0),
-		pSingleMaterial(0)
+		pSingleMaterial(0),
+		bRequireNormalRecalc(false)
 	{
 	}
 
@@ -112,6 +115,7 @@ struct S_API SInitialGeometryDesc
 		nIndices = 0;
 		nMatIndexAssigns = 0;
 		pSingleMaterial = 0;
+		bRequireNormalRecalc = false;
 	}
 };
 

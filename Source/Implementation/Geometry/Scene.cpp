@@ -186,6 +186,8 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	}
 
 
+	geom.bRequireNormalRecalc = true;
+
 	// Initialize result object
 	IStaticObject* pStaticObject = new StaticObject();
 	if (Failure(pStaticObject->Init(m_pEngine, m_pEngine->GetRenderer(), &mats, &geom)))

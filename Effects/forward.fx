@@ -112,7 +112,7 @@ float saturate_negpos(float val)
 float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness, float intensityIn)
 {
     float diffuseFactor = roughness;
-    float specularFactor = 1.0f - roughness;
+    float specularFactor = clamp(1.0f - roughness, 0, 0.6f);
     
     // Diffuse:
     float lambert = calc_lambert(N, lightDirOut);
@@ -123,7 +123,7 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
         alpha = 1.0f / saturate(roughness - 0.5f); // the rougher the surface, the wider the specular highlight
         
     float3 R = -lightDirOut + 2.0f * saturate(dot(lightDirOut, N)) * N; 
-    float specular = pow(saturate(dot(R, dirToEye)), 16.0f);     
+    float specular = pow(saturate(dot(R, dirToEye)), alpha);     
     
     // compose:
     float intensityOut = (intensityIn * (diffuseFactor * lambert + specularFactor * specular));
@@ -168,17 +168,17 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float4 texColor = textureMap.Sample(TextureMapSampler, IN.TexCoord);
     
     // Surface constants
-    float roughness = 0.5f;       
+    float roughness = 0.8f;       
     
     // Calculate lighting factor. Using a fixed light dir and eye pos for now    
-    float3 lightDir = normalize(float3(0, -0.8f, 0.8f));        
+    float3 lightDir = normalize(float3(0.4f, -0.8f, 0.8f));        
     
     float3 dirToEye = normalize(eyePos.xyz - IN.WorldPos);
             
-    float3 phong = calc_phong(normalize(normal), -lightDir, dirToEye, roughness, 1.0f);  
+    float3 phong = calc_phong(normalize(normal), -lightDir, dirToEye, roughness, 0.7f);  
     
     // Global illumination "Ambient" fake
-    float ambient = 0.3f;
+    float ambient = 0.1f;
     
     // Final lighting factor
     float3 lightingFactor = phong + float3(ambient, ambient, ambient);        
