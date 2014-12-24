@@ -77,7 +77,7 @@ public:
 	virtual SVertex* GetVertex( int iVertex ) = 0;
 
 	// Get the total count of all vertices
-	virtual INT GetVertexCount( void ) = 0;
+	virtual unsigned long GetVertexCount( void ) const = 0;
 
 	// Clear everything and free memory
 	virtual SResult Clear( void ) = 0;

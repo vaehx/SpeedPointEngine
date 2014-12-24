@@ -403,7 +403,7 @@ S_API SVertex* DirectX11VertexBuffer::GetVertex(int iIndex)
 }
 
 // --------------------------------------------------------------------------------
-S_API INT DirectX11VertexBuffer::GetVertexCount(void)
+S_API unsigned long DirectX11VertexBuffer::GetVertexCount(void) const
 {
 	return m_nVertices;
 }

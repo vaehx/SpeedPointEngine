@@ -69,6 +69,15 @@ struct S_API SMaterialIndices
 
 ///////////////////////////////////////////////////////////////////////////////////
 
+
+enum S_API EPrimitiveType
+{
+	PRIMITIVE_TYPE_TRIANGLELIST,
+	PRIMITIVE_TYPE_LINES,
+	PRIMITIVE_TYPE_UNKNOWN
+};
+
+
 // Note:
 //	This structure deletes the vertices and indices arrays when being destructed!
 struct S_API SInitialGeometryDesc
@@ -86,6 +95,8 @@ struct S_API SInitialGeometryDesc
 
 	bool bRequireNormalRecalc;
 
+	EPrimitiveType primitiveType;
+
 	SInitialGeometryDesc()
 		: pVertices(nullptr),
 		nVertices(0),
@@ -94,7 +105,8 @@ struct S_API SInitialGeometryDesc
 		pMatIndexAssigns(0),
 		nMatIndexAssigns(0),
 		pSingleMaterial(0),
-		bRequireNormalRecalc(false)
+		bRequireNormalRecalc(false),
+		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)
 	{
 	}
 
@@ -115,7 +127,7 @@ struct S_API SInitialGeometryDesc
 		nIndices = 0;
 		nMatIndexAssigns = 0;
 		pSingleMaterial = 0;
-		bRequireNormalRecalc = false;
+		bRequireNormalRecalc = false;		
 	}
 };
 
@@ -168,6 +180,7 @@ struct S_API SGeometryIndexBuffer
 };
 
 
+
 ///////////////////////////////////////////////////////////////////////////////////
 
 struct S_API IGeometry : public IShutdownHandler
@@ -181,6 +194,10 @@ struct S_API IGeometry : public IShutdownHandler
 	virtual SGeometryIndexBuffer* GetIndexBuffers() = 0;
 	virtual unsigned short GetIndexBufferCount() const = 0;
 	virtual IVertexBuffer* GetVertexBuffer() = 0;	
+
+	virtual EPrimitiveType GetPrimitiveType() const = 0;
+
+	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const = 0;
 
 	virtual void Clear() = 0;
 };

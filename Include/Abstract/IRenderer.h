@@ -177,8 +177,6 @@ struct S_API STerrainConstantBuffer
 
 
 
-
-
 // Summary:
 //	Used in IRenderer::Draw()
 struct S_API SDrawCallDesc
@@ -192,9 +190,12 @@ struct S_API SDrawCallDesc
 
 	STransformationDesc transform;
 
+	EPrimitiveType primitiveType;
+
 	SDrawCallDesc()
 		: pVertexBuffer(0),
-		pIndexBuffer(0)
+		pIndexBuffer(0),
+		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)
 	{
 	}
 
@@ -205,7 +206,8 @@ struct S_API SDrawCallDesc
 		iEndIBIndex(o.iEndIBIndex),
 		iStartVBIndex(o.iStartVBIndex),
 		iEndVBIndex(o.iEndVBIndex),
-		transform(o.transform)
+		transform(o.transform),
+		primitiveType(o.primitiveType)
 	{
 	}
 };
@@ -216,7 +218,6 @@ enum S_API ERenderPipelineTechnique
 	eRENDER_FORWARD,
 	eRENDER_DEFERRED
 };
-
 
 struct S_API SRenderDesc
 {

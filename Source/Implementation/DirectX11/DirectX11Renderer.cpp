@@ -81,7 +81,8 @@ m_pTerrainCB(nullptr),
 m_bInScene(false),
 m_pRenderSchedule(nullptr),
 m_bDumpFrame(false),
-m_bPerObjectCBBound(false)
+m_bPerObjectCBBound(false),
+m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
 {
 };
 
@@ -717,19 +718,25 @@ S_API SResult DirectX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int in
 S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(pIB, S_INVALIDPARAM);
 
-	//S_INDEXBUFFER_FORMAT ibFmt = pIB->GetFormat();
-	DXGI_FORMAT ibFmtDX = DXGI_FORMAT_R16_UINT;
-	/*switch (ibFmt)
+	if (IS_VALID_PTR(pIB))
 	{
-	case S_INDEXBUFFER_16: ibFmtDX = DXGI_FORMAT_R16_UINT; break;
-	case S_INDEXBUFFER_32: ibFmtDX = DXGI_FORMAT_R32_UINT; break;
-	default:
+		//S_INDEXBUFFER_FORMAT ibFmt = pIB->GetFormat();
+		DXGI_FORMAT ibFmtDX = DXGI_FORMAT_R16_UINT;
+		/*switch (ibFmt)
+		{
+		case S_INDEXBUFFER_16: ibFmtDX = DXGI_FORMAT_R16_UINT; break;
+		case S_INDEXBUFFER_32: ibFmtDX = DXGI_FORMAT_R32_UINT; break;
+		default:
 		return S_ERROR;
-	}*/
+		}*/
 
-	m_pD3DDeviceContext->IASetIndexBuffer(((DirectX11IndexBuffer*)pIB)->D3D11_GetBuffer(), ibFmtDX, 0);
+		m_pD3DDeviceContext->IASetIndexBuffer(((DirectX11IndexBuffer*)pIB)->D3D11_GetBuffer(), ibFmtDX, 0);
+	}
+	else
+	{		
+		m_pD3DDeviceContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
+	}
 
 	return S_SUCCESS;
 }
@@ -876,20 +883,35 @@ S_API SResult DirectX11Renderer::EndScene(void)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//		UNLEASH RENDER SCHEDULE
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 {
 	if (m_bInScene)
+	{
+		FrameDump("Cannot Unleash Render SChedule: Not in scene!");
 		return S_INVALIDSTAGE;
+	}
 
 	if (!IS_VALID_PTR(m_pRenderSchedule))
-		return S_ERROR;
-
-	if (m_pRenderSchedule->empty())
 	{
-		FrameDump("Render schedule empty in UnleashRenderSchedule()");
-		return S_SUCCESS;
-	}
+		FrameDump("Cannot unleash render schedule: render schedule is null");
+		return S_ERROR;
+	}	
 
 	ERenderPipelineTechnique previousTechnique = eRENDER_FORWARD;
 	RETURN_ON_ERR(BindSingleFBO(m_pTargetViewport));
@@ -938,6 +960,13 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 
 
+
+
+	if (m_pRenderSchedule->empty())
+	{
+		FrameDump("Render schedule empty in UnleashRenderSchedule()");
+		return S_SUCCESS;
+	}
 
 	FrameDump("Unleashing render schedule now...");
 	FrameDump((unsigned int)m_pRenderSchedule->size(), SString("RenderScheduleSize"));
@@ -998,21 +1027,48 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 {	
-	// Bind data streams
+	// bind vertex data stream
 	if (Failure(SetVBStream(desc.pVertexBuffer)))
-		return S_ERROR;
-	if (Failure(SetIBStream(desc.pIndexBuffer)))
-		return S_ERROR;
-
-	// Enable the effect
-	if (Failure(m_ForwardEffect.Enable()))
-		return S_ERROR;
+		return S_ERROR;	
 	
 	SetWorldMatrix(desc.transform);
 	if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
-		return S_ERROR;	
+		return S_ERROR;
 
-	m_pD3DDeviceContext->DrawIndexed(desc.iEndIBIndex - desc.iStartIBIndex + 1, desc.iStartIBIndex, desc.iStartVBIndex);
+
+	// Make sure the correct primitive type is set, but don't change too often
+	if (desc.primitiveType == PRIMITIVE_TYPE_LINES)
+	{
+		if (Failure(SetIBStream(0)))
+			return S_ERROR;
+
+		if (Failure(m_ForwardEffect.Enable()))
+			return S_ERROR;
+
+		if (m_SetPrimitiveType != PRIMITIVE_TYPE_LINES)
+		{
+			m_pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			m_SetPrimitiveType = PRIMITIVE_TYPE_LINES;
+		}
+
+		m_pD3DDeviceContext->Draw(desc.iEndVBIndex - desc.iStartVBIndex, desc.iStartVBIndex);
+	}
+	else
+	{
+		if (Failure(SetIBStream(desc.pIndexBuffer)))
+			return S_ERROR;
+
+		if (Failure(m_ForwardEffect.Enable()))
+			return S_ERROR;
+
+		if (m_SetPrimitiveType != PRIMITIVE_TYPE_TRIANGLELIST)
+		{
+			m_pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			m_SetPrimitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
+		}
+
+		m_pD3DDeviceContext->DrawIndexed(desc.iEndIBIndex - desc.iStartIBIndex + 1, desc.iStartIBIndex, desc.iStartVBIndex);
+	}
 
 	return S_SUCCESS;
 }
@@ -1025,6 +1081,12 @@ S_API SResult DirectX11Renderer::DrawTerrain(const SDrawCallDesc& dcd)
 
 	if (Failure(m_TerrainEffect.Enable()))
 		return m_pEngine->LogE("Enabling terrain effect failed");
+
+	if (m_SetPrimitiveType != PRIMITIVE_TYPE_TRIANGLELIST)
+	{
+		m_pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_SetPrimitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
+	}
 
 	m_pD3DDeviceContext->DrawIndexed(dcd.iEndIBIndex - dcd.iStartIBIndex + 1, dcd.iStartIBIndex, dcd.iStartVBIndex);
 

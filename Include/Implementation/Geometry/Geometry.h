@@ -38,6 +38,8 @@ protected:
 
 	IVertexBuffer* m_pVertexBuffer;
 
+	EPrimitiveType m_PrimitiveType;
+
 public:
 	Geometry();
 	virtual ~Geometry();
@@ -73,6 +75,13 @@ public:
 	{
 		return SString("Geometry");
 	}
+
+	virtual EPrimitiveType GetPrimitiveType() const
+	{
+		return m_PrimitiveType;
+	}
+
+	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const;
 };
 
 

@@ -402,7 +402,7 @@ S_API SIndex* DirectX11IndexBuffer::GetIndex(int iIndex)
 }
 
 // --------------------------------------------------------------------------------
-S_API INT DirectX11IndexBuffer::GetIndexCount(void)
+S_API unsigned long DirectX11IndexBuffer::GetIndexCount(void) const
 {
 	return m_nIndices;
 }

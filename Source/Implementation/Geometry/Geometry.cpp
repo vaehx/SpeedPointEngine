@@ -74,8 +74,11 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 	m_pRenderer = pRenderer;
 
 	m_pEngine = pEngine;
-	m_pEngine->RegisterShutdownHandler(this);
-	
+	m_pEngine->RegisterShutdownHandler(this);	
+
+	if (IS_VALID_PTR(pInitialGeom))
+		m_PrimitiveType = pInitialGeom->primitiveType;
+
 	RETURN_ON_ERR(pRenderer->GetResourcePool()->AddVertexBuffer(&m_pVertexBuffer));
 	RETURN_ON_ERR(m_pVertexBuffer->Initialize(pEngine, pRenderer, eVBUSAGE_STATIC, 0));
 
@@ -83,7 +86,20 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 	{
 		SVertex* pVertices = pInitialGeom->pVertices;		
 		if (pInitialGeom->bRequireNormalRecalc)
-		{			
+		{	
+			// faces that contributed to each vertex, so that we can afterwards divide by this number
+			// in order to properly average the normal.
+			unsigned short *pVertexFaces = new unsigned short[pInitialGeom->nVertices];
+
+			// first, reset all normals to (0,0,0)			
+			for (usint32 iVtx = 0; iVtx < pInitialGeom->nVertices; ++iVtx)
+			{
+				pVertices[iVtx].nx = 0.0f;
+				pVertices[iVtx].ny = 0.0f;
+				pVertices[iVtx].nz = 0.0f;
+				pVertexFaces[iVtx] = 0;
+			}						
+
 			for (usint32 iIndex = 0; iIndex < pInitialGeom->nIndices; iIndex += 3)
 			{
 				SVertex& vtx1 = pVertices[pInitialGeom->pIndices[iIndex]];
@@ -93,59 +109,77 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 				SVector3 v1(vtx1.x, vtx1.y, vtx1.z), v2(vtx2.x, vtx2.y, vtx2.z), v3(vtx3.x, vtx3.y, vtx3.z);
 
 				SVector3 normal = SVector3Normalize(SVector3Cross(v2 - v1, v3 - v1));
-				vtx1.nx = normal.x;
-				vtx1.ny = normal.y;
-				vtx1.nz = normal.z;
-				vtx2.nx = normal.x;
-				vtx2.ny = normal.y;
-				vtx2.nz = normal.z;
-				vtx3.nx = normal.x;
-				vtx3.ny = normal.y;
-				vtx3.nz = normal.z;
+				
+				vtx1.nx += normal.x;
+				vtx1.ny += normal.y;
+				vtx1.nz += normal.z;
+				++pVertexFaces[pInitialGeom->pIndices[iIndex]];
+
+				vtx2.nx += normal.x;
+				vtx2.ny += normal.y;
+				vtx2.nz += normal.z;
+				++pVertexFaces[pInitialGeom->pIndices[iIndex + 1]];
+
+				vtx3.nx += normal.x;
+				vtx3.ny += normal.y;
+				vtx3.nz += normal.z;
+				++pVertexFaces[pInitialGeom->pIndices[iIndex + 2]];
+			}
+
+			// now average all normals
+			for (usint32 iVtx = 0; iVtx < pInitialGeom->nVertices; ++iVtx)
+			{
+				float k = 1.0f / (float)pVertexFaces[iVtx];
+				pVertices[iVtx].nx *= k;
+				pVertices[iVtx].ny *= k;
+				pVertices[iVtx].nz *= k;
 			}
 		}
 
 		RETURN_ON_ERR(m_pVertexBuffer->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices, false));
-	}
+	}	
 
-	if (!IS_VALID_PTR(pInitialGeom) || !IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) || pInitialGeom->nMatIndexAssigns == 0)
+	if (m_PrimitiveType != PRIMITIVE_TYPE_LINES)
 	{
-		m_pIndexBuffers = new SGeometryIndexBuffer();
-		m_nIndexBuffers = 1;
-		RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&m_pIndexBuffers->pIndexBuffer));
-		RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0));
-		
-		if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pIndices))
-			RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false));
-
-				
-		m_pIndexBuffers->pMaterial = (IS_VALID_PTR(pInitialGeom) ? pInitialGeom->pSingleMaterial : m_pEngine->GetDefaultMaterial());
-	}
-	else
-	{
-		// Create and fill one Index buffer per material
-		m_nIndexBuffers = pInitialGeom->nMatIndexAssigns;
-		m_pIndexBuffers = new SGeometryIndexBuffer[m_nIndexBuffers];
-		for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
+		if (!IS_VALID_PTR(pInitialGeom) || !IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) || pInitialGeom->nMatIndexAssigns == 0)
 		{
-			SMaterialIndices& matIndices = pInitialGeom->pMatIndexAssigns[iIndexBuffer];
-			SGeometryIndexBuffer& geomIndexBuffer = m_pIndexBuffers[iIndexBuffer];
-			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&geomIndexBuffer.pIndexBuffer));
-			RETURN_ON_ERR(geomIndexBuffer.pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0));
-			geomIndexBuffer.pMaterial = matIndices.pMaterial;
+			m_pIndexBuffers = new SGeometryIndexBuffer();
+			m_nIndexBuffers = 1;
+			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&m_pIndexBuffers->pIndexBuffer));
+			RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0));
 
-			// fill index buffer with according indices
-			SIndex* pIndices = new SIndex[matIndices.nIdxIndices];
-			for (unsigned int iIdxIndex = 0; iIdxIndex < matIndices.nIdxIndices; ++iIdxIndex)
-				pIndices[iIdxIndex] = pInitialGeom->pIndices[matIndices.pIdxIndices[iIdxIndex]];		
+			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pIndices))
+				RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false));
 
-			if (Failure(geomIndexBuffer.pIndexBuffer->Fill(pIndices, matIndices.nIdxIndices, false)))
+
+			m_pIndexBuffers->pMaterial = (IS_VALID_PTR(pInitialGeom) ? pInitialGeom->pSingleMaterial : m_pEngine->GetDefaultMaterial());
+		}
+		else
+		{
+			// Create and fill one Index buffer per material
+			m_nIndexBuffers = pInitialGeom->nMatIndexAssigns;
+			m_pIndexBuffers = new SGeometryIndexBuffer[m_nIndexBuffers];
+			for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
 			{
-				delete[] pIndices;
-				return S_ERROR;
-			}
+				SMaterialIndices& matIndices = pInitialGeom->pMatIndexAssigns[iIndexBuffer];
+				SGeometryIndexBuffer& geomIndexBuffer = m_pIndexBuffers[iIndexBuffer];
+				RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&geomIndexBuffer.pIndexBuffer));
+				RETURN_ON_ERR(geomIndexBuffer.pIndexBuffer->Initialize(pEngine, pRenderer, eIBUSAGE_STATIC, 0));
+				geomIndexBuffer.pMaterial = matIndices.pMaterial;
 
-			delete[] pIndices;
+				// fill index buffer with according indices
+				SIndex* pIndices = new SIndex[matIndices.nIdxIndices];
+				for (unsigned int iIdxIndex = 0; iIdxIndex < matIndices.nIdxIndices; ++iIdxIndex)
+					pIndices[iIdxIndex] = pInitialGeom->pIndices[matIndices.pIdxIndices[iIdxIndex]];
+
+				if (Failure(geomIndexBuffer.pIndexBuffer->Fill(pIndices, matIndices.nIdxIndices, false)))
+				{
+					delete[] pIndices;
+					return S_ERROR;
+				}
+
+				delete[] pIndices;
+			}
 		}
 	}
 
@@ -153,6 +187,38 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 }
 
 
+// ----------------------------------------------------------------------------------------
+S_API SResult Geometry::CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength) const
+{
+	SVertex* pShadowBuffer = 0;
+	if (!IS_VALID_PTR(m_pVertexBuffer) || !IS_VALID_PTR((pShadowBuffer = m_pVertexBuffer->GetShadowBuffer())))
+		return S_NOTINIT;
+
+	unsigned long nVertices = m_pVertexBuffer->GetVertexCount();
+
+	dsc.primitiveType = PRIMITIVE_TYPE_LINES;
+
+	dsc.nVertices = nVertices * 2;
+	dsc.nIndices = 0; // lines are not drawn using indices	
+
+	dsc.pVertices = new SVertex[dsc.nVertices];
+	dsc.pIndices = 0;
+
+	dsc.bRequireNormalRecalc = false;
+
+	for (unsigned long iVertex = 0; iVertex < nVertices; ++iVertex)
+	{
+		dsc.pVertices[iVertex * 2] = pShadowBuffer[iVertex];
+		dsc.pVertices[iVertex * 2 + 1] = pShadowBuffer[iVertex];
+		
+		SVertex& outerVtx = dsc.pVertices[iVertex * 2 + 1];
+		outerVtx.x = outerVtx.x + outerVtx.nx * fLineLength;
+		outerVtx.y = outerVtx.y + outerVtx.ny * fLineLength;
+		outerVtx.z = outerVtx.z + outerVtx.nz * fLineLength;				
+	}
+
+	return S_SUCCESS;
+}
 
 
 

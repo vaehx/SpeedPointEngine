@@ -110,6 +110,30 @@ S_API SMaterial* StaticObject::GetSingleMaterial()
 }
 
 
+// ----------------------------------------------------------------------------------------
+S_API SResult StaticObject::CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const
+{
+	if (!IS_VALID_PTR(m_pEngine))
+		return S_NOTINIT;
+
+	if (!IS_VALID_PTR(pNormalGeometryObject))
+		return S_INVALIDPARAM;
+
+
+	SInitialGeometryDesc normalGeom;
+	if (Failure(m_Geometry.CalculateNormalsGeometry(normalGeom)))
+		return EngLog(S_ERROR, m_pEngine, "Failed Calculcate Normals Geometry!");
+
+
+	IStaticObject* pStaticObject = new StaticObject();
+	RETURN_ON_ERR(pStaticObject->Init(m_pEngine, m_pEngine->GetRenderer(), nullptr, &normalGeom));
+
+	*pNormalGeometryObject = pStaticObject;
+
+	return S_ERROR;
+}
+
+
 
 
 
@@ -117,9 +141,6 @@ S_API SMaterial* StaticObject::GetSingleMaterial()
 // ----------------------------------------------------------------------------------------
 S_API SResult StaticObject::Render()
 {
-	if (m_Geometry.GetIndexBufferCount() == 0)
-		return S_ERROR;
-
 	IRenderer* pRenderer = m_Geometry.GetRenderer();
 	if (!IS_VALID_PTR(pRenderer))
 		return S_NOTINIT;
@@ -135,36 +156,49 @@ S_API SResult StaticObject::Render()
 	dsc.drawCallDesc.pVertexBuffer = pVB;
 	dsc.drawCallDesc.iStartVBIndex = 0;
 	dsc.drawCallDesc.iEndVBIndex = pVB->GetVertexCount() - 1;
-
-	SGeometryIndexBuffer* pGeomIndexBuffers = m_Geometry.GetIndexBuffers();
-	if (!IS_VALID_PTR(pGeomIndexBuffers))
-		return S_ERROR;
-
+	
 	dsc.pGeometry = &m_Geometry;
 	dsc.technique = eRENDER_FORWARD;
+
 	dsc.drawCallDesc.transform.translation = SMatrix::MakeTranslationMatrix(vPosition);
 	dsc.drawCallDesc.transform.rotation = SMatrix::MakeRotationMatrix(vRotation);
 	dsc.drawCallDesc.transform.scale = SMatrix::MakeScaleMatrix(vSize);
 
-	for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_Geometry.GetIndexBufferCount(); ++iIndexBuffer)
-	{		
-		dsc.drawCallDesc.pIndexBuffer = pGeomIndexBuffers[iIndexBuffer].pIndexBuffer;
-		if (!dsc.drawCallDesc.pIndexBuffer->IsInited())
-		{
-			EngLog(S_ERROR, m_pEngine, "Could not render Static object: IB never initialized!");
-			continue;
-		}
+	dsc.drawCallDesc.primitiveType = m_Geometry.GetPrimitiveType();
 
-		dsc.drawCallDesc.iStartIBIndex = 0;
-		dsc.drawCallDesc.iEndIBIndex = dsc.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;		
-
-		// here, index buffer index has to match with material index
-		if (IS_VALID_PTR(pGeomIndexBuffers[iIndexBuffer].pMaterial))
-			dsc.material = *pGeomIndexBuffers[iIndexBuffer].pMaterial;
-		else
-			dsc.material = SMaterial();
-
+	if (dsc.drawCallDesc.primitiveType == PRIMITIVE_TYPE_LINES)
+	{
 		RETURN_ON_ERR(pRenderer->RenderGeometry(dsc));
+	}
+	else
+	{
+		if (m_Geometry.GetIndexBufferCount() == 0)
+			return EngLog(S_ERROR, m_pEngine, "Cannot render Static Object: There is no IB for a triangle-object!");	
+
+		SGeometryIndexBuffer* pGeomIndexBuffers = m_Geometry.GetIndexBuffers();
+		if (!IS_VALID_PTR(pGeomIndexBuffers))
+			return S_ERROR;
+
+		for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_Geometry.GetIndexBufferCount(); ++iIndexBuffer)
+		{
+			dsc.drawCallDesc.pIndexBuffer = pGeomIndexBuffers[iIndexBuffer].pIndexBuffer;
+			if (!dsc.drawCallDesc.pIndexBuffer->IsInited())
+			{
+				EngLog(S_ERROR, m_pEngine, "Could not render Static object: IB never initialized!");
+				continue;
+			}
+
+			dsc.drawCallDesc.iStartIBIndex = 0;
+			dsc.drawCallDesc.iEndIBIndex = dsc.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
+
+			// here, index buffer index has to match with material index
+			if (IS_VALID_PTR(pGeomIndexBuffers[iIndexBuffer].pMaterial))
+				dsc.material = *pGeomIndexBuffers[iIndexBuffer].pMaterial;
+			else
+				dsc.material = SMaterial();
+
+			RETURN_ON_ERR(pRenderer->RenderGeometry(dsc));
+		}
 	}
 
 	return S_SUCCESS;

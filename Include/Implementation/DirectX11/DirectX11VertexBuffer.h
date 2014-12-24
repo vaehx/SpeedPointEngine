@@ -55,8 +55,8 @@ private:
 	IRenderer*			m_pRenderer;
 	ID3D11Buffer*			m_pHWVertexBuffer;
 	SVertex*			m_pShadowBuffer;
-	int				m_nVertices;
-	int				m_nVerticesWritten;
+	unsigned long			m_nVertices;
+	unsigned long			m_nVerticesWritten;
 	bool				m_bLocked;
 	EVBUsage			m_Usage;
 	bool				m_bInitialDataWritten;
@@ -83,7 +83,7 @@ public:
 	virtual SResult Unlock(void);	
 	virtual SVertex* GetShadowBuffer(void);	
 	virtual SVertex* GetVertex(int iVertex);	
-	virtual INT GetVertexCount(void);	
+	virtual unsigned long GetVertexCount(void) const;	
 	virtual SResult Clear(void);
 
 

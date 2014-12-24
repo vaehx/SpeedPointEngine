@@ -57,6 +57,8 @@ public:
 	virtual void SetMaterial(const SMaterial& singleMat);
 	virtual SMaterial* GetSingleMaterial();
 
+	virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;
+
 	virtual SResult Render();
 	virtual void Clear();
 

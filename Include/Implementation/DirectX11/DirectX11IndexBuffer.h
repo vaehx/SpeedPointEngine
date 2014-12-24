@@ -55,8 +55,8 @@ private:
 	IRenderer*			m_pRenderer;
 	ID3D11Buffer*			m_pHWIndexBuffer;
 	SIndex*			m_pShadowBuffer;
-	int				m_nIndices;
-	int				m_nIndicesWritten;
+	unsigned long			m_nIndices;
+	unsigned long			m_nIndicesWritten;
 	EIBUsage			m_Usage;
 	bool				m_bLocked;
 	bool				m_bInitialDataWritten;
@@ -84,7 +84,7 @@ public:
 	virtual SResult Unlock(void);	
 	virtual SIndex* GetShadowBuffer(void);	
 	virtual SIndex* GetIndex(int iIndex);	
-	virtual INT GetIndexCount(void);	
+	virtual unsigned long GetIndexCount(void) const;	
 	virtual SResult Clear(void);
 //virtual S_INDEXBUFFER_FORMAT GetFormat();
 

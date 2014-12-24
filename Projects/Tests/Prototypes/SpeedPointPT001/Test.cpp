@@ -127,6 +127,8 @@ void Test::OnInitGeometry()
 	SpeedPoint::Scene myScene;
 	myScene.Initialize(m_pEngine);
 	pTest3DSObject = myScene.LoadStaticObjectFromFile("..\\..\\res\\haus.3ds");
+	
+	pTest3DSObject->CreateNormalsGeometry(&pTest3DSNormalsObject);	
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,12 +186,16 @@ void Test::Render()
 
 	// UPDATE:
 
-	testObject.vRotation += SpeedPoint::SVector3(0.0, 0.01f, 0.00f);			
+	testObject.vRotation += SpeedPoint::SVector3(0.0, 0.01f, 0.00f);	
 	testObject.vPosition = SpeedPoint::SVector3(0, 0.0f, 0.0f);
 
 	pTest3DSObject->vPosition = testObject.vPosition;
 	pTest3DSObject->vRotation = testObject.vRotation;
 	pTest3DSObject->vSize = SpeedPoint::SVector3(5.0f, 5.0f, 5.0f);
+	
+	pTest3DSNormalsObject->vPosition = pTest3DSObject->vPosition;
+	pTest3DSNormalsObject->vRotation = pTest3DSObject->vRotation;
+	pTest3DSNormalsObject->vSize = pTest3DSObject->vSize;
 
 	/*
 	float camTurnRad = 3.0f;
@@ -220,9 +226,14 @@ void Test::Render()
 
 	// RENDER
 
-	m_pScene->GetTerrain()->RenderTerrain();
+	//if (Failure(m_pScene->GetTerrain()->RenderTerrain()))
+	//	m_pEngine->LogE("Failed render terrain!");
+
+
 	//testObject.Render();
 	pTest3DSObject->Render();
+	if (Failure(pTest3DSNormalsObject->Render()))
+		m_pEngine->LogE("Failed render 3ds model!");
 
 }
 

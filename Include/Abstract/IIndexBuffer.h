@@ -91,7 +91,7 @@ public:
 	virtual SIndex* GetIndex( int iIndex ) = 0;
 
 	// Get the total count of all indices
-	virtual INT GetIndexCount( void ) = 0;
+	virtual unsigned long GetIndexCount( void ) const = 0;
 
 	// Get the Index Buffer format specified when creating the Index Buffer
 //virtual S_INDEXBUFFER_FORMAT GetFormat( void ) = 0;
