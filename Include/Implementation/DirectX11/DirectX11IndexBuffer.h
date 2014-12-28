@@ -67,23 +67,23 @@ public:
 	DirectX11IndexBuffer(const DirectX11IndexBuffer& o);
 	~DirectX11IndexBuffer();
 	
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr);
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr);
 
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, SIndex* pInitialData = nullptr)
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, SIndex* pInitialData = nullptr)
 	{
 		return Initialize(pEngine, pRenderer, usage, nSize, S_INDEXBUFFER_16, pInitialData);
 	}
 
-	virtual SResult Create(int nSize, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0);	
+	virtual SResult Create(unsigned long nSize, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0);	
 
 	virtual BOOL IsInited(void);	
-	virtual SResult Resize(int nNewSize);	
+	virtual SResult Resize(unsigned long nNewSize);	
 	virtual SResult Lock(UINT iBegin, UINT iLength, SIndex** buf, EIBLockType lockType);
 	virtual SResult Lock(UINT iBegin, UINT iLength, SIndex** buf);	
-	virtual SResult Fill(SIndex* pIndices, int nIndices, bool append);	
+	virtual SResult Fill(SIndex* pIndices, unsigned long nIndices, bool append);	
 	virtual SResult Unlock(void);	
 	virtual SIndex* GetShadowBuffer(void);	
-	virtual SIndex* GetIndex(int iIndex);	
+	virtual SIndex* GetIndex(unsigned long iIndex);	
 	virtual unsigned long GetIndexCount(void) const;	
 	virtual SResult Clear(void);
 //virtual S_INDEXBUFFER_FORMAT GetFormat();

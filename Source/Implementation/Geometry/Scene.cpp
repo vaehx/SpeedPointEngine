@@ -4,6 +4,7 @@
 #include <Implementation\Geometry\File3DS.h>
 #include <Implementation\Geometry\StaticObject.h>
 #include <Abstract\IResourcePool.h>
+#include <Abstract\Material.h>
 
 SP_NMSPACE_BEG
 

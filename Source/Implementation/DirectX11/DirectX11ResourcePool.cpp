@@ -159,13 +159,13 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, S_TEXTURE_TYPE ty, ITexture** pTexture)
+S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, ITexture** pTexture)
 {
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
 		"Cannot add Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
 
 	if (w <= 64 || h <= 64)
-		return m_pEngine->LogD("Tried add texture with width or height < 64", S_ERROR);
+		return m_pEngine->LogD("Tried add texture with width or height <= 64", S_ERROR);
 
 	if (!spec.IsValidString())
 		m_pEngine->LogW("Invalid or no specification for new texture!");

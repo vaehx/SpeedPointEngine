@@ -63,6 +63,15 @@ public:
 	{
 		return m_pVertexBuffer;
 	}
+
+	virtual SVertex* GetVertex(unsigned long index);
+	virtual SIndex* GetIndex(unsigned long index);
+
+	virtual SVertex* GetVertices();	
+
+	virtual unsigned long GetVertexCount() const;
+	virtual unsigned long GetIndexCount() const;
+
 	
 	virtual void Clear();
 

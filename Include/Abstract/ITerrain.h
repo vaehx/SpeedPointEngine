@@ -30,11 +30,14 @@ public:
 	// Create a planar terrain with Size fW x fD and resolution nX, nY	
 	virtual SResult CreatePlanar( float fW, float fD, float baseHeight) = 0;
 
+	virtual SResult RecalculateNormals() = 0;
 
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
 	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;
 
-	// be careful to not call this during rendering of the terrain, as it might be reset before taking effect
+	// Summary:
+	//	Flags that the terrain Constant Buffer has to be updated.
+	//	Be careful to not call this during rendering of the terrain, as it might be reset before taking effect.
 	virtual void RequireCBUpdate() = 0;
 
 	/////////////////////

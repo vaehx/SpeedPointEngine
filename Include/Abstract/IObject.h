@@ -64,7 +64,8 @@ struct S_API IObject
 	virtual ~IObject() {}
 
 	virtual EObjectType GetType() const = 0;	
-	virtual bool IsRenderable() const = 0;	
+	virtual bool IsRenderable() const = 0;
+	virtual bool IsTransformable() const = 0;
 	//virtual SBoundBox& GetBoundBox() = 0;
 };
 
@@ -75,8 +76,11 @@ struct S_API IRenderableObject : public IObject, public STransformable
 
 	virtual SResult Render() = 0;	
 	virtual bool IsRenderable() const { return true; }
+	virtual bool IsTransformable() const { return true; }
 
 	virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const = 0;
+
+	virtual IGeometry* GetGeometry() = 0;
 };
 
 
@@ -91,8 +95,7 @@ struct S_API IStaticObject : public IRenderableObject
 
 	// pInitialMaterials - If nullptr, then the engine's default material is taken
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const SInitialMaterials* pInitialMaterials = nullptr, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
-
-	virtual IGeometry* GetGeometry() = 0;	
+		
 	virtual SMaterial* GetMaterials() = 0;	
 	virtual unsigned short GetMaterialCount() const = 0;
 

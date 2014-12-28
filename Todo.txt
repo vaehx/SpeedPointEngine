@@ -37,3 +37,17 @@ Tasks:
 #0008 - Create Direct2D Rendertarget / surface, render text on it
 #0009 - Render Direct2D Rendertarget (pConsoleD2DSurface) to the SPRT
 #0010 - Implement SCamera::RecalculateMatrix() for roll = true
+
+- Unify geometry load structs
+- Add bumpmap type:
+	enum EBumpmapType
+	{
+		BUMPMAP_TYPE_NORMALS,
+		BUMPMAP_TYPE_INTENSITY		
+	};
+- Add bumpmap blur factor
+
+
+
+
+

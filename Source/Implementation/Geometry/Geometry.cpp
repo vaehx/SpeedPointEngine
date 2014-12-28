@@ -220,6 +220,70 @@ S_API SResult Geometry::CalculateNormalsGeometry(SInitialGeometryDesc& dsc, floa
 	return S_SUCCESS;
 }
 
+// ----------------------------------------------------------------------------------------
+S_API SVertex* Geometry::GetVertex(unsigned long index)
+{
+	if (!IS_VALID_PTR(m_pVertexBuffer))
+		return 0;
+
+	if (index >= m_pVertexBuffer->GetVertexCount())
+		return 0;
+
+	SVertex* pVertices = m_pVertexBuffer->GetShadowBuffer();
+	return &pVertices[index];
+}
+
+// ----------------------------------------------------------------------------------------
+S_API SIndex* Geometry::GetIndex(unsigned long index)
+{
+	unsigned long indexCount = 0;
+	for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
+	{
+		IIndexBuffer* pIndexBuffer = m_pIndexBuffers[iIndexBuffer].pIndexBuffer;
+		if (index > indexCount && index < indexCount + pIndexBuffer->GetIndexCount())
+			return pIndexBuffer->GetIndex(index - indexCount);
+		else
+			indexCount += pIndexBuffer->GetIndexCount();
+	}
+
+	return 0;
+}
+
+// ----------------------------------------------------------------------------------------
+S_API SVertex* Geometry::GetVertices()
+{
+	if (!IS_VALID_PTR(m_pVertexBuffer))
+		return 0;
+
+	return m_pVertexBuffer->GetShadowBuffer();
+}
+
+// ----------------------------------------------------------------------------------------
+S_API unsigned long Geometry::GetVertexCount() const
+{
+	if (!IS_VALID_PTR(m_pVertexBuffer))
+		return 0;
+
+	return m_pVertexBuffer->GetVertexCount();
+}
+
+// ----------------------------------------------------------------------------------------
+S_API unsigned long Geometry::GetIndexCount() const
+{
+	if (!IS_VALID_PTR(m_pIndexBuffers) || m_nIndexBuffers == 0)
+		return 0;
+
+	unsigned long nIndices = 0;
+	for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
+	{
+		if (!IS_VALID_PTR(m_pIndexBuffers[iIndexBuffer].pIndexBuffer))
+			continue;
+
+		nIndices += m_pIndexBuffers[iIndexBuffer].pIndexBuffer->GetIndexCount();
+	}
+
+	return nIndices;
+}
 
 
 

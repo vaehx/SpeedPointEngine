@@ -21,8 +21,8 @@
 
 #include <Abstract\Transformable.h>
 #include <Abstract\ITexture.h>
-#include <Abstract\IOctreeNode.h>
-#include <Abstract\IOctree.h>
+//#include <Abstract\IOctreeNode.h>
+//#include <Abstract\IOctree.h>
 
 #ifndef SP_NO_PARTICLES
 #include <Abstract\IParticle.h>
@@ -31,7 +31,7 @@
 
 #include <Util\SVertex.h>
 #include <Abstract\IGeometry.h>
-//#include <Abstract\ITerrain.h>
+#include <Abstract\ITerrain.h>
 
 // ******************************************************************************************
 

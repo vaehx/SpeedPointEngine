@@ -595,15 +595,6 @@ enum S_API S_RENDER_COMMAND_TYPE
 
 
 
-
-// Type of the texture
-enum S_API S_TEXTURE_TYPE
-{
-	S_TEXTURE_RGBA,
-	S_TEXUTRE_RGBX,
-	S_TEXTURE_FILE
-};
-
 // SpeedPoint Projection type
 enum S_API S_PROJECTION_TYPE
 {

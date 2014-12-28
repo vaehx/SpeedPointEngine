@@ -23,7 +23,7 @@
 #include "IIndexBuffer.h"	// because we cannot forward-declare SIndex (due to delete command)
 #include <Util\SVertex.h>	// because we cannot forward-declare SVertex (due to delete command)
 #include "Matrix.h"
-#include "Material.h"
+//#include "Material.h"
 #include "IGameEngine.h"	// for IShutdownHandler
 
 SP_NMSPACE_BEG
@@ -39,7 +39,13 @@ struct S_API SMaterial;
 struct S_API SMaterialIndices
 {
 	char* materialName;
+
+
+	// TODO: Make this more abstract to avoid having invalid pointers
 	SMaterial* pMaterial;	// accumulation
+
+
+
 	unsigned long* pIdxIndices;	// array of indices to indices
 	unsigned int nIdxIndices;
 	unsigned int nFilledIdxIndices;
@@ -194,6 +200,14 @@ struct S_API IGeometry : public IShutdownHandler
 	virtual SGeometryIndexBuffer* GetIndexBuffers() = 0;
 	virtual unsigned short GetIndexBufferCount() const = 0;
 	virtual IVertexBuffer* GetVertexBuffer() = 0;	
+
+	virtual SVertex* GetVertex(unsigned long index) = 0;
+	virtual SIndex* GetIndex(unsigned long index) = 0;
+
+	virtual SVertex* GetVertices() = 0;	
+
+	virtual unsigned long GetVertexCount() const = 0;
+	virtual unsigned long GetIndexCount() const = 0;
 
 	virtual EPrimitiveType GetPrimitiveType() const = 0;
 

@@ -27,6 +27,10 @@ struct S_API SMaterial
 {
 	char* name;
 
+	SColor ambientColor;
+	SColor diffuseColor;
+	SColor specularColor;
+
 	ITexture* textureMap;	// aggregation, color for full unlit roughness
 	ITexture* normalMap;
 	ITexture* ambientOcclusionMap;

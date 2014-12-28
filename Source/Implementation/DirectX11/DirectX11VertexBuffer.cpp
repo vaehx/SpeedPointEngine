@@ -63,7 +63,7 @@ S_API BOOL DirectX11VertexBuffer::IsInited(void)
 S_API SResult DirectX11VertexBuffer::Initialize(IGameEngine* pEngine,
 						IRenderer* renderer,
 						EVBUsage usage,
-						int nSize,																	
+						unsigned long nSize,																	
 						SVertex* pInitialData /* = nullptr */)
 {
 	if (IsInited())
@@ -112,7 +112,7 @@ S_API SDirectX11VBCreateFlags DirectX11VertexBuffer::GetCreateFlags()
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Create(int nVertices_, SVertex* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
+S_API SResult DirectX11VertexBuffer::Create(unsigned long nVertices_, SVertex* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);			
 	SP_ASSERTR(nVertices_ > 0, S_INVALIDPARAM);
@@ -170,7 +170,7 @@ S_API SResult DirectX11VertexBuffer::Create(int nVertices_, SVertex* pInitialDat
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Resize(int nVertices_)
+S_API SResult DirectX11VertexBuffer::Resize(unsigned long nVertices_)
 {
 	if (nVertices_ == m_nVertices)
 		return S_SUCCESS;
@@ -261,7 +261,7 @@ S_API SResult DirectX11VertexBuffer::Lock(UINT iBegin, UINT iLength, SVertex** b
 
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Fill(SVertex* vertices, int nVertices_, bool bAppend)
+S_API SResult DirectX11VertexBuffer::Fill(SVertex* vertices, unsigned long nVertices_, bool bAppend)
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(vertices, S_INVALIDPARAM);
@@ -392,7 +392,7 @@ S_API SVertex* DirectX11VertexBuffer::GetShadowBuffer(void)
 }
 
 // --------------------------------------------------------------------------------
-S_API SVertex* DirectX11VertexBuffer::GetVertex(int iIndex)
+S_API SVertex* DirectX11VertexBuffer::GetVertex(unsigned long iIndex)
 {
 	if (IsInited() && m_nVertices > iIndex && iIndex >= 0)
 	{

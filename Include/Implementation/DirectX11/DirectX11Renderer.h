@@ -140,9 +140,19 @@ private:
 
 	// TODO: Do this framedump stuff way better (e.g. by using a macro)
 
-	bool m_bDumpFrame;
+	bool m_bDumpFrame;	
+
+
+
+
+
+	SResult UpdateRasterizerState();
+
+	SResult DrawTerrain(const SDrawCallDesc& dcd);
+
+public:	
 	void FrameDump(const SString& msg)
-	{		
+	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(msg);
 	}
@@ -179,13 +189,6 @@ private:
 
 
 
-
-
-	SResult UpdateRasterizerState();
-
-	SResult DrawTerrain(const SDrawCallDesc& dcd);
-
-public:				
 	DirectX11Renderer();
 	~DirectX11Renderer();
 

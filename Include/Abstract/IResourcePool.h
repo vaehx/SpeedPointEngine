@@ -17,6 +17,7 @@ struct S_API IGameEngine;
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
 struct S_API ITexture;
+enum S_API ETextureType;
 struct S_API IRenderer;
 
 // SpeedPoint Resource Pool (abstract)
@@ -46,12 +47,13 @@ public:
 
 	// w, h is the desired size. When source image does not equal this size, a scale is performed
 	virtual SResult LoadTexture(const SString& file, UINT w, UINT h, const SString& spec, ITexture** pTex) = 0;
-	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, S_TEXTURE_TYPE ty, ITexture** pTex) = 0;
+	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, ITexture** pTex) = 0;
 
 	// is case-sensitive
 	virtual ITexture* GetTexture(const SString& spec) = 0;
 	virtual SString GetTextureSpecification(const ITexture* t) const = 0;
 
+	// *pTex gets set to nullptr if removal succeeded
 	virtual SResult RemoveTexture(ITexture** pTex) = 0;
 
 	// Warning: The parameter of for each Handle() points to a ptr of ITexture which is destroyed

@@ -62,24 +62,24 @@ public:
 	//	Initialize the Index Buffer
 	// Arguments:
 	//	pInitialData - Specifies inital buffer data. If 0, then nSize and format is ignored and the buffers are created as soon as Fill() is called.
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr) = 0;
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, int nSize, SIndex* pInitialData = nullptr) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, SIndex* pInitialData = nullptr) = 0;
 
 	// Create the Hardware Index Buffer
-	virtual SResult Create( int nIndices_, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0) = 0;
+	virtual SResult Create( unsigned long nIndices_, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0) = 0;
 
 	// Check if this Index Buffer is inited properly
 	virtual BOOL IsInited( void ) = 0;
 
 	// Change the size of the Hardware Index Buffer
-	virtual SResult Resize( int nIndices_ ) = 0;
+	virtual SResult Resize( unsigned long nIndices_ ) = 0;
 
 	// Lock the Hardware Index Buffer in order to be able to fill Hardware data
 	virtual SResult Lock( UINT iBegin, UINT iLength, SIndex** buf, EIBLockType flags ) = 0;
 	virtual SResult Lock( UINT iBegin, UINT iLength, SIndex** buf ) = 0;		
 
 	// Fill the Hardware Index Buffer with an array of indices
-	virtual SResult Fill( SIndex* indices, int nIndices_, bool append ) = 0;
+	virtual SResult Fill( SIndex* indices, unsigned long nIndices_, bool append ) = 0;
 
 	// Unlock the Hardware Index Buffer
 	virtual SResult Unlock( void ) = 0;
@@ -88,7 +88,7 @@ public:
 	virtual SIndex* GetShadowBuffer( void ) = 0;
 
 	// Get a Pointer to an Index
-	virtual SIndex* GetIndex( int iIndex ) = 0;
+	virtual SIndex* GetIndex( unsigned long iIndex ) = 0;
 
 	// Get the total count of all indices
 	virtual unsigned long GetIndexCount( void ) const = 0;

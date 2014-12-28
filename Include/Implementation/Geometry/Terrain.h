@@ -44,6 +44,8 @@ public:
 	// nX and nZ is the resolution
 	virtual SResult Initialize(IGameEngine* pEngine, unsigned int nX, unsigned int nZ);
 
+	virtual SResult RecalculateNormals();
+
 	// Create a planar terrain with Size fW x fD
 	virtual SResult CreatePlanar(float fW, float fD, float baseHeight);	
 

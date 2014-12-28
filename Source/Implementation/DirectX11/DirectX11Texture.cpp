@@ -25,7 +25,9 @@ DirectX11Texture::DirectX11Texture()
 m_bDynamic(false),
 m_pDXTexture(0),
 m_pDXRenderer(nullptr),
-m_pDXSRV(nullptr)
+m_pDXSRV(nullptr),
+m_pLockedData(nullptr),
+m_nLockedBytes(0)
 {
 }
 
@@ -33,7 +35,9 @@ m_pDXSRV(nullptr)
 DirectX11Texture::DirectX11Texture(const DirectX11Texture& o)
 : m_pEngine(o.m_pEngine),
 m_Type(o.m_Type),
-m_bDynamic(o.m_bDynamic)
+m_bDynamic(o.m_bDynamic),
+m_pLockedData(nullptr),
+m_nLockedBytes(0)
 {
 }
 
@@ -223,7 +227,7 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 
 
 	// Now create the directx texture
-	D3D11_TEXTURE2D_DESC textureDesc;
+	D3D11_TEXTURE2D_DESC& textureDesc = m_DXTextureDesc;
 	textureDesc.ArraySize = 1;
 	textureDesc.BindFlags = (bMipAutoGenSupported) ? (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) : (D3D11_BIND_SHADER_RESOURCE);
 	textureDesc.CPUAccessFlags = (m_bDynamic) ? D3D11_CPU_ACCESS_WRITE /* | D3D11_CPU_ACCESS_READ */ : 0;
@@ -298,16 +302,25 @@ size_t DirectX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pW
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, S_TEXTURE_TYPE type, SColor clearcolor)
-{
-	DXGI_FORMAT newTextureFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor)
+{	
+	m_Type = type;
+	DXGI_FORMAT newTextureFmt;
+	switch (type)
+	{	
+	case eTEXTURE_D32_FLOAT:
+		newTextureFmt = DXGI_FORMAT_D32_FLOAT; break;
+	case eTEXTURE_R8G8B8A8_UNORM:
+	default:	
+		newTextureFmt = DXGI_FORMAT_R8G8B8A8_UNORM; break;
+	}
 
 	UINT fmtSupport = 0;
 	HRESULT hRes = m_pDXRenderer->GetD3D11Device()->CheckFormatSupport(newTextureFmt, &fmtSupport);
 	bool bMipAutoGenSupported = Success(hRes) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN);
 
 	// Now create the directx texture
-	D3D11_TEXTURE2D_DESC textureDesc;
+	D3D11_TEXTURE2D_DESC& textureDesc = m_DXTextureDesc;
 	textureDesc.ArraySize = 1;
 	textureDesc.BindFlags = (bMipAutoGenSupported) ? (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) : (D3D11_BIND_SHADER_RESOURCE);
 	textureDesc.CPUAccessFlags = (m_bDynamic) ? D3D11_CPU_ACCESS_WRITE /* | D3D11_CPU_ACCESS_READ */ : 0;
@@ -321,19 +334,40 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, S_TEXTU
 	textureDesc.Usage = (m_bDynamic) ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
 
 	unsigned int nPixels = w * h;
-	char* pEmptyPixels = new char[nPixels * 4];
-	for (unsigned int iPxl = 0; iPxl < nPixels * 4; iPxl += 4)
-	{
-		pEmptyPixels[iPxl] = (char)(clearcolor.r * 255.0f);
-		pEmptyPixels[iPxl + 1] = (char)(clearcolor.g * 255.0f);
-		pEmptyPixels[iPxl + 2] = (char)(clearcolor.b * 255.0f);
-		pEmptyPixels[iPxl + 3] = (char)(clearcolor.a * 255.0f);
-	}
 
-	D3D11_SUBRESOURCE_DATA initData;
-	initData.pSysMem = pEmptyPixels;
-	initData.SysMemPitch = w * 4;
-	initData.SysMemSlicePitch = nPixels * 4;
+	D3D11_SUBRESOURCE_DATA initData;		
+	switch (type)
+	{
+	case eTEXTURE_R8G8B8A8_UNORM:
+	{
+		char* pEmptyPixels = new char[nPixels * 4];
+		for (unsigned int iPxl = 0; iPxl < nPixels * 4; iPxl += 4)
+		{
+			pEmptyPixels[iPxl]	= (char)(clearcolor.r * 255.0f);
+			pEmptyPixels[iPxl + 1]	= (char)(clearcolor.g * 255.0f);
+			pEmptyPixels[iPxl + 2]	= (char)(clearcolor.b * 255.0f);
+			pEmptyPixels[iPxl + 3]	= (char)(clearcolor.a * 255.0f);
+		}
+
+		initData.pSysMem = pEmptyPixels;
+		initData.SysMemPitch = w * 4;
+		initData.SysMemSlicePitch = nPixels * 4;
+
+		break;
+	}
+	case eTEXTURE_D32_FLOAT:
+	{
+		float* pEmptyPixels = new float[nPixels];
+		for (unsigned int iPxl = 0; iPxl < nPixels; ++iPxl)
+			pEmptyPixels[iPxl] = clearcolor.r;		
+
+		initData.pSysMem = pEmptyPixels;
+		initData.SysMemPitch = w * sizeof(float);
+		initData.SysMemSlicePitch = nPixels * sizeof(float);
+
+		break;
+	}			
+	}	
 
 	m_pDXTexture = nullptr;
 	hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
@@ -358,7 +392,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, S_TEXTU
 		pDXDevCon->GenerateMips(m_pDXSRV);
 	}
 
-	delete[] pEmptyPixels;
+	delete[] initData.pSysMem;
 
 	m_pEngine->LogD("Creating new empty texture succeeded!");
 
@@ -372,22 +406,81 @@ S_API SString DirectX11Texture::GetSpecification(void)
 }
 
 // -----------------------------------------------------------------------------------
-S_API S_TEXTURE_TYPE DirectX11Texture::GetType(void)
+S_API ETextureType DirectX11Texture::GetType(void)
 {
 	return m_Type;
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::GetSize(int* pW, int* pH)
+S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 {
+	if (!IS_VALID_PTR(m_pDXTexture))
+		return S_NOTINIT;
 
+	if (IS_VALID_PTR(pW))
+		*pW = m_DXTextureDesc.Width;
 
+	if (IS_VALID_PTR(pH))
+		*pH = m_DXTextureDesc.Height;
 
-	// TODO
+	return S_SUCCESS;
+}
 
+// -----------------------------------------------------------------------------------
+S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels)
+{
+	if (!IS_VALID_PTR(pPixels) || !IS_VALID_PTR(pnPixels))
+		return S_INVALIDPARAM;
 
+	if (!IS_VALID_PTR(m_pDXTexture) || !IS_VALID_PTR(m_pDXRenderer))
+		return S_NOTINIT;
 
+	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+	if (!IS_VALID_PTR(pDXDevCon))
+		return S_NOTINIT;
 
+	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+	memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_READ_WRITE, 0, &mappedSubresource)))
+	{
+		m_pDXRenderer->FrameDump("Failed map texture (" + m_Specification + ") for Lock!");
+		return S_ERROR;
+	}
+
+	*pPixels = mappedSubresource.pData;
+	m_pLockedData = mappedSubresource.pData;
+	
+	*pnPixels = m_DXTextureDesc.Width * m_DXTextureDesc.Height;
+	switch (m_Type)
+	{
+	case eTEXTURE_R8G8B8A8_UNORM:
+		m_nLockedBytes = (*pnPixels) * 4;
+		break;
+	case eTEXTURE_D32_FLOAT:
+		m_nLockedBytes = (*pnPixels) * sizeof(float);
+		break;
+	}
+
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------
+S_API SResult DirectX11Texture::Unlock()
+{
+	if (!IS_VALID_PTR(m_pLockedData))
+		return S_ERROR;
+
+	if (!IS_VALID_PTR(m_pDXRenderer) || !IS_VALID_PTR(m_pDXTexture))
+		return S_NOTINIT;
+
+	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+	if (!IS_VALID_PTR(pDXDevCon))
+		return S_NOTINIT;
+
+	pDXDevCon->Unmap(m_pDXTexture, 0);
+
+	m_pLockedData = 0;
+	m_nLockedBytes = 0;
 
 	return S_SUCCESS;
 }
@@ -400,6 +493,9 @@ S_API SResult DirectX11Texture::Clear(void)
 
 	SP_SAFE_RELEASE(m_pDXSRV);
 	SP_SAFE_RELEASE(m_pDXTexture);
+
+	m_pLockedData = 0;
+	m_nLockedBytes = 0;
 
 	return S_SUCCESS;
 }

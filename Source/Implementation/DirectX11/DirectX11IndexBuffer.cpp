@@ -62,7 +62,7 @@ S_API BOOL DirectX11IndexBuffer::IsInited(void)
 S_API SResult DirectX11IndexBuffer::Initialize(IGameEngine* pEngine,
 						IRenderer* renderer,
 						EIBUsage usage,
-						int nSize,						
+						unsigned long nSize,						
 						S_INDEXBUFFER_FORMAT format,
 						SIndex* pInitialData /* = nullptr */)
 {
@@ -112,7 +112,7 @@ S_API SDirectX11IBCreateFlags DirectX11IndexBuffer::GetCreateFlags()
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Create(int nIndices_, SIndex* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
+S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, SIndex* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(nIndices_ > 0, S_INVALIDPARAM);
@@ -170,7 +170,7 @@ S_API SResult DirectX11IndexBuffer::Create(int nIndices_, SIndex* pInitialData /
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Resize(int nIndices_)
+S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
 {
 	if (nIndices_ == m_nIndices)
 		return S_SUCCESS;
@@ -261,7 +261,7 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, SIndex** buf
 
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Fill(SIndex* Indices, int nIndices_, bool bAppend)
+S_API SResult DirectX11IndexBuffer::Fill(SIndex* Indices, unsigned long nIndices_, bool bAppend)
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(Indices, S_INVALIDPARAM);
@@ -391,7 +391,7 @@ S_API SIndex* DirectX11IndexBuffer::GetShadowBuffer(void)
 }
 
 // --------------------------------------------------------------------------------
-S_API SIndex* DirectX11IndexBuffer::GetIndex(int iIndex)
+S_API SIndex* DirectX11IndexBuffer::GetIndex(unsigned long iIndex)
 {
 	if (IsInited() && m_nIndices > iIndex && iIndex >= 0)
 	{

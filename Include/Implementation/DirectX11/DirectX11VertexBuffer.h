@@ -69,20 +69,20 @@ public:
 	
 	// Arguments:
 	//	nSize - spezifies the vertex count of pInitialData if set
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, int nSize, SVertex* pInitialData = nullptr);
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, unsigned long nSize, SVertex* pInitialData = nullptr);
 
 	// Arguments:
 	//	nSize - spezifies the count of pInitialData if set
-	virtual SResult Create(int nSize, SVertex* pInitialData = nullptr, usint32 nInitialDataCount = 0);
+	virtual SResult Create(unsigned long nSize, SVertex* pInitialData = nullptr, usint32 nInitialDataCount = 0);
 	
 	virtual BOOL IsInited(void);	
-	virtual SResult Resize(int nNewSize);	
+	virtual SResult Resize(unsigned long nNewSize);	
 	virtual SResult Lock(UINT iBegin, UINT iLength, SVertex** buf, EVBLockType lockType);
 	virtual SResult Lock(UINT iBegin, UINT iLength, SVertex** buf);	
-	virtual SResult Fill(SVertex* pVertices, int nVertices, bool append);	
+	virtual SResult Fill(SVertex* pVertices, unsigned long nVertices, bool append);	
 	virtual SResult Unlock(void);	
 	virtual SVertex* GetShadowBuffer(void);	
-	virtual SVertex* GetVertex(int iVertex);	
+	virtual SVertex* GetVertex(unsigned long iVertex);	
 	virtual unsigned long GetVertexCount(void) const;	
 	virtual SResult Clear(void);
 

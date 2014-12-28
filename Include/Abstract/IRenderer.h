@@ -14,6 +14,7 @@
 #include "IViewport.h"	// for SViewportDescription
 #include "IGeometry.h" // for STransformation
 #include "IObject.h"
+#include "Material.h"
 #include "IGameEngine.h"
 
 using std::vector;

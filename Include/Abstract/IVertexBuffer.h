@@ -46,26 +46,26 @@ public:
 	// Arguments:
 	//	nSize - spezifies the count of pInitialData if set. If pInitialData is 0 then nSize is ignored and the buffer is created
 	//		as soon as Fill() is called.
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, int nSize, SVertex* pInitialData = nullptr) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, unsigned long nSize, SVertex* pInitialData = nullptr) = 0;
 
 	// Summary:
 	//	 Create the Hardware Vertex Buffer
 	// Arguments:
 	//	nInitialDataCount - if 0, pInitialData is not copied into buffer. Function fails if nInitialDatacount is greater than nSize
-	virtual SResult Create( int nSize, SVertex* pInitalData = nullptr, usint32 nInitialDataCount = 0 ) = 0;
+	virtual SResult Create( unsigned long nSize, SVertex* pInitalData = nullptr, usint32 nInitialDataCount = 0 ) = 0;
 
 	// Check if this Vertex Buffer is inited properly
 	virtual BOOL IsInited( void ) = 0;
 
 	// Change the size of the Hardware Vertex Buffer
-	virtual SResult Resize( int nNewSize ) = 0;
+	virtual SResult Resize( unsigned long nNewSize ) = 0;
 
 	// Lock the Hardware Vertex Buffer in order to be able to fill Hardware data
 	virtual SResult Lock( UINT iBegin, UINT iLength, SVertex** buf, EVBLockType lockType ) = 0;
 	virtual SResult Lock( UINT iBegin, UINT iLength, SVertex** buf ) = 0;		
 
 	// Fill the Hardware Vertex Buffer with an array of vertices
-	virtual SResult Fill( SVertex* pVertices, int nVertices, bool append ) = 0;
+	virtual SResult Fill( SVertex* pVertices, unsigned long nVertices, bool append ) = 0;
 
 	// Unlock the Hardware Vertex Buffer
 	virtual SResult Unlock( void ) = 0;
@@ -74,7 +74,7 @@ public:
 	virtual SVertex* GetShadowBuffer( void ) = 0;
 
 	// Get a Pointer to an Vertex
-	virtual SVertex* GetVertex( int iVertex ) = 0;
+	virtual SVertex* GetVertex( unsigned long iVertex ) = 0;
 
 	// Get the total count of all vertices
 	virtual unsigned long GetVertexCount( void ) const = 0;

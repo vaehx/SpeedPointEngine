@@ -63,11 +63,15 @@ class S_API DirectX11Texture : ITexture
 private:
 	SString	m_Specification;
 	IGameEngine* m_pEngine;
-	S_TEXTURE_TYPE m_Type;
+	ETextureType m_Type;
 	bool m_bDynamic;
-	ID3D11Texture2D* m_pDXTexture;	
+	ID3D11Texture2D* m_pDXTexture;
+	D3D11_TEXTURE2D_DESC m_DXTextureDesc;
 	DirectX11Renderer* m_pDXRenderer;
 	ID3D11ShaderResourceView* m_pDXSRV;
+
+	void* m_pLockedData;
+	unsigned int m_nLockedBytes;
 
 public:		
 	DirectX11Texture();
@@ -80,13 +84,16 @@ public:
 	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic);
 	
 	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);	
-	virtual SResult CreateEmpty(int w, int h, int mipLevels, S_TEXTURE_TYPE type, SColor clearcolor);	
+	virtual SResult CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor);	
 	virtual SString GetSpecification(void);
+
+	virtual SResult Lock(void **pPixels, unsigned int* pnPixels);
+	virtual SResult Unlock();
 
 	// ----
 	
-	virtual S_TEXTURE_TYPE GetType(void);	
-	virtual SResult GetSize(int* pW, int* pH);	
+	virtual ETextureType GetType(void);	
+	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);	
 	virtual SResult Clear(void);
 
 

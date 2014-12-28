@@ -70,27 +70,42 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 				initGeom.pIndices[idxCur + 5] = iVtxCur;
 			}
 		}
-	}	
+	}		
 
-	// Calculate normals
-	for (unsigned int iVtx = 0; iVtx < initGeom.nVertices; ++iVtx)
+	m_bRequireCBUpdate = true;
+
+	if (Failure(m_Geometry.Init(m_pEngine, m_pEngine->GetRenderer(), &initGeom)))
+		return S_ERROR;
+
+	return RecalculateNormals();
+}
+
+// -------------------------------------------------------------------------------------------------------------------
+S_API SResult Terrain::RecalculateNormals()
+{
+	IVertexBuffer* pVertexBuffer = m_Geometry.GetVertexBuffer();
+	if (!IS_VALID_PTR(pVertexBuffer))
+		return S_NOTINIT;
+
+	// Calculate normals	
+	for (unsigned long iVtx = 0; iVtx < m_Geometry.GetVertexCount(); ++iVtx)
 	{
-		SVertex& vtx = initGeom.pVertices[iVtx];
+		SVertex* vtx = m_Geometry.GetVertex(iVtx);
 		unsigned int iX = iVtx % (m_nX + 1),
 			iZ = (unsigned int)((iVtx - iX) / (m_nX + 1));
 
-		SVector3 dirAcc(0,0,0);
-		unsigned int nAffectedVertices = 1;				
-		
+		SVector3 dirAcc(0, 0, 0);
+		unsigned int nAffectedVertices = 1;
+
 		// 1-2
 		if (iX > 0 && iZ > 0)
 		{
-			const SVertex& vtx1 = initGeom.pVertices[iVtx - 1],
-				&vtx2 = initGeom.pVertices[iVtx - (m_nX + 1)];
+			const SVertex *vtx1 = m_Geometry.GetVertex(iVtx - 1),
+				*vtx2 = m_Geometry.GetVertex(iVtx - (m_nX + 1));
 
 			dirAcc += SVector3Normalize(SVector3Cross(
-				SVector3(vtx1.x - vtx.x, vtx1.y - vtx.y, vtx1.z - vtx.z),
-				SVector3(vtx2.x - vtx.x, vtx2.y - vtx.y, vtx2.z - vtx.z)));
+				SVector3(vtx1->x - vtx->x, vtx1->y - vtx->y, vtx1->z - vtx->z),
+				SVector3(vtx2->x - vtx->x, vtx2->y - vtx->y, vtx2->z - vtx->z)));
 		}
 		else
 			dirAcc += SVector3(0, 1.0f, 0);
@@ -98,12 +113,12 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		// 2-3
 		if (iX < m_nX && iZ > 0)
 		{
-			const SVertex& vtx2 = initGeom.pVertices[iVtx - (m_nX + 1)],
-				&vtx3 = initGeom.pVertices[iVtx + 1];
+			const SVertex *vtx2 = m_Geometry.GetVertex(iVtx - (m_nX + 1)),
+				*vtx3 = m_Geometry.GetVertex(iVtx + 1);
 
 			dirAcc += SVector3Normalize(SVector3Cross(
-				SVector3(vtx2.x - vtx.x, vtx2.y - vtx.y, vtx2.z - vtx.z),
-				SVector3(vtx3.x - vtx.x, vtx3.y - vtx.y, vtx3.z - vtx.z)));
+				SVector3(vtx2->x - vtx->x, vtx2->y - vtx->y, vtx2->z - vtx->z),
+				SVector3(vtx3->x - vtx->x, vtx3->y - vtx->y, vtx3->z - vtx->z)));
 		}
 		else
 			dirAcc += SVector3(0, 1.0f, 0);
@@ -111,12 +126,12 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		// 3 - 4
 		if (iX < m_nX && iZ < m_nZ)
 		{
-			const SVertex& vtx3 = initGeom.pVertices[iVtx + 1],
-				&vtx4 = initGeom.pVertices[iVtx + (m_nX + 1)];
+			const SVertex *vtx3 = m_Geometry.GetVertex(iVtx + 1),
+				*vtx4 = m_Geometry.GetVertex(iVtx + (m_nX + 1));
 
 			dirAcc += SVector3Normalize(SVector3Cross(
-				SVector3(vtx3.x - vtx.x, vtx3.y - vtx.y, vtx3.z - vtx.z),
-				SVector3(vtx4.x - vtx.x, vtx4.y - vtx.y, vtx4.z - vtx.z)));
+				SVector3(vtx3->x - vtx->x, vtx3->y - vtx->y, vtx3->z - vtx->z),
+				SVector3(vtx4->x - vtx->x, vtx4->y - vtx->y, vtx4->z - vtx->z)));
 		}
 		else
 			dirAcc += SVector3(0, 1.0f, 0);
@@ -124,12 +139,12 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		// 4 - 1
 		if (iX > 0 && iZ < m_nZ)
 		{
-			const SVertex& vtx4 = initGeom.pVertices[iVtx + (m_nX + 1)],
-				&vtx1 = initGeom.pVertices[iVtx - 1];
+			const SVertex *vtx4 = m_Geometry.GetVertex(iVtx + (m_nX + 1)),
+				*vtx1 = m_Geometry.GetVertex(iVtx - 1);
 
 			dirAcc += SVector3Normalize(SVector3Cross(
-				SVector3(vtx4.x - vtx.x, vtx4.y - vtx.y, vtx4.z - vtx.z),
-				SVector3(vtx1.x - vtx.x, vtx1.y - vtx.y, vtx1.z - vtx.z)));
+				SVector3(vtx4->x - vtx->x, vtx4->y - vtx->y, vtx4->z - vtx->z),
+				SVector3(vtx1->x - vtx->x, vtx1->y - vtx->y, vtx1->z - vtx->z)));
 		}
 		else
 			dirAcc += SVector3(0, 1.0f, 0);
@@ -139,14 +154,12 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 		if (dirAccN.y < 0)
 			dirAccN = -dirAccN;
 
-		vtx.nx = dirAccN.x;
-		vtx.ny = dirAccN.y;
-		vtx.nz = dirAccN.z;
+		vtx->nx = dirAccN.x;
+		vtx->ny = dirAccN.y;
+		vtx->nz = dirAccN.z;
 	}
 
-	m_bRequireCBUpdate = true;
-
-	return m_Geometry.Init(m_pEngine, m_pEngine->GetRenderer(), &initGeom);
+	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------------------------
