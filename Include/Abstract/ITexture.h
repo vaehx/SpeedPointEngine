@@ -31,7 +31,7 @@ enum S_API ETextureType
 struct S_API ITexture
 {
 public:
-	// -- Initialize --
+	// -- Initialize --	
 
 	// Initialize the texture
 	virtual SResult Initialize( IGameEngine* pEngine, const SString& spec ) = 0;

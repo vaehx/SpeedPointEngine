@@ -40,6 +40,11 @@ public:
 
 	virtual ~Terrain();
 
+	virtual bool IsInited() const
+	{
+		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && IS_VALID_PTR(m_pDetailMap));
+	}
+
 	// Initialize with the engine
 	// nX and nZ is the resolution
 	virtual SResult Initialize(IGameEngine* pEngine, unsigned int nX, unsigned int nZ);
@@ -51,6 +56,9 @@ public:
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
 	virtual SResult SetDetailMap(ITexture* pDetailMap);
+
+	virtual IVertexBuffer* GetVertexBuffer();
+	virtual IIndexBuffer* GetIndexBuffer();
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 

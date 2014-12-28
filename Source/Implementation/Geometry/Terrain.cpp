@@ -222,6 +222,22 @@ S_API SResult Terrain::SetDetailMap(ITexture* pDetailMap)
 }
 
 // -------------------------------------------------------------------------------------------------------------------
+S_API IVertexBuffer* Terrain::GetVertexBuffer()
+{
+	return m_Geometry.GetVertexBuffer();
+}
+
+// -------------------------------------------------------------------------------------------------------------------
+S_API IIndexBuffer* Terrain::GetIndexBuffer()
+{
+	SGeometryIndexBuffer* pGeomIndexBuffer = m_Geometry.GetIndexBuffers();
+	if (!IS_VALID_PTR(pGeomIndexBuffer))
+		return 0;
+
+	return pGeomIndexBuffer->pIndexBuffer;
+}
+
+// -------------------------------------------------------------------------------------------------------------------
 S_API SResult Terrain::Clear(void)
 {
 	m_pEngine = nullptr;

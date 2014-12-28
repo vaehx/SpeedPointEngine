@@ -16,12 +16,16 @@ SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 struct S_API ITexture;
+struct S_API IVertexBuffer;
+struct S_API IIndexBuffer;
 
 // SpeedPoint Terrain Solid (abstract)
 struct S_API ITerrain
 {
 public:
 	virtual ~ITerrain() {}
+
+	virtual bool IsInited() const = 0;
 
 	// Initialize with the engine
 	// nX and nZ is the resolution
@@ -35,6 +39,9 @@ public:
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
 	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;
 
+	virtual IVertexBuffer* GetVertexBuffer() = 0;
+	virtual IIndexBuffer* GetIndexBuffer() = 0;
+	
 	// Summary:
 	//	Flags that the terrain Constant Buffer has to be updated.
 	//	Be careful to not call this during rendering of the terrain, as it might be reset before taking effect.
