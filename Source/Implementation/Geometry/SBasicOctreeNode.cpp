@@ -27,9 +27,9 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API SBoundBox OctreeNode::GetBoundBox( void )
+	S_API AABB OctreeNode::GetBoundBox( void )
 	{
-		return SBoundBox();
+		return AABB();
 	}
 
 	// **********************************************************************************

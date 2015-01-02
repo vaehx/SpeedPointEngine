@@ -23,7 +23,8 @@ struct S_API IGameEngine;
 enum S_API EVBLockType
 {
 	eVBLOCK_DISCARD,
-	eVBLOCK_NOOVERWRITE
+	eVBLOCK_NOOVERWRITE,
+	eVBLOCK_KEEP
 };
 
 
@@ -42,45 +43,38 @@ struct S_API IVertexBuffer
 {
 public:
 	// Summary:
-	//	Initialize the vertex buffer
-	// Arguments:
-	//	nSize - spezifies the count of pInitialData if set. If pInitialData is 0 then nSize is ignored and the buffer is created
-	//		as soon as Fill() is called.
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, unsigned long nSize, SVertex* pInitialData = nullptr) = 0;
+	//	Initialize the vertex buffer, create the Hardware vertex buffer if initial data is given.
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage,
+		const SVertex* pInitialData = nullptr, const unsigned long nInitialVertices = 0) = 0;	
+
+	// Check if this Vertex Buffer is inited properly, this means if the HW Vertex Buffer has been created and filled at least once.
+	virtual bool IsInited(void) = 0;
 
 	// Summary:
-	//	 Create the Hardware Vertex Buffer
-	// Arguments:
-	//	nInitialDataCount - if 0, pInitialData is not copied into buffer. Function fails if nInitialDatacount is greater than nSize
-	virtual SResult Create( unsigned long nSize, SVertex* pInitalData = nullptr, usint32 nInitialDataCount = 0 ) = 0;
+	//	Fill the Hardware Vertex Buffer with an array of vertices.
+	// Description:
+	//	When the hardware vertex buffer has not been created yet, this function updates RAM buffer AND
+	//	creates the HW vertex buffer and uploads the data immediately.
+	//	Old vertices will be overwritten.
+	virtual SResult Fill(const SVertex* pVertices, const unsigned long nVertices) = 0;
 
-	// Check if this Vertex Buffer is inited properly
-	virtual BOOL IsInited( void ) = 0;
+	// Summary:
+	//	Updates the data to the dynamic HW Vertex Buffer by the data stored in the RAM copy.
+	//	Fails if the vertex buffer created is not dynamic. This function does not create the vertex buffer.
+	//	To update vertex data in a static Vertex Buffer, use Fill() instead.
+	// Returns:
+	//	NOTINITED: The HW Vertex buffer or the RAM copy have never been created OR the vertex buffer is not dynamic.
+	//	INVALIDPARAM: iVtxStart and nVertices define an invalid range in the buffer
+	virtual SResult UploadVertexData(unsigned long iVtxStart = 0, unsigned long nVertices = 0) = 0;
 
-	// Change the size of the Hardware Vertex Buffer
-	virtual SResult Resize( unsigned long nNewSize ) = 0;
+	// Get the RAM Copy of the hardware Vertex Buffer.
+	// Changes will not be updated automatically in HW Vertex Buffer. To do so, call UploadVertexData()
+	virtual SVertex* GetShadowBuffer(void) = 0;
 
-	// Lock the Hardware Vertex Buffer in order to be able to fill Hardware data
-	virtual SResult Lock( UINT iBegin, UINT iLength, SVertex** buf, EVBLockType lockType ) = 0;
-	virtual SResult Lock( UINT iBegin, UINT iLength, SVertex** buf ) = 0;		
+	virtual SVertex* GetVertex(unsigned long iVertex) = 0;	
+	virtual unsigned long GetVertexCount(void) const = 0;
 
-	// Fill the Hardware Vertex Buffer with an array of vertices
-	virtual SResult Fill( SVertex* pVertices, unsigned long nVertices, bool append ) = 0;
-
-	// Unlock the Hardware Vertex Buffer
-	virtual SResult Unlock( void ) = 0;
-	
-	// Get the RAM Copy of the hardware Vertex Buffer
-	virtual SVertex* GetShadowBuffer( void ) = 0;
-
-	// Get a Pointer to an Vertex
-	virtual SVertex* GetVertex( unsigned long iVertex ) = 0;
-
-	// Get the total count of all vertices
-	virtual unsigned long GetVertexCount( void ) const = 0;
-
-	// Clear everything and free memory
-	virtual SResult Clear( void ) = 0;
+	virtual SResult Clear(void) = 0;
 };
 
 

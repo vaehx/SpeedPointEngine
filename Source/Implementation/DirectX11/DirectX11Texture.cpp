@@ -313,7 +313,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	case eTEXTURE_R8G8B8A8_UNORM:
 	default:	
 		newTextureFmt = DXGI_FORMAT_R8G8B8A8_UNORM; break;
-	}
+	}	
 
 	UINT fmtSupport = 0;
 	HRESULT hRes = m_pDXRenderer->GetD3D11Device()->CheckFormatSupport(newTextureFmt, &fmtSupport);

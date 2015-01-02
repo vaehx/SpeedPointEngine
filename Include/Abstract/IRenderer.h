@@ -262,8 +262,8 @@ public:
 	// Get the type of this renderer
 	virtual S_RENDERER_TYPE GetType( void ) = 0;
 
-	// Intialize the renderer
-	virtual SResult Initialize(IGameEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter) = 0;
+	// Intialize the renderer. Settings are taken from engine settings.
+	virtual SResult Initialize(IGameEngine* pEngine, bool bIgnoreAdapter) = 0;
 
 	// Arguments:
 	//	pDesc - ptr to your instance of SDisplayModeDescription structure. This instance will be filled by the function
@@ -327,6 +327,8 @@ public:
 	virtual SResult UpdateCullMode(EFrontFace cullmode) = 0;
 	virtual SResult EnableBackfaceCulling(bool state = true) = 0;
 	virtual SResult UpdatePolygonType(S_PRIMITIVE_TYPE type) = 0;
+	virtual void EnableWireframe(bool state = true) = 0;
+	virtual void EnableDepthTest(bool state = true) = 0;
 
 
 	// Summary:

@@ -51,7 +51,7 @@ public:
 
 
 	virtual SResult LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTex);
-	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, ITexture** pTex);
+	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTex);
 
 	// is case sensitive
 	virtual ITexture* GetTexture(const SString& spec);

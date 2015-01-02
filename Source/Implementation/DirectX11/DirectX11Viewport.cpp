@@ -47,8 +47,7 @@ S_API DirectX11Viewport::~DirectX11Viewport()
 S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional)
 {
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);
-	SP_ASSERTR(desc.width > 640 && desc.height > 480, S_INVALIDPARAM);
-	SP_ASSERTR(desc.fov > 0, S_INVALIDPARAM);
+	SP_ASSERTR(desc.width > 640 && desc.height > 480, S_INVALIDPARAM);	
 	SP_ASSERTR(desc.hWnd, S_INVALIDPARAM);
 
 	Clear(); // make sure to clear before initializing again
@@ -78,10 +77,17 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	m_DXViewportDesc.TopLeftY = 0.0f;
 
 
-	// Setup swap chain description
+	// Setup swap chain description:
+
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	swapChainDesc.BufferCount = m_nBackBuffers;
+	swapChainDesc.Windowed = engineSet.app.bWindowed;
+
+	// The buffer desc returned by GetD3D11AutoSelectedDisplayModeDesc() is already created with
+	// respect to windowed mode.
 	swapChainDesc.BufferDesc = m_pRenderer->GetD3D11AutoSelectedDisplayModeDesc();
+
+
 	/*if (!engineSet.render.bEnableVSync)
 	{
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
@@ -96,8 +102,10 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 		m_pRenderer->GetD3D11Device(),
 		pRendererSet->GetMSAACount(),
 		pRendererSet->GetMSAAQuality());
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // i saw no purpose to change this to custom val as we want to support MSAA
-	swapChainDesc.Windowed = engineSet.app.bWindowed;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // i saw no purpose to change this to custom val as we want to support MSAA	
+
+
+
 
 
 	// Create the swapchain		
@@ -141,8 +149,8 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 
 
 
-	// and finally initialize the projection matrix for this viewport
-	if (Failure(Set3DProjection(desc.projectionType, desc.fov, desc.orthoW, desc.orthoH)))
+	// and finally initialize the projection matrix for this viewport	
+	if (Failure(SetProjectionByDesc(m_Desc.projectionDesc)))
 		return S_ERROR;
 
 
@@ -311,39 +319,62 @@ S_API SVector2 DirectX11Viewport::GetOrthographicVolume(void)
 // -------------------------------------------------------------------
 S_API unsigned int DirectX11Viewport::GetPerspectiveFOV(void)
 {
-	return m_Desc.fov;
+	return m_Desc.projectionDesc.fov;
 }
 
 // -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::Set3DProjection(S_PROJECTION_TYPE type, unsigned int fPerspDegFOV, float fOrthoW, float fOrthoH)
+S_API SResult DirectX11Viewport::SetProjectionByDesc(const SProjectionDesc& desc)
 {
-	SSettingsDesc& engineSettings = m_pEngine->GetSettings()->Get();
+	if (!IS_VALID_PTR(m_pEngine))
+		return S_NOTINIT;
 
-	switch (type)
+	float fNearZ = desc.nearZ, fFarZ = desc.farZ;
+	if (desc.bUseEngineZPlanes)
 	{
-	case S_PROJECTION_PERSPECTIVE:		
+		SSettingsDesc& engineSettings = m_pEngine->GetSettings()->Get();
+		fNearZ = engineSettings.render.fClipNear;
+		fFarZ = engineSettings.render.fClipFar;
+	}
+
+	switch (desc.projectionType)
+	{
+	case S_PROJECTION_PERSPECTIVE:
 		SPMatrixPerspectiveFovRH(
 			&m_ProjectionMtx,
-			SP_DEG_TO_RAD(fPerspDegFOV),
+			SP_DEG_TO_RAD(desc.fov),
 			m_DXViewportDesc.Width / m_DXViewportDesc.Height,
-			engineSettings.render.fClipNear,
-			engineSettings.render.fClipFar);
+			fNearZ, fFarZ);
+		break;
+
+	case S_PROJECTION_ORTHOGRAPHIC:
+		SPMatrixOrthoRH(&m_ProjectionMtx,
+			desc.orthoW, desc.orthoH,
+			fNearZ, fFarZ);
 		break;
 
 	default:
+		char logMsg[512];
+		sprintf_s(logMsg, "Invalid projection type (value = %d) given in DirectX11Viewport::SetProjectionByDesc()", desc.projectionType);
+		m_pEngine->LogE(logMsg);
 		return S_INVALIDPARAM;
 	}
 
-	m_Desc.fov = fPerspDegFOV;
-	m_Desc.orthoW = fOrthoW;
-	m_Desc.orthoH = fOrthoH;
-	m_Desc.projectionType = type;	
+	m_Desc.projectionDesc = desc;
+	m_Desc.projectionDesc.nearZ = fNearZ;
+	m_Desc.projectionDesc.farZ = fFarZ;
 
 	return S_SUCCESS;
 }
 
+
 // -------------------------------------------------------------------
-S_API SMatrix4& DirectX11Viewport::GetProjectionMatrix()
+S_API SProjectionDesc DirectX11Viewport::GetProjectionDesc() const
+{
+	return m_Desc.projectionDesc;
+}
+
+// -------------------------------------------------------------------
+S_API const SMatrix4& DirectX11Viewport::GetProjectionMatrix() const
 {
 	return m_ProjectionMtx;
 }

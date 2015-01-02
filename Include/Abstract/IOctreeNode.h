@@ -9,7 +9,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Util\SBoundBox.h>
+#include <Abstract\BoundBox.h>
 
 
 SP_NMSPACE_BEG
@@ -32,7 +32,7 @@ public:
 	virtual int GetPolygonCount( void ) = 0;
 
 	// Get the BoundBox of this node
-	virtual SBoundBox GetBoundBox( void ) = 0;
+	virtual AABB GetBoundBox( void ) = 0;
 
 	// Get the start indices of the triangles belonging to this octree node
 	// if it is not a leaf it will return NULL

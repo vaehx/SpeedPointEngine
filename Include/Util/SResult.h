@@ -146,38 +146,42 @@ namespace SpeedPoint
 		}
 
 		// throw an exception with given parameters and output information useful for debugging
-		static void ThrowExceptionAssertion(const char* function,
-			int line,
-			const char* file,
-			const char* msg)
-		{
-			return ThrowExceptionEng(0, SResult::eEX_ASSERTION, function, line, file, msg);
-		}
-
-		// throw an exception with given parameters and output information useful for debugging
-		static void ThrowException(const SResult::SExceptionType& type,
+		static void ThrowExceptionAssertion(const char* condition,
 			const char* function,
 			int line,
 			const char* file,
 			const char* msg)
 		{
-			return ThrowExceptionEng(0, type, function, line, file, msg);
+			return ThrowExceptionEng(0, SResult::eEX_ASSERTION, condition, function, line, file, msg);
+		}
+
+		// throw an exception with given parameters and output information useful for debugging
+		static void ThrowException(const SResult::SExceptionType& type,
+			const char* condition,
+			const char* function,
+			int line,
+			const char* file,
+			const char* msg)
+		{
+			return ThrowExceptionEng(0, type, condition, function, line, file, msg);
 		}		
 
 		// throw an exception with given parameters and output information useful for debugging
 		static void ThrowExceptionEng(IExceptionProxy* pExProxy,
 			const SResult::SExceptionType& type,
+			const char* condition,
 			const char* function,
 			int line,
 			const char* file,
 			const char* msg,
 			const SResultType resType = S_ERROR)
 		{
-			char* pOutput = new char[500];
+			char* pOutput = new char[600];
 			char* pErrDesc = new char[16];
 			GetResultTypeDesc(resType, pErrDesc);
 
-			sprintf_s(pOutput, 500, "Assertion failed!\n" \
+			sprintf_s(pOutput, 600, "Assertion failed!\n" \
+				"  Condition: %s\n" \
 				"  File: %s\n" \
 				"  Function: %s\n" \
 				"  Line: %d\n" \

@@ -9,7 +9,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Util\SBoundBox.h>
+#include <Abstract\BoundBox.h>
 
 SP_NMSPACE_BEG
 
@@ -35,7 +35,7 @@ public:
 	virtual SResult Compile( int nMaxDepth, int nMinPolys ) = 0;
 
 	// Get all octree nodes that collide with bound box
-	virtual int GetCollidingNodes( const SBoundBox& bb, IOctreeNode** nodes ) = 0;
+	virtual int GetCollidingNodes( const AABB& aabb, IOctreeNode** nodes ) = 0;
 
 	// Clear the octree and its childs recursively
 	virtual void Clear( void ) = 0;

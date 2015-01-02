@@ -89,7 +89,7 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 
 	// Create the geometry with plane of 10 * 10 fields
 	m_pVertexBuffer = new DirectX11VertexBuffer();
-	if (Failure(m_pVertexBuffer->Initialize(m_pEngine, renderer, eVBUSAGE_STATIC, 11 * 11, pVertices)))
+	if (Failure(m_pVertexBuffer->Initialize(m_pEngine, renderer, eVBUSAGE_STATIC, pVertices, 11 * 11)))
 	{
 		return m_pEngine->LogE("Failed initialize vertex Buffer of OutputPlane!");
 	}

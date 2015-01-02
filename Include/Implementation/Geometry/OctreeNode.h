@@ -7,7 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\IOctreeNode.h>
-#include <Util\SBoundBox.h>
+#include <Abstract\BoundBox.h>
 
 
 SP_NMSPACE_BEG
@@ -21,7 +21,7 @@ public:
 	OctreeNode*	pChilds[8];	// preserve 8 OctreeNode childs
 	DWORD*			pTriangles;	// the polygons (start indices)
 	Octree*		pOctree;	// pointer to the parent to get the solid
-	SBoundBox		bbBoundBox;
+	AABB		bbBoundBox;
 	bool			bIsLeaf;
 	int			nPolys;		
 
@@ -31,7 +31,7 @@ public:
 	bool IsLeaf( void );
 	IOctreeNode* GetChild( SP_UNIQUE id );
 	int GetPolygonCount( void );
-	SBoundBox GetBoundBox( void );
+	AABB GetBoundBox( void );
 	DWORD* GetTriangles( void );
 	void Clear( void );
 };

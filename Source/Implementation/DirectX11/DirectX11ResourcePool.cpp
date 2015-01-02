@@ -34,6 +34,8 @@ S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* ren
 	m_pEngine = eng;
 	m_pDXRenderer = (DirectX11Renderer*)renderer;
 
+	CoInitialize(0);
+
 	return S_SUCCESS;
 }
 
@@ -159,7 +161,7 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, ITexture** pTexture)
+S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTexture)
 {
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
 		"Cannot add Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
@@ -180,7 +182,7 @@ S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& s
 		return S_ERROR;
 	}
 
-	if (Failure(pdxTexture->CreateEmpty(w, h, 1, ty, SColor(0, 0, 0))))
+	if (Failure(pdxTexture->CreateEmpty(w, h, 1, ty, clearcolor)))
 	{
 		return S_ERROR;
 	}
@@ -287,6 +289,8 @@ S_API SResult DirectX11ResourcePool::ClearAll(VOID)
 
 	m_pEngine = NULL;
 	m_pDXRenderer = NULL;
+
+	CoUninitialize();
 
 	return res;
 }

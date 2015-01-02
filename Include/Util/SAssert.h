@@ -53,6 +53,7 @@
 			SpeedPoint::SResult::ThrowExceptionEng( \
 				(SpeedPoint::IExceptionProxy*)eng, \
 				SpeedPoint::SResult::eEX_ASSERTION, \
+				#cond, \
 				__FUNCTION__, __LINE__, __FILE__, _pAssertMsg); \
 			delete[] _pAssertMsg; \
 		} \
@@ -67,6 +68,7 @@
 			SpeedPoint::SResult::ThrowExceptionEng( \
 				0, \
 				SpeedPoint::SResult::eEX_ASSERTION, \
+				#cond, \
 				__FUNCTION__, __LINE__, __FILE__, _pAssertMsg, \
 				SpeedPoint::S_ERROR); \
 			delete[] _pAssertMsg; \
@@ -85,6 +87,7 @@
 			SpeedPoint::SResult::ThrowExceptionEng( \
 				(SpeedPoint::IExceptionProxy*)eng, \
 				SpeedPoint::SResult::eEX_ASSERTION, \
+				#cond, \
 				__FUNCTION__, __LINE__, __FILE__, _pAssertMsg, \
 				SpeedPoint::ValResultType(ret)); \
 			delete[] _pAssertMsg; \
@@ -106,6 +109,7 @@
 			SpeedPoint::SResult::ThrowExceptionEng( \
 				0, \
 				SpeedPoint::SResult::eEX_ASSERTION, \
+				#cond, \
 				__FUNCTION__, __LINE__, __FILE__, _pAssertMsg, \
 				SpeedPoint::ValResultType(ret)); \
 			delete[] _pAssertMsg; \

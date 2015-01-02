@@ -53,37 +53,33 @@ class S_API DirectX11VertexBuffer : public IVertexBuffer
 private:
 	IGameEngine*			m_pEngine;	// used for logging!
 	IRenderer*			m_pRenderer;
+
 	ID3D11Buffer*			m_pHWVertexBuffer;
+	
 	SVertex*			m_pShadowBuffer;
 	unsigned long			m_nVertices;
-	unsigned long			m_nVerticesWritten;
-	bool				m_bLocked;
-	EVBUsage			m_Usage;
-	bool				m_bInitialDataWritten;
+	EVBUsage			m_Usage;	
 
 
 public:	
 	DirectX11VertexBuffer();	
 	DirectX11VertexBuffer(const DirectX11VertexBuffer& o);		
 	~DirectX11VertexBuffer();
-	
-	// Arguments:
-	//	nSize - spezifies the vertex count of pInitialData if set
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage, unsigned long nSize, SVertex* pInitialData = nullptr);
+		
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage,
+		const SVertex* pInitialData = nullptr, const unsigned long nInitialVertices = 0);
 
-	// Arguments:
-	//	nSize - spezifies the count of pInitialData if set
-	virtual SResult Create(unsigned long nSize, SVertex* pInitialData = nullptr, usint32 nInitialDataCount = 0);
+	SResult Create(const SVertex* pInitialData, const unsigned long nInitialDataCount);
 	
-	virtual BOOL IsInited(void);	
-	virtual SResult Resize(unsigned long nNewSize);	
-	virtual SResult Lock(UINT iBegin, UINT iLength, SVertex** buf, EVBLockType lockType);
-	virtual SResult Lock(UINT iBegin, UINT iLength, SVertex** buf);	
-	virtual SResult Fill(SVertex* pVertices, unsigned long nVertices, bool append);	
-	virtual SResult Unlock(void);	
+	virtual bool IsInited(void);
+	virtual SResult Fill(const SVertex* pVertices, const unsigned long nVertices);
+
+	virtual SResult UploadVertexData(unsigned long iVtxStart = 0, unsigned long nVertices = 0);
+
 	virtual SVertex* GetShadowBuffer(void);	
 	virtual SVertex* GetVertex(unsigned long iVertex);	
-	virtual unsigned long GetVertexCount(void) const;	
+	virtual unsigned long GetVertexCount(void) const;
+
 	virtual SResult Clear(void);
 
 

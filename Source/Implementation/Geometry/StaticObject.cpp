@@ -49,12 +49,13 @@ S_API void StaticObject::Clear()
 	m_pMaterials = 0;
 	m_nMaterials = 0;
 	m_pEngine = 0;
+	m_AABB.Reset();
 }
 
 // ----------------------------------------------------------------------------------------
 S_API SResult StaticObject::Init(IGameEngine* pEngine, IRenderer* pRenderer, const SInitialMaterials* pInitialMaterials /*=0*/, SInitialGeometryDesc* pInitialGeom /*=0*/)
 {
-	Clear();
+	m_Geometry.Clear();
 
 	if (!IS_VALID_PTR((m_pEngine = pEngine)))
 		return S_INVALIDPARAM;
@@ -131,6 +132,12 @@ S_API SResult StaticObject::CreateNormalsGeometry(IRenderableObject** pNormalGeo
 	*pNormalGeometryObject = pStaticObject;
 
 	return S_ERROR;
+}
+
+// ----------------------------------------------------------------------------------------
+S_API void StaticObject::RecalcBoundBox()
+{
+	m_Geometry.CalculateBoundBox(m_AABB);
 }
 
 

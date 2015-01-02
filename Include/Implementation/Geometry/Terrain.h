@@ -52,7 +52,7 @@ public:
 	virtual SResult RecalculateNormals();
 
 	// Create a planar terrain with Size fW x fD
-	virtual SResult CreatePlanar(float fW, float fD, float baseHeight);	
+	virtual SResult CreatePlanar(float fW, float fD, float baseHeight, bool bDynamic = false);	
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
 	virtual SResult SetDetailMap(ITexture* pDetailMap);

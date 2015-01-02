@@ -3,6 +3,7 @@
 #include <EngineSettings.h>
 #include <Abstract\IScene.h>
 #include <Abstract\ITerrain.h>
+#include <Abstract\IRenderer.h>
 
 SP_NMSPACE_BEG
 
@@ -37,6 +38,22 @@ S_API void EngineSettings::SetTerrainDetailMapFadeRadius(float radius)
 S_API bool EngineSettings::SetFrontFaceType(EFrontFace ffType)
 {
 	ENGSETTING_SET_GETEQ(m_Desc.render.frontFaceType, ffType);
+}
+
+// ------------------------------------------------------------------------------------------
+S_API void EngineSettings::EnableWireframe(bool state)
+{
+	m_Desc.render.bRenderWireframe = state;
+	if (IS_VALID_PTR(m_pGameEngine))
+		m_pGameEngine->GetRenderer()->EnableWireframe(state);
+}
+
+// ------------------------------------------------------------------------------------------
+S_API void EngineSettings::EnableDepthTest(bool state)
+{
+	m_Desc.render.bEnableDepthTest = state;
+	if (IS_VALID_PTR(m_pGameEngine))
+		m_pGameEngine->GetRenderer()->EnableDepthTest(state);
 }
 
 

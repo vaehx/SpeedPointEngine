@@ -32,7 +32,7 @@ public:
 	virtual SResult Initialize( IGameEngine* pEngine, unsigned int nX, unsigned int nZ ) = 0;
 
 	// Create a planar terrain with Size fW x fD and resolution nX, nY	
-	virtual SResult CreatePlanar( float fW, float fD, float baseHeight) = 0;
+	virtual SResult CreatePlanar( float fW, float fD, float baseHeight, bool bDynamic = false ) = 0;
 
 	virtual SResult RecalculateNormals() = 0;
 

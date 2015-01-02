@@ -77,11 +77,12 @@ public:
 		
 	virtual SVector2 GetOrthographicVolume(void);
 		
-	virtual unsigned int GetPerspectiveFOV(void);
+	virtual unsigned int GetPerspectiveFOV(void);	
 		
-	virtual SResult Set3DProjection(S_PROJECTION_TYPE type, unsigned int fPerspDegFOV, float fOrthoW, float fOrthoH);		
-	virtual SMatrix4& GetProjectionMatrix();
-		
+	virtual SResult SetProjectionByDesc(const SProjectionDesc& desc);
+	virtual SProjectionDesc GetProjectionDesc() const;
+	virtual const SMatrix4& GetProjectionMatrix() const;
+
 	virtual SResult RecalculateCameraViewMatrix();		
 	virtual SMatrix4& GetCameraViewMatrix();
 

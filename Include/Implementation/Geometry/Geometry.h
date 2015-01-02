@@ -42,7 +42,7 @@ protected:
 
 public:
 	Geometry();
-	virtual ~Geometry();
+	virtual ~Geometry();	
 
 	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr);
 
@@ -91,6 +91,8 @@ public:
 	}
 
 	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const;
+
+	virtual void CalculateBoundBox(AABB& aabb);
 };
 
 

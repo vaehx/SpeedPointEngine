@@ -19,6 +19,7 @@ struct S_API IIndexBuffer;
 struct S_API ITexture;
 enum S_API ETextureType;
 struct S_API IRenderer;
+struct S_API SColor;
 
 // SpeedPoint Resource Pool (abstract)
 struct S_API IResourcePool
@@ -47,7 +48,10 @@ public:
 
 	// w, h is the desired size. When source image does not equal this size, a scale is performed
 	virtual SResult LoadTexture(const SString& file, UINT w, UINT h, const SString& spec, ITexture** pTex) = 0;
-	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, ITexture** pTex) = 0;
+
+	// Arguments:
+	//	- clearcolor: Texture gets filled with this color. If type is depth map, clearcolor.r is used.
+	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTex) = 0;
 
 	// is case-sensitive
 	virtual ITexture* GetTexture(const SString& spec) = 0;

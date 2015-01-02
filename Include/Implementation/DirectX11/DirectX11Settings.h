@@ -28,7 +28,7 @@ private:
 	DirectX11Renderer* m_pDXRenderer;
 	SColor m_AlphaColorKey;
 	EMSAACount m_MSAACount;
-	EMSAAQuality m_MSAAQuality;
+	EMSAAQuality m_MSAAQuality;	
 
 	// Do we still need this in DX11 ?
 	S_PROCESSING_MODE m_ProcessingMode;

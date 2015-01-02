@@ -31,6 +31,8 @@ SP_NMSPACE_BEG
 struct S_API ITexture;
 struct S_API IVertexBuffer;
 struct S_API SMaterial;
+struct SAxisAlignedBoundBox;
+typedef struct S_API SAxisAlignedBoundBox AABB;
 
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -83,11 +85,21 @@ enum S_API EPrimitiveType
 	PRIMITIVE_TYPE_UNKNOWN
 };
 
+enum S_API EGeomUsage
+{
+	eGEOMUSE_STATIC,
+	eGEOMUSE_MODIFY_FREQUENTLY,
+	eGEOMUSE_MODIFY_RARELY
+};
+
 
 // Note:
 //	This structure deletes the vertices and indices arrays when being destructed!
 struct S_API SInitialGeometryDesc
 {
+	EGeomUsage vertexUsage;
+	EGeomUsage indexUsage;
+
 	SVertex* pVertices;	// gets deleted automatically when constructed. Otherwise make sure to set pointer to 0
 	usint32 nVertices;
 
@@ -100,11 +112,14 @@ struct S_API SInitialGeometryDesc
 	unsigned int nMatIndexAssigns;
 
 	bool bRequireNormalRecalc;
+	bool bRequireTangentRecalc;
 
 	EPrimitiveType primitiveType;
 
 	SInitialGeometryDesc()
-		: pVertices(nullptr),
+		: vertexUsage(eGEOMUSE_STATIC),
+		indexUsage(eGEOMUSE_STATIC),
+		pVertices(nullptr),
 		nVertices(0),
 		pIndices(nullptr),
 		nIndices(0),
@@ -112,6 +127,7 @@ struct S_API SInitialGeometryDesc
 		nMatIndexAssigns(0),
 		pSingleMaterial(0),
 		bRequireNormalRecalc(false),
+		bRequireTangentRecalc(false),
 		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)
 	{
 	}
@@ -119,10 +135,10 @@ struct S_API SInitialGeometryDesc
 	~SInitialGeometryDesc()
 	{
 		if (IS_VALID_PTR(pVertices))	
-			delete pVertices;			
+			delete[] pVertices;			
 
 		if (IS_VALID_PTR(pIndices))
-			delete pIndices;
+			delete[] pIndices;
 
 		if (IS_VALID_PTR(pMatIndexAssigns))
 			delete[] pMatIndexAssigns;
@@ -133,7 +149,8 @@ struct S_API SInitialGeometryDesc
 		nIndices = 0;
 		nMatIndexAssigns = 0;
 		pSingleMaterial = 0;
-		bRequireNormalRecalc = false;		
+		bRequireNormalRecalc = false;
+		bRequireTangentRecalc = false;
 	}
 };
 
@@ -212,6 +229,8 @@ struct S_API IGeometry : public IShutdownHandler
 	virtual EPrimitiveType GetPrimitiveType() const = 0;
 
 	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const = 0;
+
+	virtual void CalculateBoundBox(AABB& aabb) = 0;
 
 	virtual void Clear() = 0;
 };

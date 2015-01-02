@@ -161,6 +161,8 @@ namespace SpeedPoint
 			bool		bRenderWireframe;		// is the wireframe shader enabled or not						
 			EFrontFace	frontFaceType;
 
+			bool		bEnableDepthTest;
+
 			bool		bRenderLighting;		// Render lighting although it is set up in environment?			
 			//bool		bCustomLighting;	// prevents lights-buffer to be updated automatically if light added/removed or camera moved
 
@@ -199,8 +201,9 @@ namespace SpeedPoint
 			render.fClipFar = 200.0f;
 			render.fTerrainDMFadeRange = 20.0f;
 			render.bRenderLighting = false;	///// TODO: Switch this to true as soon as lighting shader is implemented									
-			render.bRenderWireframe = false;
-			render.frontFaceType = eFF_CW;		
+			render.bRenderWireframe = false;			
+			render.frontFaceType = eFF_CW;	
+			render.bEnableDepthTest = true;
 			render.shadowQuality = eSHADOWQUALITY_NOSHADOW;
 		}
 
@@ -234,6 +237,7 @@ namespace SpeedPoint
 			render.fClipNear = o.render.fClipNear;
 			render.fTerrainDMFadeRange = o.render.fTerrainDMFadeRange;
 			render.frontFaceType = o.render.frontFaceType;
+			render.bEnableDepthTest = o.render.bEnableDepthTest;
 			render.bRenderWireframe = o.render.bRenderWireframe;
 			render.bRenderLighting = o.render.bRenderLighting;		
 			render.shadowQuality = o.render.shadowQuality;
@@ -263,6 +267,9 @@ namespace SpeedPoint
 
 		virtual void SetTerrainDetailMapFadeRadius(float radius) = 0;
 		virtual bool SetFrontFaceType(EFrontFace ffType) = 0;
+
+		virtual void EnableWireframe(bool state = true) = 0;
+		virtual void EnableDepthTest(bool state = true) = 0;
 	};
 
 

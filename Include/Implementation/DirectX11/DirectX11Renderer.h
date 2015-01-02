@@ -64,7 +64,7 @@ class S_API DirectX11Renderer : public IRenderer
 {
 private:
 	IGameEngine* m_pEngine;
-	DirectX11Settings m_Settings;
+	DirectX11Settings m_Settings;	
 
 	IResourcePool* m_pResourcePool;
 
@@ -72,8 +72,8 @@ private:
 	ID3D11DeviceContext* m_pD3DDeviceContext;
 
 	D3D_FEATURE_LEVEL m_D3DFeatureLevel;
-	D3D11_RASTERIZER_DESC m_rsDesc;
-	ID3D11RasterizerState* m_pRSState;
+	D3D11_RASTERIZER_DESC m_rsDesc;	
+	ID3D11RasterizerState* m_pRSState;	
 	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
 
 	IDXGIFactory* m_pDXGIFactory;
@@ -82,6 +82,8 @@ private:
 	DXGI_MODE_DESC m_AutoSelectedDisplayModeDesc;	// automatically selected in AutoSelectAdapter()
 	DXGI_ADAPTER_DESC m_AutoSelectedAdapterDesc;	
 	IDXGIAdapter* m_pAutoSelectedAdapter;	// dont release this. it will be released in m_vAdapters! possibly use shared_ptr
+
+	bool m_bFullscreen;
 		
 	//IRenderPipeline* m_pRenderPipeline;
 		
@@ -95,6 +97,7 @@ private:
 
 	ERenderTargetCollectionID m_iCurRTCollection;	// RT collection that is currently bound
 
+	D3D11_DEPTH_STENCIL_DESC m_depthStencilDesc;
 	ID3D11DepthStencilState* m_pDepthStencilState;
 
 	SPerSceneConstantBuffer m_PerSceneCB;
@@ -105,6 +108,7 @@ private:
 	bool m_bPerObjectCBBound;
 
 
+	// States:	
 	EPrimitiveType m_SetPrimitiveType;
 
 
@@ -147,6 +151,7 @@ private:
 
 
 	SResult UpdateRasterizerState();
+	SResult UpdateDepthStencilState();
 
 	SResult DrawTerrain(const SDrawCallDesc& dcd);
 
@@ -195,7 +200,7 @@ public:
 	////////////////////////////////////////////////////////////////////////////
 	// Specific to the DirectX Implementation
 
-	SResult AutoSelectAdapter(usint32 nW, usint32 nH);
+	SResult AutoSelectAdapter();
 	SResult SetRenderStateDefaults(void);
 
 	SResult InitDefaultViewport(HWND hWnd, int nW, int nH);		
@@ -232,7 +237,7 @@ public:
 
 	// Note:
 	//	!! bIgnoreAdapter is not evaluated in the D3D11Renderer !!	
-	virtual SResult Initialize(IGameEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter);
+	virtual SResult Initialize(IGameEngine* pEngine, bool bIgnoreAdapter);
 
 	virtual bool IsInited(void);
 	virtual SResult Shutdown(void);
@@ -299,6 +304,8 @@ public:
 	virtual SResult UpdateCullMode(EFrontFace cullmode);
 	virtual SResult EnableBackfaceCulling(bool state = true);
 	virtual SResult UpdatePolygonType(S_PRIMITIVE_TYPE type);
+	virtual void EnableWireframe(bool state = true);
+	virtual void EnableDepthTest(bool state = true);
 
 	virtual IResourcePool* GetResourcePool();
 

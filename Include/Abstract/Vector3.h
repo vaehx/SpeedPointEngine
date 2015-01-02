@@ -86,6 +86,20 @@ namespace SpeedPoint
 		{
 			return x*x + y*y + z*z;				
 		}
+
+		void CheckMin(const SVector3& v)
+		{
+			if (v.x < x) x = v.x;
+			if (v.y < y) y = v.y;
+			if (v.z < z) z = v.z;
+		}
+
+		void CheckMax(const SVector3& v)
+		{
+			if (v.x > x) x = v.x;
+			if (v.y > y) y = v.y;
+			if (v.z > z) z = v.z;
+		}
 		
 		// Get unit vector of this vector
 		SVector3& Normalize( float* pLength = 0 )

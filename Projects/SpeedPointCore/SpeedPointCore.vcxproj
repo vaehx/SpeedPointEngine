@@ -95,7 +95,6 @@
     <ClInclude Include="..\..\Include\SpeedPointScripting.h" />
     <ClInclude Include="..\..\Include\SpeedPointSound.h" />
     <ClInclude Include="..\..\Include\Util\SAssert.h" />
-    <ClInclude Include="..\..\Include\Util\SBoundBox.h" />
     <ClInclude Include="..\..\Include\Util\SColor.h" />
     <ClInclude Include="..\..\Include\Util\SConfigFile.h" />
     <ClInclude Include="..\..\Include\Util\SLogFile.h" />
@@ -122,7 +121,6 @@
     <ClCompile Include="..\..\Source\Pipelines\RenderPipeline.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointApplication.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine.cpp" />
-    <ClCompile Include="..\..\Source\Util\SBoundBox.cpp" />
     <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />

@@ -22,13 +22,36 @@ struct S_API IFBO;
 struct S_API IGameEngine;
 
 
+struct S_API SProjectionDesc
+{
+	unsigned int fov;
+	S_PROJECTION_TYPE projectionType;	
+	float nearZ, farZ;
+	bool bUseEngineZPlanes;
+	float orthoW, orthoH;
+
+	SProjectionDesc()
+		: bUseEngineZPlanes(true)
+	{
+	}
+
+	SProjectionDesc(const SProjectionDesc& dsc)
+		: fov(dsc.fov),
+		projectionType(dsc.projectionType),
+		orthoW(dsc.orthoW),
+		orthoH(dsc.orthoH),
+		nearZ(dsc.nearZ),
+		farZ(dsc.farZ),
+		bUseEngineZPlanes(dsc.bUseEngineZPlanes)
+	{
+	}
+};
+
 struct S_API SViewportDescription
 {
 	usint32 width;
-	usint32 height;		
-	unsigned int fov;	// in degree
-	S_PROJECTION_TYPE projectionType;
-	float orthoW, orthoH;
+	usint32 height;
+	SProjectionDesc projectionDesc;
 
 	HWND hWnd;	// the window to render to
 
@@ -36,21 +59,16 @@ struct S_API SViewportDescription
 
 	SViewportDescription()
 		: width(1024),
-		height(768),
-		fov(60),
-		useDepthStencil(true),
-		projectionType(S_PROJECTION_PERSPECTIVE)
+		height(768),		
+		useDepthStencil(true)		
 	{
 	}
 
 	SViewportDescription(const SViewportDescription& o)
 		: width(o.width),
-		height(o.height),
-		fov(o.fov),
+		height(o.height),		
 		useDepthStencil(o.useDepthStencil),
-		projectionType(o.projectionType),
-		orthoW(o.orthoW),
-		orthoH(o.orthoH)
+		projectionDesc(o.projectionDesc)
 	{
 	}
 };
@@ -85,8 +103,9 @@ public:
 	
 	virtual unsigned int GetPerspectiveFOV( void ) = 0;
 	
-	virtual SResult Set3DProjection( S_PROJECTION_TYPE type, unsigned int fPerspDegFOV, float fOrthoW, float fOrthoH ) = 0;		
-	virtual SMatrix4& GetProjectionMatrix() = 0;
+	virtual SResult SetProjectionByDesc(const SProjectionDesc& desc) = 0;
+	virtual SProjectionDesc GetProjectionDesc() const = 0;
+	virtual const SMatrix4& GetProjectionMatrix() const = 0;
 	
 	virtual SResult RecalculateCameraViewMatrix() = 0;		
 	virtual SMatrix4& GetCameraViewMatrix() = 0;

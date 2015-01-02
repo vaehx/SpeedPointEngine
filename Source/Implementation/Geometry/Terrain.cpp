@@ -25,7 +25,7 @@ S_API SResult Terrain::Initialize(IGameEngine* pEngine, unsigned int nX, unsigne
 }
 
 // -------------------------------------------------------------------------------------------------------------------
-S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
+S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight, bool bDynamic /* = false */)
 {
 	if (!IS_VALID_PTR(m_pEngine) || m_nX == 0 || m_nZ == 0 || fW < 1.0f || fD < 1.0f)
 		return S_INVALIDPARAM;
@@ -35,6 +35,8 @@ S_API SResult Terrain::CreatePlanar(float fW, float fD, float baseHeight)
 	initGeom.nIndices = m_nX * m_nZ * 6;
 	initGeom.pVertices = new SVertex[initGeom.nVertices];
 	initGeom.pIndices = new SIndex[initGeom.nIndices];
+
+	initGeom.vertexUsage = eGEOMUSE_MODIFY_FREQUENTLY;
 
 	float diffX = fW / (float)m_nX,
 		diffZ = fD / (float)m_nZ;
@@ -169,7 +171,7 @@ S_API SResult Terrain::RenderTerrain(void)
 
 	SGeometryIndexBuffer* pGeomIndexBuffers = m_Geometry.GetIndexBuffers();
 	if (!IS_VALID_PTR(pGeomIndexBuffers) || m_Geometry.GetIndexBufferCount() == 0)
-		return S_ERROR;
+		return m_pEngine->LogE("Failed RenderTerrain: Terrain geometry not initialized!");
 
 	IRenderer* pRenderer = m_pEngine->GetRenderer();
 

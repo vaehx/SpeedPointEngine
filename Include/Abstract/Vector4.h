@@ -52,6 +52,11 @@ namespace SpeedPoint
 			w = v.w;
 			return *this;
 		}
+
+		SVector3 xyz() const
+		{
+			return SVector3(x, y, z);
+		}
 	};
 
 	typedef struct S_API SVector4 float4;

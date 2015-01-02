@@ -172,5 +172,8 @@
     <ClInclude Include="..\..\Include\Abstract\Camera.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\BoundBox.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -104,9 +104,11 @@ S_API IResourcePool* DirectX11Renderer::GetResourcePool()
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::AutoSelectAdapter(usint32 nW, usint32 nH)
+S_API SResult DirectX11Renderer::AutoSelectAdapter()
 {
 	HRESULT hRes = S_OK;
+
+	SSettingsDesc::ApplicationSet& appSettings = m_pEngine->GetSettings()->Get().app;
 
 
 	// Create and Validate the DXGI Factory
@@ -116,71 +118,106 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter(usint32 nW, usint32 nH)
 
 	// Load and save all possible adapters
 	IDXGIAdapter* pAdapter;
-	for (usint32 iAdapter = 0;
-		m_pDXGIFactory->EnumAdapters(iAdapter, &pAdapter) != DXGI_ERROR_NOT_FOUND;
-		++iAdapter)
-	{		
+	usint32 iBestAdapter = 0;	
+	DXGI_ADAPTER_DESC bestAdapterDesc;
+	bestAdapterDesc.DedicatedVideoMemory = 0;
+	for (usint32 iAdapter = 0; m_pDXGIFactory->EnumAdapters(iAdapter, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++iAdapter)
+	{
+		DXGI_ADAPTER_DESC adapterDesc;
+		pAdapter->GetDesc(&adapterDesc);
+
+		/*
+		wchar_t adapterTxt[1024];
+		memset(adapterTxt, 0, 1024);		
+		swprintf_s(adapterTxt, L"%s\nsharedSysMem: %.3f MB\ndedicatedSysMem: %.3f MB\ndedicatedVidMem: %.3f MB",
+			adapterDesc.Description,
+			(float)adapterDesc.SharedSystemMemory / (1024.0f * 1024.0f),
+			(float)adapterDesc.DedicatedSystemMemory / (1024.0f * 1024.0f),
+			(float)adapterDesc.DedicatedVideoMemory / (1024.0f * 1024.0f));
+
+		MessageBoxW(0, adapterTxt, L"Found adapter", MB_ICONINFORMATION | MB_OK);
+		*/
+		
+		if (bestAdapterDesc.DedicatedVideoMemory < adapterDesc.DedicatedVideoMemory)
+		{
+			iBestAdapter = iAdapter;
+			memcpy(&bestAdapterDesc, &adapterDesc, sizeof(DXGI_ADAPTER_DESC));
+		}
+		
 		m_vAdapters.push_back(pAdapter);
 	}
 
 	SP_ASSERTR(m_vAdapters.size() > 0, S_ERROR, "No adapters found!");
 
 
-	// find matching adapter and display mode	
-	bool bFound = false;
-	DXGI_FORMAT desiredBackBufferFormat =
-		DXGI_FORMAT_R8G8B8A8_UNORM;
+	// In fullscreen mode:
+	//	Find adapter with matching size.
+	// In Windowed mode:
+	//	Find best adapter measured by memory size.
 
-	IDXGIOutput* pOutput;	
-	for (auto iAdapter = m_vAdapters.begin(); iAdapter != m_vAdapters.end(); ++iAdapter)
+	DXGI_FORMAT desiredBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	if (!appSettings.bWindowed)
 	{
-		if (!(pAdapter = *iAdapter))
-			continue;
+		m_bFullscreen = true;
+		bool bFound = false;		
+		IDXGIOutput* pOutput;
+		for (auto iAdapter = m_vAdapters.begin(); iAdapter != m_vAdapters.end(); ++iAdapter)
+		{
+			if (!(pAdapter = *iAdapter))
+				continue;
 
-		for (usint32 iOutput = 0; pAdapter->EnumOutputs(iOutput, &pOutput) != DXGI_ERROR_NOT_FOUND; ++iOutput)
-		{			
-			usint32 nModes;
-			DXGI_MODE_DESC* pModes = 0;
-			hRes = pOutput->GetDisplayModeList(desiredBackBufferFormat, 0, &nModes, 0);
-
-			if (nModes == 0)
-				continue; // no matching modes found in this output
-
-			pModes = new DXGI_MODE_DESC[nModes];
-			hRes = pOutput->GetDisplayModeList(desiredBackBufferFormat, 0, &nModes, pModes);
-
-			for (usint32 iMode = 0; iMode < nModes; ++iMode)
+			for (usint32 iOutput = 0; pAdapter->EnumOutputs(iOutput, &pOutput) != DXGI_ERROR_NOT_FOUND; ++iOutput)
 			{
-				if (pModes[iMode].Width == nW && pModes[iMode].Height == nH)
-				{
-					// okay, found matching mode, output and adapter. So store it now
-					hRes = pAdapter->GetDesc(&m_AutoSelectedAdapterDesc);
-					m_AutoSelectedDisplayModeDesc = pModes[iMode];
-					m_pAutoSelectedAdapter = pAdapter;					
+				usint32 nModes;
+				DXGI_MODE_DESC* pModes = 0;
+				hRes = pOutput->GetDisplayModeList(desiredBackBufferFormat, 0, &nModes, 0);
 
-					bFound = true;
-					break;
+				if (nModes == 0)
+					continue; // no matching modes found in this output
+
+				pModes = new DXGI_MODE_DESC[nModes];
+				hRes = pOutput->GetDisplayModeList(desiredBackBufferFormat, 0, &nModes, pModes);
+
+				for (usint32 iMode = 0; iMode < nModes; ++iMode)
+				{
+					if (pModes[iMode].Width == appSettings.nXResolution && pModes[iMode].Height == appSettings.nYResolution)
+					{
+						// okay, found matching mode, output and adapter. So store it now
+						hRes = pAdapter->GetDesc(&m_AutoSelectedAdapterDesc);
+						m_AutoSelectedDisplayModeDesc = pModes[iMode];
+						m_pAutoSelectedAdapter = pAdapter;
+
+						bFound = true;
+						break;
+					}
 				}
+
+				SP_SAFE_DELETE_ARR(pModes, nModes);
+				SP_SAFE_RELEASE(pOutput);
+
+				if (bFound)
+					break;
 			}
-			
-			SP_SAFE_DELETE_ARR(pModes, nModes);
-			SP_SAFE_RELEASE(pOutput);
 
 			if (bFound)
 				break;
 		}
+		SP_ASSERTR(bFound, S_NOTFOUND, "No matching adapter or display mode found!");
+	}
+	else
+	{
+		m_AutoSelectedAdapterDesc = bestAdapterDesc;
+		m_pAutoSelectedAdapter = m_vAdapters[iBestAdapter];				
+		m_bFullscreen = false;
 
-		if (bFound)
-			break;
-	}		
-	SP_ASSERTR(bFound, S_NOTFOUND, "No matching adapter or display mode found!");
-
-
-
-	// You might also want to get some information about the vendor, the dedicated video mem or something else.
-	// Do this by accessing m_AutoSelectedAdapterDesc.
-	// For now we don't need this and thereby skip this.
-
+		m_AutoSelectedDisplayModeDesc.Format = desiredBackBufferFormat;
+		m_AutoSelectedDisplayModeDesc.Width = appSettings.nXResolution;
+		m_AutoSelectedDisplayModeDesc.Height = appSettings.nYResolution;
+		
+		// In windowed mode RefreshRate, Scaling and ScanlineOrdering are ignored.
+		m_AutoSelectedDisplayModeDesc.RefreshRate.Denominator = 1;
+		m_AutoSelectedDisplayModeDesc.RefreshRate.Numerator = 0;		
+	}
 
 
 	return S_SUCCESS;
@@ -191,10 +228,21 @@ SResult DirectX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescriptio
 {
 	if (pDesc)
 	{
-		pDesc->width = m_AutoSelectedDisplayModeDesc.Width;
-		pDesc->height = m_AutoSelectedDisplayModeDesc.Height;
-		pDesc->refreshRate = m_AutoSelectedDisplayModeDesc.RefreshRate.Numerator
-			/ m_AutoSelectedDisplayModeDesc.RefreshRate.Denominator;
+		SSettingsDesc::ApplicationSet& appSettings = m_pEngine->GetSettings()->Get().app;
+
+		if (appSettings.bWindowed)
+		{
+			pDesc->width = appSettings.nXResolution;
+			pDesc->height = appSettings.nYResolution;
+			pDesc->refreshRate = 0;
+		}
+		else
+		{
+			pDesc->width = m_AutoSelectedDisplayModeDesc.Width;
+			pDesc->height = m_AutoSelectedDisplayModeDesc.Height;
+			pDesc->refreshRate = m_AutoSelectedDisplayModeDesc.RefreshRate.Numerator
+				/ m_AutoSelectedDisplayModeDesc.RefreshRate.Denominator;
+		}
 
 		return pDesc->IsValid() ? S_SUCCESS : S_ERROR;
 	}
@@ -205,7 +253,8 @@ SResult DirectX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescriptio
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(IsInited(), S_NOTINIT);	
+
 
 	// we probably need the settings of our engine
 	SSettingsDesc::RenderSet& renderSettings = m_pEngine->GetSettings()->Get().render;
@@ -214,27 +263,26 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 
 	// setup proper depth stencil testing
 	// Setup the proper depth testing
+	
+	m_depthStencilDesc.DepthEnable = true; // we probably won't change this, so this if fixed
+	m_depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	m_depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 
-	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-	depthStencilDesc.DepthEnable = true; // we probably won't change this, so this if fixed
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	m_depthStencilDesc.StencilEnable = true;
+	m_depthStencilDesc.StencilReadMask = 0xff;
+	m_depthStencilDesc.StencilWriteMask = 0xff;
 
-	depthStencilDesc.StencilEnable = true;
-	depthStencilDesc.StencilReadMask = 0xff;
-	depthStencilDesc.StencilWriteMask = 0xff;
+	m_depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	m_depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	m_depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	m_depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-	depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	m_depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	m_depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	m_depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	m_depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;	
 
-	depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-	if (Failure(m_pD3DDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState)))
+	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_depthStencilDesc, &m_pDepthStencilState)))
 		return m_pEngine->LogE("Failed create depth stencil state!");
 #ifdef _DEBUG
 	else
@@ -305,8 +353,9 @@ S_API SResult DirectX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 
 	SViewportDescription vpDesc;
 	
-	
-	vpDesc.fov = 60;	// maybe you want to change this sometimes...	
+	vpDesc.projectionDesc.fov = 60;
+	vpDesc.projectionDesc.projectionType = S_PROJECTION_PERSPECTIVE;
+	vpDesc.projectionDesc.bUseEngineZPlanes = true;
 
 
 	vpDesc.width = nW;
@@ -412,22 +461,21 @@ S_API S_RENDERER_TYPE DirectX11Renderer::GetType(void)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int nW, int nH, bool bIgnoreAdapter)
+S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter)
 {		
-	SP_ASSERTR(pEngine && hWnd, S_INVALIDPARAM);	
+	SP_ASSERTR(pEngine, S_INVALIDPARAM);	
 
 	if (IsInited())
 		Shutdown();	// shutdown before initializing again
 
-	m_pEngine = pEngine;	
-
-
+	m_pEngine = pEngine;		
 
 	// Auto Select Adapter and display mode
-	if (Failure(AutoSelectAdapter(nW, nH)))
+	if (Failure(AutoSelectAdapter()))
 	{
+		m_pEngine->LogE("Failed automatic selection of Video adapter and display mode. Shut down.");
 		Shutdown();
-		return m_pEngine->LogE("Failed automatic selection of Video adapter and display mode. Shut down.");
+		return S_ERROR;
 	}
 	// Now start the actual Interface to the initialized DirectX Device.
 	// Will fail if neither hardware nor mixed nor software processing is working.
@@ -448,11 +496,13 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, HWND hWnd, int
 
 	// Initialize the default Viewport
 	// This viewport is forced to be generated. Client is only able to add more SwapChains
-	// !! Do NOT put this call before CreateDX11Device(). InitDefaultViewport depends on an existing device in DX11 !!
-	if (Failure(InitDefaultViewport(hWnd, nW, nH)))
+	// !! Do NOT put this call before CreateDX11Device(). InitDefaultViewport depends on an existing device in DX11 !!	
+	SSettingsDesc::ApplicationSet& applicationSettings = pEngine->GetSettings()->Get().app;
+	
+	if (Failure(InitDefaultViewport(applicationSettings.hWnd, applicationSettings.nXResolution, applicationSettings.nYResolution)))
 	{
 		Shutdown();
-		return S_ERROR;
+		return m_pEngine->LogE("Failed Init default viewport!");
 	}		
 
 
@@ -849,6 +899,9 @@ S_API SResult DirectX11Renderer::RenderGeometry(const SRenderDesc& dsc)
 	m_pRenderSchedule->insert(pair<usint32, SRenderDesc>(m_RenderScheduleIDCounter, dsc));
 	m_RenderScheduleIDCounter++;
 
+	if (IS_VALID_PTR(dsc.material.textureMap))
+		dsc.material.textureMap->GetType();
+
 	return S_SUCCESS;
 }
 
@@ -856,7 +909,7 @@ S_API SResult DirectX11Renderer::RenderGeometry(const SRenderDesc& dsc)
 S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& tdsc)
 {
 	if (!m_bInScene)
-		return S_INVALIDSTAGE;
+		return EngLog(S_INVALIDSTAGE, m_pEngine, "Failed DirectX11Renderer::RenderTerrain(): Scene rendering not started!");
 
 	memcpy(&m_TerrainRenderDesc, &tdsc, sizeof(STerrainRenderDesc));
 	FrameDump("Set terrain Render Desc.");
@@ -1427,6 +1480,18 @@ S_API SResult DirectX11Renderer::UpdateRasterizerState()
 }
 
 // --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::UpdateDepthStencilState()
+{
+	SP_SAFE_RELEASE(m_pDepthStencilState);
+	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_depthStencilDesc, &m_pDepthStencilState)))
+		return EngLog(S_ERROR, m_pEngine, "Failed recreate depth stencil state for updating rasterizer state");
+
+	m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
+	return S_SUCCESS;
+}
+
+
+// --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::UpdateCullMode(EFrontFace ff)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);	
@@ -1478,9 +1543,30 @@ S_API SResult DirectX11Renderer::UpdatePolygonType(S_PRIMITIVE_TYPE type)
 	m_pD3DDeviceContext->IAGetPrimitiveTopology(&currentTP);
 
 	if (currentTP != targetTP)
-		m_pD3DDeviceContext->IASetPrimitiveTopology(targetTP);
+		m_pD3DDeviceContext->IASetPrimitiveTopology(targetTP);	
 
 	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::EnableWireframe(bool state /*=true*/)
+{
+	D3D11_FILL_MODE wireframeMode = state ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+	if (m_rsDesc.FillMode != wireframeMode)
+	{
+		m_rsDesc.FillMode = wireframeMode;
+		UpdateRasterizerState();
+	}
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::EnableDepthTest(bool state)
+{
+	if (m_depthStencilDesc.DepthEnable != state)
+	{
+		m_depthStencilDesc.DepthEnable = state;
+		UpdateDepthStencilState();
+	}
 }
 
 

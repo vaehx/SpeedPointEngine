@@ -8,11 +8,11 @@
 #include <SPrerequisites.h>
 #include <Abstract\IObject.h>
 #include <Abstract\IOctree.h>
-#include <Util\SBoundBox.h>
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
 #include "Geometry.h"
 #include <Abstract\Transformable.h>
+#include <Abstract\BoundBox.h>
 
 
 SP_NMSPACE_BEG
@@ -28,6 +28,9 @@ private:
 	
 	unsigned short m_nMaterials;
 	SMaterial* m_pMaterials;
+
+	AABB m_AABB;
+
 
 public:			
 
@@ -57,10 +60,18 @@ public:
 	virtual void SetMaterial(const SMaterial& singleMat);
 	virtual SMaterial* GetSingleMaterial();
 
-	virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;
+	virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;	
 
 	virtual SResult Render();
 	virtual void Clear();
+
+	// from IObject:
+public:
+	virtual void RecalcBoundBox();
+	ILINE virtual const AABB& GetBoundBox() const
+	{
+		return m_AABB;
+	}
 
 
 /*	virtual SResult SetGeometryData( SVertex* pVertices, UINT nVertices, SIndex* pdwIndices, UINT nIndices );

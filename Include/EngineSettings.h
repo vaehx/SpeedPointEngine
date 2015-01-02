@@ -48,7 +48,8 @@ public:
 
 	virtual void SetTerrainDetailMapFadeRadius(float radius);
 	virtual bool SetFrontFaceType(EFrontFace ffType);
-
+	virtual void EnableWireframe(bool state = true);
+	virtual void EnableDepthTest(bool state = true);
 
 
 	// Todo: Implement specific set functions from IEngineSettings

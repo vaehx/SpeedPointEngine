@@ -34,7 +34,7 @@ namespace SpeedPoint
 
 	// **********************************************************************************
 
-	S_API int Octree::GetCollidingNodes( const SBoundBox& bb, IOctreeNode** nodes )
+	S_API int Octree::GetCollidingNodes( const AABB& bb, IOctreeNode** nodes )
 	{
 		return -1;
 	}

@@ -309,8 +309,10 @@ S_API SResult SpeedPointEngine::InitializeRenderer(const S_RENDERER_TYPE& type, 
 
 
 	// Initialize the renderer
-	if (Failure(m_pRenderer->Initialize(this, m_pSettings->Get().app.hWnd, m_pSettings->Get().app.nXResolution, m_pSettings->Get().app.nYResolution, false)))
+	if (Failure(m_pRenderer->Initialize(this, false)))
+	{
 		return S_ERROR;
+	}
 
 
 	LogD("Initialized Renderer.");

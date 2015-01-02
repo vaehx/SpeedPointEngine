@@ -147,14 +147,14 @@ struct S_API SMatrix
 
 	static SMatrix MakeRotationMatrix(const SVector3& rot)
 	{
-		float ca = cosf(rot.x), sa = sinf(rot.x);
-		float cb = cosf(rot.y), sb = sinf(rot.y);
-		float cg = cosf(rot.z), sg = sinf(rot.z);
+		float ca = cosf(rot.x), sa = sinf(rot.x);	// alpha
+		float cb = cosf(rot.y), sb = sinf(rot.y);	// beta
+		float cg = cosf(rot.z), sg = sinf(rot.z);	// gamma
 		return SMatrix(
-			cb * cg, -cb * sg, sb, 0,
-			sa * sb * cg + ca * sg, -sa * sb * sg + ca * cg, -sa * cb, 0,
-			-ca * sb * cg + sa * sg, ca * sb * sg + sa * cg, ca * cb, 0,
-			0, 0, 0, 1
+			cb * cg,			-cb * sg,			 sb,		0,
+			sa * sb * cg + ca * sg,		-sa * sb * sg + ca * cg,	-sa * cb,	0,
+			-ca * sb * cg + sa * sg,	 ca * sb * sg + sa * cg,	 ca * cb,	0,
+			0,				 0,				 0,		1
 			);
 	}
 };
@@ -197,6 +197,150 @@ static SMatrix SMatrixTranspose(const SMatrix& mtx)
 	SMatrix res = mtx;
 	SMatrixTranspose(&res);
 	return res;
+}
+
+// Source: CryCommon Cry_Matrix.h
+static SMatrix SMatrixInvert(const SMatrix& m) {
+	float	tmp[12];
+	SMatrix res;
+
+	// Calculate pairs for first 8 elements (cofactors)
+	tmp[ 0] = m._33 * m._44;
+	tmp[ 1] = m._43 * m._34;
+	tmp[ 2] = m._23 * m._44;
+	tmp[ 3] = m._43 * m._24;
+	tmp[ 4] = m._23 * m._34;
+	tmp[ 5] = m._33 * m._24;
+	tmp[ 6] = m._13 * m._44;
+	tmp[ 7] = m._43 * m._14;
+	tmp[ 8] = m._13 * m._34;
+	tmp[ 9] = m._33 * m._14;
+	tmp[10] = m._13 * m._24;
+	tmp[11] = m._23 * m._14;
+
+	// Calculate first 8 elements (cofactors)
+	res._11  = tmp[0] * m._22 + tmp[3] * m._32 + tmp[4] * m._42;
+	res._11 -= tmp[1] * m._22 + tmp[2] * m._32 + tmp[5] * m._42;
+	res._12  = tmp[1] * m._12 + tmp[6] * m._32 + tmp[9] * m._42;
+	res._12 -= tmp[0] * m._12 + tmp[7] * m._32 + tmp[8] * m._42;
+	res._13  = tmp[2] * m._12 + tmp[7] * m._22 + tmp[10] * m._42;
+	res._13 -= tmp[3] * m._12 + tmp[6] * m._22 + tmp[11] * m._42;
+	res._14  = tmp[5] * m._12 + tmp[8] * m._22 + tmp[11] * m._32;
+	res._14 -= tmp[4] * m._12 + tmp[9] * m._22 + tmp[10] * m._32;
+	res._21  = tmp[1] * m._21 + tmp[2] * m._31 + tmp[5] * m._41;
+	res._21 -= tmp[0] * m._21 + tmp[3] * m._31 + tmp[4] * m._41;
+	res._22  = tmp[0] * m._11 + tmp[7] * m._31 + tmp[8] * m._41;
+	res._22 -= tmp[1] * m._11 + tmp[6] * m._31 + tmp[9] * m._41;
+	res._23  = tmp[3] * m._11 + tmp[6] * m._21 + tmp[11] * m._41;
+	res._23 -= tmp[2] * m._11 + tmp[7] * m._21 + tmp[10] * m._41;
+	res._24  = tmp[4] * m._11 + tmp[9] * m._21 + tmp[10] * m._31;
+	res._24 -= tmp[5] * m._11 + tmp[8] * m._21 + tmp[11] * m._31;
+
+	// Calculate pairs for second 8 elements (cofactors)
+	tmp[0] =  m._31*m._42;
+	tmp[1] =  m._41*m._32;
+	tmp[2] =  m._21*m._42;
+	tmp[3] =  m._41*m._22;
+	tmp[4] =  m._21*m._32;
+	tmp[5] =  m._31*m._22;
+	tmp[6] =  m._11*m._42;
+	tmp[7] =  m._41*m._12;
+	tmp[8] =  m._11*m._32;
+	tmp[9] =  m._31*m._12;
+	tmp[10] = m._11*m._22;
+	tmp[11] = m._21*m._12;
+
+	// Calculate second 8 elements (cofactors)
+	res._31  = tmp[0] * m._24 + tmp[3] * m._34 + tmp[4] * m._44;
+	res._31 -= tmp[1] * m._24 + tmp[2] * m._34 + tmp[5] * m._44;
+	res._32  = tmp[1] * m._14 + tmp[6] * m._34 + tmp[9] * m._44;
+	res._32 -= tmp[0] * m._14 + tmp[7] * m._34 + tmp[8] * m._44;
+	res._33  = tmp[2] * m._14 + tmp[7] * m._24 + tmp[10] * m._44;
+	res._33 -= tmp[3] * m._14 + tmp[6] * m._24 + tmp[11] * m._44;
+	res._34  = tmp[5] * m._14 + tmp[8] * m._24 + tmp[11] * m._34;
+	res._34 -= tmp[4] * m._14 + tmp[9] * m._24 + tmp[10] * m._34;
+	res._41  = tmp[2] * m._33 + tmp[5] * m._43 + tmp[1] * m._23;
+	res._41 -= tmp[4] * m._43 + tmp[0] * m._23 + tmp[3] * m._33;
+	res._42  = tmp[8] * m._43 + tmp[0] * m._13 + tmp[7] * m._33;
+	res._42 -= tmp[6] * m._33 + tmp[9] * m._43 + tmp[1] * m._13;
+	res._43  = tmp[6] * m._23 + tmp[11] * m._43 + tmp[3] * m._13;
+	res._43 -= tmp[10] * m._43 + tmp[2] * m._13 + tmp[7] * m._23;
+	res._44  = tmp[10] * m._33 + tmp[4] * m._13 + tmp[9] * m._23;
+	res._44 -= tmp[8] * m._23 + tmp[11] * m._33 + tmp[5] * m._13;
+
+	// Calculate determinant
+	float det = (m._11*res._11 + m._21*res._12 + m._31*res._13 + m._41*res._14);
+	//if (fabs_tpl(det)<0.0001f) assert(0);	
+
+	// Divide the cofactor-matrix by the determinant
+	float idet = 1.0f / det;
+	res._11 *= idet; res._12 *= idet; res._13 *= idet; res._14 *= idet;
+	res._21 *= idet; res._22 *= idet; res._23 *= idet; res._24 *= idet;
+	res._31 *= idet; res._32 *= idet; res._33 *= idet; res._34 *= idet;
+	res._41 *= idet; res._42 *= idet; res._43 *= idet; res._44 *= idet;
+
+	return res;
+}
+
+static inline void SVector3TransformCoord(SVector3 *pout, const SVector3 &pv, const SMatrix &pm)
+{
+	float norm = pm.m[0][3] * pv.x + pm.m[1][3] * pv.y + pm.m[2][3] * pv.z + pm.m[3][3];
+	
+	if (norm)
+	{
+		pout->x = (pm.m[0][0] * pv.x + pm.m[1][0] * pv.y + pm.m[2][0] * pv.z + pm.m[3][0]) / norm;
+		pout->y = (pm.m[0][1] * pv.x + pm.m[1][1] * pv.y + pm.m[2][1] * pv.z + pm.m[3][1]) / norm;
+		pout->z = (pm.m[0][2] * pv.x + pm.m[1][2] * pv.y + pm.m[2][2] * pv.z + pm.m[3][2]) / norm;
+	}
+	else
+	{
+		pout->x = 0.0f;
+		pout->y = 0.0f;
+		pout->z = 0.0f;
+	}	
+}
+
+struct S_API SVec3ProjectViewportDesc
+{
+	float minZ, maxZ;
+	unsigned int viewportWidth, viewportHeight;	
+};
+
+static inline void SVector3Project(SVector3* pout, const SVector3& pv,
+	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const SVec3ProjectViewportDesc& vpDesc, const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
+{
+	SMatrix m1, m2;
+	SVector3 vec;
+
+	m1 = mtxWorld * mtxView;
+	m2 = m1 * mtxProjection;	
+
+	SVector3TransformCoord(&vec, pv, m2);
+
+	// Clip-Space to Screen-Space
+	pout->x = subsetOffsetX + (1.0f + vec.x) * vpDesc.viewportWidth / 2.0f;
+	pout->y = subsetOffsetY + (1.0f - vec.y) * vpDesc.viewportHeight / 2.0f;
+
+	pout->z = vpDesc.minZ + vec.z * (vpDesc.maxZ - vpDesc.minZ);	
+}
+
+static inline void SVector3Unproject(SVector3 *pout, const SVector3& pv, const SVec3ProjectViewportDesc& vpDesc,
+	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
+{
+	SMatrix m1, m2, m3;
+	SVector3 vec;
+	
+	m1 = mtxWorld * mtxView;
+	m2 = m1 * mtxProjection;
+	m3 = SMatrixInvert(m2);
+
+	vec.x = 2.0f * (pv.x - subsetOffsetX) / vpDesc.viewportWidth - 1.0f;
+	vec.y = 1.0f - 2.0f * (pv.y - subsetOffsetY) / vpDesc.viewportHeight;
+	vec.z = (pv.z - vpDesc.minZ) / (vpDesc.maxZ - vpDesc.minZ);
+	
+	SVector3TransformCoord(pout, pv, m3);
 }
 
 // calculate view matrix

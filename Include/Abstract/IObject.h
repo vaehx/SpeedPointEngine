@@ -32,6 +32,8 @@ struct S_API IGameEngine;
 struct S_API IRenderer;
 struct S_API SInitialGeometryDesc;
 struct S_API SMaterial;
+struct S_API SAxisAlignedBoundBox;
+typedef struct S_API SAxisAlignedBoundBox AABB;
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +68,8 @@ struct S_API IObject
 	virtual EObjectType GetType() const = 0;	
 	virtual bool IsRenderable() const = 0;
 	virtual bool IsTransformable() const = 0;
-	//virtual SBoundBox& GetBoundBox() = 0;
+	virtual void RecalcBoundBox() = 0;
+	virtual const AABB& GetBoundBox() const = 0;
 };
 
 struct S_API IRenderableObject : public IObject, public STransformable
@@ -80,7 +83,7 @@ struct S_API IRenderableObject : public IObject, public STransformable
 
 	virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const = 0;
 
-	virtual IGeometry* GetGeometry() = 0;
+	virtual IGeometry* GetGeometry() = 0;	
 };
 
 

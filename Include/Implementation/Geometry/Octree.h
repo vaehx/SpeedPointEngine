@@ -24,7 +24,7 @@ public:
 	ISolid* GetSolid( void );
 	SResult Compile( int nMaxDepth, int nMinPolys );
 	IOctreeNode* GetRootNode( void );
-	int GetCollidingNodes( const SBoundBox& bb, IOctreeNode** nodes );
+	int GetCollidingNodes( const AABB& bb, IOctreeNode** nodes );
 	void Clear( void );
 };
 
