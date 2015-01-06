@@ -1,0 +1,33 @@
+
+
+
+inline void SMatrixAdjunct(SMatrix* pOut, const SMatrix& matrix)
+{
+	pOut->_11 =  matrix._22 * matrix._33 - matrix._23 * matrix._32;
+	pOut->_21 =-(matrix._21 * matrix._33 - matrix._23 * matrix._31);
+	pOut->_31 =  matrix._21 * matrix._32 - matrix._23 * matrix._31;
+
+	pOut->_12 =-(matrix._12 * matrix._33 - matrix._13 * matrix._32);
+	pOut->_22 =  matrix._11 * matrix._33 - matrix._13 * matrix._31;
+	pOut->_32 =-(matrix._11 * matrix._32 - matrix._12 * matrix._31);
+
+	pOut->_13 =  matrix._12 * matrix._23 - matrix._13 * matrix._22;
+	pOut->_23 =-(matrix._11 * matrix._23 - matrix._13 * matrix._31);
+	pOut->_33 =  matrix._11 * matrix._22 - matrix._12 * matrix._21;
+}
+
+inline void SMatrixInvert(SMatrix* pOut, const SMatrix& matrix)
+{
+	SMatrix adj;
+	SMatrixAdjunct(&adj, matrix);
+
+	float det = matrix._11 * matrix._22 * matrix._33
+		+ matrix._12 * matrix._23 * matrix._31
+		+ matrix._13 * matrix._21 * matrix._32
+		- matrix._13 * matrix._22 * matrix._31
+		- matrix._12 * matrix._21 * matrix._33
+		- matrix._11 * matrix._23 * matrix._32;
+
+	float invdet = 1.0f / det;
+	pOut->_11 *= invdet; 
+}
