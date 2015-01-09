@@ -321,9 +321,6 @@ S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigne
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /* = 0 */, unsigned long nVertices /* = 0 */)
 {
-	if (nVertices == 0)
-		return S_SUCCESS;
-
 	if (!IS_VALID_PTR(m_pHWVertexBuffer) || !IS_VALID_PTR(m_pShadowBuffer) || !IS_VALID_PTR(m_pRenderer) || !IS_VALID_PTR(m_pEngine) || m_Usage == eVBUSAGE_STATIC)
 		return S_NOTINITED;
 

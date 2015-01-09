@@ -1,0 +1,79 @@
+- Two files:
+	- obj = object data
+	- mtl = material data
+
+
+
+OBJ File:
+-----------------------------------------------
+
+Dataset each line (pay attention to Unix / Windows Line endings).
+Each line MAY start with indent, ignore that.
+Ignore Lines starting with #
+
+
+- mtllib <Name Including Spaces.mtl>	= material lib file
+- g <groupName>				= Groupname
+- v <x> <y> <z>				= Vertex
+- vt <u> <v> [w]			= Texture coord
+- vn <nx> <ny> <nz>			= Normal
+- s <smoothingGroup | off>		= Smoothing group
+- usemtl <material>			= use material specified in .mtl
+- f <vtxIndex>[/[texCoordIndex[/<normalIdx>]]:	= one face. Polygon type specified by count of edges in face
+	- Default texCoordIndex = vtxIndex, Default normalIndex = vtxIndex
+	! Faces might be stored with non-constant polygon type.
+	  To keep performance by using triangle-only meshes, divide faces into triangles:
+		- f 1 2 3  -->  f 1 2 3 
+		- f 1 2 3 4 -->  f 1 2 3 + f 1 3 4
+		- f 1 2 3 4 5 --> f 1 2 3 + f 1 3 4 + f 1 4 5
+		- f 1 2 3 4 5 6 --> f 1 2 3 + f 1 3 4 + f 1 4 5 + f 1 5 6
+			...
+- 
+
+
+
+MTL File:
+-----------------------------------------------------
+
+newmtl  <materialName>			= Start new material section
+illum <illumNum>			= Illumination model
+	N = Normal, L = Light vector, I = Intensity, V = View Vector, H = bisector between L and V
+		It = Intensity from transmitted direction
+	0: Constant color:
+		color = Kd
+	1: Ambient + Lambert-Diffuse:
+		color = Ka * Ia + Kd * SUM(j=1..ls){(N * Lj) * Ij}
+	2: Ambient + Lambert-Diffuse + Blinn-Specular:
+		color = Ka * Ia + Kd * SUM(j=1..ls){(N * Lj) * Ij}
+				+ Ks * SUM(j=1..ls){((H * Hj)^Ns) * Ij}
+	3: Ambient + Lambert-Diffuse + Blinn-Specular + Reflection Term Ir (Ray-Trace)
+		color = Ka * Ia + Kd * SUM(j=1..ls){(N * Lj) * Ij}
+				+ Ks * (SUM(j=1..ls){((H * Hj)^Ns) * Ij} + Ir)
+			Ir = (intensity of reflection map) + (ray trace)
+	4: Ambient + Lambert-Diffuse + Blinn-Specular + Reflection Term Ir (Ray-Trace) & Transparency/Dissolve
+		color = same as model 3
+	5: Ambient + Lambert-Diffuse + Blinn-Specular + Reflection Term Ir (Ray-Trace) + Fresnel
+		color = Ka * Ia + Kd * SUM(j=1..ls){(N * Lj) * Ij}
+				+ Ks * (SUM(j=1..ls){((H * Hj)^Ns) * Ij * Fr(Lj * Hj, Ks, Ns) * Ij}
+					+ Fr(N * V, Ks, Ns) * Ir)
+	6: Ambient + Lambert-Diffuse + Blinn-Specular + Reflection Term Ir (Ray-Trace) + Refraction
+		color = Ka * Ia + Kd * SUM(j=1..ls){(N * Lj) * Ij}
+				+ Ks * (SUM(j=1..ls){((H * Hj)^Ns) * Ij} + Ir)
+				+ (1.0 - Ks) * Tf * It
+	7: Ambient + Lambert-Diffuse + Blinn-Specular + Reflection Term Ir (Ray-Trace) + Refraction + Fresnel
+Ka <r> <g> <b>				= ambient color in floats
+Kd <r> <g> <b>				= diffuse color in floats
+Ks <r> <g> <b>				= specular color in floats
+Ns <exponent>				= Speclar exponent (normally range from 0 to 1000)
+Ni <optical_density>			= Index of refraction (for fresnel?)
+Tf <factor>				= Transmission filter of current material
+Tr <r> [<g> <b>]			= Transparency filter (rgb = spectral characters)
+map_Kd <filename>			= Diffuse texture map
+map_Ka <filename>			= Ambient texture map (most of time equals map_Kd)
+map_Ks <filename>			= Specular map
+map_Ns <filename>			= Specular exponent map
+map_bump === bump
+bump <filename> [options]		= Use luminance channel of given texture as height
+	-bm <mult>	= Bumpmap multiplier
+d <factor>				= Dissolve factor (1.0 = fully opaque, 0.0 = fully dissolved/transparent)
+	Dissolve = Transparency without any spectral character

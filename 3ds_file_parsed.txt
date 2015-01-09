@@ -1,0 +1,110 @@
+
+// 0xCC = 204
+
+
+MAIN3DS (size = 8433 = 8kB, payload = 8427)
+{
+	VERSION (size = 10, payload = 4) { short version = 3; }
+	EDIT3DS (size = 8417, payload = 8511)
+	{
+		EDIT_MATERIAL (size = 143, payload = 137)
+		{
+			MAT_NAME (size = 19, payload = 13) { char* name = "Material 001\0"; }
+			MAT_AMBIENT (size = 15, payload = 9) { color_24 ambient(0xCC, 0xCC, 0xCC); }
+			MAT_DIFFUSE (size = 15, payload = 9) { color_24 diffuse(0xCC, 0xCC, 0xCC); }
+			MAT_SPECULR (size = 15, payload = 9) { color_24 specular(0xFF, 0xFF, 0xFF); }
+			MAT_TEXMAP (size=73, payload=67)
+			{
+				MAT_MAPNAME (size=19, payload=13) { char* name = "bambus_rollz"; }
+				MAT_MAP_TILING (size=8, payload=2) { short tiling = 0; }
+				MAT_MAP_USCALE (size=10, payload=4) { float uscale = 1.0f; }
+				MAT_MAP_VSCALE (size=10, payload=4) { float vscale = 1.0f; }
+				MAT_MAP_UOFFSET (size=10, payload=4) { float uoffset = 0.0f; }
+				MAT_MAP_VOFFSET (size=10, payload=4) { float voffset = 0.0f; }
+			}
+		}
+		EDIT_MATERIAL (size=140, payload=134)
+		{
+			char* name = "Material 002\0";
+			color_24 ambient(204,204,204);
+			color_24 diffuse(204,204,204);
+			color_24 specular(255,255,255);
+			MAT_TEXMAP (size=70, payload=64)
+			{
+				name = "stroh.jpg\0";
+				short tiling = 0;
+				float uscale = 1.0f;
+				float vscale = 1.0f;
+				float uoffset = 0.0f;
+				float voffset = 0.0f;
+			}
+		}
+	}
+}
+
+
+4D4D = MAIN3DS : Subchunks
+F1200000 = Chnk Size => 000020F1 = 8433
+	0200 = VERSION : short
+	0A000000 = Chnk Size => 0000000A = 10
+		0300 = VERSION.version
+		0000 = ???
+	3D3D = EDIT3DS1 : Subchunks
+	E1200000 = Chnk Size = 000020E1 = 8417
+		FFAF = EDIT_MATERIAL : Subchunks
+		8F000000 = Size = 143, payload = 137
+			00A0 = MAT_NAME : cstr
+			13000000 = Size = 19
+				4D6174657269616C2E30303100 = "Material 001\0"
+			-- Remaining size = 137 - 19 = 118
+			10A0 = MAT_AMBIENT
+			0F000000 = Size = 0x0F = 15
+				1100 = COLOR_24
+				09000000 = Size = 0x09 = 9 => 3 payload
+					CCCCCC = payload
+			-- Remaining size = 118 - 15 = 103
+			20A0 = MAT_DIFFUSE : Subchunk (color)
+			0F000000 => Sz: 15
+				1100 = COLOR_24
+				09000000 => Sz: 9
+					CCCCCC = payload
+			-- Remaining size = 103 - 15 = 188
+			30A0 = MAT_SPECULAR : Subchunk (color)
+			0F000000 => Sz: 15
+				1100 = COLOR_24
+				09000000 = Sz: 9
+					FF FF FF = payload
+			-- Remaining size = 88 - 15 = 73
+			00A2 = MAT_TEXMAP : Subchunks
+			49000000 => Sz: 73, payload = 67
+				00A3 = MAT_MAPNAME : cstr
+				13000000 => Sz: 19
+					62616D6275735F726F6C6C7A00 = "bambus_rollz\0"
+				-- Remaining size = 67 - 19 = 48
+				51A3 = MAT_MAP_TILING : short flags
+				08000000 => Sz: 8, payload: 2
+					00 00
+				-- Remaining size = 48 - 8 = 40
+				54A3 = MAT_MAP_USCALE : float
+				0A000000 => Sz: 10, payload: 4
+					00 00 80 3F => 1.0f
+				56A3 = MAT_MAP_VSCALE : float
+				0A000000 => Sz: 10, payload: 4
+					00 00 80 3F => 1.0f
+				58A3 = MAT_MAP_UOFFSET : float
+				0A000000 => Sz: 10, payload: 4
+					00 00 00 00 => 0.0f
+				5AA3 = MAT_MAP_VOFFSET : float
+				0A000000 => Sz: 10, payload: 4
+					00 00 00 00 => 0.0f
+		FFAF = EDIT_MATERIAL : Subchunks
+		8C000000 => Sz: 140, payload = 134
+			00A0 = MAT_NAME : cstr
+			13000000 => Sz: 19, payload: 13
+				4D6174657269616C2E30303200 = "Material 002\0"
+		-- Remaining size = 8417 - 143 - 140 = 8134
+		0040 = NAMED_OBJECT : cstr + Subchunks
+		380D0000 => Sz: 3384
+			686175732E30303000 = "haus 000\0";
+
+			

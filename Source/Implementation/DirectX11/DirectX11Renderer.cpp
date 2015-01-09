@@ -1104,7 +1104,7 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 			m_SetPrimitiveType = PRIMITIVE_TYPE_LINES;
 		}
 
-		m_pD3DDeviceContext->Draw(desc.iEndVBIndex - desc.iStartVBIndex, desc.iStartVBIndex);
+		m_pD3DDeviceContext->Draw(desc.iEndVBIndex - desc.iStartVBIndex + 1, desc.iStartVBIndex);
 	}
 	else
 	{
