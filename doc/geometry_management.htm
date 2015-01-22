@@ -1,0 +1,106 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+
+<h1>Geometry management</h1>
+<h2>Material handling</h2>
+<ul>
+    <li>Current: Materials stored separately in objects</li>
+    <li>Goal: One common material pool</li>
+</ul>
+<h2>Structure</h2>
+<code>
+class Geometry : public IGeometry<br />
+{ <br />
+    <span class="tab">
+    IVertexBuffer* m_pVertexBuffer;<br />
+    IIndexBuffer** m_pIndexBuffers;<br />
+    unsigned short m_nIndexBuffers;<br />
+    EPrimitiveType m_PrimitiveType;
+    </span>
+}
+</code>
+<ul>    
+    <li>One VB per Object, multiple IB per Geometry (one per material)</li>
+    <li>Geometry can be handled any arbitrary way, no fixed usage. Depends on IObject implementation</li>
+    <li>Difficulty: Merging different concepts of other applications (3ds, wavefront obj, ...)
+        <ul>
+            <li>3ds: made for smoothing groups, today often missing any normal or texture coordinate information</li>
+            <li>obj: Contains normals and texture coordinates unrelated to vertices, face descriptions combine them</li>
+        </ul>        
+    </li>
+    <li>Approach: Load as many information as possible into unified structues (see below), then simplify
+        <ul>
+            <li>each approach supports non-indexed meshes, store each vertex of each face (face = triangle)</li>
+            <li>simplify the geometry as shown below to prevent streaming duplicates</li>            
+        </ul>
+    </li>    
+    
+</ul>
+
+<h2>Geometry simplification</h2>
+
+<ul>
+<li>check if there are normals or smoothing groups available</li>
+            <li>if there is nothing at all:
+                <ul>
+                    <li>recalculate using cross product for each face: <code>n = cross(vtx2 - vtx1, vtx3 - vtx1);</code></li>
+                    <li>continue with normals</li>
+                </ul>
+            </li>            
+            <li>if there are normals:
+                <ul>                    
+                    <li>merge vertices that share the same position AND normal (relatively rare case)</li>
+                    <li>replace indices</li>
+                    <li>
+                    <code>
+                    void merge_vertices(Vertex** pOutVerts, uint* pnOutVerts,
+                    Index** pOutIndices, uint* pnOutIndices,<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const Vertex* pVertices, const uint nVertices,
+                    const Index* pIndices, const uint nIndices)<br />
+                    { <br />
+                    <span class="tab">                    
+                    for each vertex in pVertices do<br />                        
+                        <span class="tab">
+                        found = false<br />
+                        for each outVertex in pOutVerts do<br />
+                            <span class="tab">
+                            if vertex.position == outVertex.position && vertex.normal == outVertex.normal then<br />
+                            <span class="tab">
+                                add index of outVertex to pOutIndices<br />
+                                increase (*pnOutIndices)<br />
+                                found = true<br />
+                                break                            
+                            </span>
+                            endif<br />                        
+                            </span>
+                        endfor<br />
+                        if !found then<br />
+                        <span class="tab">
+                            add vertex to pOutVerts with index newVertIndex<br />
+                            add newVertIndex to pOutIndices<br />
+                            increase (*pnOutVertices) and (*pnOutIndices)                            
+                        </span>
+                        endif
+                        </span>
+                    endfor
+                    </span>
+                    }                    
+                    </code>
+                    </li>
+                </ul>
+            </li>
+            <li>if there are smoothing groups:
+                <ul>
+                    <li>merge vertices that at least share same position. Average their normals</li>
+                    <li>replace indices</li>
+                </ul>
+            </li>
+</ul>
+
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+@font-face {
+    src: url(DroidSans.ttf);
+    font-family: DroidSans;    
+}
+
+@font-face {
+  src: url(lmroman12-italic.otf);
+  font-family: latinmodernmath;
+}
+
+h1 {  
+  padding-bottom: 10px;
+  border-bottom: 1px solid #999;
+}
+
+body {
+  font-family: DroidSans;
+}
+
+ul li {
+  padding-bottom: 8px;
+}
+
+ul ul {
+  padding-top: 5px;
+}
+
+ul.non-padded,
+ul.non-padded ul {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
+}
+ul.non-padded li {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+span.tab {
+  display: block;
+  padding-left: 5em;
+}
+
+.inline-code code {
+  display: inline-block;
+  margin: 0px;
+  padding: 3px;
+}
+
+.inline-code code.break-inline {
+  display: inline-block;    
+}
+
+code {
+  display: block;
+  border: 1px dotted #bbb;
+  background-color: #f6f6ff;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.math {
+  font-family: latinmodernmath, "Times New Roman";
+  font-size: 17px;
+  line-height: 17px;
+}
+
+table {
+  border: 1px solid #777;
+  border-spacing: 0px;  
+}
+table th {
+  background-color: #f2f2f2;
+  padding: 5px;  
+}
+table th ~ th {
+  border-left: 1px solid #aaa;
+}
+table td {    
+  padding: 3px;
+  border-top: 1px solid #aaa;
+}
+table td ~ td {
+  border-left: 1px solid #aaa;
+}

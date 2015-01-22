@@ -1,0 +1,38 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+
+<h1>Lighting models</h1>
+
+<ul>
+    <li><span class="math">&#1012; = V = &#969;<sub>o</sub></span>: Direction from point to eye</li>
+    <li><span class="math">&#936; = L = &#969;<sub>i</sub></span>: Direction from point to light source</li>
+    <li><span class="math">N</span>: Normal at point, possibly modulated by bumpmapping</li>
+    <li><span class="math">&alpha;</span>: Specular exponent</li>    
+</ul>
+
+<h2>Lambert</h2>
+<span class="math">I<sub>o</sub> = k<sub>d</sub>(L&#0183;N)</span>
+
+<h2>Phong, Blinn-Phong</h2>
+<ul>
+    <li>Phong:<br />
+    <span class="math">R = </span><br />
+    <span class="math">I<sub>o</sub> = k<sub>d</sub>(&#936;&#0183;N) + k<sub>s</sub>(R&#0183;&#1012;)<sup>&alpha;</sup></span>
+    
+    <code>    
+    specular = pow(dot(reflectedDir, dirToEye), alpha);<br />
+    intensity_out.rgb = diffuseFactor * dot(dirToLight, dirToEye) + specularFactor * specular;
+    </code>    
+    </li>
+    <li>Blinn-Phong:<br />
+    
+    </li>
+</ul>
+
+
+</body>
+</html>

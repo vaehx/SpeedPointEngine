@@ -1,0 +1,40 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+
+<h1>Materials</h1>
+<h2>Unified material structure</h2>
+<ul>
+    <li>based on common approaches</li>        
+</ul>
+
+<div style="background: #f3f388; padding: 0px; border: 1px solid #aaa; width: 400px; text-align: center; border-radius: 4px; margin-left: auto; margin-right: auto;">
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px; background: #f8d8b8;">Diffuse map (Texture map)</div>
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px; background: #f8d8b8;">Specular map</div>
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px; background: #f8d8b8;">Normalmap (Bumpmap)</div>
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px; background: #f8d8b8;">Heightmap (Displacement)</div>
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px;">Specular exponent</div>
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px;">Used model type</div>
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px;">Emissive color</div>
+    <div style="border-bottom: 1px dashed #aaa; padding: 5px 0px;">Ambient occlusion map
+        <div style="display: block; color: #555; font-size: 11px;">only if not already prebaked in texturemap</div>
+    </div>            
+</div>
+
+<ul>
+    <li>Different model types:
+    <ul>
+        <li><b>Blinn-Phong:</b> Simple Blinn-Phong specular model with lambert diffuse term. Use for low-spec.</li>
+        <li><b>Physically based model:</b> Oren-Nayar, Cook-Torrance
+        <li><b>Emissive model:</b> Model does not get lit but acts like a light source itself          
+    </ul>
+    </li>
+    <li>see Lighting models page</li>
+</ul>
+
+
+</body>
+</html>

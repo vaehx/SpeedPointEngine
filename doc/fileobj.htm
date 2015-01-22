@@ -1,0 +1,73 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+
+<h1>OBJ File Format</h1>
+Actually includes two files: <b>.obj</b>, <b>.mtl</b>.
+<h2>OBJ File</h2>
+Each dataset on separate line
+<table width="95%">
+<tr><th>Dataset</th><th>Description / Comment</th><th>Example</th></tr>
+<tr><td>mtllib &lt;filename&gt;</td><td>material lib file. filename may contain spaces</td><td>mtllib test bridge.mtl</td></tr>
+<tr><td>v &lt;x&gt; &lt;y&gt; &lt;z&gt;</td><td>One Vertex position. Incrementary index</td><td>v  -15.5593 45.7057 26.6503</td></tr>
+<tr><td>vn &lt;x&gt; &lt;y&gt; &lt;z&gt;</td><td>One Normal coordinates pair. Incrementary index</td><td>vn 0.0000 -0.9990 0.0452</td></tr>
+<tr><td>vt &lt;u&gt; &lt;v&gt; [w]</td><td>One Texture coordinate. Incrementary index</td><td>vt 0.1118 0.7264 0.0000<br />vt 0.1118 0.7264</td></tr>
+<tr><td>usemtl &lt;material&gt;</td><td>Use material by given name, specified in mat file</td><td>usemtl 01___Default</td></tr>
+<tr><td>g &lt;groupName&gt;</td><td>Set current polygon group ("Element")</td><td>g Tube01</td></tr>
+<tr><td>f &lt;vtxIndex&gt;[/[texCoordIndex[/normalIdx]]] ...</td>
+    <td>Polygon / Face description. <br />Polygon type specified by amount of vertices.<br />Do not have to be consistent --> Convert to triangles</td>
+    <td>f 13/8/8 5/7/7 24/48/48 23/49/49<br />f 38/78/82 43/79/83 44/80/84 37/81/85 39/82/86 ...</td>
+</tr>
+<tr><td>s &lt;off|smoothingGroup&gt;</td><td>Define whether following polygons are added to a smoothing group at all and if so, which one.</td><td>s 14</td></tr>
+</table>
+
+<h2>MTL File</h2>
+Similar to OBJ file
+<table width="95%">
+<tr><th>Dataset</th><th>Description / Comment</th><th>Example</th></tr>
+<tr><td>newmtl &lt;materialName&gt;</td><td>Define new material</td><td>newmtl lambert13SG</td></tr>
+<tr><td>illum &lt;model&gt;</td>
+    <td>Change illumination model of this material:<br />
+    0: Constant color<br />
+    1: Ambient + Lambert-Diffuse<br />
+    2: (1) + Blinn-Phong<br />
+    3: (2) + Ray traced reflection<br />
+    4: (3) with Glass-Transparency<br />
+    5: (3) with Fresnel Term<br />
+    6: (3) with Refraction<br />
+    7: (3) with Refraction and Fresnel-Term 
+    </td><td>illum 4</td>
+</tr>
+<tr><td>Ka &lt;r&gt; &lt;g&gt; &lt;b&gt;</td><td>Ambient color in floats</td><td>Ka 0.00 0.00 0.00</td></tr>
+<tr><td>Kd &lt;r&gt; &lt;g&gt; &lt;b&gt;</td><td>Diffuse color in floats</td><td>Kd 0.5882 0.5882 0.5882</td></tr>
+<tr><td>Ks &lt;r&gt; &lt;g&gt; &lt;b&gt;</td><td>Specular color in floats</td><td>Ks 0.0000 0.0000 0.0000</td></tr>
+<tr><td>Ke &lt;r&gt; &lt;g&gt; &lt;b&gt;</td><td>Emissive color in floats</td><td>Ke 0.0000 0.0000 0.0000</td></tr>
+<tr><td>Ns &lt;exponent&gt;</td><td>Specular exponent (0 - 1000)</td><td>Ns 10.0000</td></tr>
+<tr><td>Ni &lt;index&gt;</td>
+    <td>Optical Density / Index of Refraction<br />
+    Range from 0.001 to 10. Glass: 1.5<br />
+    1.0 means that light does not bend when passing through an object</td>
+    <td>Ni 1.5000</td>
+</tr>
+<tr><td>Tf &lt;r&gt;[&lt;g&gt; &lt;b&gt;]</td><td>Transmission filter per channel</td><td>Tf 1.0000 1.0000 1.0000</td></tr>
+<tr><td>Tr &lt;factor&gt;</td><td>???</td><td>Tr 1.0000</td></tr>
+<tr><td>d &lt;factor&gt;</td><td>Dissolve factor (Opacity). 1.0 = full opaque</td><td>d 1.0000<br />d 1</td></tr>
+<tr><td>map_Kd &lt;filename&gt;</td>
+    <td>(Diffuse) Texture map. <br />
+        filename may contain spaces<br />
+        filename may be an absolute path. If not found, search locally for file name only.
+    </td>
+    <td>map_Kd Farmhouse Texture.jpg</td>
+</tr>
+<tr><td>map_Ka</td><td>Ambient Texture map, often = map_Kd. see map_Kd</td><td>map_Ka C:\bridge.jpg</td></tr>
+<tr><td>map_Ks</td><td>Specular map. see map_Kd</td><td>map_Ks C:\bridge_spec.jpg</td></tr>
+<tr><td>map_Ns</td><td>Specular exponent map. see map_Kd</td><td>map_Ks bridge_spec_exp.jpg</td></tr>
+<tr><td>map_d</td><td>Dissolve map (Opacity map). see map_Kd</td><td>map_d bridge_d.jpg</td></tr>
+<tr><td>bump</td><td>Specular exponent map. see map_Kd</td><td>map_Ks bridge_bump.jpg</td></tr>
+</table>
+
+</body>
+</html>
