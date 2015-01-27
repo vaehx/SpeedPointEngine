@@ -554,3 +554,25 @@ public:
     virtual SLightGeomStorage* GetLightGeomStorage() { return &m_LightGeomStorage; }
     ...
 };
+
+
+
+
+
+
+
+
+========================================================================================================
+
+
+// Summary:
+//	This is an adapter to ChunkPool, renaming the functions of it.
+template<typename T, unsigned int chunkSize>
+class ChunkedObjectPool
+{
+private:
+	ChunkPool<T, chunkSize> instances;
+	
+public:
+	ChunkedObjectPool()
+};

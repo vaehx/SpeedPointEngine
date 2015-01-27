@@ -91,6 +91,74 @@ S_API SResult Terrain::CreatePlanar(const STerrainDescription& tdsc)
 
 	// ======================== SECOND LOD LEVEL ====================================
 	
+	//	One Chunk:
+	//	LOD 0
+	//
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+
+	//
+	//
+	//	LOD 1
+	//
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |   / |   / |   / |   / |   / |   / |   / |   / |   / |
+	// | /   | /   | /   | /   | /   | /   | /   | /   | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |         / |         / |         / |         / |   / |
+	// |       /   |       /   |       /   |       /   | /   |d
+	// o     o     o     o     o     o     o     o     o-----o
+	// |   /       |   /       |   /       |   /       |   / |
+	// | /         | /         | /         | /         | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |         / |         / |         / |         / |   / |
+	// |       /   |       /   |       /   |       /   | /   |
+	// o     o     o     o     o     o     o     o     o-----o
+	// |   /       |   /       |   /       |   /       |   / |
+	// | /         | /         | /         | /         | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |         / |         / |         / |         / |   / |
+	// |       /   |       /   |       /   |       /   | /   |
+	// o     o     o     o     o     o     o     o     o-----o
+	// |   /       |   /       |   /       |   /       |   / |
+	// | /         | /         | /         | /         | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+	// |         / |         / |         / |         / |   / |
+	// |       /   |       /   |       /   |       /   | /   |
+	// o     o     o     o     o     o     o     o     o-----o
+	// |   /       |   /       |   /       |   /       |   / |
+	// | /         | /         | /         | /         | /   |
+	// o-----o-----o-----o-----o-----o-----o-----o-----o-----o
+
+
+
+
 	//				13 x 13 Segments
 	//				Using 5x5 chunks
 	//
@@ -174,13 +242,15 @@ S_API SResult Terrain::CreatePlanar(const STerrainDescription& tdsc)
 	unsigned int nChunkRestQuadsOneSide = (2 * nChunkRest) * nChunkBigQuadsOneSide;
 	unsigned int nChunkRestQuads = nChunkBigQuadsOneSide * 2 + nChunkRest * nChunkRest;	
 
+	m_nChunkBigQuads = nChunkBigQuads;
+	m_nChunkSmallQuads = tdsc.nChunkSideSegments * tdsc.nChunkSideSegments - nChunkBigQuads * 4; // 1 big quad = 4 small quads
 
 
 	// Calculate counts
 	unsigned int nRestFillBigQuads = nRestBigQuadsX * nRestBigQuadsZ;	
 	unsigned int nRestBigQuadsX = nRestBigQuadsX * nChunkBigQuadsOneSide * nChunksZ,
 		nRestBigQuadsZ = nRestBigQuadsZ * nChunkBigQuadsOneSide * nChunksX;
-	unsigned int nRestBigQuads = nRestBigQuadsX * nRestBigQuadsZ + nRestFillBigQuads;
+	unsigned int nRestBigQuads = nRestBigQuadsX * nRestBigQuadsZ + nRestFillBigQuads;	
 
 	// calc all rest quads then subtract big quads. One big quad covers 4 small quads.
 	unsigned int nRestQuads = (nRestX + nRestZ) + (nRestX * nRestZ) - (nRestBigQuads * 4);
@@ -672,6 +742,14 @@ S_API SResult Terrain::RenderTerrain(const SVector3& lodCenterPos)
 		m_bRequireCBUpdate = false;
 	}
 
+	// Render each chunk	
+	unsigned long chunkStartDiff = (m_nChunkBigQuads + m_nChunkSmallQuads) * 6;
+	for (unsigned long iChnkStart = 0; iChnkStart < m_TerrainDsc.nX * m_TerrainDsc.nZ; iChnkStart += chunkStartDiff)
+	{
+
+	}
+
+	/*
 	for (unsigned int iIndexBuffer = 0; iIndexBuffer < 2; ++iIndexBuffer)
 	{
 		dsc.drawCallDesc.pIndexBuffer = m_pIndexBuffer[iIndexBuffer];
@@ -680,6 +758,7 @@ S_API SResult Terrain::RenderTerrain(const SVector3& lodCenterPos)
 		if (Failure(pRenderer->RenderTerrain(dsc)))
 			return S_ERROR;
 	}
+	*/
 
 	return S_SUCCESS;
 }

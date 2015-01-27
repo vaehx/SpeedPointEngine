@@ -1,0 +1,30 @@
+
+enum EPhysMatType {
+	ePHYSMAT_IDEALELASTIC,
+	ePHYSMAT_IDEALINELASTIC,
+	ePHYSMAT_METAL,
+	ePHYSMAT_GLASS,
+	ePHYSMAT_CONCRETE,
+	ePHYSMAT_BRICKS = ePHYSMAT_CONCRETE
+};
+
+struct SPhysMaterial {
+	float fStaticFriction;
+	float fKineticFriction;
+	float fElasticity;
+
+	SPhysMaterial(float staticFriction, float kineticFriction, float elasticity, EPhysMatDamageBeheaviour dmgBeheaviour)
+		: fStaticFriction(staticFriction), fKineticFriction(kineticFriction), fElasticity(elasticity), damageBeheaviour(dmgBeheaviour) {}
+};
+
+#define PHYSMAT_IDEALELASTIC SPhysMaterial(0, 0, 1.0f, ePHYSMATDMG_NODAMAGE)
+#define PHYSMAT_IDEALINELASTIC SPhysMaterial(0, 0, 0, ePHYSMATDMG_NODAMAGE)
+#define PHYSMAT_METAL SPhysMaterial(0.7f, 0.6f, 0.9f, ePHYSMATDMG_NODAMAGE)
+#define PHYSMAT_GLASS SPhysMaterial(0.9f, 0.4f, 0.96f, ePHYSMATDMG_BREAK_GLASS)
+#define PHYSMAT
+
+struct SRigidBody {
+	SPhysMaterial phys_material;	
+	float mass;
+	
+};
