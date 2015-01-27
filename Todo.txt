@@ -7,6 +7,22 @@
  16:10 pm
 
 
+
+DEPENDENCIES:
+
+Handosn: Be able to create objects (Box only first)
+|-Handosn: Material properties in "Rollout" of Object Type "Static". (Box : Static)
+  |            (Using default model: Blinn-Phong)
+  |            - Map control set: {Diffuse Map, Normal map}
+  |            - specular settings: {Specular exponent, glossiness, specular factor}
+  
+  ... (todo)                    
+  
+
+
+
+
+
 Product Backlog:
 - HDR
 - Deferred Rendering
@@ -20,16 +36,22 @@ Tasks:
 		- IASetVertexBuffer()
 		- IASetIndexBuffer()
 		- VSSetShader()
-#0003 - Create the OutputPlane with 2 Triangles only
-#0004 - Rewrite FBO usage pipeline
-		- Create SPRT
-		- Forward RT: SPRT
-		- Deferred RT:
-			- Stage 1: GBuffer A (px, py, pz, ?), B (nx, ny, nz, ?), C (tx, ty, tz, ?)
-			- Stage 2: ...
-			- Stage 3: SPRT
-		   PROBLEM: WHERE TO PUT MATERIAL INFORMATION??
-		- needs more discussion !!!!
+#0003 - Create the OutputPlane with 2 Triangles only to be able to apply screenspace effects like DOF, HDR, Lens Flares, ...
+#0004 - Rewrite RenderTarget -> Viewport Pipeline        
+
+                                 { GBuffer1 (px, py, pz, ?) }
+            DrawDeferred() ----> { GBuffer2 (nx, ny, nz, ?) }      
+                                 { GBuffer3 (tx, ty, tz, ?) }
+                                 { Material Information ??? }   ------->   DrawDeferredLights() --->  CompositeDeferred() --> BackBuffer of Target Vp  -----> Target Vp
+                                                                                   /                                                 /
+                                                               Light Geometry ----/                                                 /
+                                                                                                                                   /
+                                    Light Sources -???-> DrawForward() -----------------------------------------------------------/
+            
+            === HOW TO PASS LIGHT SOURCES TO FORWARD SHADER? ===
+                #1: use uniform array of abstract light sources
+                                                                      
+	
 #0005 - Render to the speedpoint render target
 #0006 - Render SpeedPoint Render target using a new post-fx effect and the OutputPlane as geometry to render the SPRT to
   	the backbuffer. Then present / swap.
@@ -38,16 +60,53 @@ Tasks:
 #0009 - Render Direct2D Rendertarget (pConsoleD2DSurface) to the SPRT
 #0010 - Implement SCamera::RecalculateMatrix() for roll = true
 
-- Unify geometry load structs
-- Add bumpmap type:
+#0011 - Unify geometry load structs
+#0012 - Add bumpmap type:
 	enum EBumpmapType
 	{
 		BUMPMAP_TYPE_NORMALS,
 		BUMPMAP_TYPE_INTENSITY		
 	};
-- Add bumpmap blur factor
+#0013 - Add bumpmap blur factor
 
+#0014 - Create IPlayer struct:
+    - Should be as flexible as possible
+    - Composition of camera, pass pointer of this camera to the viewport when setting player.
+        void SpeedPointEngine::SetPlayer(IPlayer* pPlayer)
+        {
+            m_pTargetViewport->SetCamera(pPlayer->GetCamera());
+        }
+    - implementation may use different cameras and custom camera transformations. This is allows not only FPS Games, but also space shooters, etc...
+    - implementation should be in game application rather than in engine
+    - Aggregation to Player geometry (ICharacterObject*).
+        - Set to 0 if not used
+        - move with camera        
+            #### ?????  How to take scripting of the player into account  ??????? ######                               
 
+#0015 - create Class FirstPersonPlayer, implementing IPlayer:
+    - "Selection" of focused object. Example: standing in front of a door, then "Press (F) to open" should be displayed
+        1) Get objects in Focus-Bounding Sphere around player
+        2) Ray Cast a ray in the view direction with length of the focus bounding sphere radius, Intersect with BoundBox of object
+        3) Take first intersecting object as the one selected.
+        4) Raise further events
+        
+#0016 - Store face information in Geometry
+#0017 - <<Geometry>>::Invalidate() -> flag that hw buffers to be updated
+        In <<DynamicsPipeline>>::Run(), after all calculations, check for objects invalidated and upload those vertex datas
+        
+#0018 - Use TerrainQuadtree Draft in Engine
 
-
-
+#0019 - U S E    C H U N K P O O L    F O R    R E N D E R S C H E D U L E
+        - Then, avoid RenderGeometry() and RenderTerrain().
+          Instead, create and use GetRenderScheduleSlot() and GetTerrainRenderDesc().
+          This allows a static Render schedule.
+        - Encapsulate into SRenderScheduleSlot:
+            struct SRenderScheduleSlot {
+                SRenderDesc renderDesc;
+            };
+            typedef struct         
+        - Requires function ReleaseRenderScheduleSlot()
+          
+#0020 - Use list of free slots in ChunkPool Chunks. List has fixed size. List is a Queue.
+    When trying to find an empty slot, this list avoids looping through (worst-case) all slots until something found.          
+    

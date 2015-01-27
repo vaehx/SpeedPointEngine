@@ -1,0 +1,88 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+
+<h1>3DS File Format</h1>
+short = 2 Bytes, long = 4 Bytes, float = 4 Bytes
+<h2>Complex data type chunks</h2>
+<ul>
+    <li>0x0010 - COLOR_F: <code>float r, g, b;</code></li>
+    <li>0x0011 - COLOR_24: <code>unsigned char r, g, b;</code></li>
+</ul>
+MATMAP-Chunk:
+<ul class="non-padded inline-code">
+    <li>0xA300 - MAT_MAPNAME: <code>char* matmap_name;</code></li>
+    <li>0xA351 - MAT_MAP_TILING: <code>unsigned short tiling; // ??</code></li>
+    <li>0xA354 - MAT_MAP_USCALE: <code>float matmap_uscale; // def: 1.0f</code></li>
+    <li>0xA356 - MAT_MAP_VSCALE: <code>float matmap_vscale; // def: 1.0f</code></li>
+    <li>0xA358 - MAT_MAP_UOFFSET: <code>float matmap_uoffset; // def: 0.0f</code></li>
+    <li>0xA35A - MAT_MAP_VOFFSET: <code>float matmap_voffset; // def: 0.0f</code></li>
+</ul>
+<h2>Chunks</h2>
+Each chunk:
+<ul>
+    <li>unsigned short id + unsigned long size + data</li>
+    <li>size = size of data + 6 Bytes header</li>
+</ul>
+
+0x4D4D - MAIN3DS:
+<ul class="non-padded inline-code">
+    <li>0x0002 - VERSION: <code>unsigned short version; // sometimes also unsigned long - check chunk size!</code></li>
+    <li>0x3D3D - EDIT3DS:
+        <ul>
+            <li>0xAFFF - EDIT_MATERIAL:
+                <ul>
+                    <li>0xA000 - MAT_NAME: <code>char* material_name;</code></li>
+                    <li>0xA010 - MAT_AMBIENT: followed by color chunk. <code>Color material_ambient;</code></li>
+                    <li>0xA020 - MAT_DIFFUSE: followed by color chunk. <code>Color material_diffuse;</code></li>
+                    <li>0xA030 - MAT_SPECULAR: followed by color chunk. <code>Color material_specular;</code></li>
+                    <li>0xA200 - MAT_TEXMAP: is a MATMAP chunk <code>MatMap material_texture_map;</code></li>
+                    <li>0xA210 - MAT_SPECMAP: is a MATMAP chunk <code>MatMap material_specular_map;</code></li>
+                    <li>0xA230 - MAT_BUMPMAP: is a MATMAP chunk <code>MatMap material_normal_map;</code></li>
+                    <li>0xA040 - MAT_SHININESS: float ?? </li>
+                    <li>0xA041 - MAT_SHINESTRENGTH: float ?? </li>
+                    <li>0xA050 - MAT_TRANSPARENCY: float ?? </li>                    
+                </ul>
+            </li>
+            <li>0x4000 - NAMED_OBJECT: <code>char* named_object_name; // read till first 0x00</code>
+                <ul>
+                    <li>0x4100 - NAMED_TRIANGLE_OBJECT:
+                        <ul>
+                            <li>0x4110 - POINT_ARRAY:<br />
+                                <code class="break-inline">
+                                unsigned short nVertices;<br />
+                                struct { float x, y, z; } vertices[nVertices];
+                                </code>
+                            </li>
+                            <li>0x4120 - FACE_ARRAY:<br />
+                                <code class="break-inline">
+                                unsigned short nFaces;<br />
+                                struct { unsigned short v1, v2, v3; unsigned short flag; } faces[nFaces]; 
+                                </code>
+                            </li>
+                            <li>0x4130 - MESH_MATERIAL:<br />
+                                <code class="break-inline">
+                                char* name; // read until first 0x00. Should accord to one of the materials of 0xAFFF<br />
+                                unsigned short nAffectedFaces;<br />
+                                unsigned short affectedFaces[nAffectedFaces];
+                                </code>                            
+                            </li>
+                            <li>0x4160 - MESH_MATRIX:<br />
+                                <code class="break-inline">
+                                float xaxis[3], yaxis[3], zaxis[3]; // each: x y z<br />
+                                float pivot[3]; // x y z                                
+                                </code>                            
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </li>    
+</ul>
+
+</body>
+</html>

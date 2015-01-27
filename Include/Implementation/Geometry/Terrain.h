@@ -18,25 +18,39 @@ SP_NMSPACE_BEG
 class S_API Terrain : public ITerrain
 {
 private:
-	unsigned int m_nX, m_nZ;
+	STerrainDescription m_TerrainDsc;
+
 	float m_fDMTexScaleU, m_fDMTexScaleV;
-	Geometry m_Geometry;
+		
+	unsigned int m_nChunkBigQuads; // big quads in a chunk in second lod level
+	unsigned int m_nChunkSmallQuads; // number of quads on highest lod grid in a chunk
+
+
+	//Geometry m_Geometry;
+	IVertexBuffer* m_pVertexBuffer;
+	IIndexBuffer* m_pIndexBuffer[2];
+
+
 	IGameEngine* m_pEngine;
 	ITexture* m_pColorMap;
 	ITexture* m_pDetailMap;	
 
-	bool m_bRequireCBUpdate;
+	bool m_bRequireCBUpdate;	
 
 public:
-	Terrain()
-		: m_nX(0), m_nZ(0),
-		m_fDMTexScaleU(1.0f),
+	Terrain()		
+		: m_fDMTexScaleU(1.0f),
 		m_fDMTexScaleV(1.0f),
 		m_pEngine(nullptr),
 		m_pColorMap(nullptr),
 		m_pDetailMap(nullptr),
-		m_bRequireCBUpdate(true)
-		{}
+		m_bRequireCBUpdate(true),
+		m_pVertexBuffer(nullptr),
+		chunkStartDiff(0)
+	{
+		for (unsigned int iIndexBuffer = 0; iIndexBuffer < 2; ++iIndexBuffer)
+			m_pIndexBuffer[iIndexBuffer] = 0;
+	}
 
 	virtual ~Terrain();
 
@@ -47,22 +61,22 @@ public:
 
 	// Initialize with the engine
 	// nX and nZ is the resolution
-	virtual SResult Initialize(IGameEngine* pEngine, unsigned int nX, unsigned int nZ);
+	virtual SResult Initialize(IGameEngine* pEngine);
 
 	virtual SResult RecalculateNormals();
 
 	// Create a planar terrain with Size fW x fD
-	virtual SResult CreatePlanar(float fW, float fD, float baseHeight, bool bDynamic = false);	
+	virtual SResult CreatePlanar(const STerrainDescription& tdsc);	
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
 	virtual SResult SetDetailMap(ITexture* pDetailMap);
 
 	virtual IVertexBuffer* GetVertexBuffer();
-	virtual IIndexBuffer* GetIndexBuffer();
+	virtual IIndexBuffer* GetIndexBuffer(unsigned int lodLevel);
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 
-	virtual SResult RenderTerrain(void);	
+	virtual SResult RenderTerrain(const SVector3& lodCenterPos);	
 	virtual SResult Clear(void);
 };
 

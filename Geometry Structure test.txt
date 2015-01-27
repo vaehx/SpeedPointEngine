@@ -1,0 +1,68 @@
+
+
+typedef unsigned int MaterialID;
+
+struct MaterialPool
+{
+	ChunkPool<Material> materials;
+
+	void AddMaterial(const Material& mat);
+	void DelMaterial(MaterialID materialId);
+	Material* GetMaterial(MaterialID int materialId);
+	void Clear();
+};
+
+typedef unsigned long Index;
+
+struct IndexBuffer
+{
+	Index* m_pIndices;
+	unsigned long m_nIndices;
+
+	HardwareIndexBuffer m_HWIndexBuffer;
+
+	void Synchronize(unsigned long iBeginIndex, unsigned long iEndIndex);
+};
+
+struct VertexBuffer
+{
+	Vertex* pVertices;
+	unsigned long nVertices;
+	HardwareVertexBuffer hwVertexBuffer;
+
+	void Synchronize(unsigned long iBeginVtx, unsigned long iEndVtx);
+};
+
+
+struct GeometryIndexGroup
+{
+	MaterialID assignedMaterial;	
+	IndexBuffer indexBuffer;
+};
+
+struct GeometryIndex
+{
+	unsigned short indexGroup;
+	unsigned long iIndex;
+};
+
+
+struct Geometry
+{
+	VertexBuffer vertexBuffer;
+
+	GeometryIndexBuffer* pIndexBuffers;
+	unsigned short nIndexBuffers;
+
+	GeometryIndex* pIndices;
+	unsigned long nIndices;
+
+	void UpdateVertexBuffer(unsigned long iBeginVtx, unsigned long iEndVtx)
+	{
+		
+	}
+};
+
+
+
+
