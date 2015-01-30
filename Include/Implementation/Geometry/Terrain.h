@@ -45,8 +45,7 @@ public:
 		m_pColorMap(nullptr),
 		m_pDetailMap(nullptr),
 		m_bRequireCBUpdate(true),
-		m_pVertexBuffer(nullptr),
-		chunkStartDiff(0)
+		m_pVertexBuffer(nullptr)		
 	{
 		for (unsigned int iIndexBuffer = 0; iIndexBuffer < 2; ++iIndexBuffer)
 			m_pIndexBuffer[iIndexBuffer] = 0;

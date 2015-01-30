@@ -37,11 +37,13 @@ S_API ITerrain* Scene::CreateTerrain(float width, float depth, unsigned int nX, 
 		m_pTerrain->Clear();
 
 	m_pTerrain = new Terrain();
+	/*
 	if (Failure(m_pTerrain->Initialize(m_pEngine, nX, nZ)))
 		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");
 
 	if (Failure(m_pTerrain->CreatePlanar(width, depth, baseHeight)))
 		EngLog(S_ERROR, m_pEngine, "Failed create planar terrain in Scene::CreateTerrain");
+	*/
 
 	m_pTerrain->SetColorMap(pColorMap);
 	m_pTerrain->SetDetailMap(pDetailMap);
