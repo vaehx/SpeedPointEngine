@@ -49,7 +49,7 @@ private:
 	SpeedPoint::IRenderableObject* pTest3DSNormalsObject;
 	SpeedPoint::IScene* m_pScene;
 	SpeedPoint::SCamera* pCamera;
-	TestLogHandler logHandler;
+	TestLogHandler logHandler;	
 
 protected:
 	void OnInitGeometry();

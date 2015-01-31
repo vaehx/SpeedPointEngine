@@ -69,6 +69,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Include\Abstract\BoundBox.h" />
     <ClInclude Include="..\..\Include\Abstract\Camera.h" />
+    <ClInclude Include="..\..\Include\Abstract\ChunkedObjectPool.h" />
     <ClInclude Include="..\..\Include\Abstract\ChunkPool.h" />
     <ClInclude Include="..\..\Include\Abstract\IDynamicsPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IAI.h" />

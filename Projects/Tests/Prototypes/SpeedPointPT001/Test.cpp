@@ -91,13 +91,23 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	// pay attention that FinishINitialization() will call OnInitGeometry()!
 	m_pEngine->FinishInitialization();
 
+	SpeedPoint::IRenderer* pRenderer = m_pEngine->GetRenderer();
+
 	// Initialize viewport
 
-	m_pEngine->GetRenderer()->GetTargetViewport()->Set3DProjection(SpeedPoint::S_PROJECTION_PERSPECTIVE, 50, 0, 0);
-	pCamera = m_pEngine->GetRenderer()->GetTargetViewport()->GetCamera();
+	SpeedPoint::SProjectionDesc projDsc;
+	projDsc.bUseEngineZPlanes = false;
+	projDsc.farZ = 200.0f;
+	projDsc.nearZ = 0.1f;
+	projDsc.projectionType = SpeedPoint::S_PROJECTION_PERSPECTIVE;	
+	pRenderer->GetTargetViewport()->SetProjectionByDesc(projDsc);
+
+	pCamera = pRenderer->GetTargetViewport()->GetCamera();
 	pCamera->position = SpeedPoint::SVector3(0, 5.0f, -10.0f);
 	pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
 	alpha = 0.0f;	
+
+	nDumpedFrames = 0;
 
 	return true;
 }
@@ -151,9 +161,7 @@ void Test::OnInitGeometry()
 	m_pScene->CreateTerrain(40.0f, 40.0f, 60, 60, 0.0f, pTestColorMap, pTestDetailMap);
 	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);
 
-	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
-
-	m_pEngine->GetRenderer()->DumpFrameOnce();	
+	///////////////////////////////////////////////////////////////////////1/////////////////////////////////	
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Debug stuff
@@ -171,6 +179,12 @@ bool Test::Tick()
 	alpha += 0.01f;
 	if (alpha > 2.0f * SP_PI)
 		alpha = 0.0f;	
+
+	if (nDumpedFrames < 20)
+	{
+		m_pEngine->GetRenderer()->DumpFrameOnce();
+		nDumpedFrames++;
+	}
 
 	// Start the frame pipeline
 	if (Failure(m_pEngine->ExecuteFramePipeline()))

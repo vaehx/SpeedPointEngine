@@ -17,6 +17,7 @@
 #include "DirectX11Effect.h"
 #include "DirectX11Texture.h"
 #include <Util\SQueue.h>
+#include <Abstract\ChunkedObjectPool.h>
 
 // DirectX11 Specific headers
 #include "DirectX11.h"
@@ -134,8 +135,13 @@ private:
 
 
 	bool m_bInScene;
-	map<usint32, SRenderDesc>* m_pRenderSchedule;	// The Render schedule filled by RenderGeometrical()
-	usint32 m_RenderScheduleIDCounter;	// counter for the id used to resort the render schedule to get the highest performance while rendering
+
+
+	// Render Schedule
+
+	//map<usint32, SRenderDesc>* m_pRenderSchedule;	// The Render schedule filled by RenderGeometrical()
+	ChunkedObjectPool<SRenderScheduleSlot, 50> m_RenderSchedule;	
+	
 	STerrainRenderDesc m_TerrainRenderDesc;
 
 
@@ -280,9 +286,15 @@ public:
 
 
 
+
+
 	virtual SResult RenderGeometry(const SRenderDesc& dsc);
-	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc);
+	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc);	
 	
+	virtual SRenderScheduleSlot* GetRenderScheduleSlot();
+	virtual void ReleaseRenderScheduleSlot(SRenderScheduleSlot** pSlot);
+	virtual STerrainRenderDesc* GetTerrainRenderDesc();
+
 	// Summary:
 	//	Draws the given geometry desc to the GBuffer and its depth buffer
 	virtual SResult DrawDeferred(const SDrawCallDesc& desc);
@@ -297,7 +309,7 @@ public:
 	virtual SResult UpdateSettings(const SSettingsDesc& dsc);
 
 	virtual IRendererSettings* GetSettings()
-	{
+	{		
 		return (IRendererSettings*)&m_Settings;
 	}
 

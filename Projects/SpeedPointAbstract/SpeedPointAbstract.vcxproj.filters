@@ -175,5 +175,8 @@
     <ClInclude Include="..\..\Include\Abstract\BoundBox.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\ChunkedObjectPool.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

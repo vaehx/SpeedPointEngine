@@ -79,7 +79,6 @@ m_pPerSceneCB(nullptr),
 m_pPerObjectCB(nullptr),
 m_pTerrainCB(nullptr),
 m_bInScene(false),
-m_pRenderSchedule(nullptr),
 m_bDumpFrame(false),
 m_bPerObjectCBBound(false),
 m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
@@ -526,12 +525,7 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 
 	// Initialize the matrix Constants buffer
 	if (Failure(InitConstantBuffers()))
-		return S_ERROR;
-
-
-
-	// Initialize the render schedule
-	m_pRenderSchedule = new map<usint32, SRenderDesc>();
+		return S_ERROR;	
 	
 	// Do not render terrain immediately
 	m_TerrainRenderDesc.bRender = false;
@@ -631,12 +625,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);	
 #endif		
 
-	if (IS_VALID_PTR(m_pRenderSchedule))
-	{
-		m_pRenderSchedule->clear();
-		delete m_pRenderSchedule;
-		m_pRenderSchedule = nullptr;
-	}		
+	m_RenderSchedule.Clear();
 
 	return S_SUCCESS;
 }
@@ -871,17 +860,12 @@ S_API SResult DirectX11Renderer::CreateAdditionalViewport(IViewport** pViewport,
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::BeginScene(void)
 {
-	SP_ASSERTR(IS_VALID_PTR(m_pRenderSchedule), S_NOTINITED);
-
 	if (m_bInScene)
 		return S_ERROR;
 
 	if (m_bDumpFrame)
-		m_pEngine->LogD("Beginning rendering of scene... (Begin Frame)");
-
-	m_pRenderSchedule->clear();	
-
-	m_RenderScheduleIDCounter = 0;
+		m_pEngine->LogD("Beginning rendering of scene... (Begin Frame)");	
+	
 	m_bInScene = true;	
 
 	return S_SUCCESS;
@@ -892,12 +876,11 @@ S_API SResult DirectX11Renderer::BeginScene(void)
 S_API SResult DirectX11Renderer::RenderGeometry(const SRenderDesc& dsc)
 {
 	if (!m_bInScene)
-		return S_INVALIDSTAGE;
+		return S_INVALIDSTAGE;	
 
-	assert(m_pRenderSchedule);
-
-	m_pRenderSchedule->insert(pair<usint32, SRenderDesc>(m_RenderScheduleIDCounter, dsc));
-	m_RenderScheduleIDCounter++;
+	SRenderScheduleSlot* pSlot = m_RenderSchedule.Get();
+	pSlot->keep = false;
+	pSlot->renderDesc = dsc;	
 
 	if (IS_VALID_PTR(dsc.material.textureMap))
 		dsc.material.textureMap->GetType();
@@ -915,6 +898,27 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& tdsc)
 	FrameDump("Set terrain Render Desc.");
 
 	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SRenderScheduleSlot* DirectX11Renderer::GetRenderScheduleSlot()
+{
+	if (!m_bInScene)
+		return 0;
+
+	return m_RenderSchedule.Get();
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::ReleaseRenderScheduleSlot(SRenderScheduleSlot** pSlot)
+{
+	m_RenderSchedule.Release(pSlot);
+}
+
+// --------------------------------------------------------------------
+S_API STerrainRenderDesc* DirectX11Renderer::GetTerrainRenderDesc()
+{
+	return &m_TerrainRenderDesc;
 }
 
 // --------------------------------------------------------------------
@@ -959,12 +963,6 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		FrameDump("Cannot Unleash Render SChedule: Not in scene!");
 		return S_INVALIDSTAGE;
 	}
-
-	if (!IS_VALID_PTR(m_pRenderSchedule))
-	{
-		FrameDump("Cannot unleash render schedule: render schedule is null");
-		return S_ERROR;
-	}	
 
 	ERenderPipelineTechnique previousTechnique = eRENDER_FORWARD;
 	RETURN_ON_ERR(BindSingleFBO(m_pTargetViewport));
@@ -1015,22 +1013,20 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 
 
-	if (m_pRenderSchedule->empty())
+	if (m_RenderSchedule.GetUsedObjectCount() == 0)
 	{
 		FrameDump("Render schedule empty in UnleashRenderSchedule()");
 		return S_SUCCESS;
 	}
 
 	FrameDump("Unleashing render schedule now...");
-	FrameDump((unsigned int)m_pRenderSchedule->size(), SString("RenderScheduleSize"));
+	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), SString("RenderScheduleSize"));
 
-	for (auto itRenderDesc = m_pRenderSchedule->begin(); itRenderDesc != m_pRenderSchedule->end(); itRenderDesc++)
+	unsigned int iRSIterator = 0;
+	for (unsigned int iSlot = 0; iSlot < m_RenderSchedule.GetUsedObjectCount(); ++iSlot)
 	{
-
-
-		SRenderDesc* pDesc = &itRenderDesc->second;		
-
-
+		SRenderScheduleSlot* pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
+		SRenderDesc* pDesc = &pSlot->renderDesc;
 
 		if (pDesc->technique == eRENDER_FORWARD)
 		{
@@ -1070,6 +1066,11 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 			// TODO
 		}		
 
+		if (!pSlot->keep)
+		{
+			m_RenderSchedule.Release(&pSlot);
+			iRSIterator--;
+		}
 
 	}	
 

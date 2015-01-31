@@ -248,6 +248,17 @@ struct S_API STerrainRenderDesc
 	}
 };
 
+struct S_API SRenderScheduleSlot
+{
+	SRenderDesc renderDesc;
+	bool keep; // true if slot may no be released after rendered
+
+	SRenderScheduleSlot()
+		: keep(true)
+	{
+	}
+};
+
 
 ///////////////////////////////////////////////////////////////
 
@@ -335,14 +346,22 @@ public:
 	//	Get the specific resource pool. Will instanciate one if not done yet
 	virtual IResourcePool* GetResourcePool() = 0;
 
+	virtual SRenderScheduleSlot* GetRenderScheduleSlot() = 0;
+
+	// *pSlot is set to 0 after release
+	virtual void ReleaseRenderScheduleSlot(SRenderScheduleSlot** pSlot) = 0;
+
+	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
 
 	// Summary:
-	//	Schedules an object to be rendered using given render desc
+	//	Schedules an object to be rendered using given render desc once.
+	//	Render schedule slot is freed after rendered
 	virtual SResult RenderGeometry(const SRenderDesc& dsc) = 0;
 
 	// Summary:
 	//	Set up terrain render description that is used when rendering the terrain (immediately
 	//	before unleashing render schedule.
+	//	Render schedule slot is freed after rendered
 	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc) = 0;
 
 
