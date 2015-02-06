@@ -34,7 +34,7 @@ struct S_API SInitialGeometryDesc;
 struct S_API SMaterial;
 struct S_API SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
-
+struct S_API SSceneNode;
 
 ///////////////////////////////////////////////////////////////////////////////////
 

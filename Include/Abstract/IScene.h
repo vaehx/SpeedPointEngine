@@ -7,22 +7,21 @@
 
 #pragma once
 #include <SPrerequisites.h>
+#include "BoundBox.h"
+#include "IObject.h"
 
 SP_NMSPACE_BEG
 
 struct S_API ITerrain;
-struct S_API IObject;
 struct S_API IGameEngine;
 struct S_API ITexture;
 struct S_API IStaticObject;
 
 // Scene Graph Node
-struct S_API ISceneNode
+struct SSceneNode
 {
-public:		
-	ISceneNode*	m_pParent;	// node will inherit position of this node
-	ISceneNode**	m_pChilds;	// array of ptrs to child nodes. this array has fixed size (nMaxSceneNodeChilds in SSettings)
-	IObject**	m_pObjects;
+	AABB aabb;
+	IObject* pObject;	
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,6 +37,9 @@ struct S_API IScene
 	virtual ITerrain* CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ, float baseHeight, ITexture* pColorMap, ITexture* pDetailMap) = 0;
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file) = 0;
+
+	//virtual void RegisterObject(IObject* pObject) = 0;
+	//virtual IObject* CreateObject(EObjectType type) = 0;
 
 	virtual void Clear() = 0;	
 };

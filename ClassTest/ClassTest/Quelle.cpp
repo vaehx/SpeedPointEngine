@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include "ChunkedObjectPool.h"
 
 unsigned int CountSideParts(unsigned int w, unsigned int startsz)
 {
@@ -22,26 +22,17 @@ unsigned int CountSideParts(unsigned int w, unsigned int startsz)
 
 void main()
 {
-	unsigned int startsz = 4;
+	
+
+	RunChunkedObjectPoolTest();
+	RunMapObjectPoolTest();
 
 
-	unsigned int w = 0, d = 8;
-	unsigned int sz = startsz;
-
-	unsigned int xacc = CountSideParts(w, startsz);
-	unsigned int zacc = CountSideParts(d, startsz);
-
-	printf("========================================\n");
-	unsigned int nIndices = (xacc * zacc) * 6;
-	unsigned int nVertices = (w * d > 0) ? (xacc + 1) * (zacc + 1) : 0;
-	printf("Need generate %dx%d (%d) quads, which means %d indices (6 per quad) and %d vertices\n", xacc, zacc, xacc * zacc, nIndices, nVertices);
+	printf("Finished.");
 
 
-
-
-
-	// ---------------
-	getchar();
+	// ---------------	
+	getchar();	
 }
 
 

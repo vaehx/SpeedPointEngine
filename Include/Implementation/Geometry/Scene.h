@@ -14,6 +14,7 @@ class S_API Scene : public IScene
 private:
 	IGameEngine* m_pEngine;
 	ITerrain* m_pTerrain;
+	std::vector<SSceneNode> nodes;
 
 public:
 	virtual ~Scene()
@@ -27,6 +28,8 @@ public:
 	virtual ITerrain* CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ, float baseHeight, ITexture* pColorMap, ITexture* pDetailMap);
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file);
+	
+	//virtual void RegisterObject(IObject* pObject);
 
 	virtual void Clear();
 };

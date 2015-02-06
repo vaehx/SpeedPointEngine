@@ -282,3 +282,4 @@ struct STest
 };
 
 void RunChunkedObjectPoolTest();
+void RunMapObjectPoolTest();
