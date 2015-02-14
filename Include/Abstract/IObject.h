@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the SpeedPointEngine
-// Copyright (c) 2011-2014, iSmokiieZz
+// Copyright (c) 2011-2015, iSmokiieZz
 // ------------------------------------------------------------------------------
 // Filename:	Objects.h
 // Created:	8/12/2014 by iSmokiieZz
@@ -21,6 +21,10 @@
 #include <SPrerequisites.h>
 #include "ITexture.h"
 #include "Transformable.h"
+#include "BoundBox.h"
+#include <vector>
+
+using std::vector;
 
 SP_NMSPACE_BEG
 
@@ -36,91 +40,125 @@ struct S_API SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
 struct S_API SSceneNode;
 
-///////////////////////////////////////////////////////////////////////////////////
+struct IRenderableComponent;
+struct IAnimateableComponent;
+struct IPhysicalComponent;
+struct IScriptableComponent;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum S_API EObjectType
 {
 	eGEOMOBJ_STATIC,
-	eGEOMOBJ_ENTITY,
-	eGEOMOBJ_TERRAIN,
+	eGEOMOBJ_RIGID, // has physics
+	eGEOMOBJ_ENTITY, // all components are optional except scripting
+	eGEOMOBJ_CHARACTER, // animateable / skinned
 	eGEOMOBJ_VEGETATION,
-	eGEOMOBJ_WATER
+	eGEOMOBJ_WATER,
+	eGEOMOBJ_TERRAIN,
+	eGEOMOBJ_SKYBOX
 	// ...
 };
 
 
-///////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//typedef vector<SMaterial*> MaterialPtrList;
 
-struct S_API SInitialMaterials
+class MaterialPtrList
 {
-	unsigned short nMaterials;
-	SMaterial* pMaterials;
-};
+private:
+	vector<SMaterial*> m_Mats;
+public:
+	MaterialPtrList() {}	
 
-
-///////////////////////////////////////////////////////////////////////////////////
-
-struct S_API IObject
-{
-	virtual ~IObject() {}
-
-	virtual EObjectType GetType() const = 0;	
-	virtual bool IsRenderable() const = 0;
-	virtual bool IsTransformable() const = 0;
-	virtual void RecalcBoundBox() = 0;
-	virtual const AABB& GetBoundBox() const = 0;
-};
-
-struct S_API IRenderableObject : public IObject, public STransformable
-{
-	// Notes:
-	// - renderable object not necessarily has geometry.
-
-	virtual SResult Render() = 0;	
-	virtual bool IsRenderable() const { return true; }
-	virtual bool IsTransformable() const { return true; }
-
-	virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const = 0;
-
-	virtual IGeometry* GetGeometry() = 0;	
-};
-
-
-// Summary:
-//	An simple object that can be rendered and positioned in the world
-//	When implementing, also inherit from STransformable to add support for transformation tools
-struct S_API IStaticObject : public IRenderableObject
-{
-	virtual ~IStaticObject()
+	~MaterialPtrList()
 	{
+		Clear();
 	}
 
-	// pInitialMaterials - If nullptr, then the engine's default material is taken
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const SInitialMaterials* pInitialMaterials = nullptr, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
-		
-	virtual SMaterial* GetMaterials() = 0;	
-	virtual unsigned short GetMaterialCount() const = 0;
+	void Add(SMaterial* pMat)
+	{
+		m_Mats.push_back(pMat);
+	}
 
-	// Summary:
-	//	Sets first material (=single Material)
-	virtual void SetMaterial(const SMaterial& singleMat) = 0;
+	void AddAll(MaterialPtrList& matlist)
+	{
+		m_Mats.reserve(matlist.GetCount());
+		for (unsigned int i = 0; i < matlist.GetCount(); ++i)
+			m_Mats.push_back(matlist.Get(i));
+	}
 
-	// Summary:
-	//	Verifies that there is a single material and returns always a non-null pointer
-	virtual SMaterial* GetSingleMaterial() = 0;
-	
-	virtual void Clear() = 0;
+	void Del(SMaterial* pMat)
+	{
+		for (auto itMat = m_Mats.begin(); itMat != m_Mats.end(); itMat++)
+		{
+			if (*itMat != pMat)
+				continue;		
+				
+			m_Mats.erase(itMat);
+			return;
+		}
+	}
+
+	SMaterial* Get(unsigned int index)
+	{
+		if (index >= GetCount())
+			return nullptr;
+
+		return m_Mats[index];
+	}
+
+	void Set(unsigned int index, SMaterial* pMat)
+	{
+		if (index >= GetCount())
+			return;
+
+		m_Mats[index] = pMat;
+	}
+
+	unsigned int GetCount() const
+	{
+		return m_Mats.size();
+	}
+
+	void Clear()
+	{
+		m_Mats.clear();
+	}
 };
 
 
-struct S_API IWaterVolume
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// abstract, not really interface
+class S_API IObject : public STransformable
 {
+protected:
+	AABB m_AABB;
+
+public:
+	virtual ~IObject() {}
+
+	virtual void RecalcBoundBox() = 0;
+	virtual const AABB& GetBoundBox() const { return m_AABB; }
+
+	virtual EObjectType GetType() const = 0;
+
+	virtual bool IsRenderable() const { return false; }
+	virtual bool IsPhysical() const { return false; }
+	virtual bool IsAnimateable() const { return false; }
+	virtual bool IsScriptable() const { return false; }
+
+	virtual IRenderableComponent* GetRenderable() { return 0; }
+	virtual IPhysicalComponent* GetPhysical() { return 0; }
+	virtual IAnimateableComponent* GetAnimateable() { return 0; }
+	virtual IScriptableComponent* GetScriptable() { return 0; }
 };
 
-struct S_API IOcean
-{
-};
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 struct S_API ISkyBox
 {

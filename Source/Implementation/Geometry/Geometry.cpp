@@ -37,32 +37,28 @@ S_API Geometry::~Geometry()
 
 // ----------------------------------------------------------------------------------------
 S_API void Geometry::Clear()
-{	
+{
+	if (IS_VALID_PTR(m_pRenderer))
+	{
+		if (m_nSubsets > 0 && IS_VALID_PTR(m_pSubsets))
+		{
+			for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
+				m_pEngine->GetResources()->RemoveIndexBuffer(&m_pSubsets[iSubset].pIndexBuffer);
+
+			delete[] m_pSubsets;
+		}
+	
+		m_pSubsets = 0;
+		m_nSubsets = 0;
+
+		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(&m_pVertexBuffer);
+		m_pRenderer = nullptr;
+	}
+
 	if (IS_VALID_PTR(m_pEngine))
 	{
 		m_pEngine->UnregisterShutdownHandler(this);
 		m_pEngine = nullptr;
-	}
-
-	if (IS_VALID_PTR(m_pRenderer))
-	{
-		if (m_nIndexBuffers == 1)
-		{
-			m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pIndexBuffers->pIndexBuffer);
-			delete m_pIndexBuffers;
-		}
-		else if (m_nIndexBuffers > 1)
-		{
-			for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
-				m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pIndexBuffers[iIndexBuffer].pIndexBuffer);		
-
-			delete[] m_pIndexBuffers;
-		}
-		m_pIndexBuffers = 0;
-		m_nIndexBuffers = 0;
-
-		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(&m_pVertexBuffer);
-		m_pRenderer = nullptr;
 	}
 }
 
@@ -189,50 +185,68 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 
 		RETURN_ON_ERR(m_pVertexBuffer->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices));
 	}	
+	
+	bool bLines = (pInitialGeom->primitiveType == PRIMITIVE_TYPE_LINES);
 
-	if (m_PrimitiveType != PRIMITIVE_TYPE_LINES) // Lines do not need IB
+	if (!IS_VALID_PTR(pInitialGeom)
+		|| !IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) || pInitialGeom->nMatIndexAssigns == 0
+		|| bLines) // Lines can only have one material and only one subset
 	{
-		if (!IS_VALID_PTR(pInitialGeom) || !IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) || pInitialGeom->nMatIndexAssigns == 0)
+
+		// No material assigns given.
+		// init standard geometry with default (single) material
+		m_pSubsets = new SGeomSubset[1];			
+		m_nSubsets = 1;
+		SGeomSubset* pDefSubset = &m_pSubsets[0];
+
+		if (!bLines)
 		{
-			m_pIndexBuffers = new SGeometryIndexBuffer();
-			m_nIndexBuffers = 1;
-			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&m_pIndexBuffers->pIndexBuffer));
-			RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
+			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&pDefSubset->pIndexBuffer));
+			RETURN_ON_ERR(pDefSubset->pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
 
 			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pIndices))
-				RETURN_ON_ERR(m_pIndexBuffers->pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false));
-
-
-			m_pIndexBuffers->pMaterial = (IS_VALID_PTR(pInitialGeom) ? pInitialGeom->pSingleMaterial : m_pEngine->GetDefaultMaterial());
+				RETURN_ON_ERR(pDefSubset->pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false));
 		}
-		else
-		{
-			// Create and fill one Index buffer per material
-			m_nIndexBuffers = pInitialGeom->nMatIndexAssigns;
-			m_pIndexBuffers = new SGeometryIndexBuffer[m_nIndexBuffers];
-			for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
-			{
-				SMaterialIndices& matIndices = pInitialGeom->pMatIndexAssigns[iIndexBuffer];
-				SGeometryIndexBuffer& geomIndexBuffer = m_pIndexBuffers[iIndexBuffer];
-				RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&geomIndexBuffer.pIndexBuffer));
-				RETURN_ON_ERR(geomIndexBuffer.pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
-				geomIndexBuffer.pMaterial = matIndices.pMaterial;
 
-				// fill index buffer with according indices
-				SIndex* pIndices = new SIndex[matIndices.nIdxIndices];
-				for (unsigned int iIdxIndex = 0; iIdxIndex < matIndices.nIdxIndices; ++iIdxIndex)
-					pIndices[iIdxIndex] = pInitialGeom->pIndices[matIndices.pIdxIndices[iIdxIndex]];
+		pDefSubset->pMaterial = (IS_VALID_PTR(pInitialGeom) ? pInitialGeom->pSingleMaterial : m_pEngine->GetDefaultMaterial());
 
-				if (Failure(geomIndexBuffer.pIndexBuffer->Fill(pIndices, matIndices.nIdxIndices, false)))
-				{
-					delete[] pIndices;
-					return S_ERROR;
-				}
-
-				delete[] pIndices;
-			}
-		}
 	}
+	else
+	{
+		// create and fill one subset per material
+		m_nSubsets = pInitialGeom->nMatIndexAssigns;
+		m_pSubsets = new SGeomSubset[m_nSubsets];
+		unsigned long indexOffset = 0;
+		for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
+		{			
+			SMaterialIndices& matIndices = pInitialGeom->pMatIndexAssigns[iSubset];
+			
+			if (matIndices.nIdxIndices == 0)
+				continue;
+
+			SGeomSubset& subset = m_pSubsets[iSubset];
+
+			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&subset.pIndexBuffer));
+			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
+			subset.pMaterial = matIndices.pMaterial;
+			subset.indexOffset = indexOffset;
+
+			// fill index buffer with according indices
+			SIndex* pIndices = new SIndex[matIndices.nIdxIndices];
+			indexOffset += matIndices.nIdxIndices;
+
+			for (unsigned int iIdxIndex = 0; iIdxIndex < matIndices.nIdxIndices; ++iIdxIndex)
+				pIndices[iIdxIndex] = pInitialGeom->pIndices[matIndices.pIdxIndices[iIdxIndex]];
+
+			if (Failure(subset.pIndexBuffer->Fill(pIndices, matIndices.nIdxIndices, false)))
+			{
+				delete[] pIndices;
+				return S_ERROR;
+			}
+
+			delete[] pIndices;
+		}
+	}	
 
 	return S_SUCCESS;
 }
@@ -285,15 +299,14 @@ S_API SVertex* Geometry::GetVertex(unsigned long index)
 
 // ----------------------------------------------------------------------------------------
 S_API SIndex* Geometry::GetIndex(unsigned long index)
-{
-	unsigned long indexCount = 0;
-	for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
+{	
+	for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
 	{
-		IIndexBuffer* pIndexBuffer = m_pIndexBuffers[iIndexBuffer].pIndexBuffer;
-		if (index > indexCount && index < indexCount + pIndexBuffer->GetIndexCount())
-			return pIndexBuffer->GetIndex(index - indexCount);
-		else
-			indexCount += pIndexBuffer->GetIndexCount();
+		SGeomSubset* pSubset = &m_pSubsets[iSubset];
+		IIndexBuffer* pIndexBuffer = m_pSubsets[iSubset].pIndexBuffer;
+
+		if (index > pSubset->indexOffset && index < pSubset->indexOffset + pIndexBuffer->GetIndexCount())
+			return pIndexBuffer->GetIndex(index - pSubset->indexOffset);		
 	}
 
 	return 0;
@@ -320,16 +333,18 @@ S_API unsigned long Geometry::GetVertexCount() const
 // ----------------------------------------------------------------------------------------
 S_API unsigned long Geometry::GetIndexCount() const
 {
-	if (!IS_VALID_PTR(m_pIndexBuffers) || m_nIndexBuffers == 0)
+	if (!IS_VALID_PTR(m_pSubsets) || m_nSubsets == 0)
 		return 0;
 
 	unsigned long nIndices = 0;
-	for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_nIndexBuffers; ++iIndexBuffer)
+	for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
 	{
-		if (!IS_VALID_PTR(m_pIndexBuffers[iIndexBuffer].pIndexBuffer))
+		IIndexBuffer* pIndexBuffer = m_pSubsets[iSubset].pIndexBuffer;
+		
+		if (!IS_VALID_PTR(pIndexBuffer))
 			continue;
 
-		nIndices += m_pIndexBuffers[iIndexBuffer].pIndexBuffer->GetIndexCount();
+		nIndices += pIndexBuffer->GetIndexCount();
 	}
 
 	return nIndices;

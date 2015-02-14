@@ -189,7 +189,7 @@ struct S_API SDrawCallDesc
 	usint32 iStartVBIndex;
 	usint32 iEndVBIndex;
 
-	STransformationDesc transform;
+	//STransformationDesc transform;
 
 	EPrimitiveType primitiveType;
 
@@ -207,30 +207,41 @@ struct S_API SDrawCallDesc
 		iEndIBIndex(o.iEndIBIndex),
 		iStartVBIndex(o.iStartVBIndex),
 		iEndVBIndex(o.iEndVBIndex),
-		transform(o.transform),
+		//transform(o.transform),
 		primitiveType(o.primitiveType)
 	{
 	}
 };
 
 
-enum S_API ERenderPipelineTechnique
+enum S_API ERenderPipeline
 {
 	eRENDER_FORWARD,
 	eRENDER_DEFERRED
 };
 
+struct SRenderSubset
+{
+	SMaterial material;	// copied, no pointer used
+	SDrawCallDesc drawCallDesc;
+	bool render; // true to render, false to skip
+};
+
 struct S_API SRenderDesc
 {
-	ERenderPipelineTechnique technique;
-	SDrawCallDesc drawCallDesc;
-	IGeometry* pGeometry;	
-	SMaterial material;
+	ERenderPipeline renderPipeline;
+	SRenderSubset* pSubsets;
+	unsigned int nSubsets;
+
+	//SMaterial material;
+	STransformationDesc transform;
+	//IGeometry* pGeometry;
 };
 
 struct S_API STerrainRenderDesc
 {
 	SDrawCallDesc drawCallDesc;
+	STransformationDesc transform;
 	IGeometry* pGeometry;		// TODO: For what is this member??
 	ITexture* pColorMap;
 	ITexture* pDetailMap;
@@ -248,12 +259,12 @@ struct S_API STerrainRenderDesc
 	}
 };
 
-struct S_API SRenderScheduleSlot
+struct S_API SRenderSlot
 {
 	SRenderDesc renderDesc;
 	bool keep; // true if slot may no be released after rendered
 
-	SRenderScheduleSlot()
+	SRenderSlot()
 		: keep(true)
 	{
 	}
@@ -261,6 +272,8 @@ struct S_API SRenderScheduleSlot
 
 
 ///////////////////////////////////////////////////////////////
+
+#define MAX_BOUND_RTS 8
 
 // SpeedPoint Renderer
 struct S_API IRenderer
@@ -281,27 +294,38 @@ public:
 	virtual SResult GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pDesc) = 0;
 
 	virtual bool AdapterModeSupported(usint32 nW, usint32 nH) = 0;
+	
+	virtual SResult SetTargetViewport( IViewport* pViewport ) = 0;		
+	virtual IViewport* GetTargetViewport(void) = 0;
 
-	// Set the current target viewport
-	virtual SResult SetTargetViewport( IViewport* pViewport ) = 0;
+	// Get the default viewport
+	virtual IViewport* GetDefaultViewport(void) = 0;
 
-	// Set a Frame buffer object as render target
-	// This will only remember the ptr to the fbo. You have to manually call BindFBOs() to make them actually work
-	virtual SResult AddRTCollectionFBO(usint32 index, IFBO* pFBO) = 0;		
+	// Create an an addition viewport
+	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc) = 0;
 
+	/*
 	// Will update the collection if existing
 	virtual SResult StoreRTCollection(ERenderTargetCollectionID asId) = 0;
+	*/
+	
 
-	// Binds the currently added binded FBOs and stores this collection with given id.
-	// By that you only have to initialize them once and then simply call them again if you want
+
+	// Summary:
+	//	Binds given collection of render targets.
 	// Arguments:
-	//	bStore - set this to true if you just want to finish adding FBOs to a collection and store this collection
-	//		If bStore is false, these added FBOs are untouched and the function looks for an existing collection with given index
-	virtual SResult BindRTCollection(ERenderTargetCollectionID collectionID) = 0;
+	//	depthFBO - The DepthStencil Buffer of this FBO will be bound for rendering
+	virtual SResult BindRTCollection(std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0) = 0;
+
+	virtual bool BoundMultipleRTs() const = 0;
 
 	// Binds a single FrameBuffer Object (mainly used for binding a single backbuffer of a viewport in post-rendering section)
-	virtual SResult BindSingleFBO(IFBO* pFBO) = 0;
-	virtual SResult BindSingleFBO(IViewport* pViewport) = 0;
+	virtual SResult BindSingleRT(IFBO* pFBO) = 0;
+	virtual SResult BindSingleRT(IViewport* pViewport) = 0;
+
+	virtual IFBO* GetBoundSingleRT() = 0;
+
+
 
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0) = 0;
 	virtual SResult SetIBStream(IIndexBuffer* pIB) = 0;
@@ -309,16 +333,8 @@ public:
 	// Arguments:
 	//	Pass nullptr as pTex to empty this texture level
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0) = 0;
-	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;	
-
-	// Get the current target viewport
-	virtual IViewport* GetTargetViewport( void ) = 0;
-
-	// Get the default viewport
-	virtual IViewport* GetDefaultViewport( void ) = 0;	
-
-	// Create an an addition viewport
-	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc) = 0;
+	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;		
+	
 
 	// Clearout everything (viewports, buffers, stop render Pipeline thread and task buffer)
 	virtual SResult Shutdown( void ) = 0;
@@ -346,23 +362,27 @@ public:
 	//	Get the specific resource pool. Will instanciate one if not done yet
 	virtual IResourcePool* GetResourcePool() = 0;
 
-	virtual SRenderScheduleSlot* GetRenderScheduleSlot() = 0;
+	virtual SRenderSlot* GetRenderSlot() = 0;
 
 	// *pSlot is set to 0 after release
-	virtual void ReleaseRenderScheduleSlot(SRenderScheduleSlot** pSlot) = 0;
+	virtual void ReleaseRenderSlot(SRenderSlot** pSlot) = 0;
 
 	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
 
+	/*
 	// Summary:
 	//	Schedules an object to be rendered using given render desc once.
 	//	Render schedule slot is freed after rendered
 	virtual SResult RenderGeometry(const SRenderDesc& dsc) = 0;
+	*/
 
+	/*
 	// Summary:
 	//	Set up terrain render description that is used when rendering the terrain (immediately
 	//	before unleashing render schedule.
 	//	Render schedule slot is freed after rendered
 	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc) = 0;
+	*/
 
 
 	// Summary:

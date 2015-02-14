@@ -344,6 +344,10 @@ S_API SResult DirectX11Viewport::SetProjectionByDesc(const SProjectionDesc& desc
 			SP_DEG_TO_RAD(desc.fov),
 			m_DXViewportDesc.Width / m_DXViewportDesc.Height,
 			fNearZ, fFarZ);
+
+		EngLog(S_DEBUG, m_pEngine, "Set up perspective projection: fov=%f, w=%f, h=%f, n=%f, f=%f",
+			SP_DEG_TO_RAD(desc.fov), m_DXViewportDesc.Width, m_DXViewportDesc.Height, fNearZ, fFarZ);		
+
 		break;
 
 	case S_PROJECTION_ORTHOGRAPHIC:

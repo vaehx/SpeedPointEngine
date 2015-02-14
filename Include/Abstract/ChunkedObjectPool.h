@@ -161,9 +161,9 @@ public:
 				memcpy(chunks, oldChunks, sizeof(Chunk*) * (num_chunks - 1));
 				delete[] oldChunks;
 			}
-
-			freeobj = &newChunk->objects[0];
+			
 			freeobjindex = newChunk->frees[chunk_size - 1];
+			freeobj = &newChunk->objects[freeobjindex];
 			freeobjchunk = newChunk;
 		}
 		else

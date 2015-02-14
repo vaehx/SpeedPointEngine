@@ -34,7 +34,7 @@
 #include <cmath>
 
 #include "Util\SResult.h"	// SResult, IExceptionProxy
-#include "Util\SAssert.h"
+#include "Util\SAssert.h"	// including IS_VALID_PTR
 
 #include "Util\SPoolIndex.h"
 #include "Util\SString.h"
@@ -45,13 +45,6 @@
 
 
 #define SP_TRIVIAL -1
-
-// also check against wrong debug values if in debug mode
-#ifdef _DEBUG
-	#define IS_VALID_PTR(ptr) (ptr && (unsigned int)ptr != 0xC0000005 && (unsigned int)ptr != 0xCDCDCDCD && (unsigned int)ptr != 0xCCCCCCCC)
-#else
-	#define IS_VALID_PTR(ptr) (ptr)
-#endif
 
 #define RETURN_ON_ERR(exec) if (Failure((exec))) { return SpeedPoint::S_ERROR; }
 #define SP_SAFE_RELEASE(x) if(IS_VALID_PTR(x)) { x->Release(); x = nullptr; }
@@ -147,7 +140,7 @@ static inline double cot(float val) { return (1.0f / tan((double)val)); }
 #define SP_PI 3.14159265358979323f
 #define SP_UNIT_DEG_RAD 0.01745329251994f
 #define SP_UNIT_RAD_DEG 57.29577951308232f
-#define SP_DEG_TO_RAD(deg) deg * SP_UNIT_DEG_RAD
+#define SP_DEG_TO_RAD(deg) ((float)deg * SP_UNIT_DEG_RAD)
 #define SP_RAD_TO_DEG(rad) rad * SP_UNIT_RAD_DEG
 
 

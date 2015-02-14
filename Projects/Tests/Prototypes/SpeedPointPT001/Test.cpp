@@ -66,6 +66,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.app.hWnd = hWnd;	
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.bEnableVSync = true;
+	dsc.render.vsyncInterval = 1;	
 	dsc.render.bRenderWireframe = false;	
 	dsc.render.fTerrainDMFadeRange = 5.0f;
 
@@ -99,12 +100,13 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	projDsc.bUseEngineZPlanes = false;
 	projDsc.farZ = 200.0f;
 	projDsc.nearZ = 0.1f;
+	projDsc.fov = 40;
 	projDsc.projectionType = SpeedPoint::S_PROJECTION_PERSPECTIVE;	
 	pRenderer->GetTargetViewport()->SetProjectionByDesc(projDsc);
 
 	pCamera = pRenderer->GetTargetViewport()->GetCamera();
 	pCamera->position = SpeedPoint::SVector3(0, 5.0f, -10.0f);
-	pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
+	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
 	alpha = 0.0f;	
 
 	nDumpedFrames = 0;
@@ -136,9 +138,9 @@ void Test::OnInitGeometry()
 
 	SpeedPoint::Scene myScene;
 	myScene.Initialize(m_pEngine);
-	pTest3DSObject = myScene.LoadStaticObjectFromFile("..\\..\\res\\haus.3ds");
+	pTest3DSObject = myScene.LoadStaticObjectFromFile("..\\..\\res\\truck.3ds");
 	
-	pTest3DSObject->CreateNormalsGeometry(&pTest3DSNormalsObject);	
+	myScene.CreateNormalsGeometry(pTest3DSObject, &pTest3DSNormalsObject);	
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,11 +150,11 @@ void Test::OnInitGeometry()
 	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);
 
 	// Set object material
-	SpeedPoint::SMaterial testMat;
-	testMat.textureMap = pTestTextureMap;
-	testMat.normalMap = pTestNormalMap;
-
-	testObject.SetMaterial(testMat);
+	SpeedPoint::SMaterial* testMat = m_pEngine->GetResources()->AddNewMaterial("testMat");
+	testMat->textureMap = pTestTextureMap;
+	testMat->normalMap = pTestNormalMap;
+	
+	testObject.SetSingleMaterial(testMat);
 
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
@@ -168,7 +170,7 @@ void Test::OnInitGeometry()
 
 	SpeedPoint::SCamera testCam;
 	testCam.position = SpeedPoint::SVector3(-30.0f, 14.0f, -30.0f);
-	testCam.rotation = SpeedPoint::SVector3(-0.7f, 0.0f, 0.0f);	
+	testCam.rotation = SpeedPoint::SVector3(0.0f, 0.0f, 0.0f);	
 
 }
 
@@ -180,7 +182,7 @@ bool Test::Tick()
 	if (alpha > 2.0f * SP_PI)
 		alpha = 0.0f;	
 
-	if (nDumpedFrames < 20)
+	if (nDumpedFrames < 1)
 	{
 		m_pEngine->GetRenderer()->DumpFrameOnce();
 		nDumpedFrames++;
@@ -200,12 +202,13 @@ void Test::Render()
 
 	// UPDATE:
 
-	testObject.vRotation += SpeedPoint::SVector3(0.0, 0.01f, 0.00f);	
+	testObject.vRotation += SpeedPoint::SVector3(0.0f, 0.01f, 0.0f);	
+	testObject.vRotation.x = SP_PI * 0.5f;
 	testObject.vPosition = SpeedPoint::SVector3(0, 0.0f, 0.0f);
 
 	pTest3DSObject->vPosition = testObject.vPosition;
 	pTest3DSObject->vRotation = testObject.vRotation;
-	pTest3DSObject->vSize = SpeedPoint::SVector3(5.0f, 5.0f, 5.0f);
+	pTest3DSObject->vSize = SpeedPoint::SVector3(0.3f, 0.3f, 0.3f);
 	
 	pTest3DSNormalsObject->vPosition = pTest3DSObject->vPosition;
 	pTest3DSNormalsObject->vRotation = pTest3DSObject->vRotation;
@@ -228,7 +231,7 @@ void Test::Render()
 	if (KeyPressed(KEY_MOVE_UP)) pCamera->position.y += moveDiff;
 	if (KeyPressed(KEY_MOVE_DOWN)) pCamera->position.y -= moveDiff;
 
-	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
+	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));	
 
 	pCamera->RecalculateViewMatrix();
 	

@@ -2,6 +2,7 @@
 
 #include <memory>
 
+
 template<typename F>
 struct Vec3
 {

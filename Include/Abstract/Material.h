@@ -25,7 +25,7 @@ struct S_API ITexture;
 //	The texture are only pointers (aggregations) and are not destructed by Material.
 struct S_API SMaterial
 {
-	char* name;
+	SString name;
 
 	SColor ambientColor;
 	SColor diffuseColor;
@@ -41,7 +41,7 @@ struct S_API SMaterial
 	bool useGlobalGloss;
 
 	SMaterial()
-		: name(nullptr),
+		: name(),
 		textureMap(nullptr),
 		normalMap(nullptr),
 		ambientOcclusionMap(nullptr),
@@ -60,9 +60,8 @@ struct S_API SMaterial
 		glossinessMap(m.glossinessMap),
 		globalGlossFactor(m.globalGlossFactor),
 		useGlobalGloss(m.useGlobalGloss)
-	{
-		name = 0;
-		sp_strcpy(&name, m.name);
+	{		
+		name = m.name;
 	}
 
 	SMaterial& operator = (const SMaterial& m)
@@ -74,8 +73,7 @@ struct S_API SMaterial
 		glossinessMap = m.glossinessMap;
 		globalGlossFactor = m.globalGlossFactor;
 		useGlobalGloss = m.useGlobalGloss;
-		name = 0;
-		sp_strcpy(&name, m.name);
+		name = m.name;
 		return *this;
 	}
 
@@ -85,12 +83,7 @@ struct S_API SMaterial
 	}
 
 	void Clear()
-	{
-		if (IS_VALID_PTR(name))
-			delete[] name;
-
-		name = nullptr;
-
+	{		
 		textureMap = nullptr;
 		normalMap = nullptr;
 		ambientOcclusionMap = nullptr;

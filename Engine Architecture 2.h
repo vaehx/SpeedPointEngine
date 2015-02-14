@@ -1,12 +1,6 @@
 typedef class Geometry Mesh;
 
-// only stores data for renderable, no functionality
-struct IRenderableComponent
-{
-	virtual Geometry* GetGeometry() = 0;
-	virtual Material** GetMaterials() = 0;
-	virtual unsigned int GetMaterialCount() const = 0;
-};
+
 class CRenderableComponent : public IRenderableComponent
 {
 private:
@@ -21,21 +15,7 @@ public:
 
 
 // ------------------------------------------------------------------------------
-enum EPhysicalBeheaviour
-{
-	ePHYSBEHAVE_SOLID,
-	ePHYSBEHAVE_FOLIAGE,
-	ePHYSBEHAVE_LIQUID
-	...
-};
-struct IPhysicalObjectComponent
-{
-	virtual CollisionShape& GetCollisionShape() = 0;
-	virtual Velocity& GetVelocity() = 0;
-	virtual float GetMass() const = 0;
-	virtual void SetMass(float mass) = 0;
-	virtual EPhysicalBeheaviour GetBeheaviour() const = 0;
-};
+
 class PhysicalObjectComponent : public IPhysicalObjectComponent
 {
 private:
@@ -53,14 +33,7 @@ public:
 };
 
 // ------------------------------------------------------------------------------
-struct IAnimateableObjectComponent
-{
-	virtual void Create(Geometry* pGeom = 0) = 0;
-	virtual Geometry* GetGeometry() = 0;
-	virtual AnimationKey* GetAnimationKey() = 0;
-	virtual unsigned int GetAnimationKeyCount() = 0;
-	virtual float GetAnimationRunTime() const = 0;
-};
+
 class AnimateableObjectComponent : public IAnimateableObjectComponent
 {
 private:
@@ -192,10 +165,4 @@ struct SRenderDesc
 struct SRenderScheduleSlot
 {
 	SRenderDesc renderDesc;	
-};
-
-
-
-struct IRenderSchedule
-{
 };

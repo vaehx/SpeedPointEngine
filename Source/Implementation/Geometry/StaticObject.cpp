@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the SpeedPointEngine
-// Copyright (c) 2011-2014, iSmokiieZz
+// Copyright (c) 2011-2015, iSmokiieZz
 // ------------------------------------------------------------------------------
 // Filename:	StaticObject.cpp
 // Created:	8/19/2014 by iSmokiieZz
@@ -20,6 +20,54 @@
 
 SP_NMSPACE_BEG
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// StaticObject Renderable Component
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API IVertexBuffer* CStaticObjectRenderable::GetVertexBuffer()
+{
+	return m_Geometry.GetVertexBuffer();
+}
+
+// ----------------------------------------------------------------------------------------
+S_API SGeomSubset* CStaticObjectRenderable::GetSubset(unsigned int i)
+{
+	return m_Geometry.GetSubset(i);
+}
+
+// ----------------------------------------------------------------------------------------
+S_API unsigned int CStaticObjectRenderable::GetSubsetCount() const
+{
+	return m_Geometry.GetSubsetCount();
+}
+
+// ----------------------------------------------------------------------------------------
+S_API EPrimitiveType CStaticObjectRenderable::GetGeometryPrimitiveType() const
+{
+	return m_Geometry.GetPrimitiveType();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	Static Object
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // ----------------------------------------------------------------------------------------
 S_API StaticObject::StaticObject()
 {
@@ -34,84 +82,76 @@ S_API StaticObject::~StaticObject()
 // ----------------------------------------------------------------------------------------
 S_API void StaticObject::Clear()
 {
-	m_Geometry.Clear();
+	m_Renderable.Clear();
+	m_AABB.Reset();
+
+	/*m_Geometry.Clear();
 	if (IS_VALID_PTR(m_pMaterials))
 	{
-		delete[] m_pMaterials;
-		/*
-		if (m_nMaterials > 1)
-			delete[] m_pMaterials;
-		else if (m_nMaterials == 1)
-			delete m_pMaterials;
-			*/
+		delete[] m_pMaterials;	
 	}
+	*/
 
-	m_pMaterials = 0;
+	/*m_pMaterials = 0;
 	m_nMaterials = 0;
-	m_pEngine = 0;
-	m_AABB.Reset();
+	m_pEngine = 0;*/	
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SResult StaticObject::Init(IGameEngine* pEngine, IRenderer* pRenderer, const SInitialMaterials* pInitialMaterials /*=0*/, SInitialGeometryDesc* pInitialGeom /*=0*/)
+S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom /*= nullptr*/, MaterialPtrList* pInitialMaterials /*= nullptr*/)
 {
-	m_Geometry.Clear();
+	m_Renderable.Clear();
 
 	if (!IS_VALID_PTR((m_pEngine = pEngine)))
 		return S_INVALIDPARAM;
 
-	if (IS_VALID_PTR(pInitialMaterials) && pInitialMaterials->nMaterials > 0)
+	if (IS_VALID_PTR(pInitialMaterials) && pInitialMaterials->GetCount() > 0)
 	{
-		m_pMaterials = new SMaterial[pInitialMaterials->nMaterials];
-		m_nMaterials = pInitialMaterials->nMaterials;
-		memcpy(m_pMaterials, pInitialMaterials->pMaterials, sizeof(SMaterial) * pInitialMaterials->nMaterials);
+		MaterialPtrList& materials = m_Renderable.GetMaterials();
+		materials.AddAll(*pInitialMaterials);
 
 		if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) && pInitialGeom->nMatIndexAssigns > 0)
 		{
-			// find matching material pointers
+			// find matching material pointers based on given material names
 			for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < pInitialGeom->nMatIndexAssigns; ++iMatIndexAssign)
 			{
 				SMaterialIndices& matIndexAssign = pInitialGeom->pMatIndexAssigns[iMatIndexAssign];
-				matIndexAssign.pMaterial = 0;
-				for (unsigned short iMat = 0; iMat < m_nMaterials; ++iMat)
+				matIndexAssign.pMaterial = 0;				
+				for (unsigned short iMat = 0; iMat < materials.GetCount(); ++iMat)
 				{
-					if (strcmp(m_pMaterials[iMat].name, matIndexAssign.materialName) != 0)
+					if (strcmp(materials.Get(iMat)->name, matIndexAssign.materialName) != 0)
 						continue;
 
-					matIndexAssign.pMaterial = &m_pMaterials[iMat];
+					matIndexAssign.pMaterial = materials.Get(iMat);
 					break;
 				}
 			}
 		}
 	}
 
-	return m_Geometry.Init(pEngine, pRenderer, pInitialGeom);
+	return m_Renderable.GetGeometry()->Init(pEngine, pEngine->GetRenderer(), pInitialGeom);
 }
 
 
 // ----------------------------------------------------------------------------------------
-S_API void StaticObject::SetMaterial(const SMaterial& singleMat)
+S_API void StaticObject::SetSingleMaterial(SMaterial* pMaterial)
 {
-	if (!IS_VALID_PTR(m_pMaterials))
-		m_pMaterials = new SMaterial[1];			
-
-	*m_pMaterials = singleMat;
-
-	if (m_nMaterials == 0)
-		m_nMaterials = 1;
+	MaterialPtrList& materials = m_Renderable.GetMaterials();
+	if (materials.GetCount() == 0)
+		materials.Add(pMaterial);
+	else
+		materials.Set(0, pMaterial);	
 }
 
 // ----------------------------------------------------------------------------------------
 S_API SMaterial* StaticObject::GetSingleMaterial()
 {
-	if (!IS_VALID_PTR(m_pMaterials))
-		SetMaterial(SMaterial());
-
-	return m_pMaterials;
+	return m_Renderable.GetMaterials().Get(0);
 }
 
 
 // ----------------------------------------------------------------------------------------
+/*
 S_API SResult StaticObject::CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const
 {
 	if (!IS_VALID_PTR(m_pEngine))
@@ -133,11 +173,17 @@ S_API SResult StaticObject::CreateNormalsGeometry(IRenderableObject** pNormalGeo
 
 	return S_ERROR;
 }
+*/
 
 // ----------------------------------------------------------------------------------------
 S_API void StaticObject::RecalcBoundBox()
 {
-	m_Geometry.CalculateBoundBox(m_AABB);
+	IGeometry* pGeom = m_Renderable.GetGeometry();
+	
+	if (!IS_VALID_PTR(pGeom))
+		return;
+
+	pGeom->CalculateBoundBox(m_AABB);	
 }
 
 
@@ -146,8 +192,93 @@ S_API void StaticObject::RecalcBoundBox()
 
 
 // ----------------------------------------------------------------------------------------
+
 S_API SResult StaticObject::Render()
 {
+	SRenderSlot* pRenderSlot = m_Renderable.GetRenderSlot();
+	SRenderDesc* pRenderDesc = 0;
+
+	IRenderer* pRenderer = 0;
+	if (!IS_VALID_PTR(m_pEngine) || !IS_VALID_PTR((pRenderer = m_pEngine->GetRenderer())))
+		return EngLog(S_NOTINIT, m_pEngine, "Cannot Render Static Object: Engine or Renderer not set!");
+
+	// Add RenderScheduleSlot if not there already
+	if (m_Renderable.GetRenderSlot() == 0)
+	{
+		pRenderSlot = pRenderer->GetRenderSlot();
+		pRenderDesc = &pRenderSlot->renderDesc;
+
+		pRenderSlot->keep = true;
+		m_Renderable.SetRenderSlot(pRenderSlot);
+
+		pRenderDesc->renderPipeline = eRENDER_FORWARD;
+
+		// copy over subsets
+		pRenderDesc->nSubsets = m_Renderable.GetSubsetCount();			
+		pRenderDesc->pSubsets = new SRenderSubset[pRenderDesc->nSubsets];
+		for (unsigned int i = 0; i < pRenderDesc->nSubsets; ++i)
+		{
+			SRenderSubset& renderSubset = pRenderDesc->pSubsets[i];			
+			SGeomSubset* subset = m_Renderable.GetSubset(i);
+			if (!IS_VALID_PTR(subset))
+			{
+				renderSubset.render = false;
+				continue;
+			}
+
+			renderSubset.drawCallDesc.primitiveType = m_Renderable.GetGeometryPrimitiveType();
+
+			renderSubset.drawCallDesc.pVertexBuffer = m_Renderable.GetVertexBuffer();
+			renderSubset.drawCallDesc.pIndexBuffer = subset->pIndexBuffer;					
+
+			renderSubset.render = false;
+			if (renderSubset.drawCallDesc.primitiveType == PRIMITIVE_TYPE_LINES)
+			{
+				renderSubset.render = true;
+			}
+			else if (IS_VALID_PTR(renderSubset.drawCallDesc.pIndexBuffer))
+			{
+				renderSubset.render = true;
+				renderSubset.drawCallDesc.iStartIBIndex = 0;
+				renderSubset.drawCallDesc.iEndIBIndex = renderSubset.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
+			}
+
+			if (!IS_VALID_PTR(renderSubset.drawCallDesc.pVertexBuffer))
+			{
+				renderSubset.render = false;
+			}
+			else
+			{
+				renderSubset.drawCallDesc.iStartVBIndex = 0;
+				renderSubset.drawCallDesc.iEndVBIndex = renderSubset.drawCallDesc.pVertexBuffer->GetVertexCount() - 1;
+			}
+
+			// Material is copied over. Warning: Avoid modifying the material during rendering.
+			// TODO: To update a material, implement a method to flag a subset material to be updated,
+			// 	 then do it below when updating the transform.
+			if (subset->pMaterial)
+				renderSubset.material = *subset->pMaterial;
+			else
+				renderSubset.material = SMaterial();
+				//renderSubset.material = m_pEngine->GetResources()->GetDefaultMaterial();
+		}		
+	}
+	else
+	{
+		pRenderDesc = &pRenderSlot->renderDesc;
+	}
+
+	// set / update transformation
+	STransformationDesc& transformDesc = pRenderDesc->transform;
+	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
+	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
+	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);	
+
+
+
+
+
+	/*
 	IRenderer* pRenderer = m_Geometry.GetRenderer();
 	if (!IS_VALID_PTR(pRenderer))
 		return S_NOTINIT;
@@ -207,6 +338,7 @@ S_API SResult StaticObject::Render()
 			RETURN_ON_ERR(pRenderer->RenderGeometry(dsc));
 		}
 	}
+	*/
 
 	return S_SUCCESS;
 }

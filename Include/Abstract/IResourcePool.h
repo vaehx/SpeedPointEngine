@@ -20,6 +20,7 @@ struct S_API ITexture;
 enum S_API ETextureType;
 struct S_API IRenderer;
 struct S_API SColor;
+struct S_API SMaterial;
 
 // SpeedPoint Resource Pool (abstract)
 struct S_API IResourcePool
@@ -64,6 +65,20 @@ public:
 	// after Handle() returns.
 	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler) = 0;
 
+
+
+	// The pointer, this function returns gets never invalidated until RemoveMaterial is called.
+	// specifiction != name of material. The name of material is not used for indexing.
+	// Specification is case insensitive.
+	virtual SMaterial* AddNewMaterial(const SString& specification) = 0;
+
+	// The pointer, this function returns gets never invalidated until RemoveMaterial is called.
+	// specifiction != name of material. The name of material is not used for indexing.
+	// Specification is case insensitive.
+	virtual SMaterial* GetMaterial(const SString& specification) = 0;
+
+	// *pMat is set to 0 if removal succeeded
+	virtual void RemoveMaterial(SMaterial** pMat) = 0;
 };
 
 

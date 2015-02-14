@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the SpeedPointEngine
-// Copyright (c) 2011-2014, iSmokiieZz
+// Copyright (c) 2011-2015, iSmokiieZz
 // ------------------------------------------------------------------------------
 // Filename:	RawGeometrical.h
 // Created:	8/18/2014 by iSmokiieZz
@@ -24,7 +24,6 @@
 
 SP_NMSPACE_BEG
 
-
 // Summary:
 //	This is the raw geometry (without material)
 class S_API Geometry : public IGeometry
@@ -32,9 +31,9 @@ class S_API Geometry : public IGeometry
 protected:
 	IGameEngine* m_pEngine;
 	IRenderer* m_pRenderer;
-
-	unsigned short m_nIndexBuffers;
-	SGeometryIndexBuffer* m_pIndexBuffers;
+	
+	SGeomSubset* m_pSubsets;
+	unsigned short m_nSubsets;
 
 	IVertexBuffer* m_pVertexBuffer;
 
@@ -51,13 +50,20 @@ public:
 		return m_pRenderer;
 	}
 
-	virtual SGeometryIndexBuffer* GetIndexBuffers()
+	virtual SGeomSubset* GetSubsets()
 	{
-		return m_pIndexBuffers;
+		return m_pSubsets;
 	}
-	virtual unsigned short GetIndexBufferCount() const
+	virtual unsigned short GetSubsetCount() const
 	{
-		return m_nIndexBuffers;
+		return m_nSubsets;
+	}
+	virtual SGeomSubset* GetSubset(unsigned int index)
+	{
+		if (index <= m_nSubsets)
+			return &m_pSubsets[index];
+		else
+			return 0;
 	}
 	virtual IVertexBuffer* GetVertexBuffer()
 	{

@@ -377,12 +377,21 @@ namespace SpeedPoint
 	// TODO: Support varargs, How to access varargs???
 	inline static SpeedPoint::SResult EngLog(const SpeedPoint::SResult& r, SpeedPoint::IGameEngine* pEng, const char* fmt, ...)
 	{
-		if (!IS_VALID_PTR(pEng))
+		va_list args;
+
+		char pOut[1000];
+		va_start(args, fmt);		
+		vsprintf_s(pOut, fmt, args);
+		va_end(args);
+
+		if (IS_VALID_PTR(pEng))
+		{
+			return pEng->LogReport(r, pOut);
+		}
+		else
+		{
+			printf(pOut);
 			return r;
-
-		char pOut[300];
-		sprintf_s(pOut, fmt /*, varargs???? */);
-
-		return pEng->LogReport(r, pOut);		
+		}
 	}
 }

@@ -6,38 +6,70 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\IObject.h>
+#include <Abstract\Renderable.h>
 #include <Abstract\IOctree.h>
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
 #include "Geometry.h"
 #include <Abstract\Transformable.h>
 #include <Abstract\BoundBox.h>
+#include <vector>
 
 
 SP_NMSPACE_BEG
 
+using std::vector;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class S_API CStaticObjectRenderable : public IRenderableComponent
+{
+private:	
+	Geometry m_Geometry;
+	MaterialPtrList m_Materials;
+	SRenderSlot* m_pRenderSlot;
+
+public:
+	virtual ~CStaticObjectRenderable()
+	{
+		Clear();
+	}
+
+	virtual IGeometry* GetGeometry() { return (IGeometry*)&m_Geometry; };
+	virtual MaterialPtrList& GetMaterials() { return m_Materials; };
+	virtual unsigned int GetMaterialCount() const { return m_Materials.GetCount(); };
+
+	virtual void Clear()
+	{
+		m_Geometry.Clear();
+		m_Materials.Clear();
+	}
+
+	virtual SRenderSlot* GetRenderSlot() { return m_pRenderSlot; }
+	virtual void SetRenderSlot(SRenderSlot* pSlot) { m_pRenderSlot = pSlot; }
+
+	virtual IVertexBuffer* GetVertexBuffer();
+	virtual SGeomSubset* GetSubset(unsigned int i);
+	virtual unsigned int GetSubsetCount() const;
+	virtual EPrimitiveType GetGeometryPrimitiveType() const;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // SpeedPoint Solid implementation
 class S_API StaticObject : public IStaticObject
 {
 private:
 	IGameEngine* m_pEngine;
-
-	Geometry m_Geometry;	
-	
-	unsigned short m_nMaterials;
-	SMaterial* m_pMaterials;
-
-	AABB m_AABB;
-
+	CStaticObjectRenderable m_Renderable;
 
 public:			
 
 	StaticObject();
 	virtual ~StaticObject();
 	
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, const SInitialMaterials* pInitialMaterials = nullptr, SInitialGeometryDesc* pInitialGeom = nullptr);
+	virtual SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr, MaterialPtrList* pInitialMaterials = nullptr);
 
 	virtual EObjectType GetType() const
 	{
@@ -46,32 +78,28 @@ public:
 
 	virtual IGeometry* GetGeometry()
 	{
-		return &m_Geometry;
+		return m_Renderable.GetGeometry();
 	}
-	virtual SMaterial* GetMaterials()
+	virtual MaterialPtrList& GetMaterials()
 	{
-		return m_pMaterials;
+		return m_Renderable.GetMaterials();
 	}	
-	virtual unsigned short GetMaterialCount() const
+	virtual unsigned int GetMaterialCount() const
 	{
-		return m_nMaterials;
+		return m_Renderable.GetMaterialCount();
 	}
-
-	virtual void SetMaterial(const SMaterial& singleMat);
+	
+	virtual void SetSingleMaterial(SMaterial* pMaterial);
 	virtual SMaterial* GetSingleMaterial();
 
-	virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;	
+	//virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;	
 
 	virtual SResult Render();
 	virtual void Clear();
 
 	// from IObject:
 public:
-	virtual void RecalcBoundBox();
-	ILINE virtual const AABB& GetBoundBox() const
-	{
-		return m_AABB;
-	}
+	virtual void RecalcBoundBox();	
 
 
 /*	virtual SResult SetGeometryData( SVertex* pVertices, UINT nVertices, SIndex* pdwIndices, UINT nIndices );

@@ -108,6 +108,30 @@ void File3DS::ReadFloat(float& f)
 }
 
 // -----------------------------------------------------------------------------------------------------
+void File3DS::ReadPercentage(float& f)
+{
+	unsigned short percentageChnkId;
+	unsigned long percentageChnkSz;
+	ReadUShort(percentageChnkId);
+	ReadULong(percentageChnkSz);
+
+	switch (percentageChnkId)
+	{
+	case CHNK3DS_INT_PERCENTAGE:
+		unsigned short perc;
+		ReadUShort(perc);
+		f = (float)perc;
+		break;
+	case CHNK3DS_FLOAT_PERCENTAGE:
+		ReadFloat(f);
+		break;
+	default:
+		DbgMsg("Error: Unknown percentage chunk (0x%04X)!");
+		file.seekg(percentageChnkSz - sizeof(unsigned short) - sizeof(unsigned long), std::ifstream::cur);
+	}
+}
+
+// -----------------------------------------------------------------------------------------------------
 void File3DS::ReadVector(float& x, float& y, float& z)
 {
 	ReadFloat(x);
@@ -155,8 +179,41 @@ void File3DS::ReadDummyChunk()
 	if (curChnk.byte_pos == 0 || curChnk.byte_size == 0)
 		return;
 
-	file.seekg(curChnk.byte_size - CHUNK_HEADER_SIZE, std::ifstream::cur);
+	//file.seekg(curChnk.byte_size - CHUNK_HEADER_SIZE, std::ifstream::cur);
+	char* skippedBytes = new char[(curChnk.byte_size - CHUNK_HEADER_SIZE) * 3 + 1];
+	ZeroMemory(skippedBytes, (curChnk.byte_size - CHUNK_HEADER_SIZE) * 3 + 1);
+	for (unsigned long i = 0; i < curChnk.byte_size - CHUNK_HEADER_SIZE; ++i)
+	{
+		unsigned char byte;
+		file.read((char*)&byte, 1);
+		char byteStr[100];
+		ZeroMemory(byteStr, 100);
+		sprintf_s(byteStr, "%02X ", byte);
+		memcpy(skippedBytes + (i * 3), byteStr, 3);
+	}
+	//DbgMsg("Skipped Bytes: %s", skippedBytes);
+	delete[] skippedBytes;
 	//DbgMsg("Skipped %d bytes, now at %d", curChnk.byte_size - CHUNK_HEADER_SIZE, (unsigned int)file.tellg());
+}
+
+// ===========================================================================================================================
+// ===========================================================================================================================
+void File3DS::ReadMeshMaterial(S3DSNamedObject& obj)
+{
+	obj.meshMaterials.push_back(S3DSMeshMaterial());
+	S3DSMeshMaterial& meshMat = obj.meshMaterials.back();
+	ReadStringToFirstZero(&meshMat.name);
+	ReadUShort(meshMat.nAffectedFaces);
+	if (meshMat.nAffectedFaces == 0)
+	{
+		DbgMsg("Warning: Found material that does not affect any face in this trimesh!");
+		return;
+	}
+	meshMat.pAffectedFaces = new unsigned short[meshMat.nAffectedFaces];
+	for (unsigned short iAffectedFace = 0; iAffectedFace < meshMat.nAffectedFaces; ++iAffectedFace)
+		ReadUShort(meshMat.pAffectedFaces[iAffectedFace]);
+
+	DbgMsg("CHNK3DS_MESH_MATERIAL #%d: %d faces are affected by material '%s'", obj.meshMaterials.size(), meshMat.nAffectedFaces, meshMat.name);
 }
 
 
@@ -187,7 +244,7 @@ void File3DS::ReadTriangledObjectChunk(S3DSNamedObject& obj)
 				ReadFloat(obj.pVertices[iVtx].y);
 				ReadFloat(obj.pVertices[iVtx].z);
 			}
-			DbgMsg("CHNK3DS_POINT_ARRAY: Read %d vertices", obj.nVertices);
+			DbgMsg("CHNK3DS_POINT_ARRAY (sz=%u): Read %d vertices", curChnk.byte_size, obj.nVertices);
 			break;
 
 		case CHNK3DS_FACE_ARRAY:
@@ -207,25 +264,37 @@ void File3DS::ReadTriangledObjectChunk(S3DSNamedObject& obj)
 				ReadUShort(obj.pFaces[iFace].v3);
 				ReadUShort(obj.pFaces[iFace].flag);
 			}
-			DbgMsg("CHNK3DS_FACE_ARRAY: Read %d faces", obj.nFaces);
+			DbgMsg("CHNK3DS_FACE_ARRAY (sz=%u): Read %d faces", curChnk.byte_size, obj.nFaces);
 			break;
+
+		case CHNK3DS_UV_ARRAY:
+		{
+			unsigned short nTexCoords;
+			ReadUShort(nTexCoords);
+
+			if (nTexCoords == 0)
+			{
+				DbgMsg("Empty Texcoord chunk!");
+				break;
+			}
+
+			if (obj.nVertices < nTexCoords)
+				DbgMsg("Warning: There are %u TexCoords, but only %u vertices!", nTexCoords, obj.nVertices);
+			else if (obj.nVertices > nTexCoords)
+				DbgMsg("Warning: There are %u vertices, but only %u TexCoords!", obj.nVertices, nTexCoords);
+
+			for (unsigned short i = 0; i < nTexCoords && i < obj.nVertices; ++i)
+			{
+				ReadFloat(obj.pVertices[i].u);
+				ReadFloat(obj.pVertices[i].v);
+			}
+			DbgMsg("CHUNK3DS_UV_ARRAY (sz=%u): Read %u TexCoords!", curChnk.byte_size, nTexCoords);
+			break;
+		}
 
 		case CHNK3DS_MESH_MATERIAL:
 		{
-			obj.meshMaterials.push_back(S3DSMeshMaterial());
-			S3DSMeshMaterial& meshMat = obj.meshMaterials.back();
-			ReadStringToFirstZero(&meshMat.name);
-			ReadUShort(meshMat.nAffectedFaces);
-			if (meshMat.nAffectedFaces == 0)
-			{
-				DbgMsg("Warning: Found material that does not affect any face in this trimesh!");
-				break;
-			}
-			meshMat.pAffectedFaces = new unsigned short[meshMat.nAffectedFaces];
-			for (unsigned short iAffectedFace = 0; iAffectedFace < meshMat.nAffectedFaces; ++iAffectedFace)
-				ReadUShort(meshMat.pAffectedFaces[iAffectedFace]);
-
-			DbgMsg("CHNK3DS_MESH_MATERIAL #%d: %d faces are affected by material '%s'", obj.meshMaterials.size(), meshMat.nAffectedFaces, meshMat.name);
+			ReadMeshMaterial(obj);
 			break;
 		}
 
@@ -295,6 +364,10 @@ void File3DS::ReadNamedObjectChunk(S3DSNamedObject& obj)
 			DbgMsg("Reading CHNK3DS_N_TRI_OBJECT (0x%04X), sz=%d, payload=%d:",
 				curChnk.id, curChnk.byte_size, curChnk.byte_size - CHUNK_HEADER_SIZE);
 			ReadTriangledObjectChunk(obj);
+			break;
+		case CHNK3DS_MESH_MATERIAL:
+			DbgMsg("Reading CHNK3DS_MESH_MATERIAL in CHNK3DS_NAMED_OBJECT Chunk! (compatibility fix!)");
+			ReadMeshMaterial(obj);
 			break;
 		default:
 			DbgMsg("Found chunk 0x%04X, sz=%d, payload=%d",
@@ -402,6 +475,40 @@ void File3DS::ReadMaterialChunk(S3DSMaterial& mat)
 			DbgMsg("material.specular = (%d, %d, %d)",
 				(unsigned int)(mat.specular.r * 256.0f), (unsigned int)(mat.specular.g * 256.0f), (unsigned int)(mat.specular.b * 256.0f));
 			break;
+		case CHNK3DS_MAT_SHININESS:
+			ReadPercentage(mat.shininess);
+			DbgMsg("material.shininess = %f", mat.shininess);
+			break;
+		case CHNK3DS_MAT_SHIN2PCT:
+			ReadPercentage(mat.shine_strength);
+			DbgMsg("material.shinestrength = %f", mat.shine_strength);
+			break;
+		case CHNK3DS_MAT_TRANSPARENCY:
+			ReadPercentage(mat.transparency);
+			DbgMsg("material.transparency = %f", mat.transparency);
+			break;
+		case CHNK3DS_MAT_XPFALL:
+			ReadPercentage(mat.xpfall);
+			DbgMsg("material.xpfall = %f", mat.xpfall);
+			break;
+		case CHNK3DS_MAT_REFBLUR:
+			ReadPercentage(mat.refblur);
+			DbgMsg("material.refblur = %f", mat.refblur);
+			break;
+		case CHNK3DS_MAT_SHADING:
+			ReadUShort(mat.shading);
+			DbgMsg("material.shading = %u", mat.shading);
+			break;
+		case CHNK3DS_MAT_SELF_ILPCT:
+			ReadPercentage(mat.self_illum);
+			DbgMsg("material.self_illum = %f", mat.self_illum);
+			break;
+		case CHNK3DS_MAT_XPFALLIN: DbgMsg("xpfallin"); break;
+		case CHNK3DS_MAT_WIRE_SIZE:
+			float wire_size;
+			ReadFloat(wire_size);
+			DbgMsg("wire_size = %f", wire_size);
+			break;
 		case CHNK3DS_MAT_TEXMAP:
 			DbgMsg("Reading CHNK3DS_MAT_TEXMAP (0x%04X), sz=%d, payload=%d:",
 				curChnk.id, curChnk.byte_size, curChnk.byte_size - CHUNK_HEADER_SIZE);
@@ -411,6 +518,12 @@ void File3DS::ReadMaterialChunk(S3DSMaterial& mat)
 			DbgMsg("Reading CHNK3DS_MAT_BUMPMAP (0x%04X), sz=%d, payload=%d:",
 				curChnk.id, curChnk.byte_size, curChnk.byte_size - CHUNK_HEADER_SIZE);
 			ReadMaterialMapChunk(mat.bumpmap);
+			break;
+		case CHNK3DS_LIN_COLOR_24:
+			char channels[3]; 
+			file.read(channels, 3);
+			DbgMsg("Read CHNK3DS_LIN_COLOR24: (%d, %d, %d)",
+				(unsigned char)channels[0], (unsigned char)channels[1], (unsigned char)channels[2]);
 			break;
 		default:
 			DbgMsg("Found chunk 0x%04X, sz=%d, payload=%d",
@@ -455,6 +568,19 @@ void File3DS::ReadEditChunk()
 			DbgMsg("Reading CHNK3DS_NAMED_OBJECT (0x%04X), sz=%d, payload=%d:",
 				curChnk.id, curChnk.byte_size, curChnk.byte_size - CHUNK_HEADER_SIZE);
 			ReadNamedObjectChunk(objects.back());
+			break;
+		}
+		case CHNK3DS_MESH_VERSION:
+		{
+			ReadULong(mesh_version);
+			DbgMsg("Reading CHNK3DS_MESH_VERSION (0x%04X), sz=%u: mesh_version=%u",
+				curChnk.id, curChnk.byte_size, mesh_version);
+			break;
+		}
+		case CHNK3DS_MASTER_SCALE:
+		{
+			ReadFloat(master_scale);
+			DbgMsg("master_scale = %f", master_scale);
 			break;
 		}
 		default:

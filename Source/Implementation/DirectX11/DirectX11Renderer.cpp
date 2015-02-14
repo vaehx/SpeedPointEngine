@@ -3,7 +3,7 @@
 //	This file is part of the SpeedPoint Game Engine
 //
 //	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	(c) 2011-2015, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,11 +69,10 @@ m_pD3DDevice(0),
 m_pD3DDeviceContext(0),
 //m_pRenderPipeline(0),
 m_pAutoSelectedAdapter(0),
-m_pTargetFBO(0),
 m_pTargetViewport(0),
 m_pDXGIFactory(0),
-m_pRenderTargetCollections(0),
-m_iCurRTCollection(eRENDERTARGETS_NONE),
+m_pDSV(0),
+m_nRenderTargets(0),
 m_pDepthStencilState(0),
 m_pPerSceneCB(nullptr),
 m_pPerObjectCB(nullptr),
@@ -82,7 +81,7 @@ m_bInScene(false),
 m_bDumpFrame(false),
 m_bPerObjectCBBound(false),
 m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
-{
+{	
 };
 
 // --------------------------------------------------------------------
@@ -510,8 +509,8 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 
 	// initialize the render target collections
 	// WARNING: Needs to be done before initialization of the render pipeline, beacuse the sections
-	// might add FBO collections in order to initialize!
-	m_pRenderTargetCollections = new map<ERenderTargetCollectionID, SRenderTargetCollection>();	
+	// might add FBO collections in order to initialize!	
+	ZeroMemory(m_pRenderTargets, sizeof(DirectX11FBO*) * MAX_BOUND_RTS);
 
 	if (Failure(SetTargetViewport((IViewport*)&m_Viewport)))
 	{
@@ -589,14 +588,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	m_pResourcePool = nullptr;
 
 	SP_SAFE_RELEASE(m_pDXGIFactory);
-	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);
-	
-	if (m_pRenderTargetCollections)
-	{
-		m_pRenderTargetCollections->clear();
-		delete m_pRenderTargetCollections;
-	}
-	m_pRenderTargetCollections = nullptr;
+	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);	
 
 	m_TerrainEffect.Clear();
 	m_ForwardEffect.Clear();	
@@ -631,6 +623,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 }
 
 // --------------------------------------------------------------------
+/*
 S_API SResult DirectX11Renderer::AddRTCollectionFBO(usint32 index, IFBO* pFBO)
 {
 	SP_ASSERTR(m_pD3DDevice && m_pRenderTargetCollections && m_CurrentRenderTargetCollection.pvRenderTargets, S_NOTINIT);
@@ -649,8 +642,9 @@ S_API SResult DirectX11Renderer::AddRTCollectionFBO(usint32 index, IFBO* pFBO)
 
 	return S_SUCCESS;
 }
-
+*/
 // --------------------------------------------------------------------
+/*
 S_API SResult DirectX11Renderer::StoreRTCollection(ERenderTargetCollectionID asId)
 {
 	SP_ASSERTR(m_pRenderTargetCollections, S_NOTINIT);
@@ -665,77 +659,113 @@ S_API SResult DirectX11Renderer::StoreRTCollection(ERenderTargetCollectionID asI
 
 	return S_SUCCESS;
 }
+*/
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindRTCollection(ERenderTargetCollectionID collectionID)
+S_API SResult DirectX11Renderer::BindRTCollection(std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name /*= 0*/)
 {
-	SP_ASSERTR(m_pD3DDevice && m_pRenderTargetCollections && m_CurrentRenderTargetCollection.pvRenderTargets, S_NOTINIT);
+	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
 
-	// retrive the collection
-	auto itCollection = m_pRenderTargetCollections->find(collectionID);		
-	SP_ASSERTR(itCollection != m_pRenderTargetCollections->end(), S_NOTFOUND);
+	if (fboCollection.size() == 0)
+		return S_INVALIDPARAM;
 
-	// get the render targets
-	vector<SRenderTarget>* pvRenderTargets = itCollection->second.pvRenderTargets;
-	if (!pvRenderTargets) return S_ERROR;
-
-	usint32 nRenderTargets = pvRenderTargets->size();
-
-	m_pTargetFBO = 0; // as there are multiples
-
-	if (nRenderTargets > 0)
+	// check depth fbo and get DSV
+	ID3D11DepthStencilView* pDSV = 0;
+	if (IS_VALID_PTR(depthFBO))
 	{
-		// transform to an array
-		ID3D11RenderTargetView** pRenderTargets = new ID3D11RenderTargetView*[nRenderTargets];
-		usint32 nAddedRenderTargets = 0;						
-		for (auto itRenderTarget = pvRenderTargets->begin(); itRenderTarget != pvRenderTargets->end(); ++itRenderTarget)
-		{
-			if (!itRenderTarget->pFBO->IsInitialized())
-				continue;
-
-			DirectX11FBO* pDXFBO = (DirectX11FBO*)itRenderTarget->pFBO;
-			pRenderTargets[nAddedRenderTargets] = pDXFBO->GetRTV();				
-			++nAddedRenderTargets;
-		}
-
-		// Note: We do not yet use a DSV here. TODO: Allow specifying a DSV for a RT Collection
-		m_pD3DDeviceContext->OMSetRenderTargets(nAddedRenderTargets, pRenderTargets, 0);
-		m_iCurRTCollection = collectionID;
+		DirectX11FBO* pDXDepthFBO = dynamic_cast<DirectX11FBO*>(depthFBO);
+		if (IS_VALID_PTR(pDXDepthFBO))	
+			pDSV = pDXDepthFBO->GetDSV();
 	}	
-	else
-	{
-		// Reset all targets. Will lead into an error!
-		m_pD3DDeviceContext->OMSetRenderTargets(0, 0, 0);			
-		m_iCurRTCollection = eRENDERTARGETS_NONE;
 
-		m_pEngine->LogW("Render Target Collection to bind was empty. Resetting all Render Targets! Might lead into several Renderer Errors!");
+	// Bind all FBOs
+	ID3D11RenderTargetView** pRTVs = new ID3D11RenderTargetView*[fboCollection.size()];
+	ZeroMemory(pRTVs, sizeof(ID3D11RenderTargetView*) * fboCollection.size());
+	unsigned int nRTVCounter = 0;
+	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); itFBO++)
+	{
+		DirectX11FBO* pDXFBO = dynamic_cast<DirectX11FBO*>(*itFBO);
+		if (!IS_VALID_PTR(pDXFBO))
+			continue;
+
+		m_pRenderTargets[nRTVCounter] = pDXFBO;
+
+		pRTVs[itFBO - fboCollection.begin()] = pDXFBO->GetRTV();
+		nRTVCounter++;
 	}
+
+	m_nRenderTargets = nRTVCounter;
+
+	// Bind the rtvs
+	m_pD3DDeviceContext->OMSetRenderTargets(nRTVCounter, pRTVs, pDSV);
+	m_pDSV = pDSV;
+
+	FrameDump("Bound RT Collection " + SString(dump_name ? dump_name : "") + " (" + SString::FromInteger(nRTVCounter) + " RTs)!");
 
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindSingleFBO(IFBO* pFBO)
+S_API SResult DirectX11Renderer::BindSingleRT(IFBO* pFBO)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(pFBO, S_INVALIDPARAM);
+	SP_ASSERTR(IS_VALID_PTR(pFBO), S_INVALIDPARAM);	
 
+	/*
 	SetViewportMatrices(m_pTargetViewport);
 	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+	*/
 
 	// check if already bound
-	if (m_pTargetFBO == pFBO)
+	if (!BoundMultipleRTs() && GetBoundSingleRT() == pFBO)
 		return S_SUCCESS;
 
 	DirectX11FBO* pSPDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);
-	ID3D11RenderTargetView* pDXFBO = pSPDXFBO->GetRTV();
+	if (!IS_VALID_PTR(pSPDXFBO))
+		return S_INVALIDPARAM;
 
-	m_pD3DDeviceContext->OMSetRenderTargets(1, &pDXFBO, pSPDXFBO->GetDSV());
+	if (BoundMultipleRTs())
+	{
+		for (unsigned int i = 0; i < m_nRenderTargets; ++i)
+			m_pRenderTargets[i] = 0;
+	}
 
-	m_pTargetFBO = pSPDXFBO;	
-	m_iCurRTCollection = eRENDERTARGETS_NONE; // single FBO bound	
+	m_nRenderTargets = 1;
+	m_pRenderTargets[0] = pSPDXFBO;
+
+	ID3D11RenderTargetView* pRTV = pSPDXFBO->GetRTV();
+	ID3D11DepthStencilView* pDSV = pSPDXFBO->GetDSV();
+
+	m_pD3DDeviceContext->OMSetRenderTargets(1, &pRTV, pDSV);
+	m_pDSV = pDSV;
 
 	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::BindSingleRT(IViewport* pViewport)
+{
+	IFBO* pBackBuffer = 0;
+	SP_ASSERTR(pViewport && (pBackBuffer = pViewport->GetBackBuffer()), S_INVALIDPARAM);
+	SP_ASSERTR(m_pD3DDevice && m_pEngine && m_pD3DDeviceContext, S_NOTINIT);
+
+	if (!pBackBuffer->IsInitialized())
+		return S_INVALIDPARAM;
+
+	// updates View matrices using target buffer matrices
+	if (Failure(BindSingleRT(pBackBuffer)))
+		return S_ERROR;
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API IFBO* DirectX11Renderer::GetBoundSingleRT()
+{
+	if (BoundMultipleRTs())
+		FrameDump("Warning: Tried query Bound Single RT, but multiple RTs bound!");
+
+	return (IFBO*)m_pRenderTargets[0];
 }
 
 // --------------------------------------------------------------------
@@ -873,12 +903,13 @@ S_API SResult DirectX11Renderer::BeginScene(void)
 
 
 // --------------------------------------------------------------------
+/*
 S_API SResult DirectX11Renderer::RenderGeometry(const SRenderDesc& dsc)
 {
 	if (!m_bInScene)
 		return S_INVALIDSTAGE;	
 
-	SRenderScheduleSlot* pSlot = m_RenderSchedule.Get();
+	SRenderSlot* pSlot = m_RenderSchedule.Get();
 	pSlot->keep = false;
 	pSlot->renderDesc = dsc;	
 
@@ -887,8 +918,10 @@ S_API SResult DirectX11Renderer::RenderGeometry(const SRenderDesc& dsc)
 
 	return S_SUCCESS;
 }
+*/
 
 // --------------------------------------------------------------------
+/*
 S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& tdsc)
 {
 	if (!m_bInScene)
@@ -899,9 +932,10 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& tdsc)
 
 	return S_SUCCESS;
 }
+*/
 
 // --------------------------------------------------------------------
-S_API SRenderScheduleSlot* DirectX11Renderer::GetRenderScheduleSlot()
+S_API SRenderSlot* DirectX11Renderer::GetRenderSlot()
 {
 	if (!m_bInScene)
 		return 0;
@@ -910,7 +944,7 @@ S_API SRenderScheduleSlot* DirectX11Renderer::GetRenderScheduleSlot()
 }
 
 // --------------------------------------------------------------------
-S_API void DirectX11Renderer::ReleaseRenderScheduleSlot(SRenderScheduleSlot** pSlot)
+S_API void DirectX11Renderer::ReleaseRenderSlot(SRenderSlot** pSlot)
 {
 	m_RenderSchedule.Release(pSlot);
 }
@@ -933,7 +967,7 @@ S_API SResult DirectX11Renderer::EndScene(void)
 	RETURN_ON_ERR(PresentTargetViewport());
 
 	m_Settings.SetClearColor(SColor(.0f, 0.05f, .0f));
-	RETURN_ON_ERR(BindSingleFBO(m_pTargetViewport));
+	RETURN_ON_ERR(BindSingleRT(m_pTargetViewport));
 	RETURN_ON_ERR(ClearBoundRTs());
 	
 	m_bDumpFrame = false;
@@ -964,8 +998,8 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		return S_INVALIDSTAGE;
 	}
 
-	ERenderPipelineTechnique previousTechnique = eRENDER_FORWARD;
-	RETURN_ON_ERR(BindSingleFBO(m_pTargetViewport));
+	//ERenderPipeline previousTechnique = eRENDER_FORWARD;
+	//RETURN_ON_ERR(BindSingleRT(m_pTargetViewport));
 
 
 
@@ -980,6 +1014,9 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	{
 		bool bTerrainRenderState = true;	// true = success
 		FrameDump("Rendering Terrain...");
+
+		// Render terrain directly to backbuffer
+		BindSingleRT(m_pTargetViewport);
 
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMap))) m_pEngine->LogE("Invalid detail map in Terrain render Desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
@@ -1025,18 +1062,38 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	unsigned int iRSIterator = 0;
 	for (unsigned int iSlot = 0; iSlot < m_RenderSchedule.GetUsedObjectCount(); ++iSlot)
 	{
-		SRenderScheduleSlot* pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
-		SRenderDesc* pDesc = &pSlot->renderDesc;
+		SRenderSlot* pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
+		
+		if (pSlot == 0)
+			break; // End of Schedule reached
 
-		if (pDesc->technique == eRENDER_FORWARD)
-		{
-			if (previousTechnique != eRENDER_FORWARD)
-			{
-				FrameDump("Rebind Target Viewport for Forward rendering (previously bound deferred RTs)");
-				if (Failure(BindSingleFBO(m_pTargetViewport)))
-					return S_ERROR;
-			}
+		SRenderDesc* pDesc = &pSlot->renderDesc;		
 
+		// Skip render slot without subsets
+		if (pDesc->nSubsets == 0 || !IS_VALID_PTR(pDesc->pSubsets))
+			continue;		
+
+
+		if (pDesc->renderPipeline == eRENDER_FORWARD)
+		{			
+			// Forward rendering: Rendering directly to backbuffer
+			if (Failure(BindSingleRT(m_pTargetViewport)))
+				return S_ERROR;
+
+			
+			// Set the viewport matrices
+			SetViewportMatrices(m_pTargetViewport);
+			UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
+
+			// Set the transformation matrices
+			SetWorldMatrix(pDesc->transform);
+			if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
+				return S_ERROR;
+
+
+			// Make sure to bind the Object CB, which is not bound if
+			// terrain has been rendered before.
 			if (!m_bPerObjectCBBound)
 			{
 				m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pPerObjectCB);
@@ -1044,28 +1101,21 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 				m_bPerObjectCBBound = true;
 			}
 
-			// Render single forward pass directly to backbuffer						
-			if (IS_VALID_PTR(pDesc->material.textureMap))
-				BindTexture(pDesc->material.textureMap, 0);
-			else
-				BindTexture((ITexture*)&m_DummyTexture, 0);
-
-			
-			if (IS_VALID_PTR(pDesc->material.normalMap))
-				BindTexture(pDesc->material.normalMap, 1);
-			else
-				BindTexture((ITexture*)&m_DummyNormalMap, 1);
 
 
-			DrawForward(pDesc->drawCallDesc);
+			// NOW RENDER THE SUBSETS
+			DrawForwardSubsets(*pDesc);
+
+
 		}
-		else if (pDesc->technique == eRENDER_DEFERRED)
+		else if (pDesc->renderPipeline == eRENDER_DEFERRED)
 		{
 			// first, render to gbuffer here. after the loop we'll then render lights and merge into backbuffer
-
 			// TODO
 		}		
 
+
+		// Remove RenderSlot item if it should not be kept anymore
 		if (!pSlot->keep)
 		{
 			m_RenderSchedule.Release(&pSlot);
@@ -1077,6 +1127,29 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	return S_SUCCESS;
 }
 
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDesc)
+{
+	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
+	{
+		SRenderSubset& subset = renderDesc.pSubsets[iSubset];
+	
+		if (!subset.render)
+			continue;
+
+		// Set material
+		ITexture* pTextureMap = IS_VALID_PTR(subset.material.textureMap) ? subset.material.textureMap : (ITexture*)&m_DummyTexture;
+		ITexture* pNormalMap = IS_VALID_PTR(subset.material.normalMap) ? subset.material.normalMap : (ITexture*)&m_DummyNormalMap;
+		
+		BindTexture(pTextureMap, 0);
+		BindTexture(pNormalMap, 1);
+
+
+		DrawForward(subset.drawCallDesc);
+	}
+
+	return S_SUCCESS;
+}
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
@@ -1084,11 +1157,6 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 	// bind vertex data stream
 	if (Failure(SetVBStream(desc.pVertexBuffer)))
 		return S_ERROR;	
-	
-	SetWorldMatrix(desc.transform);
-	if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
-		return S_ERROR;
-
 
 	// Make sure the correct primitive type is set, but don't change too often
 	if (desc.primitiveType == PRIMITIVE_TYPE_LINES)
@@ -1209,54 +1277,22 @@ S_API SResult DirectX11Renderer::ClearBoundRTs(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
-	if (m_iCurRTCollection != eRENDERTARGETS_NONE) // an RT collection is bound
+	// Clear RTs
+	for (unsigned int i = 0; i < m_nRenderTargets; ++i)
 	{
-		// go through all render targets in the current collection
-		auto itCollection = m_pRenderTargetCollections->find(m_iCurRTCollection);
-		if (itCollection == m_pRenderTargetCollections->end() || !itCollection->second.pvRenderTargets)
-			return S_ERROR;
+		if (!IS_VALID_PTR(m_pRenderTargets[i]))
+			continue;
 
-		ID3D11RenderTargetView* pDXRTV;
-		ID3D11DepthStencilView*	pDXDSV;
-		for (auto itRT = itCollection->second.pvRenderTargets->begin(); itRT != itCollection->second.pvRenderTargets->end(); ++itRT)
-		{
-			if (!itRT->pFBO)
-				continue;
+		ID3D11RenderTargetView* pRTV = m_pRenderTargets[i]->GetRTV();
+		if (!IS_VALID_PTR(pRTV))
+			continue;
 
-			pDXRTV = ((DirectX11FBO*)itRT->pFBO)->GetRTV();
-			if (pDXRTV)				
-				m_pD3DDeviceContext->ClearRenderTargetView(pDXRTV, m_Settings.GetClearColorFloatArr());			
-
-			pDXDSV = ((DirectX11FBO*)itRT->pFBO)->GetDSV();
-			if (pDXDSV)
-				m_pD3DDeviceContext->ClearDepthStencilView(pDXDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-		}
-	}
-	else
-	{
-		if (m_pTargetFBO)
-		{
-			m_pD3DDeviceContext->ClearRenderTargetView(m_pTargetFBO->GetRTV(), m_Settings.GetClearColorFloatArr());						
-			m_pD3DDeviceContext->ClearDepthStencilView(m_pTargetFBO->GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-		}
+		m_pD3DDeviceContext->ClearRenderTargetView(pRTV, m_Settings.GetClearColorFloatArr());
 	}
 
-	return S_SUCCESS;
-}
-
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindSingleFBO(IViewport* pViewport)
-{	
-	IFBO* pBackBuffer = 0;
-	SP_ASSERTR(pViewport && (pBackBuffer = pViewport->GetBackBuffer()), S_INVALIDPARAM);
-	SP_ASSERTR(m_pD3DDevice && m_pEngine && m_pD3DDeviceContext, S_NOTINIT);
-
-	if (!pBackBuffer->IsInitialized())
-		return S_INVALIDPARAM;		
-
-	// updates View matrices using target buffer matrices
-	if (Failure(BindSingleFBO(pBackBuffer)))
-		return S_ERROR;	
+	// Clear Depth Buffer
+	if (IS_VALID_PTR(m_pDSV))
+		m_pD3DDeviceContext->ClearDepthStencilView(m_pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);	
 
 	return S_SUCCESS;
 }
@@ -1465,7 +1501,8 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(const SMatrix& mtxView, con
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformationDesc& transform)
 {
-	m_PerObjectCB.mtxTransform = SMatrixTranspose(transform.BuildTRS());
+	//m_PerObjectCB.mtxTransform = SMatrixTranspose(transform.BuildTRS());
+	m_PerObjectCB.mtxTransform = transform.BuildTRS();
 	return S_SUCCESS;
 }
 

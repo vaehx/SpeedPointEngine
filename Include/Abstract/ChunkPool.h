@@ -359,9 +359,12 @@ public:
 	ILINE SResult Delete(T** t)
 	{
 		SP_ASSERTR(IS_VALID_PTR(t), S_INVALIDPARAM);
+		if (!IS_VALID_PTR(t) || !IS_VALID_PTR(*t))
+			return S_ERROR; // not found
 
 		unsigned int iTChunk = GetPtrChunk(*t);
-		SP_ASSERTR(iTChunk < nChunks, S_ERROR);
+		if (iTChunk < nChunks)
+			return S_ERROR; // not found		
 
 		Chunk* pChnk = pChunks[iTChunk];
 		for (unsigned int iSlot = 0; iSlot < pChnk->nSlots; ++iSlot)

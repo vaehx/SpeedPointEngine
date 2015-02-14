@@ -73,6 +73,34 @@ struct S_API SMaterialIndices
 		nFilledIdxIndices = 0;
 		pMaterial = 0;
 	}
+
+	SMaterialIndices(const SMaterialIndices& mi)		
+	{
+		CopyFrom(mi);		
+	}
+
+	SMaterialIndices& operator = (const SMaterialIndices& mi)
+	{
+		CopyFrom(mi);
+		return *this;
+	}
+
+	void CopyFrom(const SMaterialIndices& mi)
+	{
+		nIdxIndices = mi.nIdxIndices;
+		nFilledIdxIndices = mi.nFilledIdxIndices;
+		pMaterial = mi.pMaterial;
+
+		if (IS_VALID_PTR(mi.materialName))
+			sp_strcpy(&materialName, mi.materialName);
+
+		pIdxIndices = 0;
+		if (IS_VALID_PTR(mi.pIdxIndices) && nIdxIndices > 0)
+		{
+			pIdxIndices = new unsigned long[nIdxIndices];
+			memcpy(pIdxIndices, mi.pIdxIndices, nIdxIndices);
+		}
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -194,12 +222,19 @@ struct S_API STransformationDesc
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-// Summary:
-//	Binds an Index Buffer to a specific material
-struct S_API SGeometryIndexBuffer
+// Subset of a geometry
+struct S_API SGeomSubset
 {
-	IIndexBuffer* pIndexBuffer;
+	unsigned long indexOffset;
+	IIndexBuffer* pIndexBuffer;	
 	SMaterial* pMaterial;
+
+	SGeomSubset()
+		: indexOffset(0),
+		pIndexBuffer(0),
+		pMaterial(0)
+	{
+	}	
 };
 
 
@@ -214,8 +249,12 @@ struct S_API IGeometry : public IShutdownHandler
 	
 	virtual IRenderer* GetRenderer() = 0;
 
-	virtual SGeometryIndexBuffer* GetIndexBuffers() = 0;
-	virtual unsigned short GetIndexBufferCount() const = 0;
+	virtual SGeomSubset* GetSubsets() = 0;	
+	virtual unsigned short GetSubsetCount() const = 0;
+
+	// Returns 0 if not found
+	virtual SGeomSubset* GetSubset(unsigned int index) = 0;
+
 	virtual IVertexBuffer* GetVertexBuffer() = 0;	
 
 	virtual SVertex* GetVertex(unsigned long index) = 0;
@@ -226,7 +265,7 @@ struct S_API IGeometry : public IShutdownHandler
 	virtual unsigned long GetVertexCount() const = 0;
 	virtual unsigned long GetIndexCount() const = 0;
 
-	virtual EPrimitiveType GetPrimitiveType() const = 0;
+	virtual EPrimitiveType GetPrimitiveType() const = 0;	
 
 	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const = 0;
 

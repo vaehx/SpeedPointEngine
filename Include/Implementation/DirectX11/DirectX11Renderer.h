@@ -3,7 +3,7 @@
 //	This file is part of the SpeedPoint Game Engine
 //
 //	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	(c) 2011-2015, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -88,15 +88,12 @@ private:
 		
 	//IRenderPipeline* m_pRenderPipeline;
 		
-	DirectX11Viewport m_Viewport;
-
-	SRenderTargetCollection m_CurrentRenderTargetCollection;	// RTs to be stored
-	map<ERenderTargetCollectionID, SRenderTargetCollection>* m_pRenderTargetCollections;
-	
+	DirectX11Viewport m_Viewport;	// Default Viewport?
 	IViewport* m_pTargetViewport;
-	DirectX11FBO* m_pTargetFBO;	
 
-	ERenderTargetCollectionID m_iCurRTCollection;	// RT collection that is currently bound
+	DirectX11FBO* m_pRenderTargets[MAX_BOUND_RTS];
+	ID3D11DepthStencilView* m_pDSV;	// the bound DSV
+	unsigned int m_nRenderTargets;
 
 	D3D11_DEPTH_STENCIL_DESC m_depthStencilDesc;
 	ID3D11DepthStencilState* m_pDepthStencilState;
@@ -137,10 +134,8 @@ private:
 	bool m_bInScene;
 
 
-	// Render Schedule
-
-	//map<usint32, SRenderDesc>* m_pRenderSchedule;	// The Render schedule filled by RenderGeometrical()
-	ChunkedObjectPool<SRenderScheduleSlot, 50> m_RenderSchedule;	
+	// Render Schedule	
+	ChunkedObjectPool<SRenderSlot, 50> m_RenderSchedule;	
 	
 	STerrainRenderDesc m_TerrainRenderDesc;
 
@@ -160,6 +155,8 @@ private:
 	SResult UpdateDepthStencilState();
 
 	SResult DrawTerrain(const SDrawCallDesc& dcd);
+
+	SResult DrawForwardSubsets(const SRenderDesc& renderDesc);
 
 public:	
 	void FrameDump(const SString& msg)
@@ -255,12 +252,25 @@ public:
 		return false;
 	}
 
+	/*
 	virtual SResult AddRTCollectionFBO(usint32 index, IFBO* pFBO);
 	virtual SResult StoreRTCollection(ERenderTargetCollectionID asId);
 	virtual SResult BindRTCollection(ERenderTargetCollectionID collcetionID);
+	*/
 	
-	virtual SResult BindSingleFBO(IFBO* pFBO);		
-	virtual SResult BindSingleFBO(IViewport* pViewport);
+	virtual SResult BindSingleRT(IFBO* pFBO);
+	virtual SResult BindSingleRT(IViewport* pViewport);
+	
+	virtual SResult BindRTCollection(std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0);
+
+	virtual IFBO* GetBoundSingleRT();
+
+	virtual bool BoundMultipleRTs() const
+	{
+		return (m_nRenderTargets > 1);
+	}	
+
+
 
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0);
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
@@ -288,11 +298,13 @@ public:
 
 
 
+	/*
 	virtual SResult RenderGeometry(const SRenderDesc& dsc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc);	
+	*/
 	
-	virtual SRenderScheduleSlot* GetRenderScheduleSlot();
-	virtual void ReleaseRenderScheduleSlot(SRenderScheduleSlot** pSlot);
+	virtual SRenderSlot* GetRenderSlot();
+	virtual void ReleaseRenderSlot(SRenderSlot** pSlot);
 	virtual STerrainRenderDesc* GetTerrainRenderDesc();
 
 	// Summary:

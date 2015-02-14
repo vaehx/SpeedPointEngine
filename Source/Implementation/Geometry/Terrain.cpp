@@ -178,7 +178,7 @@ S_API SResult Terrain::RenderTerrain(const SVector3& lodCenterPos)
 	dsc.pColorMap = m_pColorMap;
 	dsc.pDetailMap = m_pDetailMap;
 	dsc.bRender = true;
-	SMatrixIdentity(&dsc.drawCallDesc.transform.scale);	
+	SMatrixIdentity(&dsc.transform.scale);	
 	
 	dsc.bUpdateCB = false;
 

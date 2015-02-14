@@ -23,6 +23,20 @@
 namespace SpeedPoint
 {
 
+
+	inline int SPSPrintf(char* dst, size_t sz, const char* fmt, ...)
+	{
+		int cnt;
+
+		va_list args;
+		va_start(args, fmt);		
+		cnt = sprintf_s(dst, sz, fmt, args);
+		va_end(args);
+
+		return cnt;
+	}
+
+
 	//!!!!!!!!!!!!!!!!!!!!!!
 	//!!
 	//!! WARNING: SString must NOT use Assertions as the Assertions use SString itself!
@@ -61,7 +75,7 @@ namespace SpeedPoint
 		// destructor
 		~SString()
 		{
-			if (pBuffer)
+			if (IS_VALID_PTR(pBuffer))
 			{
 				if (nLength == 1) delete pBuffer;
 				else delete[] pBuffer;
@@ -79,13 +93,13 @@ namespace SpeedPoint
 		// returns true if string buffer is set and not empty
 		inline bool IsValidString() const
 		{
-			return pBuffer != 0 && nLength > 1;
+			return IS_VALID_PTR(pBuffer) && nLength > 1;
 		}
 
 		// Get the length of a char* buffer without terminated 0
 		static unsigned int GetCharArrLen(const char* str)
 		{
-			if (!str)
+			if (!IS_VALID_PTR(str))
 			{
 				exception("Given char buffer is empty!");
 
@@ -113,7 +127,7 @@ namespace SpeedPoint
 		// returns cound of bytes copied (including terminated 0)
 		static unsigned int CopyCharS(char* Dst, unsigned int nSize, const char* Src, ...)
 		{
-			if (!Dst || !nSize || !Src)
+			if (!IS_VALID_PTR(Dst) || !nSize || !IS_VALID_PTR(Src))
 			{
 				exception("Given parameters are invalid!");
 
@@ -140,7 +154,7 @@ namespace SpeedPoint
 		// returns 0 as nothing has been copied (not even a terminated 0)
 		static unsigned int CopyCharS(char* Dst, unsigned int nSize, ...)
 		{
-			if (!Dst || !nSize)
+			if (!IS_VALID_PTR(Dst) || !nSize)
 			{
 				exception("Given parameters are invalid!");
 
@@ -155,7 +169,7 @@ namespace SpeedPoint
 
 		void CopyFromBytes(const char* str)
 		{
-			if (!str)
+			if (!IS_VALID_PTR(str))
 			{
 				exception("Given char buffer is empty!");
 				return;
@@ -176,7 +190,7 @@ namespace SpeedPoint
 		void CopyFromOther(const SString& s)
 		{
 			char* pS = (char*)s;
-			if (pS)
+			if (IS_VALID_PTR(pS))
 			{
 				// we assume the length is correct, we can save a lot of time doing so!
 				unsigned int nLen = s.nLength;
@@ -216,7 +230,7 @@ namespace SpeedPoint
 
 		SString& operator = (const char* s)
 		{
-			if (pBuffer && nLength > 0)
+			if (IS_VALID_PTR(pBuffer) && nLength > 0)
 			{
 				if (nLength == 1) delete pBuffer;
 				else delete[] pBuffer;
@@ -229,7 +243,7 @@ namespace SpeedPoint
 
 		SString& operator = (const SString& s)
 		{
-			if (pBuffer && nLength > 0)
+			if (IS_VALID_PTR(pBuffer) && nLength > 0)
 			{
 				if (nLength == 1) delete pBuffer;
 				else delete[] pBuffer;
@@ -254,6 +268,18 @@ namespace SpeedPoint
 			nLength += s.GetLength();
 			return *this;
 		}
+
+
+
+
+		static inline SString FromInteger(int i)
+		{
+			char* txt = new char[11];
+			SPSPrintf(txt, 11, "%d", i);
+			SString s(txt);
+			delete[] txt;
+			return s;
+		}		
 	};
 
 	// check if string buffer pointer againt integer	

@@ -16,6 +16,7 @@ struct S_API ITerrain;
 struct S_API IGameEngine;
 struct S_API ITexture;
 struct S_API IStaticObject;
+struct IRenderableObject;
 
 // Scene Graph Node
 struct SSceneNode
@@ -40,6 +41,8 @@ struct S_API IScene
 
 	//virtual void RegisterObject(IObject* pObject) = 0;
 	//virtual IObject* CreateObject(EObjectType type) = 0;
+
+	virtual SResult CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const = 0;
 
 	virtual void Clear() = 0;	
 };

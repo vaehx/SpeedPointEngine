@@ -13,6 +13,15 @@
 
 #include "SResult.h"	// for ThrowException~ -Functions
 
+// also check against wrong debug values if in debug mode
+#ifdef _DEBUG
+#define IS_VALID_PTR(ptr) (ptr && (unsigned int)ptr != 0xC0000005 && (unsigned int)ptr != 0xCDCDCDCD && (unsigned int)ptr != 0xCCCCCCCC)
+#else
+#define IS_VALID_PTR(ptr) (ptr)
+#endif
+
+
+
 #define RET_NONE // use that if you want to return nothing in an assertion
 
 

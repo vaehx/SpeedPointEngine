@@ -77,9 +77,12 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 
 	// One possible solution: merge all points and faces into a single vertex / index buffer
 
+	/*
 	SInitialMaterials mats;
 	mats.nMaterials = file3ds.materials.size();
 	mats.pMaterials = new SMaterial[mats.nMaterials];
+	*/
+	MaterialPtrList mats;
 
 	SInitialGeometryDesc geom;
 	geom.nMatIndexAssigns = file3ds.materials.size();
@@ -96,13 +99,14 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 				
 
 		// fill initial materials
-		SMaterial& mat = mats.pMaterials[iMatIdx];
-		mat.name = new char[matNameLn + 1];
-		memcpy(mat.name, itMat->material_name, matNameLn);
-		mat.name[matNameLn] = 0;
+		SMaterial* mat = m_pEngine->GetResources()->AddNewMaterial(itMat->material_name);
+		mats.Add(mat);		
+		mat->name = new char[matNameLn + 1];
+		memcpy(mat->name, itMat->material_name, matNameLn);
+		mat->name[matNameLn] = 0;
 
-		if (IS_VALID_PTR(itMat->texturemap.name)) mat.textureMap = m_pEngine->GetResources()->GetTexture(itMat->texturemap.name);
-		if (IS_VALID_PTR(itMat->bumpmap.name)) mat.normalMap = m_pEngine->GetResources()->GetTexture(itMat->bumpmap.name);
+		if (IS_VALID_PTR(itMat->texturemap.name)) mat->textureMap = m_pEngine->GetResources()->GetTexture(itMat->texturemap.name);
+		if (IS_VALID_PTR(itMat->bumpmap.name)) mat->normalMap = m_pEngine->GetResources()->GetTexture(itMat->bumpmap.name);
 
 
 		iMatIdx++;
@@ -114,7 +118,7 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	for (auto itObj = file3ds.objects.begin(); itObj != file3ds.objects.end(); itObj++)
 	{
 		geom.nVertices += itObj->nVertices;
-		geom.nIndices += itObj->nFaces * 3; // three indices per face
+		geom.nIndices += itObj->nFaces * 3; // three indices per face		
 
 		for (auto itMeshMat = itObj->meshMaterials.begin(); itMeshMat != itObj->meshMaterials.end(); itMeshMat++)
 		{
@@ -132,8 +136,39 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 
 			if (!bMatIndexAssignFound)
 				EngLog(S_WARN, m_pEngine, "Could not determine material to which an object should be bound.");
-		}
+		}		
 	}	
+
+	// remove all matIndexAssigns that have material, but no indices assigned
+	unsigned int* pValidMatIndexAssigns = new unsigned int[geom.nMatIndexAssigns];
+	unsigned int nValidMatIndexAssigns = 0;
+	for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < geom.nMatIndexAssigns; ++iMatIndexAssign)
+	{
+		if (geom.pMatIndexAssigns[iMatIndexAssign].nIdxIndices == 0)
+			continue;
+
+		pValidMatIndexAssigns[nValidMatIndexAssigns] = iMatIndexAssign;
+		nValidMatIndexAssigns++;
+	}
+
+	if (nValidMatIndexAssigns < geom.nMatIndexAssigns)
+	{
+		SMaterialIndices* pNewMatIndexAssigns = new SMaterialIndices[nValidMatIndexAssigns];
+		for (unsigned int iValidMatIndexAssign = 0; iValidMatIndexAssign < nValidMatIndexAssigns; ++iValidMatIndexAssign)
+		{
+			// use copy assignment operator
+			pNewMatIndexAssigns[iValidMatIndexAssign]
+				= geom.pMatIndexAssigns[pValidMatIndexAssigns[iValidMatIndexAssign]];
+		}
+
+		delete[] geom.pMatIndexAssigns;
+		geom.pMatIndexAssigns = pNewMatIndexAssigns;
+		geom.nMatIndexAssigns = nValidMatIndexAssigns;
+	}
+
+	delete[] pValidMatIndexAssigns;
+
+
 
 	// create merged buffers
 	geom.pVertices = new SVertex[geom.nVertices];
@@ -193,13 +228,36 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 
 	// Initialize result object
 	IStaticObject* pStaticObject = new StaticObject();
-	if (Failure(pStaticObject->Init(m_pEngine, m_pEngine->GetRenderer(), &mats, &geom)))
+	if (Failure(pStaticObject->Init(m_pEngine, &geom, &mats)))
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed Init Static Object to store loaded 3ds file!");
 		return nullptr;
 	}
 
 	return pStaticObject;
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API SResult Scene::CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const
+{
+	if (!IS_VALID_PTR(object) || !IS_VALID_PTR(pNormalGeometryObject))
+		return S_INVALIDPARAM;
+
+	if (!IS_VALID_PTR(m_pEngine))
+		return S_NOTINIT;	
+
+
+	SInitialGeometryDesc normalGeom;
+	if (Failure(object->GetGeometry()->CalculateNormalsGeometry(normalGeom, 3.0f)))
+		return EngLog(S_ERROR, m_pEngine, "Failed Calculcate Normals Geometry!");
+
+
+	IStaticObject* pStaticObject = new StaticObject();
+	RETURN_ON_ERR(pStaticObject->Init(m_pEngine, &normalGeom));
+
+	*pNormalGeometryObject = pStaticObject;
+
+	return S_SUCCESS;
 }
 
 SP_NMSPACE_END

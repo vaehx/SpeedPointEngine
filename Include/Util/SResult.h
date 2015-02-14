@@ -187,7 +187,7 @@ namespace SpeedPoint
 				"  Line: %d\n" \
 				"  Message: %s\n" \
 				"  Return Value: %s\n",
-				file, function, line, msg, pErrDesc);
+				condition, file, function, line, msg, pErrDesc);
 
 			if (pExProxy) pExProxy->HandleException(pOutput);
 			else

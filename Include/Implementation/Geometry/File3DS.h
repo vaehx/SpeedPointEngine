@@ -24,6 +24,7 @@ SP_NMSPACE_BEG
 
 #define CHNK3DS_MAIN3DS 0x4D4D
 #define CHNK3DS_EDIT3DS 0x3D3D
+#define CHNK3DS_MESH_VERSION 0x3D3E
 
 #define CHNK3DS_M3D_VERSION 0x0002
 #define CHNK3DS_COLOR_F 0x0010
@@ -43,7 +44,12 @@ SP_NMSPACE_BEG
 #define CHNK3DS_MAT_SHINESTRENGTH 0xA041
 #define CHNK3DS_MAT_SHIN2PCT CHNK3DS_MAT_SHINESTRENGTH
 #define CHNK3DS_MAT_TRANSPARENCY 0xA050
-//#define CHNK3DS_MAT_SHADING 0xA100
+#define CHNK3DS_MAT_XPFALL 0xA052
+#define CHNK3DS_MAT_REFBLUR 0xA053
+#define CHNK3DS_MAT_SELF_ILPCT 0xA084
+#define CHNK3DS_MAT_WIRE_SIZE 0xA087
+#define CHNK3DS_MAT_XPFALLIN 0xA08A
+#define CHNK3DS_MAT_SHADING 0xA100
 #define CHNK3DS_MAT_TEXMAP 0xA200
 #define CHNK3DS_MAT_SPECMAP 0xA204
 #define CHNK3DS_MAT_OPACMAP 0xA210
@@ -66,6 +72,7 @@ SP_NMSPACE_BEG
 #define CHNK3DS_MESH_MATERIAL 0x4130
 #define CHNK3DS_MESH_MATRIX 0x4160
 #define CHNK3DS_SMOOTH_GROUP 0x4150
+#define CHNK3DS_UV_ARRAY 0x4140
 
 
 struct S_API S3DSColorF
@@ -116,6 +123,13 @@ struct S_API S3DSMaterial
 	S3DSColorF specular;
 	S3DSMaterialMap texturemap;
 	S3DSMaterialMap bumpmap;		// = normalmap
+	float shininess;
+	float shine_strength;
+	float transparency;
+	float xpfall;
+	float refblur;
+	float self_illum;
+	unsigned short shading;
 
 	S3DSMaterial()
 		: material_name(0) {}
@@ -125,7 +139,9 @@ struct S_API S3DSMaterial
 		diffuse(mat.diffuse),
 		specular(mat.specular),
 		texturemap(mat.texturemap),
-		bumpmap(mat.bumpmap)
+		bumpmap(mat.bumpmap),
+		shininess(0.0f),
+		shine_strength(0.0f)
 	{
 		material_name = 0;
 		sp_strcpy(&material_name, mat.material_name);
@@ -293,7 +309,9 @@ class S_API File3DS
 private:
 	std::ifstream& file;
 	unsigned int curChnkLvl;
-	unsigned long version;	
+	unsigned long version;
+	unsigned long mesh_version;
+	float master_scale;
 
 public:
 	std::vector<S3DSMaterial> materials;
@@ -316,6 +334,7 @@ public:
 	void ReadFloat(float& f);
 	void ReadColor(S3DSColorF& color);
 	void ReadVector(float& x, float& y, float& z);
+	void ReadPercentage(float& f);
 
 	// length - length to read
 	// dst - should already be created with minimum length of "length" argument
@@ -332,6 +351,8 @@ public:
 	void ReadTriangledObjectChunk(S3DSNamedObject& obj);
 	void ReadChunkHeader(Chunk& chnk);
 	void ReadDummyChunk();
+
+	void ReadMeshMaterial(S3DSNamedObject& obj);
 
 	void DbgMsg(const char* fmt, ...) const;
 };

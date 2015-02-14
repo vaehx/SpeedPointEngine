@@ -29,6 +29,8 @@ public:
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file);
 	
+	virtual SResult CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const;
+
 	//virtual void RegisterObject(IObject* pObject);
 
 	virtual void Clear();

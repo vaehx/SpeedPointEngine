@@ -272,6 +272,29 @@ S_API SResult DirectX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* 
 
 
 // **************************************************************************
+//				Materials
+// **************************************************************************
+
+S_API SMaterial* DirectX11ResourcePool::AddNewMaterial(const SString& specification)
+{
+	SMaterial* pMat = 0;
+	m_plMaterials.AddItem(&pMat, specification);
+	return pMat;
+}
+
+S_API SMaterial* DirectX11ResourcePool::GetMaterial(const SString& specification)
+{
+	return m_plMaterials.GetBySpecification(specification, false);
+}
+
+S_API void DirectX11ResourcePool::RemoveMaterial(SMaterial** pMat)
+{
+	m_plMaterials.Delete(pMat);
+}
+
+
+
+// **************************************************************************
 //				All
 // **************************************************************************
 
@@ -286,6 +309,7 @@ S_API SResult DirectX11ResourcePool::ClearAll(VOID)
 	m_plIndexBuffers.Clear();
 	//m_plShaders.Clear();
 	m_plTextures.Clear();	
+	m_plMaterials.Clear();
 
 	m_pEngine = NULL;
 	m_pDXRenderer = NULL;
