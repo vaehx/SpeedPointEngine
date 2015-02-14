@@ -39,6 +39,9 @@ public:
 	virtual void OnLog(SpeedPoint::SResult res, const SpeedPoint::SString& formattedMsg);
 };
 
+
+#define TEST_REFS 100
+
 class Test : public SpeedPoint::SpeedPointApplication
 {
 private:
@@ -46,6 +49,7 @@ private:
 	unsigned int nDumpedFrames;
 	SpeedPoint::StaticObject testObject;
 	SpeedPoint::IStaticObject* pTest3DSObject;
+	SpeedPoint::IReferenceObject* pTestRefs[TEST_REFS];
 	SpeedPoint::IRenderableObject* pTest3DSNormalsObject;
 	SpeedPoint::IScene* m_pScene;
 	SpeedPoint::SCamera* pCamera;

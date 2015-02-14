@@ -103,7 +103,10 @@ public:
 
 			Chunk& chunk = *chunks[ic];
 			if (chunk.num_used_objects == 0 || chunkobjindex >= chunk.last_used_object)
+			{
+				chunkobjindex = 0;
 				continue;
+			}
 
 			// skip free objects at chunk start
 			if (chunkobjindex < chunk.first_used_object)

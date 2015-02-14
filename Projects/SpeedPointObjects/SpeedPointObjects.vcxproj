@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\CReferenceObject.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
@@ -32,6 +33,7 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableObjects.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\StaticObject.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h" />

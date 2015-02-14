@@ -44,6 +44,9 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\CReferenceObject.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h">
@@ -77,6 +80,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\File3DS.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableObjects.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

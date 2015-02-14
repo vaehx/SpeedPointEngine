@@ -105,7 +105,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	pRenderer->GetTargetViewport()->SetProjectionByDesc(projDsc);
 
 	pCamera = pRenderer->GetTargetViewport()->GetCamera();
-	pCamera->position = SpeedPoint::SVector3(0, 5.0f, -10.0f);
+	pCamera->position = SpeedPoint::SVector3(0, 5.0f, -60.0f);
 	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
 	alpha = 0.0f;	
 
@@ -142,6 +142,13 @@ void Test::OnInitGeometry()
 	
 	myScene.CreateNormalsGeometry(pTest3DSObject, &pTest3DSNormalsObject);	
 
+	// create test references
+	for (unsigned int i = 0; i < TEST_REFS; ++i)
+	{	
+		pTestRefs[i] = pTest3DSObject->CreateReferenceObject();
+		pTestRefs[i]->vPosition.x += ((float)i) * 3.0f;
+	}
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Add first geometry
@@ -169,7 +176,7 @@ void Test::OnInitGeometry()
 	// Debug stuff
 
 	SpeedPoint::SCamera testCam;
-	testCam.position = SpeedPoint::SVector3(-30.0f, 14.0f, -30.0f);
+	testCam.position = SpeedPoint::SVector3(-30.0f, 14.0f, -200.0f);
 	testCam.rotation = SpeedPoint::SVector3(0.0f, 0.0f, 0.0f);	
 
 }
@@ -182,7 +189,7 @@ bool Test::Tick()
 	if (alpha > 2.0f * SP_PI)
 		alpha = 0.0f;	
 
-	if (nDumpedFrames < 1)
+	if (nDumpedFrames < 0)
 	{
 		m_pEngine->GetRenderer()->DumpFrameOnce();
 		nDumpedFrames++;
@@ -252,12 +259,26 @@ void Test::Render()
 	if (Failure(pTest3DSNormalsObject->Render()))
 		m_pEngine->LogE("Failed render 3ds model!");
 
+	for (unsigned int i = 0; i < TEST_REFS; ++i)
+	{		
+		float x = (float)(i % 30);
+		float z = (float)((float)i - x) / 30.0f;
+
+		pTestRefs[i]->vRotation = pTest3DSObject->vRotation;
+		pTestRefs[i]->vPosition = pTest3DSObject->vPosition + SpeedPoint::SVector3(x * 15.0f, 0, z * 15.0f);
+		pTestRefs[i]->vSize = pTest3DSObject->vSize;
+		pTestRefs[i]->Render();
+	}
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Test::Stop()
 {
+	for (unsigned int i = 0; i < 10; ++i)
+		delete pTestRefs[i];
+
 	m_pScene->Clear();
 	testObject.Clear();
 	

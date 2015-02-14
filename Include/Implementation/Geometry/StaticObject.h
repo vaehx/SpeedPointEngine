@@ -48,6 +48,8 @@ public:
 	virtual SRenderSlot* GetRenderSlot() { return m_pRenderSlot; }
 	virtual void SetRenderSlot(SRenderSlot* pSlot) { m_pRenderSlot = pSlot; }
 
+	virtual void FillRenderSlot(SRenderSlot* pSlot);
+
 	virtual IVertexBuffer* GetVertexBuffer();
 	virtual SGeomSubset* GetSubset(unsigned int i);
 	virtual unsigned int GetSubsetCount() const;
@@ -63,6 +65,8 @@ class S_API StaticObject : public IStaticObject
 private:
 	IGameEngine* m_pEngine;
 	CStaticObjectRenderable m_Renderable;
+
+	vector<IReferenceObject*> m_RefObjects;
 
 public:			
 
@@ -96,6 +100,13 @@ public:
 
 	virtual SResult Render();
 	virtual void Clear();
+
+	virtual IReferenceObject* CreateReferenceObject();
+
+	virtual IRenderableComponent* GetRenderable()
+	{
+		return (IRenderableComponent*)&m_Renderable;
+	}
 
 	// from IObject:
 public:

@@ -150,11 +150,19 @@ struct S_API SMatrix
 		float ca = cosf(rot.x), sa = sinf(rot.x);	// alpha
 		float cb = cosf(rot.y), sb = sinf(rot.y);	// beta
 		float cg = cosf(rot.z), sg = sinf(rot.z);	// gamma
+		/*
 		return SMatrix(
 			cb * cg,			-cb * sg,			 sb,		0,
 			sa * sb * cg + ca * sg,		-sa * sb * sg + ca * cg,	-sa * cb,	0,
 			-ca * sb * cg + sa * sg,	 ca * sb * sg + sa * cg,	 ca * cb,	0,
 			0,				 0,				 0,		1
+			);
+		*/
+		return SMatrix(
+			cb * cg,	 sa * sb * cg + ca * sg,	-ca * sb * cg + sa * sg,	0,
+			-cb * sg,	-sa * sb * sg + ca * cg, 	 ca * sb * sg + sa * cg,	0,
+			sb,		-sa * cb,			 ca * cb,			0,
+			0,		 0,				 0,		 		1
 			);
 	}
 };

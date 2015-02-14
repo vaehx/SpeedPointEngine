@@ -1062,7 +1062,11 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	unsigned int iRSIterator = 0;
 	for (unsigned int iSlot = 0; iSlot < m_RenderSchedule.GetUsedObjectCount(); ++iSlot)
 	{
-		SRenderSlot* pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
+		SRenderSlot* pSlot;
+		if (iSlot >= 49)
+			pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
+		else
+			pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
 		
 		if (pSlot == 0)
 			break; // End of Schedule reached
@@ -1071,8 +1075,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 		// Skip render slot without subsets
 		if (pDesc->nSubsets == 0 || !IS_VALID_PTR(pDesc->pSubsets))
-			continue;		
-
+			continue;
 
 		if (pDesc->renderPipeline == eRENDER_FORWARD)
 		{			
@@ -1501,8 +1504,8 @@ S_API SResult DirectX11Renderer::SetViewportMatrices(const SMatrix& mtxView, con
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformationDesc& transform)
 {
-	//m_PerObjectCB.mtxTransform = SMatrixTranspose(transform.BuildTRS());
-	m_PerObjectCB.mtxTransform = transform.BuildTRS();
+	m_PerObjectCB.mtxTransform = SMatrixTranspose(transform.BuildTRS());
+	//m_PerObjectCB.mtxTransform = transform.BuildTRS();
 	return S_SUCCESS;
 }
 

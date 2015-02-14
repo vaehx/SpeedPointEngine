@@ -18,6 +18,8 @@
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
 
+#include <Implementation\Geometry\RenderableObjects.h>
+
 SP_NMSPACE_BEG
 
 
@@ -48,6 +50,67 @@ S_API unsigned int CStaticObjectRenderable::GetSubsetCount() const
 S_API EPrimitiveType CStaticObjectRenderable::GetGeometryPrimitiveType() const
 {
 	return m_Geometry.GetPrimitiveType();
+}
+
+// ----------------------------------------------------------------------------------------
+S_API void CStaticObjectRenderable::FillRenderSlot(SRenderSlot* pRenderSlot)
+{
+	SRenderDesc* pRenderDesc = &pRenderSlot->renderDesc;
+
+	pRenderSlot->keep = true;
+	//m_Renderable.SetRenderSlot(pRenderSlot);
+
+	pRenderDesc->renderPipeline = eRENDER_FORWARD;
+
+	// copy over subsets
+	pRenderDesc->nSubsets = GetSubsetCount();
+	pRenderDesc->pSubsets = new SRenderSubset[pRenderDesc->nSubsets];
+	for (unsigned int i = 0; i < pRenderDesc->nSubsets; ++i)
+	{
+		SRenderSubset& renderSubset = pRenderDesc->pSubsets[i];
+		SGeomSubset* subset = GetSubset(i);
+		if (!IS_VALID_PTR(subset))
+		{
+			renderSubset.render = false;
+			continue;
+		}
+
+		renderSubset.drawCallDesc.primitiveType = GetGeometryPrimitiveType();
+
+		renderSubset.drawCallDesc.pVertexBuffer = GetVertexBuffer();
+		renderSubset.drawCallDesc.pIndexBuffer = subset->pIndexBuffer;
+
+		renderSubset.render = false;
+		if (renderSubset.drawCallDesc.primitiveType == PRIMITIVE_TYPE_LINES)
+		{
+			renderSubset.render = true;
+		}
+		else if (IS_VALID_PTR(renderSubset.drawCallDesc.pIndexBuffer))
+		{
+			renderSubset.render = true;
+			renderSubset.drawCallDesc.iStartIBIndex = 0;
+			renderSubset.drawCallDesc.iEndIBIndex = renderSubset.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
+		}
+
+		if (!IS_VALID_PTR(renderSubset.drawCallDesc.pVertexBuffer))
+		{
+			renderSubset.render = false;
+		}
+		else
+		{
+			renderSubset.drawCallDesc.iStartVBIndex = 0;
+			renderSubset.drawCallDesc.iEndVBIndex = renderSubset.drawCallDesc.pVertexBuffer->GetVertexCount() - 1;
+		}
+
+		// Material is copied over. Warning: Avoid modifying the material during rendering.
+		// TODO: To update a material, implement a method to flag a subset material to be updated,
+		// 	 then do it below when updating the transform.
+		if (subset->pMaterial)
+			renderSubset.material = *subset->pMaterial;
+		else
+			renderSubset.material = SMaterial();
+		//renderSubset.material = m_pEngine->GetResources()->GetDefaultMaterial();
+	}
 }
 
 
@@ -82,6 +145,14 @@ S_API StaticObject::~StaticObject()
 // ----------------------------------------------------------------------------------------
 S_API void StaticObject::Clear()
 {
+	for (auto itRefObj = m_RefObjects.begin(); itRefObj != m_RefObjects.end(); itRefObj++)
+	{
+		if (IS_VALID_PTR((*itRefObj)))	
+			(*itRefObj)->SetBase(0);	
+	}
+
+	m_RefObjects.clear();
+
 	m_Renderable.Clear();
 	m_AABB.Reset();
 
@@ -188,6 +259,20 @@ S_API void StaticObject::RecalcBoundBox()
 
 
 
+// ----------------------------------------------------------------------------------------
+S_API IReferenceObject* StaticObject::CreateReferenceObject()
+{
+	IReferenceObject* pRefObject = new CReferenceObject(m_pEngine);
+	pRefObject->SetBase((IRenderableObject*)this);
+	pRefObject->vPosition = vPosition;
+	pRefObject->vRotation = vRotation;
+	pRefObject->vSize = vSize;
+
+	m_RefObjects.push_back(pRefObject);
+
+	return pRefObject;
+}
+
 
 
 
@@ -206,62 +291,13 @@ S_API SResult StaticObject::Render()
 	if (m_Renderable.GetRenderSlot() == 0)
 	{
 		pRenderSlot = pRenderer->GetRenderSlot();
+		if (!IS_VALID_PTR(pRenderSlot))
+			return S_ERROR;
+
 		pRenderDesc = &pRenderSlot->renderDesc;
 
-		pRenderSlot->keep = true;
-		m_Renderable.SetRenderSlot(pRenderSlot);
-
-		pRenderDesc->renderPipeline = eRENDER_FORWARD;
-
-		// copy over subsets
-		pRenderDesc->nSubsets = m_Renderable.GetSubsetCount();			
-		pRenderDesc->pSubsets = new SRenderSubset[pRenderDesc->nSubsets];
-		for (unsigned int i = 0; i < pRenderDesc->nSubsets; ++i)
-		{
-			SRenderSubset& renderSubset = pRenderDesc->pSubsets[i];			
-			SGeomSubset* subset = m_Renderable.GetSubset(i);
-			if (!IS_VALID_PTR(subset))
-			{
-				renderSubset.render = false;
-				continue;
-			}
-
-			renderSubset.drawCallDesc.primitiveType = m_Renderable.GetGeometryPrimitiveType();
-
-			renderSubset.drawCallDesc.pVertexBuffer = m_Renderable.GetVertexBuffer();
-			renderSubset.drawCallDesc.pIndexBuffer = subset->pIndexBuffer;					
-
-			renderSubset.render = false;
-			if (renderSubset.drawCallDesc.primitiveType == PRIMITIVE_TYPE_LINES)
-			{
-				renderSubset.render = true;
-			}
-			else if (IS_VALID_PTR(renderSubset.drawCallDesc.pIndexBuffer))
-			{
-				renderSubset.render = true;
-				renderSubset.drawCallDesc.iStartIBIndex = 0;
-				renderSubset.drawCallDesc.iEndIBIndex = renderSubset.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
-			}
-
-			if (!IS_VALID_PTR(renderSubset.drawCallDesc.pVertexBuffer))
-			{
-				renderSubset.render = false;
-			}
-			else
-			{
-				renderSubset.drawCallDesc.iStartVBIndex = 0;
-				renderSubset.drawCallDesc.iEndVBIndex = renderSubset.drawCallDesc.pVertexBuffer->GetVertexCount() - 1;
-			}
-
-			// Material is copied over. Warning: Avoid modifying the material during rendering.
-			// TODO: To update a material, implement a method to flag a subset material to be updated,
-			// 	 then do it below when updating the transform.
-			if (subset->pMaterial)
-				renderSubset.material = *subset->pMaterial;
-			else
-				renderSubset.material = SMaterial();
-				//renderSubset.material = m_pEngine->GetResources()->GetDefaultMaterial();
-		}		
+		m_Renderable.FillRenderSlot(pRenderSlot);
+		m_Renderable.SetRenderSlot(pRenderSlot);		
 	}
 	else
 	{
@@ -342,8 +378,6 @@ S_API SResult StaticObject::Render()
 
 	return S_SUCCESS;
 }
-
-
 
 
 

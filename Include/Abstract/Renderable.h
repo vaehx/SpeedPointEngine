@@ -22,6 +22,8 @@ using std::vector;
 
 SP_NMSPACE_BEG
 
+struct S_API IReferenceObject;
+
 // only stores data for renderable, no functionality
 struct IRenderableComponent
 {
@@ -36,6 +38,9 @@ struct IRenderableComponent
 	
 	virtual SRenderSlot* GetRenderSlot() = 0;
 	virtual void SetRenderSlot(SRenderSlot* pSlot) = 0;
+
+	// Fills the given render slot
+	virtual void FillRenderSlot(SRenderSlot* pSlot) = 0;
 
 	virtual IVertexBuffer* GetVertexBuffer() = 0;
 	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
@@ -52,12 +57,19 @@ struct S_API IRenderableObject : public IObject
 	//	Renders the object the way, the implementation defines it.		
 	virtual SResult Render() = 0;
 
-	virtual bool IsRenderable() const { return true; }	
+	virtual bool IsRenderable() const { return true; }
+
+	virtual IRenderableComponent* GetRenderable() = 0;
 
 	// Moved this to Scene! Get normal geometry from GetGeometry();
 	//virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const = 0;
 
 	virtual IGeometry* GetGeometry() = 0;
+
+	// Warning: References created on heap. PAY ATTENTION TO DELETE THEM PROPERLY!
+	// If the base object is destructed, the base pointer in the reference object might get
+	// automatically zero'ed, depending on its implementation.
+	virtual IReferenceObject* CreateReferenceObject() = 0;
 };
 
 
@@ -88,9 +100,34 @@ struct S_API IStaticObject : public IRenderableObject
 
 	// Summary:
 	//	Verifies that there is a single material and always returns a non-null pointer
-	virtual SMaterial* GetSingleMaterial() = 0;
+	virtual SMaterial* GetSingleMaterial() = 0;		
 
 	virtual void Clear() = 0;
+};
+
+
+
+// Renderable object that is just a reference (an instance) to another renderable object
+struct S_API IReferenceObject : public IRenderableObject
+{
+	virtual ~IReferenceObject()
+	{
+	}
+
+	virtual IRenderableObject* GetBase() = 0;		
+	virtual SResult SetBase(IRenderableObject* base) = 0;
+
+	// always returns 0 as you cannot create a reference from a reference!
+	virtual IReferenceObject* CreateReferenceObject()
+	{
+		return 0;
+	}	
+
+	// To get the type of the referenced object use GetBase()->GetType()
+	virtual EObjectType GetType() const
+	{
+		return eGEOMOBJ_REFERENCE;
+	}
 };
 
 
