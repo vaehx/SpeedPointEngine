@@ -1,9 +1,6 @@
 // ********************************************************************************************
 
-//	SpeedPoint Renderer
-
-//	This is a virtual class. You cannot instantiate it.
-//	Please use Specific Implementation to instantiate.
+//	SpeedPoint Renderer Interface
 
 // ********************************************************************************************
 
@@ -35,6 +32,7 @@ struct S_API IVisibleObject;
 
 
 
+// Obsolete
 class S_API IRenderDeviceCapabilities
 {
 public:
@@ -85,28 +83,25 @@ struct S_API SRenderTarget
 	{
 	}
 };
+
+
+// Obsolete.
 struct S_API SRenderTargetCollection
 {
-	vector<SRenderTarget>* pvRenderTargets;
+	vector<SRenderTarget> pvRenderTargets;
 
 	SRenderTargetCollection()
-	{
-		pvRenderTargets = new vector<SRenderTarget>();
+	{	
 	}
 
 	SRenderTargetCollection(const SRenderTargetCollection& o)
 	{
-		pvRenderTargets = new vector<SRenderTarget>();
-		*pvRenderTargets = *o.pvRenderTargets;
+		pvRenderTargets = o.pvRenderTargets;
 	}
 
 	~SRenderTargetCollection()
 	{
-		if (pvRenderTargets)
-		{
-			pvRenderTargets->clear();
-			delete pvRenderTargets;
-		}
+	   pvRenderTargets.clear();
 	}
 };
 
@@ -124,7 +119,8 @@ enum S_API EConstantBufferType
 
 // Notice:
 // - Constant Buffers must have a size which is a multiple of 16. That means you should
-//   only use SMatrix4 or SVector4 (=float4) data types in here.
+//   only use SMatrix4 or SVector4 (=float4) data types in here. Otherwise, make shure
+//   to add proper padding bytes.
 
 struct S_API SPerSceneConstantBuffer
 {
@@ -136,7 +132,9 @@ struct S_API SPerSceneConstantBuffer
 	SMatrix4 mtxView;
 	SMatrix4 mtxProjection;
 
-	float4 sunPosition;	// sun dir = (0,0,0,0) - sunPosition
+    // Pos used instead of Dir, to avoid struggling around with angles when calculating
+    // sun traveling due to TOD.   sun dir = normalize(-sunPosition)
+	float4 sunPosition;
 
 	float4 eyePosition;
 
