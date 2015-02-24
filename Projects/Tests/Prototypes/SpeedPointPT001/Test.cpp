@@ -67,7 +67,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.bEnableVSync = true;
 	dsc.render.vsyncInterval = 1;	
-	dsc.render.bRenderWireframe = true;	
+	dsc.render.bRenderWireframe = false;	
 	dsc.render.fTerrainDMFadeRange = 5.0f;
 
 	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;	

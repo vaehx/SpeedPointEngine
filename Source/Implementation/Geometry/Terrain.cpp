@@ -24,9 +24,9 @@ S_API void STerrainChunk::AddQuad(unsigned int lodLevel, unsigned int w, unsigne
 	float tangent[3] = { -1.0f, 0, 0 };	
 
 	pVertices[lodLevel][iStartVtx] = SVertex(xoffs, baseHeight, zoffs, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs, voffs);
-	pVertices[lodLevel][iStartVtx + 1] = SVertex(xoffs + quadWidth, baseHeight, zoffs, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs + fSegUSz, voffs);
-	pVertices[lodLevel][iStartVtx + vtxRowShift] = SVertex(xoffs, baseHeight, zoffs + quadDepth, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs, voffs + fSegVSz);
-	pVertices[lodLevel][iStartVtx + vtxRowShift + 1] = SVertex(xoffs + quadWidth, baseHeight, zoffs + quadDepth, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs + fSegUSz, voffs + fSegVSz);
+	pVertices[lodLevel][iStartVtx + 1] = SVertex(xoffs + quadWidth, baseHeight, zoffs, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs + fSegUSz * w, voffs);
+	pVertices[lodLevel][iStartVtx + vtxRowShift] = SVertex(xoffs, baseHeight, zoffs + quadDepth, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs, voffs + fSegVSz * d);
+	pVertices[lodLevel][iStartVtx + vtxRowShift + 1] = SVertex(xoffs + quadWidth, baseHeight, zoffs + quadDepth, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs + fSegUSz * w, voffs + fSegVSz * d);
 
 	// Warning: Do not modify the order of index creation! Otherwise (at least) Normal Recreation gets invalid!
 	pIndices[lodLevel][iStartIndex]	= (SIndex)(iStartVtx);
