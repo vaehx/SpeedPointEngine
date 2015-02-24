@@ -18,37 +18,65 @@ SP_NMSPACE_BEG
 class S_API Terrain : public ITerrain
 {
 private:
-	STerrainDescription m_TerrainDsc;
+	//STerrainDescription m_TerrainDsc;
 
-	float m_fDMTexScaleU, m_fDMTexScaleV;
+	bool m_bRequireRender;
+
+	float m_fDMTexScaleU,
+		m_fDMTexScaleV;
 		
-	unsigned int m_nChunkBigQuads; // big quads in a chunk in second lod level
-	unsigned int m_nChunkSmallQuads; // number of quads on highest lod grid in a chunk
+	//unsigned int m_nChunkBigQuads; // big quads in a chunk in second lod level
+	//unsigned int m_nChunkSmallQuads; // number of quads on highest lod grid in a chunk
 
 
 	//Geometry m_Geometry;
-	IVertexBuffer* m_pVertexBuffer;
-	IIndexBuffer* m_pIndexBuffer[2];
+	IVertexBuffer** m_pHWVertexBuffers;	// IVertexBuffer[nLodLevels]
+	IIndexBuffer** m_pHWIndexBuffers;		// IIndexBuffer[nLodLevels]
 
 
 	IGameEngine* m_pEngine;
 	ITexture* m_pColorMap;
 	ITexture* m_pDetailMap;	
 
-	bool m_bRequireCBUpdate;	
+	bool m_bRequireCBUpdate;
+
+	bool m_bUseVBCulledRendering;
+
+	// -----
+	SVertex** pVertexBuffers; // one VB per lod level
+	SIndex** pIndexBuffers; // one IB per lod level
+	unsigned int nSegsX, nSegsZ;
+	unsigned int nChunkSegsX, nChunkSegsZ;
+	unsigned int nLodLevels;	
+	STerrainLodCounts* pLodLevelCounts;	// array of terrain chunk costs
+	float fWidth, fDepth;
+	bool bDynamic;
+
+	STerrainChunk* pTerrainChunks;
+	unsigned int nChunksX, nChunksZ; // including rest chunks
+	unsigned int nRestChunksX, nRestChunksZ; // essentially 0 or 1    
+
+	// Top rest chunk: (nChunkSegsX, nZRestChunkSegs)
+	// Right rest chunk: (nXRestChunkSegs, nChunkSegsZ)
+	// Fill rest chunk: (nXRestChunkSegs, nZRestChunkSegs)    
+	unsigned int nXRestChunkSegs, nZRestChunkSegs;
+
+	// Keeps indices, in order to properly RecalculateNormals afterwards.
+	void ClearTemporaryGenerationVertices();
 
 public:
 	Terrain()		
-		: m_fDMTexScaleU(1.0f),
-		m_fDMTexScaleV(1.0f),
+		: /*m_fDMTexScaleU(1.0f),
+		m_fDMTexScaleV(1.0f),*/
 		m_pEngine(nullptr),
 		m_pColorMap(nullptr),
 		m_pDetailMap(nullptr),
 		m_bRequireCBUpdate(true),
-		m_pVertexBuffer(nullptr)		
-	{
-		for (unsigned int iIndexBuffer = 0; iIndexBuffer < 2; ++iIndexBuffer)
-			m_pIndexBuffer[iIndexBuffer] = 0;
+		pVertexBuffers(nullptr),
+		pIndexBuffers(nullptr),
+		pTerrainChunks(nullptr),
+		m_bUseVBCulledRendering(true)
+	{	
 	}
 
 	virtual ~Terrain();
@@ -62,20 +90,30 @@ public:
 	// nX and nZ is the resolution
 	virtual SResult Initialize(IGameEngine* pEngine);
 
-	virtual SResult RecalculateNormals();
+	virtual SResult RecalculateNormals(unsigned int lodLevel = 0);
 
 	// Create a planar terrain with Size fW x fD
-	virtual SResult CreatePlanar(const STerrainDescription& tdsc);	
+	//virtual SResult CreatePlanar(const STerrainDescription& tdsc);	
+
+	virtual void Generate(const STerrainDescription& tdsc);
+
+
+	// Create and fill vertex and index buffers
+	SResult FillVertexAndIndexBuffers();
+
+
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
 	virtual SResult SetDetailMap(ITexture* pDetailMap);
 
-	virtual IVertexBuffer* GetVertexBuffer();
+	virtual IVertexBuffer* GetVertexBuffer(unsigned int lodLevel);
 	virtual IIndexBuffer* GetIndexBuffer(unsigned int lodLevel);
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 
-	virtual SResult RenderTerrain(const SVector3& lodCenterPos);	
+	virtual void RequireRender() { m_bRequireRender = true; }
+
+	virtual SResult RenderTerrain(const SVector3& camPos);	
 	virtual SResult Clear(void);
 };
 

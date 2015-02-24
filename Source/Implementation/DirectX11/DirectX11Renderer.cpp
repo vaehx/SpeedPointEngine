@@ -771,8 +771,8 @@ S_API IFBO* DirectX11Renderer::GetBoundSingleRT()
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int index)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(pVB, S_INVALIDPARAM);
+	if (!IsInited()) return S_NOTINIT;
+	if (!IS_VALID_PTR(pVB)) return S_INVALIDPARAM;
 
 	ID3D11Buffer* pDXVB = ((DirectX11VertexBuffer*)pVB)->D3D11_GetBuffer();
 	usint32 stride = sizeof(SVertex);
@@ -786,7 +786,8 @@ S_API SResult DirectX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int in
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
+	if (!IsInited())
+		return S_NOTINIT;	
 
 	if (IS_VALID_PTR(pIB))
 	{
@@ -1018,6 +1019,10 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		// Render terrain directly to backbuffer
 		BindSingleRT(m_pTargetViewport);
 
+		SetViewportMatrices(m_pTargetViewport);
+		UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
+
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMap))) m_pEngine->LogE("Invalid detail map in Terrain render Desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
 
@@ -1037,8 +1042,15 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 		// TODO: Draw Section based different lod levels
 
-		// binds terrain cb
-		DrawTerrain(m_TerrainRenderDesc.drawCallDesc);
+		// render all chunks
+		if (IS_VALID_PTR(m_TerrainRenderDesc.pDrawCallDescs) && m_TerrainRenderDesc.nDrawCallDescs > 0)
+		{
+			for (unsigned int c = 0; c < m_TerrainRenderDesc.nDrawCallDescs; ++c)
+			{				
+				DrawTerrainSubset(m_TerrainRenderDesc.pDrawCallDescs[c]);
+			}
+		}
+			
 		m_TerrainRenderDesc.bRender = false;
 	}
 	else
@@ -1199,7 +1211,7 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawTerrain(const SDrawCallDesc& dcd)
+S_API SResult DirectX11Renderer::DrawTerrainSubset(const SDrawCallDesc& dcd)
 {
 	if (Failure(SetVBStream(dcd.pVertexBuffer))) return S_ERROR;
 	if (Failure(SetIBStream(dcd.pIndexBuffer))) return S_ERROR;

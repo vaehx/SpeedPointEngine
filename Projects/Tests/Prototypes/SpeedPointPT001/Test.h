@@ -53,7 +53,10 @@ private:
 	SpeedPoint::IRenderableObject* pTest3DSNormalsObject;
 	SpeedPoint::IScene* m_pScene;
 	SpeedPoint::SCamera* pCamera;
-	TestLogHandler logHandler;	
+	TestLogHandler logHandler;
+
+	bool m_bRightMouseBtn;
+	POINT m_LastMousePos;
 
 protected:
 	void OnInitGeometry();
@@ -61,6 +64,7 @@ protected:
 public:		
 	virtual void OnLogReport(SpeedPoint::SResult res, const SpeedPoint::SString& msg);
 	bool KeyPressed(EKey key) const;
+	void HandleMouse();
 	bool Start(HWND hWnd, HINSTANCE hInstance);
 	bool Tick();
 

@@ -154,7 +154,7 @@ private:
 	SResult UpdateRasterizerState();
 	SResult UpdateDepthStencilState();
 
-	SResult DrawTerrain(const SDrawCallDesc& dcd);
+	SResult DrawTerrainSubset(const SDrawCallDesc& dcd);
 
 	SResult DrawForwardSubsets(const SRenderDesc& renderDesc);
 

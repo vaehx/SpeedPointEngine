@@ -123,4 +123,11 @@ namespace SpeedPoint
 		}
 	};
 
+	// normalize(cross(v2 - v1, v3 - v1))
+	inline S_API SVector3 SPNormalFromThreeVerts(const SVertex& v1, const SVertex& v2, const SVertex& v3)
+	{
+		return SVector3Normalize(SVector3Cross(
+			SVector3(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z),
+			SVector3(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z)));
+	}
 }

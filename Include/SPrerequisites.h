@@ -49,9 +49,9 @@
 #define RETURN_ON_ERR(exec) if (Failure((exec))) { return SpeedPoint::S_ERROR; }
 #define SP_SAFE_RELEASE(x) if(IS_VALID_PTR(x)) { x->Release(); x = nullptr; }
 
-// Delete an array safely, avoids memory heap violations if array has length 1
+// Delete an array if is valid ptr and len > 0 and sets ptr to 0
 #define SP_SAFE_DELETE_ARR(x, len) \
-	if(IS_VALID_PTR(x) && len == 1) delete x; else if((x) && len > 1) delete[] x;
+	if(IS_VALID_PTR((x)) && (len) > 0) { delete[] (x); (x) = 0; }
 
 // Clear and release all items in a vector. x has to be a vector.
 #define SP_SAFE_RELEASE_CLEAR_VECTOR(x) \

@@ -36,14 +36,23 @@ S_API ITerrain* Scene::CreateTerrain(float width, float depth, unsigned int nX, 
 	if (IS_VALID_PTR(m_pTerrain))
 		m_pTerrain->Clear();
 
-	m_pTerrain = new Terrain();
-	/*
-	if (Failure(m_pTerrain->Initialize(m_pEngine, nX, nZ)))
+	m_pTerrain = new Terrain();	
+
+	if (Failure(m_pTerrain->Initialize(m_pEngine)))
 		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");
 
-	if (Failure(m_pTerrain->CreatePlanar(width, depth, baseHeight)))
-		EngLog(S_ERROR, m_pEngine, "Failed create planar terrain in Scene::CreateTerrain");
-	*/
+	STerrainDescription tdsc;
+	tdsc.baseHeight = baseHeight;
+	tdsc.bDynamic = false;
+	tdsc.d = depth;
+	tdsc.w = width;
+	tdsc.lodLevels = 2;
+	tdsc.segsX = nX;
+	tdsc.segsZ = nZ;
+	tdsc.chunkSegsX = 10;
+	tdsc.chunkSegsZ = 10;
+
+	m_pTerrain->Generate(tdsc);
 
 	m_pTerrain->SetColorMap(pColorMap);
 	m_pTerrain->SetDetailMap(pDetailMap);

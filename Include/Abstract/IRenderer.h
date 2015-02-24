@@ -238,9 +238,9 @@ struct S_API SRenderDesc
 
 struct S_API STerrainRenderDesc
 {
-	SDrawCallDesc drawCallDesc;
-	STransformationDesc transform;
-	IGeometry* pGeometry;		// TODO: For what is this member??
+	SDrawCallDesc *pDrawCallDescs;
+	unsigned int nDrawCallDescs;
+	STransformationDesc transform;	
 	ITexture* pColorMap;
 	ITexture* pDetailMap;
 	STerrainConstantBuffer constants;
@@ -248,7 +248,8 @@ struct S_API STerrainRenderDesc
 	bool bRender;
 
 	STerrainRenderDesc()
-		: pGeometry(nullptr),
+		: pDrawCallDescs(nullptr),
+		nDrawCallDescs(0),
 		pColorMap(nullptr),
 		pDetailMap(nullptr),
 		bUpdateCB(true),

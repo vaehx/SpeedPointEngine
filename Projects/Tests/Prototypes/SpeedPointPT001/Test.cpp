@@ -67,7 +67,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.bEnableVSync = true;
 	dsc.render.vsyncInterval = 1;	
-	dsc.render.bRenderWireframe = false;	
+	dsc.render.bRenderWireframe = true;	
 	dsc.render.fTerrainDMFadeRange = 5.0f;
 
 	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;	
@@ -195,11 +195,76 @@ bool Test::Tick()
 		nDumpedFrames++;
 	}
 
+
+
+
+
+	// TODO: Move to Input section of Dynamics pipeline of engine sometimes!
+
+	HandleMouse();
+
+	float moveDiff = (KeyPressed(KEY_SHIFT) ? 0.5f : 0.1f);
+
+	SpeedPoint::SMatrix4 viewMtx = pCamera->RecalculateViewMatrix();
+	viewMtx = SpeedPoint::SMatrixTranspose(viewMtx);
+
+	SpeedPoint::SVector3 left(viewMtx._11, viewMtx._12, viewMtx._13);
+	SpeedPoint::SVector3 up(viewMtx._21, viewMtx._22, viewMtx._23);
+	SpeedPoint::SVector3 look(viewMtx._31, viewMtx._32, viewMtx._33);
+
+	if (KeyPressed(KEY_MOVE_FORWARD)) pCamera->position -= look * moveDiff;
+	if (KeyPressed(KEY_MOVE_BACKWARD)) pCamera->position += look * moveDiff;
+	if (KeyPressed(KEY_MOVE_LEFT)) pCamera->position -= left * moveDiff;
+	if (KeyPressed(KEY_MOVE_RIGHT)) pCamera->position += left * moveDiff;
+	if (KeyPressed(KEY_MOVE_UP)) pCamera->position.y += moveDiff;
+	if (KeyPressed(KEY_MOVE_DOWN)) pCamera->position.y -= moveDiff;
+
+	/*
+	if (KeyPressed(KEY_MOVE_FORWARD)) pCamera->position.z += moveDiff;
+	if (KeyPressed(KEY_MOVE_BACKWARD)) pCamera->position.z -= moveDiff;
+	if (KeyPressed(KEY_MOVE_LEFT)) pCamera->position.x += moveDiff;
+	if (KeyPressed(KEY_MOVE_RIGHT)) pCamera->position.x -= moveDiff;
+	if (KeyPressed(KEY_MOVE_UP)) pCamera->position.y += moveDiff;
+	if (KeyPressed(KEY_MOVE_DOWN)) pCamera->position.y -= moveDiff;
+	*/
+
+
+
+
+
+
+
+
 	// Start the frame pipeline
 	if (Failure(m_pEngine->ExecuteFramePipeline()))
 		return false;
 
 	return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Test::HandleMouse()
+{
+	m_bRightMouseBtn = GetAsyncKeyState(VK_RBUTTON) < 0;
+
+	POINT mousePos;
+	if (GetCursorPos(&mousePos))
+	{
+		if (m_bRightMouseBtn)
+		{
+			float factorYaw = 0.001f, factorPitch = 0.001f;
+
+			POINT mouseDiff;			
+			mouseDiff.x = mousePos.x - m_LastMousePos.x;
+			mouseDiff.y = mousePos.y - m_LastMousePos.y;
+
+			pCamera->rotation.y -= mouseDiff.x * factorYaw;
+			pCamera->rotation.x -= mouseDiff.y * factorPitch;
+		}
+
+		m_LastMousePos = mousePos;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -227,16 +292,7 @@ void Test::Render()
 	camLookAt.x = sinf(alpha) * camTurnRad;
 	camLookAt.y = 3.0f;
 	camLookAt.z = cosf(alpha) * camTurnRad;
-	*/	
-
-	float moveDiff = (KeyPressed(KEY_SHIFT) ? 0.3f : 0.1f);
-
-	if (KeyPressed(KEY_MOVE_FORWARD)) pCamera->position.z += moveDiff;
-	if (KeyPressed(KEY_MOVE_BACKWARD)) pCamera->position.z -= moveDiff;
-	if (KeyPressed(KEY_MOVE_LEFT)) pCamera->position.x += moveDiff;
-	if (KeyPressed(KEY_MOVE_RIGHT)) pCamera->position.x -= moveDiff;
-	if (KeyPressed(KEY_MOVE_UP)) pCamera->position.y += moveDiff;
-	if (KeyPressed(KEY_MOVE_DOWN)) pCamera->position.y -= moveDiff;
+	*/		
 
 	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));	
 
@@ -250,15 +306,26 @@ void Test::Render()
 
 	// RENDER
 
-	//if (Failure(m_pScene->GetTerrain()->RenderTerrain()))
-	//	m_pEngine->LogE("Failed render terrain!");
+
+
+	// Render the Terrain
+	m_pScene->GetTerrain()->RequireRender();
+
+	if (Failure(m_pScene->GetTerrain()->RenderTerrain(pCamera->position)))
+		m_pEngine->LogE("Failed render terrain!");
+
+
 
 
 	//testObject.Render();
+	/*
 	pTest3DSObject->Render();
 	if (Failure(pTest3DSNormalsObject->Render()))
 		m_pEngine->LogE("Failed render 3ds model!");
+		*/
+	
 
+	/*
 	for (unsigned int i = 0; i < TEST_REFS; ++i)
 	{		
 		float x = (float)(i % 30);
@@ -269,6 +336,7 @@ void Test::Render()
 		pTestRefs[i]->vSize = pTest3DSObject->vSize;
 		pTestRefs[i]->Render();
 	}
+	*/
 
 }
 

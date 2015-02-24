@@ -1,9 +1,6 @@
 // ********************************************************************************************
 
-//	SpeedPoint Terrain Solid
-
-//	This is a virtual class. You cannot instantiate it.
-//	Please use Specific Implementation to instantiate.
+//	SpeedPoint Terrain
 
 // ********************************************************************************************
 
@@ -11,43 +8,144 @@
 
 #include <SPrerequisites.h>
 #include "Vector3.h"
+#include "IIndexBuffer.h"
+#include "IVertexBuffer.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 struct S_API ITexture;
-struct S_API IVertexBuffer;
-struct S_API IIndexBuffer;
 
 struct S_API STerrainDescription
 {
-	unsigned int nX, nZ;
-	unsigned int nChunkSideSegments;
-	float width, depth;
+	unsigned int segsX, segsZ;
+	float w, d;
 	float baseHeight;
+	unsigned int lodLevels;
+	unsigned int chunkSegsX, chunkSegsZ;
 	bool bDynamic;
 
-	STerrainDescription()		
+	STerrainDescription()
 		: bDynamic(false)
 	{
 	}
 
 	STerrainDescription(const STerrainDescription& tdsc)
-		: nX(tdsc.nX),	
-		nZ(tdsc.nZ),
-		nChunkSideSegments(tdsc.nChunkSideSegments),
-		width(tdsc.width),
-		depth(tdsc.depth),
-		baseHeight(tdsc.baseHeight)
+		: segsX(tdsc.segsX), segsZ(tdsc.segsZ),
+		w(tdsc.w), d(tdsc.d),
+		baseHeight(tdsc.baseHeight),
+		lodLevels(tdsc.lodLevels),
+		chunkSegsX(tdsc.chunkSegsX), chunkSegsZ(tdsc.chunkSegsZ),
+		bDynamic(tdsc.bDynamic)
 	{
 	}
 
 	inline bool IsValid() const
 	{
-		return (nX > 0 && nZ > 0 && nChunkSideSegments > 0 && width > 0 && depth > 0);
+		return (segsX > 0 && segsZ > 0 && chunkSegsX > 0 && chunkSegsZ > 0 && w > 0.0f && d > 0.0f);
 	}
 };
 
+struct S_API STerrainChunkCounts
+{
+	unsigned int indices, vertices;
+	unsigned int quadsX, quadsZ; // verts{X,Y} = quads{X,Y} + 1
+};
+
+struct S_API STerrainLodCounts
+{
+	unsigned int indices, vertices;
+};
+
+struct S_API STerrainChunkLodCounts
+{
+	unsigned long vertexOffset, indexOffset;
+	unsigned long vertexCount, indexCount;
+	unsigned int quadsX, quadsZ;
+};
+
+struct S_API STerrainChunk
+{
+	unsigned int nSegsX, nSegsZ; // on high res grid
+	float fWidth, fDepth;
+	float fXOffs, fZOffs;
+	float fUOffs, fVOffs;
+	float fSegUSz, fSegVSz;
+	SIndex** pIndices; // (SIndex[nIndices])[nLodLevels]
+	SVertex** pVertices; // (SVertex[nIndices])(nLodLevels)
+	STerrainChunkLodCounts* pLodCounts;
+	unsigned int nLodLevels;
+
+	STerrainChunk()
+		: pIndices(0),
+		pVertices(0),
+		pLodCounts(0)
+	{
+	}
+
+	~STerrainChunk()
+	{
+		SP_SAFE_DELETE_ARR(pVertices, nLodLevels);
+		SP_SAFE_DELETE_ARR(pIndices, nLodLevels);
+		SP_SAFE_DELETE_ARR(pLodCounts, nLodLevels);
+
+		nLodLevels = 0;
+	}
+
+	inline static unsigned int CountSideParts(unsigned int l, unsigned int lodLvl)
+	{
+		unsigned int sz = GetLodLevelQuadStartSz(lodLvl);
+		unsigned int accumulator = 0;
+		while (l > 0)
+		{
+			while ((int)l - (int)sz < 0)
+				sz = (sz > 1) ? (unsigned int)((double)sz * 0.5) : 0;
+
+			if (sz == 0)
+				break;
+
+			accumulator++;
+			l -= sz;
+		}
+
+		return accumulator;
+	}
+	
+	inline static unsigned int GetLodLevelQuadStartSz(unsigned int lodLevel)
+	{
+		return (lodLevel == 0) ? 1 : lodLevel * 2;
+	}	
+
+	static STerrainChunkCounts PrecalcCounts(unsigned int lodLevel, unsigned int segsX, unsigned int segsZ)
+	{
+		STerrainChunkCounts counts;
+		counts.quadsX = CountSideParts(segsX, lodLevel);
+		counts.quadsZ = CountSideParts(segsZ, lodLevel);
+
+		if (segsX * segsZ > 0)
+		{
+			counts.indices = counts.quadsX * counts.quadsZ * 6;
+			counts.vertices = (counts.quadsX + 1) * (counts.quadsZ + 1);
+		}
+		else
+		{
+			counts.indices = 0;
+			counts.vertices = 0;
+		}
+
+		return counts;
+	}
+
+	void STerrainChunk::AddQuad(unsigned int lodLevel, unsigned int w, unsigned int d,
+		unsigned long iStartVtx, unsigned long iStartIndex, unsigned long vtxRowShift,
+		float baseHeight, float xoffs, float zoffs, float uoffs, float voffs);
+
+	// startSz - Size of biggest quad
+	void GenerateLodLevel(unsigned int lodLevel, unsigned int startSz, float baseHeight);
+};
+
+
+// ==================================================================================================================
 
 // SpeedPoint Terrain Solid (abstract)
 struct S_API ITerrain
@@ -62,14 +160,18 @@ public:
 	virtual SResult Initialize(IGameEngine* pEngine) = 0;
 
 	// Create a planar terrain using given terrain description	
-	virtual SResult CreatePlanar(const STerrainDescription& tdsc) = 0;
+	//virtual SResult CreatePlanar(const STerrainDescription& tdsc) = 0;
 
-	virtual SResult RecalculateNormals() = 0;
+
+	virtual void Generate(const STerrainDescription& tdsc) = 0;
+
+
+	virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
 
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
 	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;
 
-	virtual IVertexBuffer* GetVertexBuffer() = 0;
+	virtual IVertexBuffer* GetVertexBuffer(unsigned int lodLevel) = 0;
 	virtual IIndexBuffer* GetIndexBuffer(unsigned int lodLevel) = 0;
 	
 	// Summary:
@@ -85,8 +187,10 @@ public:
 	///	- Do we add a single function for runtime LOD change or do we implement that into the render function?
 	///////////////////
 
+	virtual void RequireRender() = 0;
+
 	// Render the Terrain. Fails if pointer to SpeedPointEngine is not correct
-	virtual SResult RenderTerrain( const SVector3& lodCenterPos ) = 0;
+	virtual SResult RenderTerrain( const SVector3& camPos ) = 0;
 
 	// Clearout the terrain data BUT not the heightmap
 	virtual SResult Clear( void ) = 0;

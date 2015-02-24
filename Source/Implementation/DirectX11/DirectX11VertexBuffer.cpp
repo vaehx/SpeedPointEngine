@@ -270,6 +270,7 @@ S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigne
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(vertices, S_INVALIDPARAM, "Invalid buffer of vertices given");	
+	SP_ASSERTR(nVertices_ < ULONG_MAX, S_INVALIDPARAM, "Invalid number of vertices given (ULONG_MAX)!");
 
 	if (m_Usage == eVBUSAGE_STATIC
 		|| m_nVertices < nVertices_ // need resize
