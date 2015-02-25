@@ -46,7 +46,7 @@ S_API ITerrain* Scene::CreateTerrain(float width, float depth, unsigned int nX, 
 	tdsc.bDynamic = false;
 	tdsc.d = depth;
 	tdsc.w = width;
-	tdsc.lodLevels = 2;
+	tdsc.lodLevels = 5;
 	tdsc.segsX = nX;
 	tdsc.segsZ = nZ;
 	tdsc.chunkSegsX = 10;

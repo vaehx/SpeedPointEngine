@@ -87,7 +87,7 @@ public:
 	virtual SResult CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor);	
 	virtual SString GetSpecification(void);
 
-	virtual SResult Lock(void **pPixels, unsigned int* pnPixels);
+	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0);
 	virtual SResult Unlock();
 
 	// ----

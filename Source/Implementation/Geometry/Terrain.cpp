@@ -23,6 +23,15 @@ S_API void STerrainChunk::AddQuad(unsigned int lodLevel, unsigned int w, unsigne
 
 	float tangent[3] = { -1.0f, 0, 0 };	
 
+	if (iStartVtx + vtxRowShift + 1 > pLodCounts[lodLevel].vertexCount)
+	{
+		printf("Warn: Vertex index %u exceeded vertex count of %u in STerrainChunk::AddQuad()!\n",
+			iStartVtx + vtxRowShift + 1, pLodCounts[lodLevel].vertexCount);
+
+		return;
+	}
+
+
 	pVertices[lodLevel][iStartVtx] = SVertex(xoffs, baseHeight, zoffs, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs, voffs);
 	pVertices[lodLevel][iStartVtx + 1] = SVertex(xoffs + quadWidth, baseHeight, zoffs, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs + fSegUSz * w, voffs);
 	pVertices[lodLevel][iStartVtx + vtxRowShift] = SVertex(xoffs, baseHeight, zoffs + quadDepth, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs, voffs + fSegVSz * d);
@@ -65,6 +74,7 @@ void STerrainChunk::GenerateLodLevel(unsigned int lodLvl, unsigned int startSz /
 			break; 
 		
 		w = nSegsX;
+		sz[0] = startSz;
 		for (unsigned int x = 0; x < nSegsX;)
 		{
 			// find next quad width
@@ -82,7 +92,7 @@ void STerrainChunk::GenerateLodLevel(unsigned int lodLvl, unsigned int startSz /
 
 			AddQuad(lodLvl, sz[0], sz[1], iCurVtx, iCurIdx, vtxRowShift, baseHeight,
 				fXOffs + segmentWidth * x, fZOffs + segmentDepth * z,
-				fUOffs + segmentWidth * x, fVOffs + segmentDepth * z);
+				fUOffs + fSegUSz * x, fVOffs + fSegVSz * z);
 
 			iCurVtx += (x == nSegsX - sz[0]) ? 2 : 1;
 			iCurIdx += 6;
@@ -155,8 +165,8 @@ S_API void Terrain::Generate(const STerrainDescription& tdsc)
 	// calculate segment sizes
 	float segWidth = tdsc.w / nSegsX;
 	float segDepth = tdsc.d / nSegsZ;
-	float segUSz = segWidth;
-	float segVSz = segDepth;
+	float segUSz = tdsc.w / (nSegsX + 1) / tdsc.w;
+	float segVSz = tdsc.d / (nSegsZ + 1) / tdsc.d;
 
 #ifdef _DEBUG
 	EngLog(S_DEBUG, m_pEngine, "Terrain: {nChunkSegsX=%u, nChunkSegsZ=%u, nSegsX=%u, nSegsZ=%u}", nChunkSegsX, nChunkSegsZ, nSegsX, nSegsZ);
@@ -238,8 +248,8 @@ S_API void Terrain::Generate(const STerrainDescription& tdsc)
 					pChunk->fSegVSz = segVSz;
 					pChunk->fXOffs = cx * (segWidth * nChunkSegsX);
 					pChunk->fZOffs = cz * (segDepth * nChunkSegsZ);
-					pChunk->fUOffs = pChunk->fXOffs;
-					pChunk->fVOffs = pChunk->fZOffs;
+					pChunk->fUOffs = cx * (segUSz * nChunkSegsX);
+					pChunk->fVOffs = cz * (segVSz * nChunkSegsZ);
 				}
 
 				// Set pointer of the chunks vtx/idx to the first vtx/idx in the main buffer, so
@@ -273,7 +283,10 @@ S_API void Terrain::Generate(const STerrainDescription& tdsc)
 	}
 	
 	if (Failure(FillVertexAndIndexBuffers()))
-		return;	
+		return;
+
+	if (Failure(GenerateFlatVertexHeightmap(tdsc.baseHeight)))
+		return;
 	
 	ClearTemporaryGenerationVertices();
 }
@@ -351,46 +364,58 @@ S_API SResult Terrain::FillVertexAndIndexBuffers()
 }
 
 // -------------------------------------------------------------------------------------------------------------------
-/*
-S_API SResult Terrain::CreatePlanar(const STerrainDescription& tdsc)
+S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 {
+	if (!IS_VALID_PTR(m_pEngine))
+		return S_NOTINIT;
 
-	// Fill vertex buffer
+	IResourcePool* pRes = m_pEngine->GetResources();	
 
-	if (Failure(m_pEngine->GetResources()->AddVertexBuffer(&m_pVertexBuffer)))
-		return EngLog(S_ERROR, m_pEngine, "Failed add vertex buffer for terrain!");
+	// Remove old texture, if there was one
+	if (IS_VALID_PTR(m_pVtxHeightMap))
+		pRes->RemoveTexture(&m_pVtxHeightMap);
 
-	if (Failure(m_pVertexBuffer->Initialize(m_pEngine, m_pEngine->GetRenderer(), tdsc.bDynamic ? eVBUSAGE_DYNAMIC_RARE : eVBUSAGE_STATIC, 0, 0)))
-		return EngLog(S_ERROR, m_pEngine, "Failed init Vertex Buffer for Terrain!");
+	// Create new Texture
+	float baseHeightScaled = baseHeight / m_MaxHeight;
+	SColor baseColor(baseHeightScaled, baseHeightScaled, baseHeightScaled);	
 
-	//if (Failure(m_pVertexBuffer->Fill(pVertices, nVertices)))
-	//	return EngLog(S_ERROR, m_pEngine, "Failed fill vertex buffer for terrain!");
+	SResult res = pRes->AddTexture(nSegsX + 1, nSegsZ + 1, "terrain_vtxheightmap", eTEXTURE_R8G8B8A8_UNORM, baseColor, &m_pVtxHeightMap, true);
+	if (Failure(res))
+		return res;
 
-
-
-	// Fill index buffers
-
-	for (unsigned int iIndexBuffer = 0; iIndexBuffer < 2; ++iIndexBuffer)
+	unsigned int rowPitch;
+	unsigned long *pPixels;
+	unsigned int nPixels;
+	if (Success(m_pVtxHeightMap->Lock((void**)&pPixels, &nPixels, &rowPitch)))
 	{
-		if (Failure(m_pEngine->GetResources()->AddIndexBuffer(&m_pIndexBuffer[iIndexBuffer])))
-			return EngLog(S_ERROR, m_pEngine, "Failed add index buffer #%d for terrain!", iIndexBuffer);
+		rowPitch = (unsigned int)(rowPitch / 4);
+		for (unsigned int x = 0; x < nSegsX + 1; ++x)
+		{
+			for (unsigned int y = 0; y < nSegsZ + 1; ++y)
+			{
+				// ff ff ff ff
+				float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);
+				unsigned long byteval = (unsigned char)(((val + 1.0f) * 0.5f) * 255.0f);
 
-		/*
-		if (Failure(m_pIndexBuffer[iIndexBuffer]->Initialize(m_pEngine, m_pEngine->GetRenderer(), eIBUSAGE_STATIC, nIndices[iIndexBuffer], 0)))
-			return EngLog(S_ERROR, m_pEngine, "Failed init index buffer #%d for terrain!", iIndexBuffer);
-		*/
+				pPixels[x * rowPitch + y] = byteval;
+			}
+		}
 
-		/*
-		if (Failure(m_pIndexBuffer[iIndexBuffer]->Fill(pIndices[iIndexBuffer], nIndices[iIndexBuffer], false)))
-			return EngLog(S_ERROR, m_pEngine, "Failed fill index buffer #%d for terrain!", iIndexBuffer);
-		*//*
+		m_pVtxHeightMap->Unlock();
 	}
-	
-	m_bRequireCBUpdate = true;
+	else
+	{
+		EngLog(S_ERROR, m_pEngine, "Failed lock vtx height map for terrain!");
+	}	
 
-	return RecalculateNormals();
+	return S_SUCCESS;
 }
-*/
+
+
+
+
+
+
 
 // -------------------------------------------------------------------------------------------------------------------
 S_API SResult Terrain::RecalculateNormals(unsigned int lodLevel /* = 0*/)
@@ -492,6 +517,7 @@ S_API SResult Terrain::RenderTerrain(const SVector3& camPos)
 	STerrainRenderDesc* dsc = pRenderer->GetTerrainRenderDesc();
 	dsc->pColorMap = m_pColorMap;
 	dsc->pDetailMap = m_pDetailMap;
+	dsc->pVtxHeightMap = m_pVtxHeightMap;
 	dsc->bRender = true;
 	SMatrixIdentity(&dsc->transform.scale);
 
@@ -503,6 +529,9 @@ S_API SResult Terrain::RenderTerrain(const SVector3& camPos)
 		dsc->constants.dmTexRatioU = m_fDMTexScaleU;
 		dsc->constants.dmTexRatioV = m_fDMTexScaleV;
 		dsc->constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
+		dsc->constants.fTerrainMaxHeight = m_MaxHeight;
+		dsc->constants.vtxHeightMapSz[0] = nSegsX + 1;
+		dsc->constants.vtxHeightMapSz[1] = nSegsZ + 1;
 		m_bRequireCBUpdate = false;
 	}
 	

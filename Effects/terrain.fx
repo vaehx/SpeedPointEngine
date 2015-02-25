@@ -19,10 +19,13 @@ cbuffer TerrainCB : register(b1)
     float terrainTexRatioU;
     float terrainTexRatioV;
     float terrainDMFadeRadius;
+    float terrainMaxHeight;
+    uint2 terrainHeightmapSz;
 }
 
-Texture2D colorMap : register(t0);
-Texture2D detailMap : register(t1);
+Texture2D vtxHeightMap : register(t0);
+Texture2D colorMap : register(t1);
+Texture2D detailMap : register(t2);
 SamplerState MapSampler
 {
     Filter = MIN_MAG_MIP_POINT;
@@ -47,16 +50,53 @@ struct VS_OUTPUT
     float2 TexCoord : TEXCOORD2;
 };
 
+
+float SampleVertexHeightmap(float2 texcoord)
+{
+    uint2 pos = { texcoord.x * terrainHeightmapSz.x, texcoord.y * terrainHeightmapSz.y };
+    return vtxHeightMap[pos].r;
+}
+
+// Used to interpolate the vertex heightmap values
+float SampleVertexHeightmapBilinear(float2 texcoord)
+{    
+    float2 pixelSizeInTexcoords;
+    pixelSizeInTexcoords.x = 1.0f / terrainHeightmapSz.x;
+    pixelSizeInTexcoords.y = 1.0f / terrainHeightmapSz.y;
+    
+    // round to floor    
+    float2 remainder = texcoord % pixelSizeInTexcoords;
+    float2 roundedTC = texcoord - remainder;
+
+    // transform remainder from [0;pixelSizeInTexcoords] to [0;1]
+    remainder /= pixelSizeInTexcoords;
+    
+    // linearly interpolate top and bottom samples
+    float4 interpolated[2];
+    interpolated[0] = lerp(
+        SampleVertexHeightmap(roundedTC + float2(-0.5,-0.5) * pixelSizeInTexcoords),
+        SampleVertexHeightmap(roundedTC + float2( 0.5,-0.5) * pixelSizeInTexcoords), remainder.x);
+    
+    interpolated[1] = lerp(
+        SampleVertexHeightmap(roundedTC + float2(-0.5, 0.5) * pixelSizeInTexcoords),
+        SampleVertexHeightmap(roundedTC + float2( 0.5, 0.5) * pixelSizeInTexcoords), remainder.x);
+    
+    return lerp(interpolated[0], interpolated[1], remainder.y);
+}
+
+
+
 VS_OUTPUT VS_terrain(VS_INPUT IN)
 {
     VS_OUTPUT OUT;    
 
-    // Convert Position from Object into World-, Camera- and Projection Space
-    float4 wPos = float4(IN.Position, 1.0f);
+    // Sample vertex height from vertex heightmap texture    
+    float4 wPos = float4(IN.Position, 1.0f);        
+    wPos.y = SampleVertexHeightmapBilinear(IN.TexCoord) * 10.0f;                                
     OUT.WorldPos = wPos.xyz;
         
     float4 sPos = mul(mtxView, wPos);
-    float4 rPos = mul(mtxProjection, sPos);
+    float4 rPos = mul(mtxProjection, sPos);            
     OUT.Position = rPos;
     
     OUT.Normal = normalize(IN.Normal);             
@@ -143,7 +183,12 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     
     // Sample CM and DM
     float4 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord);
-    float4 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz);           
+    float4 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz);
+    
+    float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
+    
+    uint2 pos = { IN.TexCoord.x * terrainHeightmapSz.x, IN.TexCoord.y * terrainHeightmapSz.y };
+    vtxHeight = vtxHeightMap[pos];
     
     // Calculate lighting factor. Using a fixed light dir    
     float3 lightDir = normalize(float3(0, -0.3f, 0.8f));
@@ -162,7 +207,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float dirln = length(eyePos.xz - IN.WorldPos.xz);
     float terrainFadeFactor = terrain_fade_factor(dirln);
     OUT.Color = (sampleCM * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity); 
-    
+               
     return OUT;
 }
 

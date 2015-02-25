@@ -321,20 +321,33 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 
 	// Now create the directx texture
 	D3D11_TEXTURE2D_DESC& textureDesc = m_DXTextureDesc;
-	textureDesc.ArraySize = 1;
-	textureDesc.BindFlags = (bMipAutoGenSupported) ? (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) : (D3D11_BIND_SHADER_RESOURCE);
-	textureDesc.CPUAccessFlags = (m_bDynamic) ? D3D11_CPU_ACCESS_WRITE /* | D3D11_CPU_ACCESS_READ */ : 0;
+	textureDesc.ArraySize = 1;	
 	textureDesc.Format = newTextureFmt;
 	textureDesc.Width = w;
-	textureDesc.Height = h;
-	textureDesc.MipLevels = (bMipAutoGenSupported) ? 0 : 1;
-	textureDesc.MiscFlags = (bMipAutoGenSupported) ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
+	textureDesc.Height = h;	
 	textureDesc.SampleDesc.Count = 1;
-	textureDesc.SampleDesc.Quality = 0; // No MS for now!
-	textureDesc.Usage = (m_bDynamic) ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
+	textureDesc.SampleDesc.Quality = 0; // No MS for now!	
+
+	if (!m_bDynamic)
+	{
+		textureDesc.MiscFlags = (bMipAutoGenSupported) ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
+		textureDesc.BindFlags = (bMipAutoGenSupported) ? (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) : (D3D11_BIND_SHADER_RESOURCE);
+		textureDesc.CPUAccessFlags = 0;
+		textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureDesc.MipLevels = (bMipAutoGenSupported) ? 0 : 1;		
+	}
+	else
+	{
+		textureDesc.MiscFlags = 0;
+		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		textureDesc.Usage = D3D11_USAGE_DYNAMIC;
+		textureDesc.MipLevels = 1;
+	}		
+
+
 
 	unsigned int nPixels = w * h;
-
 	D3D11_SUBRESOURCE_DATA initData;		
 	switch (type)
 	{
@@ -343,10 +356,10 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 		char* pEmptyPixels = new char[nPixels * 4];
 		for (unsigned int iPxl = 0; iPxl < nPixels * 4; iPxl += 4)
 		{
-			pEmptyPixels[iPxl]	= (char)(clearcolor.r * 255.0f);
-			pEmptyPixels[iPxl + 1]	= (char)(clearcolor.g * 255.0f);
-			pEmptyPixels[iPxl + 2]	= (char)(clearcolor.b * 255.0f);
-			pEmptyPixels[iPxl + 3]	= (char)(clearcolor.a * 255.0f);
+			pEmptyPixels[iPxl] = (char)(clearcolor.r * 255.0f);
+			pEmptyPixels[iPxl + 1] = (char)(clearcolor.g * 255.0f);
+			pEmptyPixels[iPxl + 2] = (char)(clearcolor.b * 255.0f);
+			pEmptyPixels[iPxl + 3] = (char)(clearcolor.a * 255.0f);
 		}
 
 		initData.pSysMem = pEmptyPixels;
@@ -355,41 +368,53 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 
 		break;
 	}
+
 	case eTEXTURE_D32_FLOAT:
 	{
 		float* pEmptyPixels = new float[nPixels];
 		for (unsigned int iPxl = 0; iPxl < nPixels; ++iPxl)
-			pEmptyPixels[iPxl] = clearcolor.r;		
+			pEmptyPixels[iPxl] = clearcolor.r;
 
 		initData.pSysMem = pEmptyPixels;
 		initData.SysMemPitch = w * sizeof(float);
 		initData.SysMemSlicePitch = nPixels * sizeof(float);
 
 		break;
-	}			
+	}
 	}	
 
+
+
 	m_pDXTexture = nullptr;
+	
 	hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
+
 	if (Failure(hRes) || m_pDXTexture == nullptr)
 		return m_pEngine->LogE("Failed to create empty DirectX11 Texture (CreateTexture2D failed)!");
+
+
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	memset(&srvDesc, 0, sizeof(srvDesc));
 	srvDesc.Format = newTextureFmt;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = (bMipAutoGenSupported) ? -1 : 1;
+
 	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV)))
 	{
 		m_pDXTexture->Release();
 		return m_pEngine->LogE("Failed create shader resource view for empty texture!");
 	}
 
-	if (bMipAutoGenSupported)
-	{
-		ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+	if (!m_bDynamic && bMipAutoGenSupported)
+	{		
 		pDXDevCon->UpdateSubresource(m_pDXTexture, 0, nullptr, initData.pSysMem, initData.SysMemPitch, initData.SysMemSlicePitch);
 		pDXDevCon->GenerateMips(m_pDXSRV);
+	}
+	else if (m_bDynamic)
+	{
+		//pDXDevCon->GenerateMips(m_pDXSRV);
 	}
 
 	delete[] initData.pSysMem;
@@ -427,7 +452,7 @@ S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels)
+S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /* = 0*/)
 {
 	if (!IS_VALID_PTR(pPixels) || !IS_VALID_PTR(pnPixels))
 		return S_INVALIDPARAM;
@@ -441,7 +466,7 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels)
 
 	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 	memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_READ_WRITE, 0, &mappedSubresource)))
+	if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
 	{
 		m_pDXRenderer->FrameDump("Failed map texture (" + m_Specification + ") for Lock!");
 		return S_ERROR;
@@ -449,6 +474,9 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels)
 
 	*pPixels = mappedSubresource.pData;
 	m_pLockedData = mappedSubresource.pData;
+
+	if (IS_VALID_PTR(pnRowPitch))
+		*pnRowPitch = mappedSubresource.RowPitch;
 	
 	*pnPixels = m_DXTextureDesc.Width * m_DXTextureDesc.Height;
 	switch (m_Type)

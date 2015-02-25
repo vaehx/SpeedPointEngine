@@ -812,15 +812,18 @@ S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
+S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/, bool vs /*=false*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 	SP_ASSERTR(IS_VALID_PTR(pTex), S_INVALIDPARAM);
 
 	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
-	SP_ASSERTRD(IS_VALID_PTR(pSRV), S_ERROR, "SRV of Texture not set or invalid!");
+	SP_ASSERTRD(IS_VALID_PTR(pSRV), S_ERROR, "SRV of Texture not set or invalid!");	
 
-	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
+	if (vs)
+		m_pD3DDeviceContext->VSSetShaderResources(lvl, 1, &pSRV);
+	else
+		m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
 
 	return S_SUCCESS;
 }
@@ -1023,11 +1026,14 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
 
 
+		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMap))) m_pEngine->LogE("Invalid detail map in Terrain render Desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
 
-		BindTexture(m_TerrainRenderDesc.pColorMap, 0);
-		BindTexture(m_TerrainRenderDesc.pDetailMap, 1);
+		BindTexture(m_TerrainRenderDesc.pVtxHeightMap, 0);
+		BindTexture(m_TerrainRenderDesc.pVtxHeightMap, 0, true);
+		BindTexture(m_TerrainRenderDesc.pColorMap, 1);
+		BindTexture(m_TerrainRenderDesc.pDetailMap, 2);
 
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 0, nullptr);
 		m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);

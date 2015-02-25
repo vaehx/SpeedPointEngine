@@ -272,7 +272,7 @@ public:
 
 
 
-	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0);
+	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0, bool vs = false);
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
 
 	// Description:

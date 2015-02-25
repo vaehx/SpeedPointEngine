@@ -43,6 +43,9 @@ private:
 	bool m_bUseVBCulledRendering;
 
 	// -----
+	float m_MaxHeight;	
+	ITexture* m_pVtxHeightMap;
+
 	SVertex** pVertexBuffers; // one VB per lod level
 	SIndex** pIndexBuffers; // one IB per lod level
 	unsigned int nSegsX, nSegsZ;
@@ -64,10 +67,12 @@ private:
 	// Keeps indices, in order to properly RecalculateNormals afterwards.
 	void ClearTemporaryGenerationVertices();
 
+	SResult GenerateFlatVertexHeightmap(float baseHeight);
+
 public:
 	Terrain()		
-		: /*m_fDMTexScaleU(1.0f),
-		m_fDMTexScaleV(1.0f),*/
+		: m_fDMTexScaleU(1.0f),
+		m_fDMTexScaleV(1.0f),
 		m_pEngine(nullptr),
 		m_pColorMap(nullptr),
 		m_pDetailMap(nullptr),
@@ -75,7 +80,9 @@ public:
 		pVertexBuffers(nullptr),
 		pIndexBuffers(nullptr),
 		pTerrainChunks(nullptr),
-		m_bUseVBCulledRendering(true)
+		m_bUseVBCulledRendering(true),
+		m_MaxHeight(100.0f),		
+		m_pVtxHeightMap(nullptr)
 	{	
 	}
 
@@ -95,12 +102,22 @@ public:
 	// Create a planar terrain with Size fW x fD
 	//virtual SResult CreatePlanar(const STerrainDescription& tdsc);	
 
-	virtual void Generate(const STerrainDescription& tdsc);
-
+	virtual void Generate(const STerrainDescription& tdsc);	
 
 	// Create and fill vertex and index buffers
 	SResult FillVertexAndIndexBuffers();
 
+	virtual float GetMaxHeight() const
+	{
+		return m_MaxHeight;
+	}
+
+	virtual void SetMaxHeight(float f)
+	{
+		m_MaxHeight = f;
+		RequireCBUpdate();
+		RequireRender();
+	}
 
 
 	virtual SResult SetColorMap(ITexture* pColorMap);

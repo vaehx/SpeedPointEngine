@@ -52,7 +52,7 @@ public:
 
 	// Arguments:
 	//	- clearcolor: Texture gets filled with this color. If type is depth map, clearcolor.r is used.
-	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTex) = 0;
+	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTex, bool bDynamic = false) = 0;
 
 	// is case-sensitive
 	virtual ITexture* GetTexture(const SString& spec) = 0;

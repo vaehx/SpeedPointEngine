@@ -163,13 +163,20 @@ struct S_API STerrainConstantBuffer
 {
 	float dmTexRatioU, dmTexRatioV;
 	float fTerrainDMFadeRadius;
-	float _struct_padding;
+	float fTerrainMaxHeight;
+	unsigned int vtxHeightMapSz[2];
+
+
+	float struct_padding[2];
 
 	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
 	{
 		dmTexRatioU = b.dmTexRatioU;
 		dmTexRatioV = b.dmTexRatioV;
-		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;		
+		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;
+		fTerrainMaxHeight = b.fTerrainMaxHeight;
+		vtxHeightMapSz[0] = b.vtxHeightMapSz[0];
+		vtxHeightMapSz[1] = b.vtxHeightMapSz[1];
 		return *this;
 	}
 };
@@ -243,6 +250,7 @@ struct S_API STerrainRenderDesc
 	STransformationDesc transform;	
 	ITexture* pColorMap;
 	ITexture* pDetailMap;
+	ITexture* pVtxHeightMap;
 	STerrainConstantBuffer constants;
 	bool bUpdateCB;
 	bool bRender;
@@ -253,7 +261,8 @@ struct S_API STerrainRenderDesc
 		pColorMap(nullptr),
 		pDetailMap(nullptr),
 		bUpdateCB(true),
-		bRender(true)
+		bRender(true),
+		pVtxHeightMap(nullptr)
 	{
 	}
 };
@@ -331,7 +340,7 @@ public:
 
 	// Arguments:
 	//	Pass nullptr as pTex to empty this texture level
-	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0) = 0;
+	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0, bool vs = false) = 0;
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;		
 	
 

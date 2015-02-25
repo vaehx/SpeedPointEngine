@@ -67,7 +67,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.bEnableVSync = true;
 	dsc.render.vsyncInterval = 1;	
-	dsc.render.bRenderWireframe = false;	
+	dsc.render.bRenderWireframe = true;	
 	dsc.render.fTerrainDMFadeRange = 5.0f;
 
 	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;	
@@ -167,8 +167,9 @@ void Test::OnInitGeometry()
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Create terrain
 
-	m_pScene->CreateTerrain(40.0f, 40.0f, 60, 60, 0.0f, pTestColorMap, pTestDetailMap);
-	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);
+	m_pScene->CreateTerrain(200.0f, 200.0f, 220, 220, 0.0f, pTestColorMap, pTestDetailMap);
+	m_pScene->GetTerrain()->SetMaxHeight(10.0f);
+	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);	
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////	
 

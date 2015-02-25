@@ -49,7 +49,7 @@ public:
 	// Arguments:
 	//	pPixels:	eTEXTURE_R8G8B8A8_UNORM -> char r, g, b, a;
 	//			eTEXTURE_D32_FLOAT -> float d;
-	virtual SResult Lock(void **pPixels, unsigned int* pnPixels) = 0;
+	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0) = 0;
 
 	virtual SResult Unlock() = 0;
 

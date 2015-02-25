@@ -165,6 +165,9 @@ public:
 
 	virtual void Generate(const STerrainDescription& tdsc) = 0;
 
+	virtual float GetMaxHeight() const = 0;
+	virtual void SetMaxHeight(float f) = 0;
+
 
 	virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
 
