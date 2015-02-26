@@ -2,7 +2,7 @@
 
 //	This file is part of the SpeedPoint Game Engine
 
-//	(c) 2011-2014 Pascal Rosenkranz aka iSmokiieZz
+//	(c) 2011-2015 Pascal Rosenkranz aka iSmokiieZz
 //	All rights reserved.
 
 // *******************************************************************************************************
@@ -159,8 +159,10 @@ S_API void SpeedPointEngine::Shutdown(void)
 	// clear scene
 	if (IS_VALID_PTR(m_pScene.pComponent))
 		m_pScene->Clear();
+	
+	m_pFontRenderer.Clear();
 
-	// calls IRenderer::~IRenderer implementation which will destruct the resource pool
+	// calls IRenderer::~IRenderer implementation which will destruct the resource pool	
 	m_pRenderer.Clear();
 
 	m_pFramePipeline.Clear();	
@@ -321,6 +323,23 @@ S_API SResult SpeedPointEngine::InitializeRenderer(const S_RENDERER_TYPE& type, 
 }
 
 // ----------------------------------------------------------------------------------
+S_API SResult SpeedPointEngine::InitializeFontRenderer()
+{
+	IRenderer* pRenderer = (IRenderer*)m_pRenderer;
+	if (!IS_VALID_PTR(pRenderer))
+		return S_NOTINIT;
+
+	IFontRenderer* pFontRenderer = pRenderer->InitFontRenderer();
+	if (!IS_VALID_PTR(pFontRenderer))
+		return S_ERROR;
+
+	m_pFontRenderer.SetOwn(pFontRenderer);
+
+	LogD("Initialized Font Renderer");
+	return S_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::InitializeResourcePool()
 {
 	assert(IS_VALID_PTR(m_pRenderer.pComponent));
@@ -356,7 +375,33 @@ S_API SResult SpeedPointEngine::InitializeScene(IScene* pScene)
 
 
 
+// ----------------------------------------------------------------------------------
+S_API SString SpeedPointEngine::GetShaderPath(EShaderType shader)
+{
+	char* relativePath;
+	switch (shader)
+	{
+	case eSHADER_FORWARD:
+		relativePath = "Effects\\forward.fx";
+		break;
+	case eSHADER_TERRAIN:
+		relativePath = "Effects\\terrain.fx";
+		break;
+	case eSHADER_FONT:
+		relativePath = "Effects\\font.fx";
+		break;
+	default:
+		relativePath = "Effects\\forward.fx";
+	}
 
+#ifdef _DEBUG
+	char pFXFile[500];
+	sprintf_s(pFXFile, "%s..\\%s", SOL_DIR, relativePath);
+	relativePath = pFXFile;
+#endif
+
+	return SString(relativePath);
+}
 
 
 

@@ -19,6 +19,7 @@ namespace SpeedPoint
 
 	struct S_API IFramePipeline;	
 	struct S_API IRenderer;
+	struct S_API IFontRenderer;
 	//struct S_API IPhysics;
 	//struct S_API IAI;
 	struct S_API IApplication;
@@ -30,6 +31,14 @@ namespace SpeedPoint
 	struct S_API IScene;
 	struct S_API SMaterial;
 
+
+
+	enum EShaderType
+	{
+		eSHADER_FORWARD,
+		eSHADER_TERRAIN,
+		eSHADER_FONT
+	};
 
 
 	// -------------------------------------------------------------------------
@@ -312,6 +321,7 @@ namespace SpeedPoint
 		//	bManageDealloc - Set to true to let the engine handle the destruction of the instance. Otherwise pay attention
 		//		to do this on your own! Default: true
 		virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true) = 0;
+		virtual SResult InitializeFontRenderer() = 0;
 //		virtual SResult InitializePhysics() = 0;
 //		virtual SResult InitializeAI() = 0;
 //		virtual SResult InitializeScriptEngine() = 0;		
@@ -329,6 +339,7 @@ namespace SpeedPoint
 
 		virtual IFramePipeline* GetFramePipeline() const = 0;
 		virtual IRenderer* GetRenderer() const = 0;	
+		virtual IFontRenderer* GetFontRenderer() const = 0;
 //		virtual IPhysics* GetPhysics() const = 0;
 //		virtual IAI* GetAI() const = 0;
 //		virtual IScriptEngine* GetScriptEngine() const = 0;
@@ -338,6 +349,8 @@ namespace SpeedPoint
 		virtual IScene* GetLoadedScene() const = 0;
 
 		virtual SMaterial* GetDefaultMaterial() = 0;
+
+		virtual SString GetShaderPath(EShaderType shader) = 0;
 
 		
 		// Summary:

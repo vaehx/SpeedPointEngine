@@ -115,8 +115,9 @@ static unsigned short sp_strlen(const char* str)
 }
 
 // Note: This function assumes that src properly terminates with a 0!
-//	DST IS CREATED BY THIS FUNCTION IF NOT A VALID POINTER!
+//	DST IS CREATED WITH new BY THIS FUNCTION IF NOT A VALID POINTER!
 //	Otherwise a memory access violation occurs.
+//	MAKE SURE TO DELETE IT PROPERLY!
 static void sp_strcpy(char** dst, const char* src)
 {
 	if (!IS_VALID_PTR(dst))

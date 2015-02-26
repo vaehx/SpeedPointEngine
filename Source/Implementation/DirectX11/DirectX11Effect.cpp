@@ -65,7 +65,11 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 	ifstream fxInput(cFilename, ifstream::binary);
 
 	if (!fxInput.good())
-		return m_pEngine->LogE("Failed open FX file ifstream!");
+	{
+		char dbgout[500];
+		SPSPrintf(dbgout, 500, "Failed open FX file ifstream for %s!", cFilename);
+		return m_pEngine->LogE(dbgout);
+	}
 
 	fxInput.seekg(0, fxInput.end);
 	size = (unsigned int)fxInput.tellg();

@@ -16,6 +16,7 @@
 #include "Abstract\IGameEngine.h"
 #include "Abstract\IResourcePool.h"
 #include "Abstract\IRenderer.h"
+#include "Abstract\IFont.h"
 #include <fstream>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,6 +119,7 @@ private:
 
 	EngineComponent<IFramePipeline> m_pFramePipeline;
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
+	EngineComponent<IFontRenderer> m_pFontRenderer;
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
 	EngineComponent<IScene> m_pScene;
 	ILog* m_pLog;
@@ -150,6 +152,7 @@ public:
 
 	virtual SResult InitializeFramePipeline(IFramePipeline* pCustomFramePipeline = 0);
 	virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true);
+	virtual SResult InitializeFontRenderer();
 	virtual SResult InitializeResourcePool();
 	virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0);
 	virtual SResult InitializeScene(IScene* pScene);
@@ -186,12 +189,15 @@ public:
 	virtual IEngineSettings* GetSettings() const { return m_pSettings; }
 	virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
 	virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
+	virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }
 	virtual IResourcePool* GetResources() const { return m_pResourcePool; }
 	virtual ILog* GetLog() const { return m_pLog; }	
 	virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 	virtual IScene* GetLoadedScene() const { return m_pScene; }
 
 	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
+
+	virtual SString GetShaderPath(EShaderType shader);
 };
 
 

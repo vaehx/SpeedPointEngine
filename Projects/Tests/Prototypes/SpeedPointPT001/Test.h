@@ -16,7 +16,11 @@
 #include <Implementation\Geometry\Terrain.h>
 #include <Implementation\Geometry\Scene.h>
 #include <Windows.h>
+#include <chrono>
 
+#include "CFontRenderSlots.h"
+
+using std::chrono::high_resolution_clock;
 
 #define EXEC_CONDITIONAL(res, exec) if (SpeedPoint::Success(res)) { res = exec; }
 
@@ -42,6 +46,8 @@ public:
 
 #define TEST_REFS 100
 
+
+
 class Test : public SpeedPoint::SpeedPointApplication
 {
 private:
@@ -55,13 +61,26 @@ private:
 	SpeedPoint::SCamera* pCamera;
 	TestLogHandler logHandler;
 
+	CFontRenderSlots m_FontRenderSlots;
+
+	high_resolution_clock m_HighResClock;	
+	high_resolution_clock::time_point m_LastFrameTimestamp;
+	double m_LastFrameDuration;
+
 	bool m_bRightMouseBtn;
 	POINT m_LastMousePos;
+
+	bool m_bFirstFrame;
 
 protected:
 	void OnInitGeometry();
 
-public:		
+public:	
+	Test()
+		: m_LastFrameDuration(-1.0)
+	{
+	}
+
 	virtual void OnLogReport(SpeedPoint::SResult res, const SpeedPoint::SString& msg);
 	bool KeyPressed(EKey key) const;
 	void HandleMouse();

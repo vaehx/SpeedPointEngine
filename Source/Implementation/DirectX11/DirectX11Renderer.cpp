@@ -16,8 +16,9 @@
 #include <Implementation\DirectX11\DirectX11IndexBuffer.h>
 #include <Implementation\DirectX11\DirectX11Texture.h>
 #include <Implementation\DirectX11\DirectX11FBO.h>
+#include <Implementation\DirectX11\DirectX11Font.h>
 #include <Util\SVertex.h>
-#include <xnamath.h>
+//#include <xnamath.h>
 
 #include <initguid.h>
 #include <dxgi1_3.h>
@@ -110,16 +111,16 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter()
 
 
 	// Create and Validate the DXGI Factory
-	CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&m_pDXGIFactory);	
+	CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_pDXGIFactory);	
 	SP_ASSERTR(m_pDXGIFactory, S_ERROR);
 
 
 	// Load and save all possible adapters
-	IDXGIAdapter* pAdapter;
+	IDXGIAdapter1* pAdapter;
 	usint32 iBestAdapter = 0;	
 	DXGI_ADAPTER_DESC bestAdapterDesc;
 	bestAdapterDesc.DedicatedVideoMemory = 0;
-	for (usint32 iAdapter = 0; m_pDXGIFactory->EnumAdapters(iAdapter, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++iAdapter)
+	for (usint32 iAdapter = 0; m_pDXGIFactory->EnumAdapters1(iAdapter, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++iAdapter)
 	{
 		DXGI_ADAPTER_DESC adapterDesc;
 		pAdapter->GetDesc(&adapterDesc);
@@ -531,27 +532,14 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 
 
 	// initialize the shaders
-	char* pForwardFXFile = 0, *pTerrainFXFile = 0;
-#ifdef _DEBUG
-	pForwardFXFile = new char[500];
-	pTerrainFXFile = new char[500];
-	sprintf_s(pForwardFXFile, 500, "%s..\\Effects\\forward.fx", SOL_DIR);
-	sprintf_s(pTerrainFXFile, 500, "%s..\\Effects\\terrain.fx", SOL_DIR);
-#else
-	pGBufferFXFile = "Effects\\forward.fx";
-	pTerrainFXFile = "Effects\\terrain.fx";
-#endif
+	SString forwardFXFile = m_pEngine->GetShaderPath(eSHADER_FORWARD);
+	SString terrainFXFile = m_pEngine->GetShaderPath(eSHADER_TERRAIN);
 
-	if (Failure(m_ForwardEffect.Initialize(m_pEngine, pForwardFXFile, "forward")))
+	if (Failure(m_ForwardEffect.Initialize(m_pEngine, forwardFXFile, "forward")))
 		return S_ERROR;
 
-	if (Failure(m_TerrainEffect.Initialize(m_pEngine, pTerrainFXFile, "terrain")))
+	if (Failure(m_TerrainEffect.Initialize(m_pEngine, terrainFXFile, "terrain")))
 		return S_ERROR;
-
-#ifdef _DEBUG
-	delete[] pForwardFXFile;
-	delete[] pTerrainFXFile;
-#endif
 
 	// Create unset texture dummy
 	m_DummyTexture.Initialize(m_pEngine, "notexture", false);
@@ -573,6 +561,15 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 S_API bool DirectX11Renderer::IsInited(void)
 {
 	return (m_pDXGIFactory && m_pD3DDevice && m_pD3DDeviceContext);
+}
+
+// --------------------------------------------------------------------
+S_API IFontRenderer* DirectX11Renderer::InitFontRenderer()
+{
+	IFontRenderer* pFontRenderer = (IFontRenderer*)new DirectX11FontRenderer();
+	pFontRenderer->Init((IRenderer*)this);
+
+	return pFontRenderer;
 }
 
 // --------------------------------------------------------------------
@@ -617,6 +614,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);	
 #endif		
 
+	m_FontRenderSchedule.Clear();
 	m_RenderSchedule.Clear();
 
 	return S_SUCCESS;
@@ -959,6 +957,25 @@ S_API STerrainRenderDesc* DirectX11Renderer::GetTerrainRenderDesc()
 	return &m_TerrainRenderDesc;
 }
 
+
+
+// --------------------------------------------------------------------
+S_API SFontRenderSlot* DirectX11Renderer::GetFontRenderSlot()
+{
+	if (!m_bInScene)
+		return 0;
+
+	return m_FontRenderSchedule.Get();
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::ReleaseFontRenderSlot(SFontRenderSlot** pFRS)
+{
+	m_FontRenderSchedule.Release(pFRS);
+}
+
+
+
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::EndScene(void)
 {
@@ -967,7 +984,8 @@ S_API SResult DirectX11Renderer::EndScene(void)
 
 	m_bInScene = false;
 
-	RETURN_ON_ERR(UnleashRenderSchedule());
+	RETURN_ON_ERR(UnleashRenderSchedule());	
+	RETURN_ON_ERR(UnleashFontRenderSchedule());
 	RETURN_ON_ERR(PresentTargetViewport());
 
 	m_Settings.SetClearColor(SColor(.0f, 0.05f, .0f));
@@ -1010,6 +1028,15 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 	// TODO: Decide whether extra terrain render desc is good.
 
+	
+
+	// Update Per-Scene Constants Buffer
+	SetViewportMatrices(m_pTargetViewport);
+	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
+	// In case something else was bound to the slot before...
+	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
 
 
 
@@ -1017,13 +1044,10 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	if (m_TerrainRenderDesc.bRender)
 	{
 		bool bTerrainRenderState = true;	// true = success
-		FrameDump("Rendering Terrain...");
+		FrameDump("Rendering Terrain...");		
 
-		// Render terrain directly to backbuffer
+		// Render Terrain directly to the backbuffer
 		BindSingleRT(m_pTargetViewport);
-
-		SetViewportMatrices(m_pTargetViewport);
-		UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
 
 
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
@@ -1252,6 +1276,48 @@ S_API SResult DirectX11Renderer::DrawDeferredLighting()
 S_API SResult DirectX11Renderer::MergeDeferred()
 {
 	return S_ERROR; // not supported yet
+}
+
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
+{
+	if (m_FontRenderSchedule.GetUsedObjectCount() == 0)
+		return S_SUCCESS;
+
+	if (!IS_VALID_PTR(m_pEngine))
+		return S_NOTINIT;
+
+	IFontRenderer* pFontRenderer = m_pEngine->GetFontRenderer();
+	if (!IS_VALID_PTR(pFontRenderer))
+		return S_NOTINIT;
+
+	BindSingleRT(m_pTargetViewport);
+
+	pFontRenderer->BeginRender();
+	
+	unsigned int iFRSIterator = 0;
+	for (unsigned int iSlot = 0; iSlot < m_FontRenderSchedule.GetUsedObjectCount(); ++iSlot)
+	{
+		SFontRenderSlot* pFRS = m_FontRenderSchedule.GetNextUsedObject(iFRSIterator);
+		if (pFRS == 0)
+			break; // end of schedule		
+
+		SPixelPosition pp;
+		pp.x = pFRS->screenPos[0];
+		pp.y = pFRS->screenPos[1];
+		pFontRenderer->RenderText(pFRS->text, pFRS->color, pp, pFRS->alignRight);
+
+		if (!pFRS->keep)
+		{
+			m_FontRenderSchedule.Release(&pFRS);
+			iFRSIterator--;
+		}
+	}
+
+	pFontRenderer->EndRender();
+
+	return S_SUCCESS;
 }
 
 

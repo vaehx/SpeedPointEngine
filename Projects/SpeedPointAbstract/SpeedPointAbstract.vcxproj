@@ -72,6 +72,7 @@
     <ClInclude Include="..\..\Include\Abstract\Camera.h" />
     <ClInclude Include="..\..\Include\Abstract\ChunkedObjectPool.h" />
     <ClInclude Include="..\..\Include\Abstract\ChunkPool.h" />
+    <ClInclude Include="..\..\Include\Abstract\CLog.h" />
     <ClInclude Include="..\..\Include\Abstract\IDynamicsPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IAI.h" />
     <ClInclude Include="..\..\Include\Abstract\IAnimationBundle.h" />
@@ -82,11 +83,13 @@
     <ClInclude Include="..\..\Include\Abstract\IBot.h" />
     <ClInclude Include="..\..\Include\Abstract\ICollisionShape.h" />
     <ClInclude Include="..\..\Include\Abstract\ICommandBuffer.h" />
+    <ClInclude Include="..\..\Include\Abstract\IFont.h" />
     <ClInclude Include="..\..\Include\Abstract\IGameEngine.h" />
     <ClInclude Include="..\..\Include\Abstract\IEntity.h" />
     <ClInclude Include="..\..\Include\Abstract\IFBO.h" />
     <ClInclude Include="..\..\Include\Abstract\IFramePipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IGeometry.h" />
+    <ClInclude Include="..\..\Include\Abstract\IGraphicsAPI.h" />
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IInteractive.h" />
     <ClInclude Include="..\..\Include\Abstract\ILight.h" />

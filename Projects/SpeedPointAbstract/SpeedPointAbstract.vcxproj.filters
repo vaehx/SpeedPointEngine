@@ -190,5 +190,14 @@
     <ClInclude Include="..\..\Include\Abstract\Renderable.h">
       <Filter>Headers\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IGraphicsAPI.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\CLog.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IFont.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

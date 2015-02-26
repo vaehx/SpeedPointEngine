@@ -67,7 +67,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.bEnableVSync = true;
 	dsc.render.vsyncInterval = 1;	
-	dsc.render.bRenderWireframe = true;	
+	dsc.render.bRenderWireframe = false;
 	dsc.render.fTerrainDMFadeRange = 5.0f;
 
 	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;	
@@ -75,6 +75,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	EXEC_CONDITIONAL(initResult, m_pEngine->GetLog()->SetLogLevel(SpeedPoint::ELOGLEVEL_DEBUG));	
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeFramePipeline());
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true));
+	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeFontRenderer());
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeResourcePool());
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeScene(new SpeedPoint::Scene()));
 
@@ -86,11 +87,12 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 
 	m_pEngine->GetLog()->SetLogFile("App.log");
 
-
 	m_pScene = m_pEngine->GetLoadedScene();
 	
 	// pay attention that FinishINitialization() will call OnInitGeometry()!
 	m_pEngine->FinishInitialization();
+
+	m_FontRenderSlots.m_pEngine = m_pEngine;
 
 	SpeedPoint::IRenderer* pRenderer = m_pEngine->GetRenderer();
 
@@ -110,6 +112,8 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	alpha = 0.0f;	
 
 	nDumpedFrames = 0;
+
+	m_bFirstFrame = true;
 
 	return true;
 }
@@ -171,7 +175,7 @@ void Test::OnInitGeometry()
 	m_pScene->GetTerrain()->SetMaxHeight(10.0f);
 	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);	
 
-	///////////////////////////////////////////////////////////////////////1/////////////////////////////////	
+	///////////////////////////////////////////////////////////////////////1/////////////////////////////////		
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Debug stuff
@@ -186,10 +190,24 @@ void Test::OnInitGeometry()
 
 bool Test::Tick()
 {	
+	// Capture frame time
+	auto curTime = std::chrono::high_resolution_clock::now();
+	if (!m_bFirstFrame)
+	{		
+		std::chrono::duration<double> lastFrameDur = curTime - m_LastFrameTimestamp;
+		m_LastFrameDuration = lastFrameDur.count();
+	}
+
+	m_LastFrameTimestamp = curTime;
+
+
+
+	// Update auto-rotation variable
 	alpha += 0.01f;
 	if (alpha > 2.0f * SP_PI)
 		alpha = 0.0f;	
 
+	// Dump some frames
 	if (nDumpedFrames < 0)
 	{
 		m_pEngine->GetRenderer()->DumpFrameOnce();
@@ -308,6 +326,14 @@ void Test::Render()
 	// RENDER
 
 
+	// Update DebugInfo Labels
+	m_FontRenderSlots.UpdateCamStats(pCamera);
+	m_FontRenderSlots.UpdateFPS(1.0 / m_LastFrameDuration);
+
+
+
+
+
 
 	// Render the Terrain
 	m_pScene->GetTerrain()->RequireRender();
@@ -339,6 +365,8 @@ void Test::Render()
 	}
 	*/
 
+
+	m_bFirstFrame = false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

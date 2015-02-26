@@ -278,6 +278,60 @@ struct S_API SRenderSlot
 	}
 };
 
+// Font Render Slot used in the Font renderer to render font.
+// Pass it to the actual Renderer which will keep a queue of all
+// Font Render Slots. These are then drawn after all other drawing,
+// in the UI passes.
+struct S_API SFontRenderSlot
+{
+	char* text; // only pass a charbuffer that is created with new[]!
+	SColor color;
+	unsigned int screenPos[2];
+	bool alignRight;
+	bool keep;
+
+	SFontRenderSlot()
+		: text(0),
+		color(1.0f, 1.0f, 1.0f),
+		keep(false),
+		alignRight(false)
+	{
+		screenPos[0] = 0;
+		screenPos[1] = 0;
+	}
+
+	SFontRenderSlot(const SFontRenderSlot& frs)
+	{
+		copy_from(frs);
+	}
+
+	SFontRenderSlot& operator = (const SFontRenderSlot& frs)
+	{
+		copy_from(frs);
+	}
+
+	void copy_from(const SFontRenderSlot& frs)
+	{
+		text = 0;
+		if (IS_VALID_PTR(frs.text))
+			sp_strcpy(&text, frs.text);
+
+		color = frs.color;
+		screenPos[0] = frs.screenPos[0];
+		screenPos[1] = frs.screenPos[1];
+		keep = frs.keep;
+		alignRight = frs.alignRight;
+	}
+
+	~SFontRenderSlot()
+	{
+		if (IS_VALID_PTR(text))
+			delete[] text;
+
+		text = 0;
+	}
+};
+
 
 ///////////////////////////////////////////////////////////////
 
@@ -296,6 +350,10 @@ public:
 
 	// Intialize the renderer. Settings are taken from engine settings.
 	virtual SResult Initialize(IGameEngine* pEngine, bool bIgnoreAdapter) = 0;
+
+	virtual IGameEngine* GetEngine() = 0;
+
+	virtual IFontRenderer* InitFontRenderer() = 0;
 
 	// Arguments:
 	//	pDesc - ptr to your instance of SDisplayModeDescription structure. This instance will be filled by the function
@@ -376,6 +434,14 @@ public:
 	virtual void ReleaseRenderSlot(SRenderSlot** pSlot) = 0;
 
 	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
+
+	
+	// *pFRS is set to 0 ptr after releases
+	virtual void ReleaseFontRenderSlot(SFontRenderSlot** pFRS) = 0;
+
+	virtual SFontRenderSlot* GetFontRenderSlot() = 0;
+
+
 
 	/*
 	// Summary:

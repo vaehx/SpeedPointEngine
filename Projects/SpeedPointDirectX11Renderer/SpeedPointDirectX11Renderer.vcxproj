@@ -11,8 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\D3D11GraphicsAPI.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11FBO.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Font.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11IndexBuffer.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11OutputPlane.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderEffect.h" />
@@ -27,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Font.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11IndexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11OutputPlane.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp" />
@@ -67,7 +70,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\..\Dependencies\DirectX\Include;$(SolutionDir)\..\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\Include;$(IncludePath)</IncludePath>
     <TargetExt>.lib</TargetExt>
     <LibraryPath>$(SolutionDir)\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>

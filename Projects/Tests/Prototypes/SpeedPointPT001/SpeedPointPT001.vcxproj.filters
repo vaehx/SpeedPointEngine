@@ -21,6 +21,9 @@
     <ClCompile Include="Test.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="CFontRenderSlots.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestUtil.h">
@@ -30,6 +33,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Geometry.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="CFontRenderSlots.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

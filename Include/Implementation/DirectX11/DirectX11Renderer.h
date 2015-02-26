@@ -77,12 +77,12 @@ private:
 	ID3D11RasterizerState* m_pRSState;	
 	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
 
-	IDXGIFactory* m_pDXGIFactory;
+	IDXGIFactory1* m_pDXGIFactory;
 
-	vector<IDXGIAdapter*> m_vAdapters;	// enumeration list of all possible adapters
+	vector<IDXGIAdapter1*> m_vAdapters;	// enumeration list of all possible adapters
 	DXGI_MODE_DESC m_AutoSelectedDisplayModeDesc;	// automatically selected in AutoSelectAdapter()
 	DXGI_ADAPTER_DESC m_AutoSelectedAdapterDesc;	
-	IDXGIAdapter* m_pAutoSelectedAdapter;	// dont release this. it will be released in m_vAdapters! possibly use shared_ptr
+	IDXGIAdapter1* m_pAutoSelectedAdapter;	// dont release this. it will be released in m_vAdapters! possibly use shared_ptr
 
 	bool m_bFullscreen;
 		
@@ -139,6 +139,7 @@ private:
 	
 	STerrainRenderDesc m_TerrainRenderDesc;
 
+	ChunkedObjectPool<SFontRenderSlot, 20> m_FontRenderSchedule;
 
 
 
@@ -215,6 +216,10 @@ public:
 	ID3D11DeviceContext* GetD3D11DeviceContext() const { return m_pD3DDeviceContext; }
 
 	DXGI_MODE_DESC GetD3D11AutoSelectedDisplayModeDesc() { return m_AutoSelectedDisplayModeDesc; }
+	IDXGIAdapter1* GetAutoSelectedAdapter()
+	{
+		return m_pAutoSelectedAdapter;
+	}
 
 	SResult D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDesc, IDXGISwapChain** ppSwapChain);
 	SResult D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV);			
@@ -231,6 +236,8 @@ public:
 	// Draw all things schedule in the render schedule
 	SResult UnleashRenderSchedule();
 
+	SResult UnleashFontRenderSchedule();
+
 	////////////////////////////////////////////////////////////////////////////
 	// Derived:
 
@@ -241,6 +248,13 @@ public:
 	// Note:
 	//	!! bIgnoreAdapter is not evaluated in the D3D11Renderer !!	
 	virtual SResult Initialize(IGameEngine* pEngine, bool bIgnoreAdapter);
+
+	virtual IFontRenderer* InitFontRenderer();
+
+	virtual IGameEngine* GetEngine()
+	{
+		return m_pEngine;
+	}
 
 	virtual bool IsInited(void);
 	virtual SResult Shutdown(void);
@@ -306,6 +320,9 @@ public:
 	virtual SRenderSlot* GetRenderSlot();
 	virtual void ReleaseRenderSlot(SRenderSlot** pSlot);
 	virtual STerrainRenderDesc* GetTerrainRenderDesc();
+
+	virtual SFontRenderSlot* GetFontRenderSlot();
+	virtual void ReleaseFontRenderSlot(SFontRenderSlot** pFRS);
 
 	// Summary:
 	//	Draws the given geometry desc to the GBuffer and its depth buffer

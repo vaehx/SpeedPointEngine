@@ -13,7 +13,7 @@
 #include "SResult.h"
 #include "SAPI.h"
 #include "SAssert.h"
-#include <cstring>
+#include <cstdio>
 
 #ifndef ILINE
 #define ILINE inline
@@ -29,8 +29,10 @@ namespace SpeedPoint
 		int cnt;
 
 		va_list args;
-		va_start(args, fmt);		
-		cnt = sprintf_s(dst, sz, fmt, args);
+		va_start(args, fmt);
+
+		cnt = vsnprintf_s(dst, sz, _TRUNCATE, fmt, args);
+		
 		va_end(args);
 
 		return cnt;
