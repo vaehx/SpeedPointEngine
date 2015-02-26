@@ -173,9 +173,9 @@ void Test::OnInitGeometry()
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Create terrain
 
-	m_pScene->CreateTerrain(200.0f, 200.0f, 220, 220, 0.0f, pTestColorMap, pTestDetailMap);
+	m_pScene->CreateTerrain(200.0f, 200.0f, 220, 220, 7, 20, 20, 0.0f, pTestColorMap, pTestDetailMap);
 	m_pScene->GetTerrain()->SetMaxHeight(10.0f);
-	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);	
+	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////		
 
@@ -330,7 +330,28 @@ void Test::Render()
 
 
 	// Update DebugInfo Font Render Slots
-	m_DebugInfo.Update(pCamera, 1.0 / m_FrameDebugInfo.frameTimer.GetDuration(), m_FrameDebugInfo);
+	double lastFrameTime = m_FrameDebugInfo.frameTimer.GetDuration();		
+	m_FrameDebugInfo.frameTimeAcc += lastFrameTime;
+	if (m_FrameDebugInfo.frameTimeAcc >= 1.0)
+	{
+		m_FrameDebugInfo.lastFrameCounter = m_FrameDebugInfo.frameCounter;
+		m_FrameDebugInfo.lastMinFrameTime = m_FrameDebugInfo.minFrameTime;
+		m_FrameDebugInfo.lastMaxFrameTime = m_FrameDebugInfo.maxFrameTime;
+		m_FrameDebugInfo.frameTimeAcc = 0;
+		m_FrameDebugInfo.frameCounter = 0;
+		m_FrameDebugInfo.minFrameTime = DBL_MAX;
+		m_FrameDebugInfo.maxFrameTime = DBL_MIN;
+	}
+
+	m_FrameDebugInfo.frameCounter++;		
+
+	if (lastFrameTime < m_FrameDebugInfo.minFrameTime)
+		m_FrameDebugInfo.minFrameTime = lastFrameTime;
+
+	if (lastFrameTime > m_FrameDebugInfo.maxFrameTime)
+		m_FrameDebugInfo.maxFrameTime = lastFrameTime;
+
+	m_DebugInfo.Update(pCamera, 1.0 / m_FrameDebugInfo.frameTimer.GetDuration(), m_FrameDebugInfo);	
 
 
 

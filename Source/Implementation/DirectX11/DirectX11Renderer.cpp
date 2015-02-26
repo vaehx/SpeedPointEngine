@@ -1078,7 +1078,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 			for (unsigned int c = 0; c < m_TerrainRenderDesc.nDrawCallDescs; ++c)
 			{				
 				DrawTerrainSubset(m_TerrainRenderDesc.pDrawCallDescs[c]);
-			}
+			}			
 		}
 			
 		m_TerrainRenderDesc.bRender = false;

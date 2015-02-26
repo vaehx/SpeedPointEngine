@@ -30,6 +30,7 @@ S_API SResult Scene::Initialize(IGameEngine* pGameEngine)
 
 // -------------------------------------------------------------------------------------------------
 S_API ITerrain* Scene::CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ,
+	unsigned int nLodLevels, unsigned int nChunkSegsX, unsigned int nChunkSegsZ,
 	float baseHeight, ITexture* pColorMap, ITexture* pDetailMap)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr);
@@ -46,11 +47,11 @@ S_API ITerrain* Scene::CreateTerrain(float width, float depth, unsigned int nX, 
 	tdsc.bDynamic = false;
 	tdsc.d = depth;
 	tdsc.w = width;
-	tdsc.lodLevels = 5;
+	tdsc.lodLevels = nLodLevels;
 	tdsc.segsX = nX;
 	tdsc.segsZ = nZ;
-	tdsc.chunkSegsX = 10;
-	tdsc.chunkSegsZ = 10;
+	tdsc.chunkSegsX = nChunkSegsX;
+	tdsc.chunkSegsZ = nChunkSegsZ;
 
 	m_pTerrain->Generate(tdsc);
 

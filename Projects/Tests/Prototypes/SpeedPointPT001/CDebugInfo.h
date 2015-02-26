@@ -32,6 +32,15 @@ struct SFrameDebugInfo
 	SFrameDebugTimer frameTimer; // for the whole frame
 	SFrameDebugTimer tickTimer; // for the tick function
 	SFrameDebugTimer renderTimer; // for the render function
+
+	unsigned long frameCounter;
+	unsigned long lastFrameCounter;
+
+	double frameTimeAcc,
+		minFrameTime,
+		maxFrameTime;
+
+	double lastMinFrameTime, lastMaxFrameTime;
 };
 
 class CDebugInfo
@@ -41,6 +50,7 @@ public:
 	SpeedPoint::SFontRenderSlot* m_pCamStats;
 	SpeedPoint::SFontRenderSlot* m_pFPS;
 	SpeedPoint::SFontRenderSlot* m_pFrameTimes;
+	SpeedPoint::SFontRenderSlot* m_pTerrain;
 
 	void Update(SpeedPoint::SCamera* pCamera, double fps, const SFrameDebugInfo& fdi);
 	

@@ -25,7 +25,9 @@ public:
 	virtual SResult Initialize(IGameEngine* pGameEngine);
 
 	virtual ITerrain* GetTerrain() { return m_pTerrain; }
-	virtual ITerrain* CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ, float baseHeight, ITexture* pColorMap, ITexture* pDetailMap);
+	virtual ITerrain* CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ,
+		unsigned int nLodLevels, unsigned int nChunkSegsX, unsigned int nChunkSegsZ,
+		float baseHeight, ITexture* pColorMap, ITexture* pDetailMap);
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file);
 	

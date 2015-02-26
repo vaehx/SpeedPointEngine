@@ -25,16 +25,22 @@ void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SFrameDe
 {
 	// CamStat
 	InitFontRenderSlot(&m_pCamStats, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 0);		
-	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "cam(%.2f %.2f %.f | %.2f %.2f %.2f)",
+	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "Cam(%.2f %.2f %.f | %.2f %.2f %.2f)",
 		pCamera->position.x, pCamera->position.y, pCamera->position.z,
 		pCamera->rotation.x, pCamera->rotation.y, pCamera->rotation.z);
 
 	// FPS
-	InitFontRenderSlot(&m_pFPS, true, true, SpeedPoint::SColor(1.0f, 1.0f, 0.3f), 0, 18);		
-	SpeedPoint::SPSPrintf(m_pFPS->text, 200, "FPS %.3f", fps);
+	InitFontRenderSlot(&m_pFPS, true, true, SpeedPoint::SColor(1.0f, 1.0f, 0.3f), 0, 36);		
+	SpeedPoint::SPSPrintf(m_pFPS->text, 200, "FPS %u (%u..%u)",
+		fdi.lastFrameCounter, (unsigned int)(1.0 / fdi.lastMaxFrameTime), (unsigned int)(1.0 / fdi.lastMinFrameTime));
 
 	// Frame Timers
-	InitFontRenderSlot(&m_pFrameTimes, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 36);	
+	InitFontRenderSlot(&m_pFrameTimes, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 18);	
 	SpeedPoint::SPSPrintf(m_pFrameTimes->text, 200, "Render: %.2f Tick: %.2f Frame: %.2f",
 		fdi.renderTimer.GetDuration() * 1000.0, fdi.tickTimer.GetDuration() * 1000.0, fdi.frameTimer.GetDuration() * 1000.0);
+
+	// Terrain info
+	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 54);
+	SpeedPoint::STerrainRenderDesc* pTerrainRenderDesc = m_pEngine->GetRenderer()->GetTerrainRenderDesc();
+	SpeedPoint::SPSPrintf(m_pTerrain->text, 200, "Terrain: %u DCs", pTerrainRenderDesc->nDrawCallDescs);
 }
