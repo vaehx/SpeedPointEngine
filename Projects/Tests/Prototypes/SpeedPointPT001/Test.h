@@ -18,7 +18,7 @@
 #include <Windows.h>
 #include <chrono>
 
-#include "CFontRenderSlots.h"
+#include "CDebugInfo.h"
 
 using std::chrono::high_resolution_clock;
 
@@ -61,11 +61,8 @@ private:
 	SpeedPoint::SCamera* pCamera;
 	TestLogHandler logHandler;
 
-	CFontRenderSlots m_FontRenderSlots;
-
-	high_resolution_clock m_HighResClock;	
-	high_resolution_clock::time_point m_LastFrameTimestamp;
-	double m_LastFrameDuration;
+	SFrameDebugInfo m_FrameDebugInfo;
+	CDebugInfo m_DebugInfo;
 
 	bool m_bRightMouseBtn;
 	POINT m_LastMousePos;
@@ -76,8 +73,7 @@ protected:
 	void OnInitGeometry();
 
 public:	
-	Test()
-		: m_LastFrameDuration(-1.0)
+	Test()		
 	{
 	}
 

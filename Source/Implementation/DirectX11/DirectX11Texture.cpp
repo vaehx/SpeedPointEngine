@@ -91,7 +91,10 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	mbstowcs_s(&nNumCharsConv, cWFilename, nWordSize, cFileName, _TRUNCATE);
 	hRes = pImgFactory->CreateDecoderFromFilename(cWFilename, 0, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pImgDecoder);
 	if (Failure(hRes))
-		return m_pEngine->LogE("Failed Create WIC Image decoder!");
+	{
+		EngLog(S_DEBUG, m_pEngine, "Failed Create WIC Image decoder for %s!", cFileName);
+		return S_ERROR;
+	}
 
 
 

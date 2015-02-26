@@ -145,11 +145,9 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 	{
 		return S_ERROR;
 	}
-
+	
 	if (Failure(pdxTexture->LoadFromFile(w, h, 5, src)))
-	{
-		return S_ERROR;
-	}
+		return EngLog(S_ERROR, m_pEngine, "Failed load texture %s!", (char*)src);
 
 	m_pEngine->LogD("Loaded Texture " + src + ", spec: '" + spec + "'");
 

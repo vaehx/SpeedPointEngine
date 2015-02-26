@@ -65,7 +65,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.app.nYResolution = 768;
 	dsc.app.hWnd = hWnd;	
 	dsc.render.fClipNear = 0.1f;
-	dsc.render.bEnableVSync = true;
+	dsc.render.bEnableVSync = false;
 	dsc.render.vsyncInterval = 1;	
 	dsc.render.bRenderWireframe = false;
 	dsc.render.fTerrainDMFadeRange = 5.0f;
@@ -92,7 +92,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	// pay attention that FinishINitialization() will call OnInitGeometry()!
 	m_pEngine->FinishInitialization();
 
-	m_FontRenderSlots.m_pEngine = m_pEngine;
+	m_DebugInfo.m_pEngine = m_pEngine;	
 
 	SpeedPoint::IRenderer* pRenderer = m_pEngine->GetRenderer();
 
@@ -143,14 +143,16 @@ void Test::OnInitGeometry()
 	SpeedPoint::Scene myScene;
 	myScene.Initialize(m_pEngine);
 	pTest3DSObject = myScene.LoadStaticObjectFromFile("..\\..\\res\\truck.3ds");
-	
-	myScene.CreateNormalsGeometry(pTest3DSObject, &pTest3DSNormalsObject);	
+	if (IS_VALID_PTR(pTest3DSObject))
+	{
+		myScene.CreateNormalsGeometry(pTest3DSObject, &pTest3DSNormalsObject);
 
-	// create test references
-	for (unsigned int i = 0; i < TEST_REFS; ++i)
-	{	
-		pTestRefs[i] = pTest3DSObject->CreateReferenceObject();
-		pTestRefs[i]->vPosition.x += ((float)i) * 3.0f;
+		// create test references
+		for (unsigned int i = 0; i < TEST_REFS; ++i)
+		{
+			pTestRefs[i] = pTest3DSObject->CreateReferenceObject();
+			pTestRefs[i]->vPosition.x += ((float)i) * 3.0f;
+		}
 	}
 
 
@@ -190,15 +192,9 @@ void Test::OnInitGeometry()
 
 bool Test::Tick()
 {	
-	// Capture frame time
-	auto curTime = std::chrono::high_resolution_clock::now();
-	if (!m_bFirstFrame)
-	{		
-		std::chrono::duration<double> lastFrameDur = curTime - m_LastFrameTimestamp;
-		m_LastFrameDuration = lastFrameDur.count();
-	}
-
-	m_LastFrameTimestamp = curTime;
+	// Capture frame time	
+	m_FrameDebugInfo.frameTimer.Start();
+	m_FrameDebugInfo.tickTimer.Start();
 
 
 
@@ -255,8 +251,13 @@ bool Test::Tick()
 
 
 	// Start the frame pipeline
+
+	m_FrameDebugInfo.tickTimer.Stop();
+
 	if (Failure(m_pEngine->ExecuteFramePipeline()))
 		return false;
+
+	m_FrameDebugInfo.frameTimer.Stop();
 
 	return true;
 }
@@ -290,6 +291,8 @@ void Test::HandleMouse()
 
 void Test::Render()
 {
+	m_FrameDebugInfo.renderTimer.Start();
+
 
 	// UPDATE:
 
@@ -326,11 +329,8 @@ void Test::Render()
 	// RENDER
 
 
-	// Update DebugInfo Labels
-	m_FontRenderSlots.UpdateCamStats(pCamera);
-	m_FontRenderSlots.UpdateFPS(1.0 / m_LastFrameDuration);
-
-
+	// Update DebugInfo Font Render Slots
+	m_DebugInfo.Update(pCamera, 1.0 / m_FrameDebugInfo.frameTimer.GetDuration(), m_FrameDebugInfo);
 
 
 
@@ -345,11 +345,15 @@ void Test::Render()
 
 
 	//testObject.Render();
-	/*
-	pTest3DSObject->Render();
-	if (Failure(pTest3DSNormalsObject->Render()))
-		m_pEngine->LogE("Failed render 3ds model!");
+	
+	if (IS_VALID_PTR(pTest3DSObject))
+	{
+		pTest3DSObject->Render();
+		/*
+		if (Failure(pTest3DSNormalsObject->Render()))
+			m_pEngine->LogE("Failed render 3ds model!");
 		*/
+	}
 	
 
 	/*
@@ -367,6 +371,7 @@ void Test::Render()
 
 
 	m_bFirstFrame = false;
+	m_FrameDebugInfo.renderTimer.Stop();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
