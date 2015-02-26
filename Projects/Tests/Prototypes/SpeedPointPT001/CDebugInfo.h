@@ -55,5 +55,6 @@ public:
 	void Update(SpeedPoint::SCamera* pCamera, double fps, const SFrameDebugInfo& fdi);
 	
 	inline void InitFontRenderSlot(SpeedPoint::SFontRenderSlot** m_pFRS,
-		bool bRightAlign, bool keep, const SpeedPoint::SColor& color, unsigned int x, unsigned int y);
+		bool bRightAlign, bool keep, const SpeedPoint::SColor& color, unsigned int x, unsigned int y,
+		SpeedPoint::EFontSize fontSize = SpeedPoint::eFONTSIZE_NORMAL);
 };

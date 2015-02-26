@@ -2,7 +2,8 @@
 
 // -----------------------------------------------------------------------------
 void CDebugInfo::InitFontRenderSlot(SpeedPoint::SFontRenderSlot** ppFRS,
-	bool bRightAlign, bool keep, const SpeedPoint::SColor& color, unsigned int x, unsigned int y)
+	bool bRightAlign, bool keep, const SpeedPoint::SColor& color, unsigned int x, unsigned int y,
+	SpeedPoint::EFontSize fontSize)
 {
 	if (!IS_VALID_PTR(ppFRS))
 		return;
@@ -17,6 +18,7 @@ void CDebugInfo::InitFontRenderSlot(SpeedPoint::SFontRenderSlot** ppFRS,
 		pFRS->screenPos[0] = x;
 		pFRS->screenPos[1] = y;
 		pFRS->text = new char[200];
+		pFRS->fontSize = fontSize;
 	}
 }
 
@@ -29,18 +31,18 @@ void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SFrameDe
 		pCamera->position.x, pCamera->position.y, pCamera->position.z,
 		pCamera->rotation.x, pCamera->rotation.y, pCamera->rotation.z);
 
-	// FPS
-	InitFontRenderSlot(&m_pFPS, true, true, SpeedPoint::SColor(1.0f, 1.0f, 0.3f), 0, 36);		
-	SpeedPoint::SPSPrintf(m_pFPS->text, 200, "FPS %u (%u..%u)",
-		fdi.lastFrameCounter, (unsigned int)(1.0 / fdi.lastMaxFrameTime), (unsigned int)(1.0 / fdi.lastMinFrameTime));
-
 	// Frame Timers
-	InitFontRenderSlot(&m_pFrameTimes, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 18);	
+	InitFontRenderSlot(&m_pFrameTimes, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 18);
 	SpeedPoint::SPSPrintf(m_pFrameTimes->text, 200, "Render: %.2f Tick: %.2f Frame: %.2f",
 		fdi.renderTimer.GetDuration() * 1000.0, fdi.tickTimer.GetDuration() * 1000.0, fdi.frameTimer.GetDuration() * 1000.0);
 
+	// FPS
+	InitFontRenderSlot(&m_pFPS, true, true, SpeedPoint::SColor(1.0f, 1.0f, 0.3f), 0, 37, SpeedPoint::eFONTSIZE_MEDIUM);		
+	SpeedPoint::SPSPrintf(m_pFPS->text, 200, "FPS %u (%u..%u)",
+		fdi.lastFrameCounter, (unsigned int)(1.0 / fdi.lastMaxFrameTime), (unsigned int)(1.0 / fdi.lastMinFrameTime));	
+
 	// Terrain info
-	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 54);
+	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 65);
 	SpeedPoint::STerrainRenderDesc* pTerrainRenderDesc = m_pEngine->GetRenderer()->GetTerrainRenderDesc();
 	SpeedPoint::SPSPrintf(m_pTerrain->text, 200, "Terrain: %u DCs", pTerrainRenderDesc->nDrawCallDescs);
 }

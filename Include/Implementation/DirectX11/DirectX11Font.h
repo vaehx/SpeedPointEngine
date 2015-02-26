@@ -36,7 +36,9 @@ private:
 	ID3D11ShaderResourceView* m_pD2DTexSRV; // d2dTexture
 
 	IDWriteFactory* m_pDWriteFactory;
-	IDWriteTextFormat* m_pTextFormat;
+	IDWriteTextFormat* m_pTextFormat;	
+	IDWriteTextFormat* m_pMediumTextFormat;
+	IDWriteTextFormat* m_pLargeTextFormat;
 	IDWriteTextFormat* m_pBoldTextFormat;
 
 	D3D11_BLEND_DESC m_BlendDesc;
@@ -81,7 +83,9 @@ public:
 	virtual SResult Init(IRenderer* pRenderer);
 
 	virtual void BeginRender();
-	virtual void RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos, bool alignRight = false);
+	virtual void RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos,
+		EFontSize fontSize = eFONTSIZE_NORMAL, bool alignRight = false);
+
 	virtual void EndRender();
 
 	virtual void Clear();

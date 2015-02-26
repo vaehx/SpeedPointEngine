@@ -92,33 +92,34 @@ S_API SResult DirectX11FontRenderer::Init(IRenderer* pRenderer)
 	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&m_pDWriteFactory));
 	
 	// Regular TextFormat
-	hr = m_pDWriteFactory->CreateTextFormat(
-		L"Script",
-		0,
-		DWRITE_FONT_WEIGHT_REGULAR,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		13.0f,
-		L"",
-		&m_pTextFormat);
+	hr = m_pDWriteFactory->CreateTextFormat(L"Script", 0, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL, 13.0f, L"", &m_pTextFormat);
 
 	hr = m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	hr = m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
 
+
 	// Bold Text format
-	hr = m_pDWriteFactory->CreateTextFormat(
-		L"Script",
-		0,
-		DWRITE_FONT_WEIGHT_BLACK,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		13.0f,
-		L"",
-		&m_pBoldTextFormat);		
+	hr = m_pDWriteFactory->CreateTextFormat(L"Script", 0, DWRITE_FONT_WEIGHT_BLACK, DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL, 13.0f, L"", &m_pBoldTextFormat);		
 
 	hr = m_pBoldTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 	hr = m_pBoldTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
 
+
+	// Medium Text Format
+	hr = m_pDWriteFactory->CreateTextFormat(L"Script", 0, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL, 18.0f, L"", &m_pMediumTextFormat);
+
+	hr = m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	hr = m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+	// Large Text Format
+	hr = m_pDWriteFactory->CreateTextFormat(L"Script", 0, DWRITE_FONT_WEIGHT_REGULAR, DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL, 26.0f, L"", &m_pLargeTextFormat);
+
+	hr = m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	hr = m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
 
 
 	// suppress no-topology-set warning
@@ -243,7 +244,8 @@ S_API void DirectX11FontRenderer::BeginRender()
 }
 
 // ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos, bool alignRight /*=false*/)
+S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos,
+	EFontSize fontSize /*=eFONTSIZE_NORMAL*/, bool alignRight /*=false*/)
 {
 	unsigned int screenPadding[2];
 	screenPadding[0] = 6;
@@ -253,17 +255,22 @@ S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& col
 		(float)(pixelPos.x + screenPadding[0]), (float)(pixelPos.y + screenPadding[1]),
 		(float)(m_TexSz[0] - pixelPos.x - screenPadding[0]), (float)(m_TexSz[1] - pixelPos.y - screenPadding[1]));	
 
+	// Choose the correct text format
+	IDWriteTextFormat* pUsedTextFormat;
+	switch (fontSize)
+	{
+	case eFONTSIZE_NORMAL: pUsedTextFormat = m_pTextFormat; break;
+	case eFONTSIZE_MEDIUM: pUsedTextFormat = m_pMediumTextFormat; break;
+	case eFONTSIZE_LARGE: pUsedTextFormat = m_pLargeTextFormat; break;
+	default:
+		pUsedTextFormat = m_pTextFormat;
+	}
+
 	// Right-Align the text if necessary
 	if (alignRight)
-	{
-		m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-		m_pBoldTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-	}
+		pUsedTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 	else
-	{
-		m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		m_pBoldTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-	}
+		pUsedTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 
 	// Convert multibyte string to wide string
 	unsigned int wbufsz = sp_strlen(text) + 1;
@@ -284,13 +291,13 @@ S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& col
 		shadowDrawRect.top += shadowOffset;
 		shadowDrawRect.bottom += shadowOffset;
 		shadowDrawRect.right += shadowOffset;
-		m_pD2DRenderTarget->DrawTextA(wtext, wbufsz, m_pTextFormat, shadowDrawRect, m_pD2DBrush);
+		m_pD2DRenderTarget->DrawTextA(wtext, wbufsz, pUsedTextFormat, shadowDrawRect, m_pD2DBrush);
 	}
 
 	// Draw the Text
 	fontColor = D2D1::ColorF(color.r, color.g, color.b, 1.0f);
 	m_pD2DBrush->SetColor(fontColor);
-	m_pD2DRenderTarget->DrawTextA(wtext, wbufsz, m_pTextFormat, drawRect, m_pD2DBrush);		
+	m_pD2DRenderTarget->DrawTextA(wtext, wbufsz, pUsedTextFormat, drawRect, m_pD2DBrush);		
 
 
 	// Free multibyte string
@@ -340,6 +347,8 @@ S_API void DirectX11FontRenderer::Clear()
 	SP_SAFE_RELEASE(m_pDWriteFactory);
 	SP_SAFE_RELEASE(m_pTextFormat);
 	SP_SAFE_RELEASE(m_pBoldTextFormat);
+	SP_SAFE_RELEASE(m_pMediumTextFormat);
+	SP_SAFE_RELEASE(m_pLargeTextFormat);
 	SP_SAFE_RELEASE(m_pD2DTexSRV);
 	SP_SAFE_RELEASE(m_pBlendState);
 	m_FontShader.Clear();

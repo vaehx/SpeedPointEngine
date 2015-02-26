@@ -13,6 +13,7 @@
 #include "IObject.h"
 #include "Material.h"
 #include "IGameEngine.h"
+#include "IFont.h" // for FontSize
 
 using std::vector;
 
@@ -278,6 +279,7 @@ struct S_API SRenderSlot
 	}
 };
 
+
 // Font Render Slot used in the Font renderer to render font.
 // Pass it to the actual Renderer which will keep a queue of all
 // Font Render Slots. These are then drawn after all other drawing,
@@ -289,12 +291,14 @@ struct S_API SFontRenderSlot
 	unsigned int screenPos[2];
 	bool alignRight;
 	bool keep;
+	EFontSize fontSize;
 
 	SFontRenderSlot()
 		: text(0),
 		color(1.0f, 1.0f, 1.0f),
 		keep(false),
-		alignRight(false)
+		alignRight(false),
+		fontSize(eFONTSIZE_NORMAL)
 	{
 		screenPos[0] = 0;
 		screenPos[1] = 0;
@@ -321,6 +325,7 @@ struct S_API SFontRenderSlot
 		screenPos[1] = frs.screenPos[1];
 		keep = frs.keep;
 		alignRight = frs.alignRight;
+		fontSize = frs.fontSize;
 	}
 
 	~SFontRenderSlot()

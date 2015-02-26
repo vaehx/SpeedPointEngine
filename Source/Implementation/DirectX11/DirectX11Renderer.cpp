@@ -1306,7 +1306,7 @@ S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
 		SPixelPosition pp;
 		pp.x = pFRS->screenPos[0];
 		pp.y = pFRS->screenPos[1];
-		pFontRenderer->RenderText(pFRS->text, pFRS->color, pp, pFRS->alignRight);
+		pFontRenderer->RenderText(pFRS->text, pFRS->color, pp, pFRS->fontSize, pFRS->alignRight);
 
 		if (!pFRS->keep)
 		{
