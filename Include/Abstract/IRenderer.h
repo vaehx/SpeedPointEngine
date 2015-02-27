@@ -166,9 +166,7 @@ struct S_API STerrainConstantBuffer
 	float fTerrainDMFadeRadius;
 	float fTerrainMaxHeight;
 	unsigned int vtxHeightMapSz[2];
-
-
-	float struct_padding[2];
+	float segmentSize[2];
 
 	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
 	{
@@ -178,6 +176,8 @@ struct S_API STerrainConstantBuffer
 		fTerrainMaxHeight = b.fTerrainMaxHeight;
 		vtxHeightMapSz[0] = b.vtxHeightMapSz[0];
 		vtxHeightMapSz[1] = b.vtxHeightMapSz[1];
+		segmentSize[0] = b.segmentSize[0];
+		segmentSize[1] = b.segmentSize[1];
 		return *this;
 	}
 };

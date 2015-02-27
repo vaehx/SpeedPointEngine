@@ -65,6 +65,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.app.nYResolution = 768;
 	dsc.app.hWnd = hWnd;	
 	dsc.render.fClipNear = 0.1f;
+	dsc.render.fClipFar = 600.0f;
 	dsc.render.bEnableVSync = false;
 	dsc.render.vsyncInterval = 1;	
 	dsc.render.bRenderWireframe = false;
@@ -99,8 +100,8 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	// Initialize viewport
 
 	SpeedPoint::SProjectionDesc projDsc;
-	projDsc.bUseEngineZPlanes = false;
-	projDsc.farZ = 200.0f;
+	projDsc.bUseEngineZPlanes = true;
+	projDsc.farZ = 800.0f;
 	projDsc.nearZ = 0.1f;
 	projDsc.fov = 40;
 	projDsc.projectionType = SpeedPoint::S_PROJECTION_PERSPECTIVE;	
@@ -134,7 +135,7 @@ void Test::OnInitGeometry()
 	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\grass_dm.bmp", 640, 640, "terrain_dm", &pTestDetailMap);
 
 	SpeedPoint::ITexture* pTestColorMap;
-	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\grass_cm.bmp", 64, 64, "terrain_cm", &pTestColorMap);
+	m_pEngine->GetResources()->LoadTexture("..\\..\\res\\grass_dm.bmp", 640, 640, "terrain_cm", &pTestColorMap);
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////

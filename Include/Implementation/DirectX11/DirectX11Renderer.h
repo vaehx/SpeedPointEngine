@@ -76,6 +76,9 @@ private:
 	D3D11_RASTERIZER_DESC m_rsDesc;	
 	ID3D11RasterizerState* m_pRSState;	
 	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
+	
+	D3D11_BLEND_DESC m_DefBlendDesc;
+	ID3D11BlendState* m_pDefBlendState;
 
 	IDXGIFactory1* m_pDXGIFactory;
 
@@ -138,6 +141,8 @@ private:
 	ChunkedObjectPool<SRenderSlot, 50> m_RenderSchedule;	
 	
 	STerrainRenderDesc m_TerrainRenderDesc;
+	D3D11_BLEND_DESC m_TerrainBlendDesc;
+	ID3D11BlendState* m_pTerrainBlendState;
 
 	ChunkedObjectPool<SFontRenderSlot, 20> m_FontRenderSchedule;
 
@@ -151,6 +156,8 @@ private:
 
 
 
+
+	void InitBlendStates();
 
 	SResult UpdateRasterizerState();
 	SResult UpdateDepthStencilState();

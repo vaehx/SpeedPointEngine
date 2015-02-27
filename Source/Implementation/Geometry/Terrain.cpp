@@ -532,6 +532,8 @@ S_API SResult Terrain::RenderTerrain(const SVector3& camPos)
 		dsc->constants.fTerrainMaxHeight = m_MaxHeight;
 		dsc->constants.vtxHeightMapSz[0] = nSegsX + 1;
 		dsc->constants.vtxHeightMapSz[1] = nSegsZ + 1;
+		dsc->constants.segmentSize[0] = this->fWidth / nSegsX;
+		dsc->constants.segmentSize[1] = this->fDepth / nSegsZ;
 		m_bRequireCBUpdate = false;
 	}
 	

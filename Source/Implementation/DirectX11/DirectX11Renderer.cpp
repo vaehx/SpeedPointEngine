@@ -299,13 +299,13 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	// In DX11 we fist need a RSState interface	
 	memset((void*)&m_rsDesc, 0, sizeof(D3D11_RASTERIZER_DESC));
 	m_rsDesc.AntialiasedLineEnable = false;	// ???
-	m_rsDesc.CullMode = D3D11_CULL_NONE;
+	m_rsDesc.CullMode = D3D11_CULL_BACK;
+	m_rsDesc.FrontCounterClockwise = (renderSettings.frontFaceType == eFF_CW);
 	m_rsDesc.DepthBias = 0;
 	m_rsDesc.DepthBiasClamp = 0;
 	m_rsDesc.SlopeScaledDepthBias = 0;
 	m_rsDesc.DepthClipEnable = false;
 	m_rsDesc.FillMode = renderSettings.bRenderWireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;	
-	m_rsDesc.FrontCounterClockwise = (renderSettings.frontFaceType == eFF_CW);
 	m_rsDesc.MultisampleEnable = renderSettings.antiAliasingQuality != eAAQUALITY_LOW;
 	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday	
 
@@ -342,6 +342,43 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	m_pD3DDeviceContext->PSSetSamplers(1, 1, &m_pDefaultSamplerState);
 
 	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::InitBlendStates()
+{
+	HRESULT hr;
+
+	// Default Blend Desc and Blend State
+	ZeroMemory(&m_DefBlendDesc, sizeof(m_DefBlendDesc));
+	m_DefBlendDesc.AlphaToCoverageEnable = false;
+	m_DefBlendDesc.IndependentBlendEnable = false;
+	m_DefBlendDesc.RenderTarget[0].BlendEnable = false;
+	m_DefBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	m_DefBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	m_DefBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	m_DefBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	m_DefBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	m_DefBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	m_DefBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	hr = m_pD3DDevice->CreateBlendState(&m_DefBlendDesc, &m_pDefBlendState);
+
+
+	// Terrain Blend Desc and Blend State
+	ZeroMemory(&m_TerrainBlendDesc, sizeof(m_TerrainBlendDesc));
+	m_TerrainBlendDesc.AlphaToCoverageEnable = false;
+	m_TerrainBlendDesc.IndependentBlendEnable = false;
+	m_TerrainBlendDesc.RenderTarget[0].BlendEnable = false;
+	m_TerrainBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	m_TerrainBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	m_TerrainBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	m_TerrainBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	m_TerrainBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	m_TerrainBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	m_TerrainBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	hr = m_pD3DDevice->CreateBlendState(&m_TerrainBlendDesc, &m_pTerrainBlendState);
 }
 
 // --------------------------------------------------------------------
@@ -1070,6 +1107,8 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
 		m_bPerObjectCBBound = false;
 
+		m_pD3DDeviceContext->OMSetBlendState(m_pTerrainBlendState, 0, 0xffffffff);
+
 		// TODO: Draw Section based different lod levels
 
 		// render all chunks
@@ -1100,6 +1139,8 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 	FrameDump("Unleashing render schedule now...");
 	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), SString("RenderScheduleSize"));
+
+	m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
 
 	unsigned int iRSIterator = 0;
 	for (unsigned int iSlot = 0; iSlot < m_RenderSchedule.GetUsedObjectCount(); ++iSlot)

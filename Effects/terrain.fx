@@ -6,6 +6,8 @@
 //
 /////////////////////////////////////////////////////////////////////////
 
+static const float PI = 3.14159265f;
+
 cbuffer SceneCB : register(b0)
 {    
     float4x4 mtxView;
@@ -21,6 +23,7 @@ cbuffer TerrainCB : register(b1)
     float terrainDMFadeRadius;
     float terrainMaxHeight;
     uint2 terrainHeightmapSz;
+    float2 terrainSegSz;
 }
 
 Texture2D vtxHeightMap : register(t0);
@@ -72,7 +75,7 @@ float SampleVertexHeightmapBilinear(float2 texcoord)
     remainder /= pixelSizeInTexcoords;
     
     // linearly interpolate top and bottom samples
-    float4 interpolated[2];
+    float interpolated[2];
     interpolated[0] = lerp(
         SampleVertexHeightmap(roundedTC + float2(-0.5,-0.5) * pixelSizeInTexcoords),
         SampleVertexHeightmap(roundedTC + float2( 0.5,-0.5) * pixelSizeInTexcoords), remainder.x);
@@ -99,7 +102,31 @@ VS_OUTPUT VS_terrain(VS_INPUT IN)
     float4 rPos = mul(mtxProjection, sPos);            
     OUT.Position = rPos;
     
-    OUT.Normal = normalize(IN.Normal);             
+    
+    // Calculate normal
+    uint2 vtxTexelPos = { IN.TexCoord.x * terrainHeightmapSz.x, IN.TexCoord.y * terrainHeightmapSz.y };
+    float4 neighborSamples = float4(
+        vtxHeightMap[uint2(vtxTexelPos.x - 1, vtxTexelPos.y)].r * terrainMaxHeight,
+        vtxHeightMap[uint2(vtxTexelPos.x, vtxTexelPos.y - 1)].r * terrainMaxHeight,
+        vtxHeightMap[uint2(vtxTexelPos.x + 1, vtxTexelPos.y)].r * terrainMaxHeight,
+        vtxHeightMap[uint2(vtxTexelPos.x, vtxTexelPos.y + 1)].r * terrainMaxHeight
+    );
+    
+    float3 neighbor1 = float3(wPos.x - terrainSegSz.x, neighborSamples.x, wPos.z);
+    float3 neighbor2 = float3(wPos.x, neighborSamples.y, wPos.z - terrainSegSz.y);
+    float3 neighbor3 = float3(wPos.x + terrainSegSz.x, neighborSamples.z, wPos.z);
+    float3 neighbor4 = float3(wPos.x, neighborSamples.w, wPos.z + terrainSegSz.y);
+        
+    float3 normal1 = normalize(cross(neighbor1 - wPos, neighbor2 - wPos));
+    float3 normal2 = normalize(cross(neighbor2 - wPos, neighbor3 - wPos));
+    float3 normal3 = normalize(cross(neighbor3 - wPos, neighbor4 - wPos));
+    float3 normal4 = normalize(cross(neighbor4 - wPos, neighbor1 - wPos));             
+    float3 N = normalize(normal1 + normal2 + normal3 + normal4 + float3(0, 1.0f, 0));
+    
+    OUT.Normal = -N;            
+    
+    
+    
     OUT.TexCoord = IN.TexCoord;
     
     return OUT;
@@ -192,21 +219,23 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     
     // Calculate lighting factor. Using a fixed light dir    
     float3 lightDir = normalize(float3(0, -0.3f, 0.8f));
-    float lightIntensity = 3.0f;                    
+    float lightIntensity = 10.0f;                    
     float lambert = max(dot(-lightDir, normal),0);  
     
     //OUT.Color = float4(normal, 1.0f);
     //return OUT;
     
     // Global illumination "Ambient" fake
-    float ambient = 0.3f;
+    float ambient = 0.1f;
     
     // Final lighting factor
-    float lightingFactor = lambert + ambient;        
+    float lightingFactor = lambert / PI + ambient;        
         
     float dirln = length(eyePos.xz - IN.WorldPos.xz);
     float terrainFadeFactor = terrain_fade_factor(dirln);
-    OUT.Color = (sampleCM * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity); 
+    OUT.Color = (sampleCM * 0.5f * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity); 
+
+    //OUT.Color = float4(IN.Normal, 1.0f);
                
     return OUT;
 }
