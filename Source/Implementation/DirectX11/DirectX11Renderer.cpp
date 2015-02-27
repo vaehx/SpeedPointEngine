@@ -591,6 +591,9 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 		m_pEngine->LogE("Could not create empty dummy normal map (nonormalmap)!");
 
 
+	InitBlendStates();
+
+
 	return S_SUCCESS;
 }
 
