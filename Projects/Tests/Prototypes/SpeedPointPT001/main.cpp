@@ -16,6 +16,8 @@
 // Window Callback processing function
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
+	Test* pTest = (Test*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
 	switch (iMessage)
 	{
 	case WM_QUIT:
@@ -24,6 +26,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	case WM_CLOSE:
 		PostQuitMessage(0);
+		break;
+
+	case WM_KEYDOWN:		
+		if (wParam == VK_F8)
+			pTest->ToggleWireframe();
+
 		break;
 
 	default:
@@ -89,6 +97,8 @@ int main(void)
 		bSuccess = t.Start(hWnd, hInstance); // Start the engine 
 		if (bSuccess)
 		{
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)&t);
+
 			bool bAppRunning = true;
 			bool bRet;
 			MSG msg;

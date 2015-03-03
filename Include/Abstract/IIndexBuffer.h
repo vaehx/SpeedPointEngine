@@ -21,8 +21,8 @@ struct S_API IGameEngine;
 // SpeedPoint IndexBuffer Format
 enum S_API S_INDEXBUFFER_FORMAT
 {
-	S_INDEXBUFFER_16
-	//S_INDEXBUFFER_32,	( not implemented yet )
+	S_INDEXBUFFER_16,
+	S_INDEXBUFFER_32
 };
 
 
@@ -46,15 +46,14 @@ enum EIBUsage
 	
 #ifdef _WIN32
 typedef unsigned __int16 S_API SIndex;
-
-// TODO: Add separation into SIndex16 and SIndex32
+typedef unsigned long S_API SLargeIndex;
 
 #else
 typedef unsigned int S_API SIndex;
 #endif
 
 
-// SpeedPoint IndexBuffer Resource (abstract)
+// SpeedPoint IndexBuffer Resource (interface)
 struct S_API IIndexBuffer
 {
 public:
@@ -62,11 +61,11 @@ public:
 	//	Initialize the Index Buffer
 	// Arguments:
 	//	pInitialData - Specifies inital buffer data. If 0, then nSize and format is ignored and the buffers are created as soon as Fill() is called.
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, void* pInitialData = nullptr) = 0;
 	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, SIndex* pInitialData = nullptr) = 0;
 
 	// Create the Hardware Index Buffer
-	virtual SResult Create( unsigned long nIndices_, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0) = 0;
+	virtual SResult Create( unsigned long nIndices_, void* pInitialData = nullptr, usint32 nInitialDataCount = 0) = 0;
 
 	// Check if this Index Buffer is inited properly
 	virtual BOOL IsInited( void ) = 0;
@@ -75,26 +74,30 @@ public:
 	virtual SResult Resize( unsigned long nIndices_ ) = 0;
 
 	// Lock the Hardware Index Buffer in order to be able to fill Hardware data
-	virtual SResult Lock( UINT iBegin, UINT iLength, SIndex** buf, EIBLockType flags ) = 0;
-	virtual SResult Lock( UINT iBegin, UINT iLength, SIndex** buf ) = 0;		
+	virtual SResult Lock( UINT iBegin, UINT iLength, void** buf, EIBLockType flags ) = 0;
+	virtual SResult Lock( UINT iBegin, UINT iLength, void** buf ) = 0;		
 
 	// Fill the Hardware Index Buffer with an array of indices
-	virtual SResult Fill( SIndex* indices, unsigned long nIndices_, bool append ) = 0;
+	virtual SResult Fill( void* indices, unsigned long nIndices_, bool append ) = 0;
 
 	// Unlock the Hardware Index Buffer
 	virtual SResult Unlock( void ) = 0;
 	
 	// Get the RAM Copy of the hardware Index Buffer
-	virtual SIndex* GetShadowBuffer( void ) = 0;
+	virtual void* GetShadowBuffer( void ) = 0;
 
-	// Get a Pointer to an Index
-	virtual SIndex* GetIndex( unsigned long iIndex ) = 0;
+
+	// This function returns the value at the correct index, but casts it to SIndex.
+	// !!In case you're using a 32bit Index Buffer, you should be using GetLargeIndex()!!
+	virtual SIndex* GetIndex(unsigned long iIndex) = 0;
+
+	virtual SLargeIndex* GetLargeIndex(unsigned long iIndex) = 0;
 
 	// Get the total count of all indices
 	virtual unsigned long GetIndexCount( void ) const = 0;
 
 	// Get the Index Buffer format specified when creating the Index Buffer
-//virtual S_INDEXBUFFER_FORMAT GetFormat( void ) = 0;
+	virtual S_INDEXBUFFER_FORMAT GetFormat() const = 0;
 
 	// Clear everything and free memory
 	virtual SResult Clear( void ) = 0;

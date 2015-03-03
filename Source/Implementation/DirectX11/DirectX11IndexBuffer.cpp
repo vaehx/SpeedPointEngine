@@ -64,7 +64,7 @@ S_API SResult DirectX11IndexBuffer::Initialize(IGameEngine* pEngine,
 						EIBUsage usage,
 						unsigned long nSize,						
 						S_INDEXBUFFER_FORMAT format,
-						SIndex* pInitialData /* = nullptr */)
+						void* pInitialData /* = nullptr */)
 {
 	if (IsInited())
 		Clear();
@@ -72,6 +72,7 @@ S_API SResult DirectX11IndexBuffer::Initialize(IGameEngine* pEngine,
 	m_pEngine = pEngine;
 	m_pRenderer = renderer;
 	m_Usage = usage;	
+	m_Format = format;
 
 	if (usage == eIBUSAGE_STATIC)
 	{
@@ -112,7 +113,7 @@ S_API SDirectX11IBCreateFlags DirectX11IndexBuffer::GetCreateFlags()
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, SIndex* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
+S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, void* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(nIndices_ > 0, S_INVALIDPARAM);
@@ -127,13 +128,23 @@ S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, SIndex* pIni
 
 	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
 
+	unsigned int formatByteSz = sizeof(SIndex);
+	if (m_Format == S_INDEXBUFFER_32)
+		formatByteSz = sizeof(SLargeIndex);
+
+
 	m_nIndices = nIndices_;
-	m_pShadowBuffer = (SIndex*)(malloc(m_nIndices * sizeof(SIndex)));
+	m_pShadowBuffer = malloc(m_nIndices * formatByteSz);
 	if (pInitialData && nInitialDataCount)
 	{
-		memcpy(m_pShadowBuffer, pInitialData, sizeof(SIndex) * nInitialDataCount);
+		memcpy(m_pShadowBuffer, pInitialData, formatByteSz * nInitialDataCount);
 		if ((usint32)m_nIndices > nInitialDataCount)
-			memset(m_pShadowBuffer + nInitialDataCount - 1, 0, (m_nIndices - nInitialDataCount));
+		{
+			if (m_Format == S_INDEXBUFFER_16)
+				memset((SIndex*)m_pShadowBuffer + nInitialDataCount - 1, 0, (m_nIndices - nInitialDataCount) * formatByteSz);
+			else
+				memset((SLargeIndex*)m_pShadowBuffer + nInitialDataCount - 1, 0, (m_nIndices - nInitialDataCount) * formatByteSz);
+		}
 
 		m_nIndicesWritten = nInitialDataCount;
 		m_bInitialDataWritten = true;
@@ -141,7 +152,7 @@ S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, SIndex* pIni
 	else
 	{
 		// zero memory
-		memset(m_pShadowBuffer, 0, sizeof(SIndex) * m_nIndices);
+		memset(m_pShadowBuffer, 0, formatByteSz * m_nIndices);
 		m_nIndicesWritten = 0;
 	}
 
@@ -150,7 +161,7 @@ S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, SIndex* pIni
 	bufferDesc.BindFlags = createFlags.bindFlags;
 	bufferDesc.CPUAccessFlags = createFlags.cpuAccessFlags;
 	bufferDesc.Usage = createFlags.usage;
-	bufferDesc.ByteWidth = m_nIndices * sizeof(SIndex);
+	bufferDesc.ByteWidth = m_nIndices * formatByteSz;
 	bufferDesc.StructureByteStride = 0;
 	bufferDesc.MiscFlags = 0;
 
@@ -180,7 +191,7 @@ S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
 
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 
-	int nIndicesOld = m_nIndices;
+	usint32 nIndicesOld = m_nIndices;
 	usint32 nIndicesWrittenOld = m_nIndicesWritten;
 	m_nIndices = nIndices_; // total size
 
@@ -191,7 +202,7 @@ S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
 	bool bResize = nIndicesOld > 0 && m_pShadowBuffer && m_pHWIndexBuffer;
 
 	// Resize Sys memory or create if not existing
-	SIndex* vBackup = m_pShadowBuffer;
+	void* vBackup = m_pShadowBuffer;
 	m_pShadowBuffer = 0;
 
 	// Clear the old HW buffer
@@ -209,13 +220,13 @@ S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, SIndex** buf)
+S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf)
 {
 	return Lock(iBegin, iLength, buf, eIBLOCK_NOOVERWRITE);
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, SIndex** buf, EIBLockType locktype)
+S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, EIBLockType locktype)
 {
 	SP_ASSERTR(m_pEngine, S_NOTINIT);
 	SP_ASSERTR(buf, S_INVALIDPARAM);
@@ -261,7 +272,7 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, SIndex** buf
 
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Fill(SIndex* Indices, unsigned long nIndices_, bool bAppend)
+S_API SResult DirectX11IndexBuffer::Fill(void* Indices, unsigned long nIndices_, bool bAppend)
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(Indices, S_INVALIDPARAM);
@@ -325,10 +336,14 @@ S_API SResult DirectX11IndexBuffer::Fill(SIndex* Indices, unsigned long nIndices
 		lockType = eIBLOCK_DISCARD;
 	}
 
+	unsigned int formatByteSz = sizeof(SIndex);
+	if (m_Format == S_INDEXBUFFER_32)
+		formatByteSz = sizeof(SLargeIndex);
+
 
 	// Lock buffer if not happened
 	SIndex* pIndices = 0;
-	SResult lockResult = Lock(iBegin * sizeof(SIndex), (UINT)(nIndices_ * sizeof(SIndex)), &pIndices, lockType);
+	SResult lockResult = Lock(iBegin * formatByteSz, (UINT)(nIndices_ * formatByteSz), (void**)&pIndices, lockType);
 
 	if (Failure(lockResult) || pIndices == 0)
 		return m_pEngine->LogE("Could not lock Index buffer to fill with Index data!");
@@ -338,9 +353,12 @@ S_API SResult DirectX11IndexBuffer::Fill(SIndex* Indices, unsigned long nIndices
 	memcpy(pIndices, (void*)Indices, nIndices_ * sizeof(SIndex));
 
 	// copy data to our copy in sys mem (shadow buffer)
-	memcpy((void*)&m_pShadowBuffer[iBegin], (void*)Indices, nIndices_ * sizeof(SIndex));
+	if (m_Format == S_INDEXBUFFER_16)
+		memcpy((void*)&((SIndex*)m_pShadowBuffer)[iBegin], (void*)Indices, nIndices_ * formatByteSz);
+	else
+		memcpy((void*)&((SLargeIndex*)m_pShadowBuffer)[iBegin], (void*)Indices, nIndices_ * formatByteSz);
 
-	m_nIndicesWritten = (int)iBegin + nIndices_;
+	m_nIndicesWritten = (unsigned long)iBegin + nIndices_;
 	m_bInitialDataWritten = true;
 
 	// ... and unlock	
@@ -380,7 +398,7 @@ S_API SResult DirectX11IndexBuffer::Clear(void)
 }
 
 // --------------------------------------------------------------------------------
-S_API SIndex* DirectX11IndexBuffer::GetShadowBuffer(void)
+S_API void* DirectX11IndexBuffer::GetShadowBuffer(void)
 {
 	if (IsInited())
 	{
@@ -395,7 +413,24 @@ S_API SIndex* DirectX11IndexBuffer::GetIndex(unsigned long iIndex)
 {
 	if (IsInited() && m_nIndices > iIndex && iIndex >= 0)
 	{
-		return &m_pShadowBuffer[iIndex];
+		if (m_Format == S_INDEXBUFFER_16)
+			return &((SIndex*)m_pShadowBuffer)[iIndex];
+		else
+			return (SIndex*)&((SLargeIndex*)m_pShadowBuffer)[iIndex];
+	}
+
+	return NULL;
+}
+
+// --------------------------------------------------------------------------------
+S_API SLargeIndex* DirectX11IndexBuffer::GetLargeIndex(unsigned long iIndex)
+{
+	if (IsInited() && m_nIndices > iIndex && iIndex >= 0)
+	{
+		if (m_Format == S_INDEXBUFFER_16)
+			return (SLargeIndex*)&((SIndex*)m_pShadowBuffer)[iIndex];
+		else
+			return &((SLargeIndex*)m_pShadowBuffer)[iIndex];
 	}
 
 	return NULL;

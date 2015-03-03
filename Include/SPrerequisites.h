@@ -144,6 +144,13 @@ static inline double cot(float val) { return (1.0f / tan((double)val)); }
 #define SP_DEG_TO_RAD(deg) ((float)deg * SP_UNIT_DEG_RAD)
 #define SP_RAD_TO_DEG(rad) rad * SP_UNIT_RAD_DEG
 
+static inline bool IsPowerOfTwo(unsigned long n) { return (n & (n - 1)) == 0; }
+
+// n^2
+static inline unsigned long pow2(unsigned long n) { return n * n; }
+
+// 2^n
+static inline unsigned long PowerOfTwo(unsigned long n) { return (1 << n); }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -7,103 +7,264 @@
 #include <Abstract\IIndexBuffer.h>
 #include <Abstract\IResourcePool.h>
 
-
 SP_NMSPACE_BEG
 
-// -------------------------------------------------------------------------------------------------------------------
-S_API void STerrainChunk::AddQuad(unsigned int lodLevel, unsigned int w, unsigned int d,
-	unsigned long iStartVtx, unsigned long iStartIndex, unsigned long vtxRowShift, float baseHeight, float xoffs, float zoffs, float uoffs, float voffs)
+static ITerrain::LodLevel* g_pLodLevel = 0;
+
+///////////////////////////////////////////////////////////////////////////////////////////////                                 
+S_API void STerrainChunk::CreateCoreBasedOnItsLODLevel(SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum)
 {
-	// generate vertices
-	if (!pVertices[lodLevel] || !pIndices[lodLevel])
-		return; // unexpected critical
+	/*
+	printf("TerChnk: CreateCoreBasedOnItsLODLevel(pIB=0x%p, startVtxIdx=%u, vtxRowShift=%u, idxAccum=%u\n",
+		pIB, startVtxIdx, vtxRowShift, idxAccum);
+	*/
 
-	float quadWidth = (fWidth / (float)nSegsX) * (float)w;
-	float quadDepth = (fDepth / (float)nSegsZ) * (float)d;	
-
-	float tangent[3] = { -1.0f, 0, 0 };	
-
-	if (iStartVtx + vtxRowShift + 1 > pLodCounts[lodLevel].vertexCount)
+	for (unsigned int z = 1; z <= coreQuads; ++z)
 	{
-		printf("Warn: Vertex index %u exceeded vertex count of %u in STerrainChunk::AddQuad()!\n",
-			iStartVtx + vtxRowShift + 1, pLodCounts[lodLevel].vertexCount);
-
-		return;
+		for (unsigned int x = 1; x <= coreQuads; ++x)
+		{
+			AddCoreQuad(pIB, startVtxIdx + z * (chunkQuads + 1) + x, vtxRowShift, idxAccum);
+		}
 	}
-
-
-	pVertices[lodLevel][iStartVtx] = SVertex(xoffs, baseHeight, zoffs, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs, voffs);
-	pVertices[lodLevel][iStartVtx + 1] = SVertex(xoffs + quadWidth, baseHeight, zoffs, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs + fSegUSz * w, voffs);
-	pVertices[lodLevel][iStartVtx + vtxRowShift] = SVertex(xoffs, baseHeight, zoffs + quadDepth, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs, voffs + fSegVSz * d);
-	pVertices[lodLevel][iStartVtx + vtxRowShift + 1] = SVertex(xoffs + quadWidth, baseHeight, zoffs + quadDepth, 0, 1.0f, 0, tangent[0], tangent[1], tangent[2], uoffs + fSegUSz * w, voffs + fSegVSz * d);
-
-	// Warning: Do not modify the order of index creation! Otherwise (at least) Normal Recreation gets invalid!
-	pIndices[lodLevel][iStartIndex]	= (SIndex)(iStartVtx);
-	pIndices[lodLevel][iStartIndex + 1] = (SIndex)(iStartVtx + vtxRowShift + 1);
-	pIndices[lodLevel][iStartIndex + 2] = (SIndex)(iStartVtx + 1);
-	pIndices[lodLevel][iStartIndex + 3] = (SIndex)(iStartVtx);
-	pIndices[lodLevel][iStartIndex + 4] = (SIndex)(iStartVtx + vtxRowShift);
-	pIndices[lodLevel][iStartIndex + 5] = (SIndex)(iStartVtx + vtxRowShift + 1);
 }
 
-// -------------------------------------------------------------------------------------------------------------------
-void STerrainChunk::GenerateLodLevel(unsigned int lodLvl, unsigned int startSz /* start quad size */, float baseHeight)
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API void STerrainChunk::AddCoreQuad(SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum)
 {
-	if (startSz % 2 > 0 && startSz > 1)
-		return;
+	pIB[idxAccum] = startVtxIdx;
+	pIB[idxAccum + 1] = startVtxIdx + vtxRowShift + 1;
+	pIB[idxAccum + 2] = startVtxIdx + 1;
+	pIB[idxAccum + 3] = startVtxIdx;
+	pIB[idxAccum + 4] = startVtxIdx + vtxRowShift;
+	pIB[idxAccum + 5] = startVtxIdx + vtxRowShift + 1;
+	idxAccum += 6;
+}
 
-	unsigned int sz[2] = { startSz, startSz };
-	unsigned int w = nSegsX, d = nSegsZ;
+///////////////////////////////////////////////////////////////////////////////////////////////
+// startVtxIdx: The index of the start index of the chunk
+S_API void STerrainChunk::CreateBorder(SLargeIndex* pIB, ESide side, unsigned long startVtxIdx, const STerrainChunk* neighbor, unsigned long vtxRowShift, unsigned long& idxAccum)
+{	
+	//printf("Ter: CreateBorder(side=%u, startVtxIdx=%u, vtxRowShift=%u, idxAccum=%u\n",
+	//	side, startVtxIdx, vtxRowShift, idxAccum);
 
-	STerrainChunkLodCounts& lodcounts = pLodCounts[lodLvl];
-	unsigned int vtxRowShift = lodcounts.quadsX + 1;
+	unsigned int borderQuadVtxShift = 0;
+	if (IS_VALID_PTR(neighbor))
+		borderQuadVtxShift = neighbor->quadSegs / quadSegs;
+	else
+		borderQuadVtxShift = 1;
 
-	unsigned long iCurVtx = 0;
-	unsigned long iCurIdx = 0;
+	if (side == eSIDE_RIGHT || side == eSIDE_LEFT)
+		borderQuadVtxShift *= vtxRowShift;
 
-	float segmentWidth = (fWidth / (float)w);
-	float segmentDepth = (fDepth / (float)d);
-
-	for (unsigned int z = 0; z < nSegsZ;)
+	if (!IS_VALID_PTR(neighbor) || neighbor->curLodLevel <= curLodLevel)
 	{
-		// find next quad depth
-		while ((int)d - (int)sz[1] < 0)
-			sz[1] = (sz[1] > 1) ? (unsigned int)((double)sz[1] * 0.5) : 0;
+		unsigned long borderStartIndex;
 
-		if (sz[1] == 0)
-			break; 
-		
-		w = nSegsX;
-		sz[0] = startSz;
-		for (unsigned int x = 0; x < nSegsX;)
+		borderQuadVtxShift = 1;
+		if (side == eSIDE_RIGHT || side == eSIDE_LEFT)
+			borderQuadVtxShift *= vtxRowShift;
+
+		/*
+		if (IS_VALID_PTR(neighbor) && neighbor->curLodLevel < curLodLevel)
 		{
-			// find next quad width
-			while ((int)w - (int)sz[0] < 0)
-				sz[0] = (sz[0] > 1) ? (unsigned int)((double)sz[0] * 0.5) : 0;
+			borderQuadVtxShift = neighbor->quadSegs / quadSegs;
+			if (side == eSIDE_RIGHT || side == eSIDE_LEFT)
+				borderQuadVtxShift *= vtxRowShift;
+		}
+		*/
 
-			if (sz[0] == 0)
-				break;
-#ifdef _DEBUG
-			//printf("seg: (%u, %u) nsegs: (%u, %u) - AddQuad(%u, %u, %u, %u, %u, %u, %f, ...)\n", x, z, nSegsX, nSegsZ, lodLvl, sz[0], sz[1], iCurVtx, iCurIdx, vtxRowShift, baseHeight);
-#endif
+		switch (side)
 
-			if (x == nSegsX - 1)
-				int bp = 0;
-
-			AddQuad(lodLvl, sz[0], sz[1], iCurVtx, iCurIdx, vtxRowShift, baseHeight,
-				fXOffs + segmentWidth * x, fZOffs + segmentDepth * z,
-				fUOffs + fSegUSz * x, fVOffs + fSegVSz * z);
-
-			iCurVtx += (x == nSegsX - sz[0]) ? 2 : 1;
-			iCurIdx += 6;
-
-			w -= sz[0];
-			x += sz[0];
+		{
+		case eSIDE_TOP: borderStartIndex = 1 + (chunkQuads - 1) * vtxRowShift; break;
+		case eSIDE_RIGHT: borderStartIndex = (chunkQuads - 1) + vtxRowShift; break;
+		case eSIDE_BOTTOM: borderStartIndex = 1; break;
+		case eSIDE_LEFT: borderStartIndex = 1 * vtxRowShift; break;
 		}
 
-		d -= sz[1];
-		z += sz[1];
+		// Same size -> simply create the quadsize quads		
+		for (unsigned int i = 0; i < coreQuads; ++i)
+		{
+			pIB[idxAccum] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift;
+			pIB[idxAccum + 1] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift + vtxRowShift + 1;
+			pIB[idxAccum + 2] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift + 1;
+			pIB[idxAccum + 3] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift;
+			pIB[idxAccum + 4] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift + vtxRowShift;
+			pIB[idxAccum + 5] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift + vtxRowShift + 1;
+			idxAccum += 6;
+		}
 	}
+	else if (neighbor->curLodLevel > curLodLevel)
+	{		
+		// bq = big quad, sq = small quad
+		unsigned int nQuadsPerBQ = neighbor->quadSegs / quadSegs;
+		unsigned int bqHalf = nQuadsPerBQ / 2;
+
+		unsigned int borderStartIndex;		
+		switch (side)
+		{
+		case eSIDE_TOP: borderStartIndex = nQuadsPerBQ + (chunkQuads - 1) * vtxRowShift; break;
+		case eSIDE_RIGHT: borderStartIndex = (chunkQuads - 1) + nQuadsPerBQ * vtxRowShift; break;
+		case eSIDE_BOTTOM: borderStartIndex = vtxRowShift + nQuadsPerBQ; break;
+		case eSIDE_LEFT: borderStartIndex = nQuadsPerBQ * vtxRowShift + 1; break;
+		}		
+		
+		for (unsigned int bq = 0; bq < neighbor->coreQuads; ++bq)
+		{			
+			unsigned int bqOffs = borderStartIndex + bq * borderQuadVtxShift;
+			
+			unsigned int bindVtx1; // vtx offset to the next bq vtx1            
+			switch (side)
+			{
+			case eSIDE_TOP: bindVtx1 = bqOffs + vtxRowShift; break;
+			case eSIDE_BOTTOM: bindVtx1 = bqOffs - vtxRowShift; break;
+			case eSIDE_RIGHT: bindVtx1 = bqOffs + 1; break;
+			case eSIDE_LEFT: bindVtx1 = bqOffs - 1; break;
+			}
+
+			// vtx idx of the second bind vtx                                                
+			unsigned int bindVtx2;
+			if (side == eSIDE_TOP || side == eSIDE_BOTTOM)
+				bindVtx2 = bindVtx1 + nQuadsPerBQ;
+			else
+				bindVtx2 = bindVtx1 + nQuadsPerBQ * vtxRowShift;
+
+			// go through all small quads per bq
+			for (unsigned int sq = 0; sq < nQuadsPerBQ; ++sq)
+			{
+				// B1---------B2
+				// | \       / |  
+				// |   \   /   |
+				// o-----o-----o
+
+				// Chose one of the bind vertices which is of the above ones (B1 / B2)                        
+				unsigned int bindVtx = (sq >= bqHalf) ? bindVtx2 : bindVtx1;
+
+				unsigned int sqOffs = (side == eSIDE_TOP || side == eSIDE_BOTTOM) ? (bqOffs + sq) : (bqOffs + sq * vtxRowShift);
+				pIB[idxAccum] = startVtxIdx + sqOffs;				
+				if (side == eSIDE_TOP || side == eSIDE_LEFT)
+				{
+					pIB[idxAccum + 1] = startVtxIdx + bindVtx;
+					pIB[idxAccum + 2] = startVtxIdx + sqOffs + ((side == eSIDE_TOP || side == eSIDE_BOTTOM) ? 1 : vtxRowShift);
+				}
+				else
+				{
+					pIB[idxAccum + 1] = startVtxIdx + sqOffs + ((side == eSIDE_TOP || side == eSIDE_BOTTOM) ? 1 : vtxRowShift);
+					pIB[idxAccum + 2] = startVtxIdx + bindVtx;					
+				}
+
+				idxAccum += 3;
+			}
+
+			// add the center triangle
+			if (side == eSIDE_TOP || side == eSIDE_LEFT)
+			{
+				pIB[idxAccum] = startVtxIdx + bqOffs + ((side == eSIDE_TOP || side == eSIDE_BOTTOM) ? bqHalf : (bqHalf * vtxRowShift));
+				pIB[idxAccum + 1] = startVtxIdx + bindVtx1;
+			}
+			else
+			{
+				pIB[idxAccum] = startVtxIdx + bindVtx1;
+				pIB[idxAccum + 1] = startVtxIdx + bqOffs + ((side == eSIDE_TOP || side == eSIDE_BOTTOM) ? bqHalf : (bqHalf * vtxRowShift));
+			}			
+			pIB[idxAccum + 2] = startVtxIdx + bindVtx2;
+			idxAccum += 3;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Border must have coherent sides (clockwise). I.e. side1 = LEFT ==> side2 = TOP
+S_API void STerrainChunk::CreateCorner(const STerrainChunkCorner& corner, SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum)
+{
+	unsigned int cornerVtx, neighborVtx1, neighborVtx2;
+	unsigned int intVtx; // intersection vertex / corner of chunk
+	long quadShift1, quadShift2;
+	unsigned int nbqquads1 = (IS_VALID_PTR(corner.neighbor1) ? (max(corner.neighbor1->quadSegs, quadSegs) / quadSegs) : 1);
+	unsigned int nbqquads2 = (IS_VALID_PTR(corner.neighbor2) ? (max(corner.neighbor2->quadSegs, quadSegs) / quadSegs) : 1);
+	switch (corner.side1)
+	{
+	case eSIDE_LEFT:
+		cornerVtx = 1 + (chunkQuads - 1) * vtxRowShift;
+		neighborVtx1 = ((IS_VALID_PTR(corner.neighbor1)) ? ((chunkQuads - nbqquads1) * vtxRowShift) : ((chunkQuads - 1) * vtxRowShift));
+		neighborVtx2 = ((IS_VALID_PTR(corner.neighbor2)) ? (nbqquads2 + chunkQuads * vtxRowShift) : (1 + chunkQuads * vtxRowShift));
+		intVtx = chunkQuads * vtxRowShift;
+		quadShift1 = -(long)(vtxRowShift);
+		quadShift2 = (long)1;
+		break;
+	case eSIDE_TOP:
+		cornerVtx = (chunkQuads - 1) + (chunkQuads - 1) * vtxRowShift;
+		neighborVtx1 = ((IS_VALID_PTR(corner.neighbor1)) ? ((chunkQuads - nbqquads1) + chunkQuads * vtxRowShift) : ((chunkQuads - 1) + chunkQuads * vtxRowShift));
+		neighborVtx2 = ((IS_VALID_PTR(corner.neighbor2)) ? (chunkQuads + (chunkQuads - nbqquads2) * vtxRowShift) : (chunkQuads + (chunkQuads - 1) * vtxRowShift));
+		intVtx = chunkQuads * vtxRowShift + chunkQuads;
+		quadShift1 = -(long)1;
+		quadShift2 = -(long)(vtxRowShift);
+		break;
+	case eSIDE_RIGHT:
+		cornerVtx = (chunkQuads - 1) + vtxRowShift;
+		neighborVtx1 = ((IS_VALID_PTR(corner.neighbor1)) ? (chunkQuads + nbqquads1 * vtxRowShift) : (chunkQuads + vtxRowShift));
+		neighborVtx2 = ((IS_VALID_PTR(corner.neighbor2)) ? (chunkQuads - nbqquads2) : (chunkQuads - 1));
+		intVtx = chunkQuads;
+		quadShift1 = (long)(vtxRowShift);
+		quadShift2 = -(long)1;
+		break;
+	case eSIDE_BOTTOM:
+		cornerVtx = 1 + vtxRowShift;
+		neighborVtx1 = ((IS_VALID_PTR(corner.neighbor1)) ? nbqquads1 : 1);
+		neighborVtx2 = ((IS_VALID_PTR(corner.neighbor2)) ? (nbqquads2 * vtxRowShift) : vtxRowShift);
+		intVtx = 0;
+		quadShift1 = (long)1;
+		quadShift2 = (long)(vtxRowShift);
+		break;
+	}	
+
+	// o-------o
+	// | \   / |
+	// |   o---o
+	// | / | \ |
+	// o---o---o
+
+	// create triangles for neighbor1
+	if (IS_VALID_PTR(corner.neighbor1))
+	{
+		unsigned int quads1 = (corner.neighbor1->quadSegs / quadSegs);
+		if (quads1 > 0)
+			quads1--;		
+
+		for (unsigned int i = 0; i < quads1; ++i)
+		{
+			pIB[idxAccum] = startVtxIdx + neighborVtx1;
+			pIB[idxAccum + 1] = (unsigned long)((long)startVtxIdx + (long)cornerVtx + (long)i * quadShift1);
+			pIB[idxAccum + 2] = (unsigned long)((long)pIB[idxAccum + 1] + quadShift1);
+			idxAccum += 3;
+		}
+	}
+
+	pIB[idxAccum] = startVtxIdx + neighborVtx1;
+	pIB[idxAccum + 1] = startVtxIdx + intVtx;
+	pIB[idxAccum + 2] = startVtxIdx + cornerVtx;
+	idxAccum += 3;	
+
+	// create triangles for neighbor2
+	if (IS_VALID_PTR(corner.neighbor2))
+	{
+		unsigned int quads2 = (corner.neighbor2->quadSegs / quadSegs);
+		if (quads2 > 0)
+			quads2--;
+
+		for (unsigned int i = 0; i < quads2; ++i)
+		{
+			pIB[idxAccum] = startVtxIdx + (unsigned long)((long)cornerVtx + (long)i * quadShift2);
+			pIB[idxAccum + 1] = startVtxIdx + neighborVtx2;
+			pIB[idxAccum + 2] = (unsigned long)((long)pIB[idxAccum] + quadShift2);
+			idxAccum += 3;
+		}
+	}
+
+	pIB[idxAccum] = startVtxIdx + neighborVtx2;
+	pIB[idxAccum + 1] = startVtxIdx + cornerVtx;
+	pIB[idxAccum + 2] = startVtxIdx + intVtx;
+	idxAccum += 3;
 }
 
 
@@ -112,258 +273,256 @@ void STerrainChunk::GenerateLodLevel(unsigned int lodLvl, unsigned int startSz /
 
 
 
-// -------------------------------------------------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////////////////////
 S_API Terrain::~Terrain()
 {
 	Clear();
 }
 
-// -------------------------------------------------------------------------------------------------------------------
-S_API SResult Terrain::Initialize(IGameEngine* pEngine)
-{	
-	SP_ASSERTR(m_pEngine = pEngine, S_INVALIDPARAM);	
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels)
+{
+	// Check given sizes		
+	if (!IsPowerOfTwo(segments) || (segments % chunkSegments) > 0)
+		return S_INVALIDPARAM;
+
+
+	m_pEngine = pEngine;
+
+	m_chunkSegs = chunkSegments;
+	m_nSegments = segments;
+
+	m_fChunkStepDist = fChunkStepDist;
+
+	m_fSize = size;
+	m_fSegSz = size / (float)segments;
+	m_fTexSz = 1.0f / (float)segments;
+
+	m_nLodLevels = nLodLevels;
+	m_pLodLevels = new ITerrain::LodLevel[m_nLodLevels];
+	printf("Ter: Allocated LodLevels buffer with %u elements\n", m_nLodLevels);
+
+	// Create chunk vertex array for each lod level
+	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
+	{
+		ITerrain::LodLevel& lodLvl = m_pLodLevels[iLodLvl];
+		lodLvl.quadSegs = max(PowerOfTwo(iLodLvl), 1);
+		lodLvl.chunkQuads = m_chunkSegs / lodLvl.quadSegs;
+		lodLvl.nChunkVertices = pow2(lodLvl.chunkQuads + 1);
+		lodLvl.pChunkVertices = new SVertex[lodLvl.nChunkVertices];		
+		float fQuadSz = lodLvl.quadSegs * m_fSegSz;
+
+		/*
+		printf("Ter: Inited lodLevel #%u: quadSegs=%u, chunkQuads=%u, nChunkVerts=%u\n",
+			lodLvl.quadSegs, lodLvl.chunkQuads, lodLvl.nChunkVertices);
+		*/
+
+		for (unsigned int z = 0; z <= lodLvl.chunkQuads; ++z)
+		{
+			for (unsigned int x = 0; x <= lodLvl.chunkQuads; ++x)
+			{
+				lodLvl.pChunkVertices[z * (lodLvl.chunkQuads + 1) + x] =
+					SVertex(x * fQuadSz, baseHeight, z * fQuadSz, 0, 1.0f, 0, 1.0f, 0, 0,
+						x * lodLvl.quadSegs * m_fTexSz, z * lodLvl.quadSegs * m_fTexSz);
+			}
+		}
+	}	
+
+	// To initialize, generate a flat heightmap
+	GenerateFlatVertexHeightmap(baseHeight);
+
+	// Initialize chunk array
+	unsigned long nChunks = pow2(m_nSegments / m_chunkSegs);
+	m_pChunks = new STerrainChunk[nChunks];
 
 	return S_SUCCESS;
 }
 
 
-S_API void Terrain::Generate(const STerrainDescription& tdsc)
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 {
-	nSegsX = tdsc.segsX;
-	nSegsZ = tdsc.segsZ;
-	fWidth = tdsc.w;
-	fDepth = tdsc.d;
-	nLodLevels = tdsc.lodLevels;
-
-	nChunkSegsX = tdsc.chunkSegsX;
-	nChunkSegsZ = tdsc.chunkSegsZ;
-
-	// count chunks    
-	nXRestChunkSegs = nSegsX % nChunkSegsX;
-	nZRestChunkSegs = nSegsZ % nChunkSegsZ;
-	nChunksX = (nSegsX - nXRestChunkSegs) / nChunkSegsX;
-	nChunksZ = (nSegsZ - nZRestChunkSegs) / nChunkSegsZ;
-
-	nRestChunksX = 0;
-	nRestChunksZ = 0;
-	if (nXRestChunkSegs > 0)
-	{
-		nChunksX++;
-		nRestChunksX = 1;
-	}
-	if (nZRestChunkSegs > 0)
-	{
-		nChunksZ++;
-		nRestChunksZ = 1;
-	}
-
-	// regular chunk counts
-	unsigned int nRegChunksX = nChunksX - nRestChunksX;
-	unsigned int nRegChunksZ = nChunksZ - nRestChunksZ;
-	unsigned int nRegChunks = nRegChunksX * nRegChunksZ;
-
-	// calculate segment sizes
-	float segWidth = tdsc.w / nSegsX;
-	float segDepth = tdsc.d / nSegsZ;
-	float segUSz = tdsc.w / (nSegsX + 1) / tdsc.w;
-	float segVSz = tdsc.d / (nSegsZ + 1) / tdsc.d;
-
-#ifdef _DEBUG
-	EngLog(S_DEBUG, m_pEngine, "Terrain: {nChunkSegsX=%u, nChunkSegsZ=%u, nSegsX=%u, nSegsZ=%u}", nChunkSegsX, nChunkSegsZ, nSegsX, nSegsZ);
-#endif
-
-	// generate chunks buffer
-	pTerrainChunks = new STerrainChunk[nChunksX * nChunksZ];
-
-	// Precalculate vertex and index count, create the buffers and create chunks
-	pLodLevelCounts = new STerrainLodCounts[nLodLevels];
-	
-	pVertexBuffers = new SVertex*[nLodLevels];
-	ZeroMemory(pVertexBuffers, nLodLevels * sizeof(SVertex*));
-	
-	pIndexBuffers = new SIndex*[nLodLevels];
-	ZeroMemory(pVertexBuffers, nLodLevels * sizeof(SIndex*));
-
-	for (unsigned int lodLvl = 0; lodLvl < nLodLevels; ++lodLvl)
-	{
-		STerrainChunkCounts regChunkCounts = STerrainChunk::PrecalcCounts(lodLvl, nChunkSegsX, nChunkSegsZ);
-		STerrainChunkCounts restXChunkCnt = STerrainChunk::PrecalcCounts(lodLvl, nXRestChunkSegs, nChunkSegsZ);
-		STerrainChunkCounts restZChunkCnt = STerrainChunk::PrecalcCounts(lodLvl, nChunkSegsX, nZRestChunkSegs);
-		STerrainChunkCounts fillChunkCnt = STerrainChunk::PrecalcCounts(lodLvl, nXRestChunkSegs, nZRestChunkSegs);
-
-		STerrainLodCounts &counts = pLodLevelCounts[lodLvl];		
-
-		counts.vertices = regChunkCounts.vertices * nRegChunks;
-		counts.indices = regChunkCounts.indices * nRegChunks;		
-
-		if (nRestChunksX > 0 || nRestChunksZ > 0)
-		{
-			counts.vertices += nRegChunksZ * (nRestChunksX * restXChunkCnt.vertices);
-			counts.vertices += nRegChunksX * (nRestChunksZ * restZChunkCnt.vertices);
-			counts.vertices += nRestChunksX * nRestChunksZ * fillChunkCnt.vertices; // fill chunk
-
-			counts.indices += nRegChunksZ * (nRestChunksX * restXChunkCnt.indices);
-			counts.indices += nRegChunksX * (nRestChunksZ * restZChunkCnt.indices);
-			counts.indices += nRestChunksX * nRestChunksZ * fillChunkCnt.vertices; // fill chunk			
-		}
-
-		pVertexBuffers[lodLvl] = new SVertex[counts.vertices];
-		pIndexBuffers[lodLvl] = new SIndex[counts.indices];				
-
-
-
-		// fill chunks
-		unsigned long iCurVtxPos = 0, iCurIdxPos = 0;
-		for (unsigned int cz = 0; cz < nChunksZ; ++cz)
-		{
-			bool bIsZRest = (cz == nChunksZ - 1) && (nRestChunksZ > 0);
-			for (unsigned int cx = 0; cx < nChunksX; ++cx)
-			{
-				bool bIsXRest = (cx == nChunksX - 1) && (nRestChunksX > 0);
-
-				STerrainChunk* pChunk = &pTerrainChunks[cz * nChunksX + cx];
-
-				// Get counts for this chunk
-				STerrainChunkCounts* pCurChunkCnt = &regChunkCounts;
-				if (bIsZRest && bIsXRest)
-					pCurChunkCnt = &fillChunkCnt;
-				else if (bIsZRest)
-					pCurChunkCnt = &restZChunkCnt;
-				else if (bIsXRest)
-					pCurChunkCnt = &restXChunkCnt;
-
-				// Initialize chunk
-				if (lodLvl == 0)
-				{
-					pChunk->pVertices = new SVertex*[nLodLevels];
-					pChunk->pIndices = new SIndex*[nLodLevels];
-					pChunk->pLodCounts = new STerrainChunkLodCounts[nLodLevels];
-					pChunk->nLodLevels = nLodLevels;
-
-					pChunk->nSegsX = (bIsXRest) ? nXRestChunkSegs : nChunkSegsX;
-					pChunk->nSegsZ = (bIsZRest) ? nZRestChunkSegs : nChunkSegsZ;
-					pChunk->fWidth = nChunkSegsX * segWidth;
-					pChunk->fDepth = nChunkSegsZ * segDepth;
-					pChunk->fSegUSz = segUSz;
-					pChunk->fSegVSz = segVSz;
-					pChunk->fXOffs = cx * (segWidth * nChunkSegsX);
-					pChunk->fZOffs = cz * (segDepth * nChunkSegsZ);
-					pChunk->fUOffs = cx * (segUSz * nChunkSegsX);
-					pChunk->fVOffs = cz * (segVSz * nChunkSegsZ);
-				}
-
-				// Set pointer of the chunks vtx/idx to the first vtx/idx in the main buffer, so
-				// when generating the lod level, only a portion of the main buffer is set.
-				pChunk->pVertices[lodLvl] = &pVertexBuffers[lodLvl][iCurVtxPos];
-				pChunk->pIndices[lodLvl] = &pIndexBuffers[lodLvl][iCurIdxPos];
-				
-				pChunk->pLodCounts[lodLvl].vertexOffset = iCurVtxPos;
-				pChunk->pLodCounts[lodLvl].indexOffset = iCurIdxPos;
-				pChunk->pLodCounts[lodLvl].vertexCount = pCurChunkCnt->vertices;
-				pChunk->pLodCounts[lodLvl].indexCount = pCurChunkCnt->indices;
-				pChunk->pLodCounts[lodLvl].quadsX = pCurChunkCnt->quadsX;
-				pChunk->pLodCounts[lodLvl].quadsZ = pCurChunkCnt->quadsZ;
-
-#ifdef _DEBUG
-				/*
-				printf("LOD%u: chnk(%u, %u): vtxOffs=%u, idxOffs=%u, vtxCnt=%u, idxCnt=%u\n", lodLvl, cx, cz,
-					pChunk->pLodCounts[lodLvl].vertexOffset, pChunk->pLodCounts[lodLvl].indexOffset,
-					pChunk->pLodCounts[lodLvl].vertexCount, pChunk->pLodCounts[lodLvl].indexCount);
-				*/
-#endif
-
-				// Let the chunk generate its data itself
-				pChunk->GenerateLodLevel(lodLvl, STerrainChunk::GetLodLevelQuadStartSz(lodLvl), tdsc.baseHeight);				
-
-				// Update current vtx/idx pointers
-				iCurVtxPos += pCurChunkCnt->vertices;
-				iCurIdxPos += pCurChunkCnt->indices;
-			}
-		}
-	}
-	
-	if (Failure(FillVertexAndIndexBuffers()))
+	if (!IS_VALID_PTR(m_pEngine))
 		return;
 
-	if (Failure(GenerateFlatVertexHeightmap(tdsc.baseHeight)))
-		return;
-	
-	ClearTemporaryGenerationVertices();
-}
-
-// -------------------------------------------------------------------------------------------------------------------
-S_API void Terrain::ClearTemporaryGenerationVertices()
-{
-	// Remove initialization vertex data buffers, as they are stored in the
-	// hardware implementations shadow buffers. (Use pHWVertexBuffer->GetVertex())
-	for (unsigned int lodLevel = 0; lodLevel < nLodLevels; ++lodLevel)
-	{
-		if (IS_VALID_PTR(pVertexBuffers[lodLevel]))
-			delete[] pVertexBuffers[lodLevel];	
-
-		pVertexBuffers[lodLevel] = 0;
-	}
-	delete[] pVertexBuffers;	
-	pVertexBuffers = 0;	
-
-	// Also reset the pointers to portions to the main buffer in all the chunks.
-	for (unsigned int chunk = 0; chunk < nChunksX * nChunksZ; ++chunk)
-	{
-		STerrainChunk* pChunk = &pTerrainChunks[chunk];
-
-		if (IS_VALID_PTR(pChunk->pVertices))
-			delete[] pChunk->pVertices;
-
-		pChunk->pVertices = 0;		
-	}
-}
-
-// -------------------------------------------------------------------------------------------------------------------
-S_API SResult Terrain::FillVertexAndIndexBuffers()
-{
-	if (!IS_VALID_PTR(m_pEngine) || nLodLevels == 0)
-		return S_NOTINIT;
+	/*
+	printf("Terrain::GenLodLevelChunks(pCamera=%p)\n", pCamera);
+	*/
 
 	IResourcePool* pResources = m_pEngine->GetResources();
 	if (!IS_VALID_PTR(pResources))
-		return S_NOTINIT;
+		return;
 
-	m_pHWVertexBuffers = new IVertexBuffer*[nLodLevels];
-	m_pHWIndexBuffers = new IIndexBuffer*[nLodLevels];
+	// Clear the chunk list of each lod level
+	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
+		m_pLodLevels[iLodLvl].chunks.clear();
 
-	for (unsigned int lodLevel = 0; lodLevel < nLodLevels; ++lodLevel)
+	/*
+	printf("Terrain: Cleared chunk vectors of %u lodLevels\n", m_nLodLevels);
+	*/
+
+	// Determine LOD Level for each chunk and add to the according lod Level
+	unsigned long nChunks = m_nSegments / m_chunkSegs;
+	/*
+	printf("Ter: nChunks per side: %u, which makes %u overall chunks\n", nChunks, nChunks * nChunks);
+	*/
+	for (unsigned int cz = 0; cz < nChunks; ++cz)
 	{
-		// Create and fill vertex buffer
-		if (Failure(pResources->AddVertexBuffer(&m_pHWVertexBuffers[lodLevel])))
-			return EngLog(S_ERROR, m_pEngine, "Failed add hardware vertex buffer #%u for terrain!", lodLevel);
+		for (unsigned int cx = 0; cx < nChunks; ++cx)
+		{
+			STerrainChunk* pChunk = &m_pChunks[cz * nChunks + cx];						
+			pChunk->cx = cx;
+			pChunk->cz = cz;
+			pChunk->fSize = m_fSegSz * m_chunkSegs;
+			pChunk->curLodLevel = pChunk->DetermineLODLevelByView(pCamera, m_nLodLevels, m_fChunkStepDist);
+			pChunk->quadSegs = max(PowerOfTwo(pChunk->curLodLevel), 1);
+			pChunk->chunkSegments = m_chunkSegs;			
+			
+			float quadSize = (pChunk->fSize / pChunk->chunkSegments) * pChunk->quadSegs;
+			pChunk->chunkQuads = (pChunk->chunkSegments / pChunk->quadSegs);
+			float coreOffset = quadSize;
+			pChunk->coreQuads = (pChunk->chunkQuads < 2U) ? 0 : (pChunk->chunkQuads - 2U);			
 
-		EVBUsage vbUsage = bDynamic ? eVBUSAGE_DYNAMIC_RARE : eVBUSAGE_STATIC;
-		if (Failure(m_pHWVertexBuffers[lodLevel]->Initialize(m_pEngine, m_pEngine->GetRenderer(), vbUsage, 0, 0)))
-			return EngLog(S_ERROR, m_pEngine, "Failed initialize hardware vertex buffer #%u for terrain!", lodLevel);
+			m_pLodLevels[pChunk->curLodLevel].chunks.push_back(pChunk);
 
-		if (Failure(m_pHWVertexBuffers[lodLevel]->Fill(pVertexBuffers[lodLevel], pLodLevelCounts[lodLevel].vertices)))
-			return EngLog(S_ERROR, m_pEngine, "Failed fill hardware vertex buffer #%u for terrain!", lodLevel);
-
-
-		//---
-
-		// Create and fill index buffer
-		if (Failure(pResources->AddIndexBuffer(&m_pHWIndexBuffers[lodLevel])))
-			return EngLog(S_ERROR, m_pEngine, "Failed add hardware index buffer #%u for terrain!", lodLevel);
-		
-		if (Failure(m_pHWIndexBuffers[lodLevel]->Initialize(m_pEngine, m_pEngine->GetRenderer(), eIBUSAGE_STATIC, pLodLevelCounts[lodLevel].indices, 0)))
-			return EngLog(S_ERROR, m_pEngine, "Failed initialize hardware index buffer #%u for terrain!", lodLevel);
-
-		if (Failure(m_pHWIndexBuffers[lodLevel]->Fill(pIndexBuffers[lodLevel], pLodLevelCounts[lodLevel].indices, false)))
-			return EngLog(S_ERROR, m_pEngine, "Failed fill hardware index buffer #%u for terrain!", lodLevel);
+			/*
+			printf("Ter: Set Chunk[%u] cx=%u, cz=%u, fSz=%.2f, curLodLvl=%u, quadSegs=%u, chunkSegs=%u\n",
+				cz * nChunks + cx, cx, cz, pChunk->fSize, pChunk->curLodLevel, pChunk->quadSegs, pChunk->chunkSegments);
+			*/
+		}
 	}
 
-	m_bRequireCBUpdate = true;
+	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
+	{
+		ITerrain::LodLevel& lodLvl = m_pLodLevels[iLodLvl];		
 
-	return RecalculateNormals();	
+		/*
+		printf("Ter: Lod #%u. chunkQuads=%u, chunks.size()=%u, nChunkVerts=%u, pChunkVerts=%p, quadSegs=%u\n",
+			iLodLvl, lodLvl.chunkQuads, lodLvl.chunks.size(), lodLvl.nChunkVertices, lodLvl.pChunkVertices, lodLvl.quadSegs);
+		*/
+
+		// Clear previous vertices and indices
+		SP_SAFE_DELETE_ARR(lodLvl.pVertices, 1);
+		SP_SAFE_DELETE_ARR(lodLvl.pIndices, 1);
+
+		// Release old hardware vb and ib
+		if (IS_VALID_PTR(lodLvl.pVB)) pResources->RemoveVertexBuffer(&lodLvl.pVB);
+		if (IS_VALID_PTR(lodLvl.pIB)) pResources->RemoveIndexBuffer(&lodLvl.pIB);
+
+		// Create the merged buffers for the lod level.
+		// The IB is created with maxmimum size. It may happen, that payload is smaller than IB size.
+		// To prevent false rendering, a maximum-index-accumulator is used.
+		unsigned long lodLevelQuads = (unsigned long)lodLvl.chunks.size() * pow2(lodLvl.chunkQuads);		
+		lodLvl.nIndices = lodLevelQuads * 6;		
+		lodLvl.nVertices = lodLvl.chunks.size() * lodLvl.nChunkVertices;
+
+		if (lodLvl.nIndices > 0 && lodLvl.nVertices > 0)
+		{
+			lodLvl.pIndices = new SLargeIndex[lodLvl.nIndices];						
+			lodLvl.pVertices = new SVertex[lodLvl.nVertices];			
+		}
+		else
+		{
+			lodLvl.pIndices = 0;
+			lodLvl.pVertices = 0;
+			continue;
+		}
+
+		/*
+		printf("Ter: Allocated buffers. nIndices=%u, nVerts=%u, pIndices=%p, pVerts=%p\n",
+			lodLvl.nIndices, lodLvl.nVertices, lodLvl.pIndices, lodLvl.pVertices);
+		*/
+
+		unsigned long idxAccum = 0;
+		unsigned long iChunk = 0;
+		unsigned long lodLvlVtxRowShift = lodLvl.chunkQuads + 1;		
+		for (auto itChunk = lodLvl.chunks.begin(); itChunk != lodLvl.chunks.end(); itChunk++)
+		{			
+			unsigned long chunkVtxOffset = iChunk * lodLvl.nChunkVertices;
+			STerrainChunk* pChunk = *itChunk;			
+
+			// Create the core
+			pChunk->CreateCoreBasedOnItsLODLevel(lodLvl.pIndices, chunkVtxOffset, lodLvlVtxRowShift, idxAccum);
+
+			// Determine neighbors
+			// 0 - top, 1 - right, 2 - bottom, 3 - left
+			STerrainChunk* chunkNeighbors[4];			
+			chunkNeighbors[0] = (pChunk->cz >= nChunks - 1) ? 0 : &m_pChunks[(pChunk->cz + 1) * nChunks + pChunk->cx];
+			chunkNeighbors[1] = (pChunk->cx >= nChunks - 1) ? 0 : &m_pChunks[pChunk->cz * nChunks + pChunk->cx + 1];
+			chunkNeighbors[2] = (pChunk->cz == 0) ? 0 : &m_pChunks[(pChunk->cz - 1) * nChunks + pChunk->cx];
+			chunkNeighbors[3] = (pChunk->cx == 0) ? 0 : &m_pChunks[pChunk->cz * nChunks + pChunk->cx - 1];									
+
+			// Determine borders
+			STerrainChunkBorder borders[] =
+			{
+				STerrainChunkBorder(eSIDE_TOP, chunkNeighbors[0]),
+				STerrainChunkBorder(eSIDE_RIGHT, chunkNeighbors[1]),
+				STerrainChunkBorder(eSIDE_BOTTOM, chunkNeighbors[2]),
+				STerrainChunkBorder(eSIDE_LEFT, chunkNeighbors[3])
+			};					
+
+			for (unsigned int iBorder = 0; iBorder < 4; ++iBorder)
+			{
+				STerrainChunkBorder& border = borders[iBorder];				
+				unsigned long oldIdxAccum = idxAccum;
+				pChunk->CreateBorder(lodLvl.pIndices, border.side, chunkVtxOffset, border.neighbor, lodLvlVtxRowShift, idxAccum);				
+
+				unsigned int iNextBorder = (iBorder + 1) % 4;
+
+				STerrainChunkCorner corner;
+				corner.neighbor1 = borders[iBorder].neighbor;
+				corner.neighbor2 = borders[iNextBorder].neighbor;
+				corner.side1 = border.side;			
+				g_pLodLevel = &m_pLodLevels[iLodLvl];
+				
+				oldIdxAccum = idxAccum;
+				pChunk->CreateCorner(corner, lodLvl.pIndices, chunkVtxOffset, lodLvlVtxRowShift, idxAccum);
+			}			
+
+			// Add vertices
+			for (unsigned long iVtx = 0; iVtx < lodLvl.nChunkVertices; ++iVtx)
+			{
+				SVertex* pVtx = &lodLvl.pVertices[chunkVtxOffset + iVtx];				
+				memcpy(pVtx, &lodLvl.pChunkVertices[iVtx], sizeof(SVertex));
+				pVtx->position.x += pChunk->cx * pChunk->fSize;
+				pVtx->position.z += pChunk->cz * pChunk->fSize;
+				pVtx->textureCoords[0].u += (float)(pChunk->cx * m_chunkSegs) * m_fTexSz;
+				pVtx->textureCoords[0].v += (float)(pChunk->cz * m_chunkSegs) * m_fTexSz;
+			}			
+			
+			iChunk++;
+		}		
+
+		// Now create lodLevel's Hardware VB and Hardware IB
+		pResources->AddVertexBuffer(&lodLvl.pVB);
+		lodLvl.pVB->Initialize(m_pEngine, m_pEngine->GetRenderer(), eVBUSAGE_STATIC, lodLvl.pVertices, lodLvl.nVertices);
+
+		pResources->AddIndexBuffer(&lodLvl.pIB);		
+		lodLvl.nActualIndices = idxAccum;
+		lodLvl.pIB->Initialize(m_pEngine, m_pEngine->GetRenderer(), eIBUSAGE_STATIC, lodLvl.nActualIndices, S_INDEXBUFFER_32, lodLvl.pIndices);			
+	}
 }
 
-// -------------------------------------------------------------------------------------------------------------------
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API void Terrain::SetHeightmap(ITexture* heightmap)
+{
+	if (!m_bCustomHeightmapSet && IS_VALID_PTR(m_pVtxHeightMap) && IS_VALID_PTR(m_pEngine))
+	{
+		IResourcePool* pResources = m_pEngine->GetResources();
+		pResources->RemoveTexture(&m_pVtxHeightMap);
+	}
+
+	m_pVtxHeightMap = heightmap;
+	m_bCustomHeightmapSet = true;
+
+	//UpdateCollisionMesh();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 {
 	if (!IS_VALID_PTR(m_pEngine))
@@ -372,14 +531,16 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	IResourcePool* pRes = m_pEngine->GetResources();	
 
 	// Remove old texture, if there was one
-	if (IS_VALID_PTR(m_pVtxHeightMap))
+	if (IS_VALID_PTR(m_pVtxHeightMap) && !m_bCustomHeightmapSet)
 		pRes->RemoveTexture(&m_pVtxHeightMap);
+
+	m_bCustomHeightmapSet = false;
 
 	// Create new Texture
 	float baseHeightScaled = baseHeight / m_MaxHeight;
 	SColor baseColor(baseHeightScaled, baseHeightScaled, baseHeightScaled);	
 
-	SResult res = pRes->AddTexture(nSegsX + 1, nSegsZ + 1, "terrain_vtxheightmap", eTEXTURE_R8G8B8A8_UNORM, baseColor, &m_pVtxHeightMap, true);
+	SResult res = pRes->AddTexture(m_nSegments + 1, m_nSegments + 1, "terrain_vtxheightmap", eTEXTURE_R8G8B8A8_UNORM, baseColor, &m_pVtxHeightMap, true);
 	if (Failure(res))
 		return res;
 
@@ -389,9 +550,9 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	if (Success(m_pVtxHeightMap->Lock((void**)&pPixels, &nPixels, &rowPitch)))
 	{
 		rowPitch = (unsigned int)(rowPitch / 4);
-		for (unsigned int x = 0; x < nSegsX + 1; ++x)
+		for (unsigned int x = 0; x < m_nSegments + 1; ++x)
 		{
-			for (unsigned int y = 0; y < nSegsZ + 1; ++y)
+			for (unsigned int y = 0; y < m_nSegments + 1; ++y)
 			{
 				// ff ff ff ff
 				float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);
@@ -416,94 +577,13 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 
 
 
-
-// -------------------------------------------------------------------------------------------------------------------
-S_API SResult Terrain::RecalculateNormals(unsigned int lodLevel /* = 0*/)
-{
-	if (!IS_VALID_PTR(m_pHWVertexBuffers) || !IS_VALID_PTR(m_pHWIndexBuffers) || !IS_VALID_PTR(pLodLevelCounts))
-		return S_NOTINIT;
-
-	IVertexBuffer* pVB = m_pHWVertexBuffers[lodLevel];		
-
-	// calculate
-	for (unsigned int cz = 0; cz < nChunksZ; ++cz)
-	{
-		for (unsigned int cx = 0; cx < nChunksX; ++cx)
-		{		
-			//      1
-			//      |
-			// 4----o----2
-			//      |
-			//      3
-
-			// o-----o-----o
-			// |   / |   / |
-			// | /   | /   |
-			// 4---1,5,10--7,11
-			// |   / |   / |
-			// | /   | /   |
-			//0,3--2,6,9---8
-
-			STerrainChunk& chunk = pTerrainChunks[cz * nChunksX + cx];
-			SIndex* pChunkIndices = chunk.pIndices[lodLevel];
-			STerrainChunkLodCounts& lodcounts = chunk.pLodCounts[lodLevel];
-			for (unsigned int qx = 0; qx < lodcounts.quadsX; ++qx)
-			{
-				bool isLeftCol = (qx == 0);
-				bool isRightCol = (qx == lodcounts.quadsX - 1);
-				for (unsigned int qz = 0; qz < lodcounts.quadsZ; ++qz)
-				{
-					bool isBottomRow = (qz == 0);
-					bool isTopRow = (qz == lodcounts.quadsZ - 1);
-
-					unsigned long centerIdx = (unsigned long)(qz * lodcounts.quadsX + qx) * 6UL;
-					unsigned long leftIdx = (unsigned long)(qz * lodcounts.quadsX + qx - 1) * 6UL;
-					unsigned long downIdx = (unsigned long)((qz - 1) * lodcounts.quadsX + qx) * 6UL;
-					unsigned long rightIdx = (unsigned long)(qz * lodcounts.quadsX + qx + 1) * 6UL;
-					unsigned long upIdx = (unsigned long)((qz + 1) * lodcounts.quadsX + qx) * 6UL;
-					SVertex* pCenterVert = pVB->GetVertex(pChunkIndices[centerIdx]);
-
-					SVector3 dirAccum(0, 0, 0);					
-
-					if (!isLeftCol && !isBottomRow) // left & down										
-						dirAccum += SPNormalFromThreeVerts(*pCenterVert, *pVB->GetVertex(pChunkIndices[leftIdx]), *pVB->GetVertex(pChunkIndices[downIdx]));
-					else
-						dirAccum += SVector3(0, 1.0f, 0);
-
-					if (!isBottomRow && !isRightCol) // down & right
-						dirAccum += SPNormalFromThreeVerts(*pCenterVert, *pVB->GetVertex(pChunkIndices[downIdx]), *pVB->GetVertex(pChunkIndices[rightIdx]));
-					else
-						dirAccum += SVector3(0, 1.0f, 0);
-
-					if (!isRightCol && !isTopRow) // right & top
-						dirAccum += SPNormalFromThreeVerts(*pCenterVert, *pVB->GetVertex(pChunkIndices[rightIdx]), *pVB->GetVertex(pChunkIndices[upIdx]));
-					else
-						dirAccum += SVector3(0, 1.0f, 0);
-
-					if (!isTopRow && !isLeftCol) // top & left
-						dirAccum += SPNormalFromThreeVerts(*pCenterVert, *pVB->GetVertex(pChunkIndices[upIdx]), *pVB->GetVertex(pChunkIndices[leftIdx]));
-					else
-						dirAccum += SVector3(0, 1.0f, 0);
-
-					dirAccum = SVector3Normalize(dirAccum);
-					pCenterVert->nx = dirAccum.x;
-					pCenterVert->ny = dirAccum.y;
-					pCenterVert->nz = dirAccum.z;
-				}
-			}
-		}				
-	}
-
-	return S_SUCCESS;
-}
-
-// -------------------------------------------------------------------------------------------------------------------
-S_API SResult Terrain::RenderTerrain(const SVector3& camPos)
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API SResult Terrain::Render(SCamera* pCamera)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), S_NOTINIT);
 
-	if (!IS_VALID_PTR(m_pHWVertexBuffers) || !IS_VALID_PTR(m_pHWIndexBuffers))
-		return m_pEngine->LogE("Failed RenderTerrain: Terrain geometry not initialized!");
+	if (!IS_VALID_PTR(m_pLodLevels))
+		return m_pEngine->LogE("Failed Render Terrain: Terrain geometry not initialized!");
 
 	if (!m_bRequireRender)
 		return S_SUCCESS;
@@ -525,21 +605,17 @@ S_API SResult Terrain::RenderTerrain(const SVector3& camPos)
 
 	if (m_bRequireCBUpdate)
 	{
-		dsc->bUpdateCB = true;
-		dsc->constants.dmTexRatioU = m_fDMTexScaleU;
-		dsc->constants.dmTexRatioV = m_fDMTexScaleV;
+		dsc->bUpdateCB = true;		
 		dsc->constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
 		dsc->constants.fTerrainMaxHeight = m_MaxHeight;
-		dsc->constants.vtxHeightMapSz[0] = nSegsX + 1;
-		dsc->constants.vtxHeightMapSz[1] = nSegsZ + 1;
-		dsc->constants.segmentSize[0] = this->fWidth / nSegsX;
-		dsc->constants.segmentSize[1] = this->fDepth / nSegsZ;
+		dsc->constants.vtxHeightMapSz = m_nSegments + 1;		
+		dsc->constants.segmentSize = m_fSegSz;
 		m_bRequireCBUpdate = false;
 	}
 	
 
 
-	if (IS_VALID_PTR(dsc->pDrawCallDescs) && dsc->nDrawCallDescs < nChunksZ * nChunksX)
+	if (IS_VALID_PTR(dsc->pDrawCallDescs) && dsc->nDrawCallDescs < m_nLodLevels)
 	{
 		delete[] dsc->pDrawCallDescs;
 		dsc->pDrawCallDescs = 0;
@@ -547,59 +623,43 @@ S_API SResult Terrain::RenderTerrain(const SVector3& camPos)
 
 	if (!IS_VALID_PTR(dsc->pDrawCallDescs))
 	{
-		dsc->pDrawCallDescs = new SDrawCallDesc[nChunksX * nChunksZ];
-		dsc->nDrawCallDescs = nChunksX * nChunksZ;
+		dsc->pDrawCallDescs = new SDrawCallDesc[m_nLodLevels];
+		dsc->nDrawCallDescs = m_nLodLevels;
 	}
 
-	for (unsigned int cz = 0; cz < nChunksZ; ++cz)
-	{
-		for (unsigned int cx = 0; cx < nChunksX; ++cx)
+	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
+	{		
+		SDrawCallDesc* dcd = &dsc->pDrawCallDescs[iLodLvl];
+		ITerrain::LodLevel* lodLvl = &m_pLodLevels[iLodLvl];				
+				
+		if (!IS_VALID_PTR(lodLvl->pIndices) || !IS_VALID_PTR(lodLvl->pVertices)
+			|| lodLvl->nIndices == 0 || lodLvl->nVertices == 0)
 		{
-			SDrawCallDesc* dcd = &dsc->pDrawCallDescs[cz * nChunksX + cx];
-			STerrainChunk* pChunk = &pTerrainChunks[cz * nChunksX + cx];
-
-			// get current lod level using distance to chunk center			
-			SVector3 chunkCenter(pChunk->fXOffs + 0.5f * pChunk->fWidth, camPos.y, pChunk->fZOffs + 0.5f * pChunk->fDepth);
-			float camChunkDist = (camPos - chunkCenter).Length();
-
-			unsigned int lodLvl = (unsigned int)floorf(camChunkDist / 10.0f);
-			if (lodLvl >= nLodLevels)
-				lodLvl = nLodLevels - 1;
-
-			//lodLvl = 1;
-
-			// get the vertex and index buffer based on that lodLvl
-			dcd->pVertexBuffer = m_pHWVertexBuffers[lodLvl];
-			dcd->pIndexBuffer = m_pHWIndexBuffers[lodLvl];
+			dcd->bRender = false;
+		}
+		else
+		{
+			dcd->bRender = true;
+			dcd->pVertexBuffer = lodLvl->pVB;
+			dcd->pIndexBuffer = lodLvl->pIB;
+			dcd->iStartVBIndex = 0;
+			dcd->iEndVBIndex = lodLvl->nVertices - 1;
+			dcd->iStartIBIndex = 0;
+			dcd->iEndIBIndex = lodLvl->nActualIndices - 1;
+			dcd->primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
 
 			if (!IS_VALID_PTR(dcd->pVertexBuffer) || !IS_VALID_PTR(dcd->pIndexBuffer))
 			{
-				EngLog(S_ERROR, m_pEngine, "VB or IB of lod lvl #%u not inited!", lodLvl);
+				EngLog(S_ERROR, m_pEngine, "VB or IB of lod lvl #%u not inited!", iLodLvl);
 				continue;
 			}
-			
-			const STerrainChunkLodCounts& chunkCnts = pChunk->pLodCounts[lodLvl];
-			if (m_bUseVBCulledRendering)
-			{
-				dcd->iStartVBIndex = chunkCnts.vertexOffset;
-				dcd->iEndVBIndex = chunkCnts.vertexOffset + chunkCnts.vertexCount;
-			}
-			else
-			{
-				dcd->iStartVBIndex = 0;
-				dcd->iEndVBIndex = dcd->pVertexBuffer->GetVertexCount();
-			}
-			dcd->iStartIBIndex = chunkCnts.indexOffset;
-			dcd->iEndIBIndex = chunkCnts.indexOffset + chunkCnts.indexCount - 1;
-
-			dcd->primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
-		}
+		}		
 	}
 
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult Terrain::SetColorMap(ITexture* pColorMap)
 {
 	if (!IS_VALID_PTR(pColorMap))
@@ -609,7 +669,7 @@ S_API SResult Terrain::SetColorMap(ITexture* pColorMap)
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult Terrain::SetDetailMap(ITexture* pDetailMap)
 {
 	if (!IS_VALID_PTR(pDetailMap))
@@ -619,97 +679,47 @@ S_API SResult Terrain::SetDetailMap(ITexture* pDetailMap)
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------------------------------------------------------
-S_API IVertexBuffer* Terrain::GetVertexBuffer(unsigned int lodLevel)
-{
-	if (!IS_VALID_PTR(m_pHWVertexBuffers))
-		return 0;
-
-	return m_pHWVertexBuffers[lodLevel];
-}
-
-// -------------------------------------------------------------------------------------------------------------------
-S_API IIndexBuffer* Terrain::GetIndexBuffer(unsigned int lodLevel)
-{
-	if (!IS_VALID_PTR(m_pHWIndexBuffers))
-		return 0;
-
-	return m_pHWIndexBuffers[lodLevel];
-}
-
-// -------------------------------------------------------------------------------------------------------------------
-S_API SResult Terrain::Clear(void)
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API void Terrain::Clear(void)
 {	
+	IResourcePool* pResources = 0;
 	if (IS_VALID_PTR(m_pEngine))
+		pResources = m_pEngine->GetResources();
+
+	// Destruct lod levels
+	if (IS_VALID_PTR(m_pLodLevels))
 	{
-		IResourcePool* pResourcePool = m_pEngine->GetResources();
-		if (IS_VALID_PTR(pResourcePool))
+		for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
 		{
-			for (unsigned int lod = 0; lod < nLodLevels; ++lod)
+			ITerrain::LodLevel& lodLvl = m_pLodLevels[iLodLvl];			
+
+			if (IS_VALID_PTR(pResources))
 			{
-				if (IS_VALID_PTR(m_pHWVertexBuffers))
-					pResourcePool->RemoveVertexBuffer(&m_pHWVertexBuffers[lod]);
+				if (IS_VALID_PTR(lodLvl.pVB)) pResources->RemoveVertexBuffer(&lodLvl.pVB);
+				if (IS_VALID_PTR(lodLvl.pIB)) pResources->RemoveIndexBuffer(&lodLvl.pIB);
+			}
 
-				if (IS_VALID_PTR(m_pHWIndexBuffers))
-					pResourcePool->RemoveIndexBuffer(&m_pHWIndexBuffers[lod]);
-			}			
+			SP_SAFE_DELETE_ARR(lodLvl.pChunkVertices, 1);
+			SP_SAFE_DELETE_ARR(lodLvl.pIndices, 1);
+			SP_SAFE_DELETE_ARR(lodLvl.pVertices, 1);
 		}
 
-		if (IS_VALID_PTR(m_pHWVertexBuffers))
-			delete[] m_pHWVertexBuffers;
-		if (IS_VALID_PTR(m_pHWIndexBuffers))
-			delete[] m_pHWIndexBuffers;
-
-		m_pEngine = 0;
+		delete[] m_pLodLevels;		
 	}
+	m_pLodLevels = 0;
 
-	m_pHWVertexBuffers = 0;
-	m_pHWIndexBuffers = 0;
-
-
-
-	// -------
-
-	
-	for (unsigned int lodLevel = 0; lodLevel < nLodLevels; ++lodLevel)
-	{		
-		if (IS_VALID_PTR(pVertexBuffers) && IS_VALID_PTR(pVertexBuffers[lodLevel]))
-			delete[] pVertexBuffers[lodLevel];
-
-		if (IS_VALID_PTR(pIndexBuffers) && IS_VALID_PTR(pIndexBuffers[lodLevel]))
-			delete[] pIndexBuffers[lodLevel];
-	}
-
-	SP_SAFE_DELETE_ARR(pVertexBuffers, nLodLevels);
-	SP_SAFE_DELETE_ARR(pIndexBuffers, nLodLevels);	
-
-	// Clear terrain chunks
-	if (IS_VALID_PTR(pTerrainChunks))
-	{
-		for (unsigned int chunk = 0; chunk < nChunksX * nChunksZ; ++chunk)
-		{
-			STerrainChunk* pChunk = &pTerrainChunks[chunk];
-
-			SP_SAFE_DELETE_ARR(pChunk->pVertices, pChunk->nLodLevels);
-			SP_SAFE_DELETE_ARR(pChunk->pIndices, pChunk->nLodLevels);
-		}
-
-		delete[] pTerrainChunks;		
-	}
-	pTerrainChunks = 0;
-
-
-
-	// --------	
-
-	SP_SAFE_DELETE_ARR(pLodLevelCounts, nLodLevels);
-
-	nLodLevels = 0;
-
+	// Delete chunk array
+	SP_SAFE_DELETE_ARR(m_pChunks, 1);
+		
+	m_nLodLevels = 0;
+	m_nChunks = 0;
 	m_pColorMap = 0;
-	m_pDetailMap = 0;
+	m_pDetailMap = 0;	
 
-	return S_SUCCESS;
+	if (IS_VALID_PTR(pResources) && IS_VALID_PTR(m_pVtxHeightMap))
+		pResources->RemoveTexture(&m_pVtxHeightMap);
+
+	m_pVtxHeightMap = 0;
 }
 
 

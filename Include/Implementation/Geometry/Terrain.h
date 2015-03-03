@@ -18,71 +18,52 @@ SP_NMSPACE_BEG
 class S_API Terrain : public ITerrain
 {
 private:
-	//STerrainDescription m_TerrainDsc;
-
-	bool m_bRequireRender;
-
-	float m_fDMTexScaleU,
-		m_fDMTexScaleV;
-		
-	//unsigned int m_nChunkBigQuads; // big quads in a chunk in second lod level
-	//unsigned int m_nChunkSmallQuads; // number of quads on highest lod grid in a chunk
-
-
-	//Geometry m_Geometry;
-	IVertexBuffer** m_pHWVertexBuffers;	// IVertexBuffer[nLodLevels]
-	IIndexBuffer** m_pHWIndexBuffers;		// IIndexBuffer[nLodLevels]
-
-
 	IGameEngine* m_pEngine;
-	ITexture* m_pColorMap;
-	ITexture* m_pDetailMap;	
 
-	bool m_bRequireCBUpdate;
+	bool bDynamic;
 
-	bool m_bUseVBCulledRendering;
+	bool m_bRequireRender;			
+	bool m_bRequireCBUpdate;				
 
 	// -----
 	float m_MaxHeight;	
 	ITexture* m_pVtxHeightMap;
+	bool m_bCustomHeightmapSet;
 
-	SVertex** pVertexBuffers; // one VB per lod level
-	SIndex** pIndexBuffers; // one IB per lod level
-	unsigned int nSegsX, nSegsZ;
-	unsigned int nChunkSegsX, nChunkSegsZ;
-	unsigned int nLodLevels;	
-	STerrainLodCounts* pLodLevelCounts;	// array of terrain chunk costs
-	float fWidth, fDepth;
-	bool bDynamic;
+	ITexture* m_pColorMap;
+	ITexture* m_pDetailMap;
 
-	STerrainChunk* pTerrainChunks;
-	unsigned int nChunksX, nChunksZ; // including rest chunks
-	unsigned int nRestChunksX, nRestChunksZ; // essentially 0 or 1    
 
-	// Top rest chunk: (nChunkSegsX, nZRestChunkSegs)
-	// Right rest chunk: (nXRestChunkSegs, nChunkSegsZ)
-	// Fill rest chunk: (nXRestChunkSegs, nZRestChunkSegs)    
-	unsigned int nXRestChunkSegs, nZRestChunkSegs;
 
-	// Keeps indices, in order to properly RecalculateNormals afterwards.
-	void ClearTemporaryGenerationVertices();
+	STerrainChunk* m_pChunks;
+	unsigned int m_nChunks;
+
+	LodLevel* m_pLodLevels;
+	unsigned int m_nLodLevels;
+
+	unsigned long m_chunkSegs;	// how many segments per chunk side
+	unsigned long m_nSegments;	// all segments on one side
+	float m_fSize;	// per side
+	float m_fSegSz;
+	float m_fTexSz; // texcoord size of a segment
+
+	float m_fChunkStepDist;
+					
+
 
 	SResult GenerateFlatVertexHeightmap(float baseHeight);
 
 public:
 	Terrain()		
-		: m_fDMTexScaleU(1.0f),
-		m_fDMTexScaleV(1.0f),
-		m_pEngine(nullptr),
+		: m_pEngine(nullptr),
 		m_pColorMap(nullptr),
 		m_pDetailMap(nullptr),
 		m_bRequireCBUpdate(true),
-		pVertexBuffers(nullptr),
-		pIndexBuffers(nullptr),
-		pTerrainChunks(nullptr),
-		m_bUseVBCulledRendering(true),
+		m_pLodLevels(0),
+		m_pChunks(0),		
 		m_MaxHeight(100.0f),		
-		m_pVtxHeightMap(nullptr)
+		m_pVtxHeightMap(nullptr),
+		m_bCustomHeightmapSet(false)
 	{	
 	}
 
@@ -92,17 +73,17 @@ public:
 	{
 		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && IS_VALID_PTR(m_pDetailMap));
 	}
+	
+	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4);
 
-	// Initialize with the engine
-	// nX and nZ is the resolution
-	virtual SResult Initialize(IGameEngine* pEngine);
+	virtual void GenLodLevelChunks(SCamera* pCamera);
+	virtual SResult Render(SCamera* pCamera);
+	virtual void SetHeightmap(ITexture* heightmap);
 
-	virtual SResult RecalculateNormals(unsigned int lodLevel = 0);
-
-	// Create a planar terrain with Size fW x fD
-	//virtual SResult CreatePlanar(const STerrainDescription& tdsc);	
-
-	virtual void Generate(const STerrainDescription& tdsc);	
+	virtual ITexture* GetHeightmap() const
+	{
+		return m_pVtxHeightMap;
+	}
 
 	// Create and fill vertex and index buffers
 	SResult FillVertexAndIndexBuffers();
@@ -121,17 +102,13 @@ public:
 
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
-	virtual SResult SetDetailMap(ITexture* pDetailMap);
-
-	virtual IVertexBuffer* GetVertexBuffer(unsigned int lodLevel);
-	virtual IIndexBuffer* GetIndexBuffer(unsigned int lodLevel);
+	virtual SResult SetDetailMap(ITexture* pDetailMap);	
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 
 	virtual void RequireRender() { m_bRequireRender = true; }
-
-	virtual SResult RenderTerrain(const SVector3& camPos);	
-	virtual SResult Clear(void);
+	
+	virtual void Clear(void);
 };
 
 SP_NMSPACE_END

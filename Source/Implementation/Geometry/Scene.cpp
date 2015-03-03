@@ -29,9 +29,8 @@ S_API SResult Scene::Initialize(IGameEngine* pGameEngine)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API ITerrain* Scene::CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ,
-	unsigned int nLodLevels, unsigned int nChunkSegsX, unsigned int nChunkSegsZ,
-	float baseHeight, ITexture* pColorMap, ITexture* pDetailMap)
+S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight,
+	float fChunkStepDist, unsigned int nLodLevels, ITexture* pColorMap, ITexture* pDetailMap)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr);
 	if (IS_VALID_PTR(m_pTerrain))
@@ -39,22 +38,9 @@ S_API ITerrain* Scene::CreateTerrain(float width, float depth, unsigned int nX, 
 
 	m_pTerrain = new Terrain();	
 
-	if (Failure(m_pTerrain->Initialize(m_pEngine)))
-		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");
-
-	STerrainDescription tdsc;
-	tdsc.baseHeight = baseHeight;
-	tdsc.bDynamic = false;
-	tdsc.d = depth;
-	tdsc.w = width;
-	tdsc.lodLevels = nLodLevels;
-	tdsc.segsX = nX;
-	tdsc.segsZ = nZ;
-	tdsc.chunkSegsX = nChunkSegsX;
-	tdsc.chunkSegsZ = nChunkSegsZ;
-
-	m_pTerrain->Generate(tdsc);
-
+	if (Failure(m_pTerrain->Init(m_pEngine, nSegs, nChunkSegs, fSideSz, baseHeight, fChunkStepDist, nLodLevels)))
+		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");	
+	
 	m_pTerrain->SetColorMap(pColorMap);
 	m_pTerrain->SetDetailMap(pDetailMap);
 

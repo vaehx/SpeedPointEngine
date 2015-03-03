@@ -161,23 +161,18 @@ struct S_API SPerObjectConstantBuffer
 };
 
 struct S_API STerrainConstantBuffer
-{
-	float dmTexRatioU, dmTexRatioV;
+{	
 	float fTerrainDMFadeRadius;
 	float fTerrainMaxHeight;
-	unsigned int vtxHeightMapSz[2];
-	float segmentSize[2];
+	unsigned int vtxHeightMapSz;
+	float segmentSize;
 
 	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
-	{
-		dmTexRatioU = b.dmTexRatioU;
-		dmTexRatioV = b.dmTexRatioV;
+	{		
 		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;
 		fTerrainMaxHeight = b.fTerrainMaxHeight;
-		vtxHeightMapSz[0] = b.vtxHeightMapSz[0];
-		vtxHeightMapSz[1] = b.vtxHeightMapSz[1];
-		segmentSize[0] = b.segmentSize[0];
-		segmentSize[1] = b.segmentSize[1];
+		vtxHeightMapSz = b.vtxHeightMapSz;
+		segmentSize = b.segmentSize;
 		return *this;
 	}
 };
@@ -199,10 +194,13 @@ struct S_API SDrawCallDesc
 
 	EPrimitiveType primitiveType;
 
+	bool bRender;
+
 	SDrawCallDesc()
 		: pVertexBuffer(0),
 		pIndexBuffer(0),
-		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)
+		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST),
+		bRender(true)
 	{
 	}
 
@@ -214,7 +212,8 @@ struct S_API SDrawCallDesc
 		iStartVBIndex(o.iStartVBIndex),
 		iEndVBIndex(o.iEndVBIndex),
 		//transform(o.transform),
-		primitiveType(o.primitiveType)
+		primitiveType(o.primitiveType),
+		bRender(o.bRender)
 	{
 	}
 };

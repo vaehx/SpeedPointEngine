@@ -10,11 +10,14 @@
 #include "Vector3.h"
 #include "IIndexBuffer.h"
 #include "IVertexBuffer.h"
+#include "Camera.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 struct S_API ITexture;
+
+struct S_API STerrainChunk;
 
 struct S_API STerrainDescription
 {
@@ -46,102 +49,86 @@ struct S_API STerrainDescription
 	}
 };
 
-struct S_API STerrainChunkCounts
+
+
+
+//===================================================================================================
+//		Terrain Chunk
+//===================================================================================================
+
+enum ESide
 {
-	unsigned int indices, vertices;
-	unsigned int quadsX, quadsZ; // verts{X,Y} = quads{X,Y} + 1
+	eSIDE_TOP,
+	eSIDE_RIGHT,
+	eSIDE_BOTTOM,
+	eSIDE_LEFT
 };
 
-struct S_API STerrainLodCounts
+struct STerrainChunkBorder
 {
-	unsigned int indices, vertices;
+	ESide side;
+	STerrainChunk* neighbor;
+
+	STerrainChunkBorder()
+		: neighbor(0)
+	{
+	}
+
+	STerrainChunkBorder(ESide s, STerrainChunk* n)
+		: side(s),
+		neighbor(n)
+	{
+	}
+
+	STerrainChunkBorder(const STerrainChunkBorder& rhs)
+		: side(rhs.side),
+		neighbor(rhs.neighbor)
+	{
+	}
+
+	~STerrainChunkBorder()
+	{
+		neighbor = 0;
+	}
 };
 
-struct S_API STerrainChunkLodCounts
+struct STerrainChunkCorner
 {
-	unsigned long vertexOffset, indexOffset;
-	unsigned long vertexCount, indexCount;
-	unsigned int quadsX, quadsZ;
+	STerrainChunk* neighbor1;
+	STerrainChunk* neighbor2;
+	ESide side1;
 };
+
 
 struct S_API STerrainChunk
 {
-	unsigned int nSegsX, nSegsZ; // on high res grid
-	float fWidth, fDepth;
-	float fXOffs, fZOffs;
-	float fUOffs, fVOffs;
-	float fSegUSz, fSegVSz;
-	SIndex** pIndices; // (SIndex[nIndices])[nLodLevels]
-	SVertex** pVertices; // (SVertex[nIndices])(nLodLevels)
-	STerrainChunkLodCounts* pLodCounts;
-	unsigned int nLodLevels;
+	float fSize; // per side
+	unsigned int chunkSegments; // per side, whole chunk (not only the core)
+	unsigned int quadSegs;
+	unsigned int chunkQuads, coreQuads;
+	unsigned int curLodLevel;
+	unsigned int cx, cz;
 
-	STerrainChunk()
-		: pIndices(0),
-		pVertices(0),
-		pLodCounts(0)
+	ILINE void CreateCoreBasedOnItsLODLevel(SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum);
+	ILINE void AddCoreQuad(SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum);
+	ILINE void CreateBorder(SLargeIndex* pIB, ESide side, unsigned long startVtxIdx, const STerrainChunk* neighbor, unsigned long vtxRowShift, unsigned long& idxAccum);
+	ILINE void CreateCorner(const STerrainChunkCorner& border, SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum);
+
+	ILINE unsigned int DetermineLODLevelByView(const SCamera* pCamera, unsigned int nLodLevels, float chunkStepDist)
 	{
+		// assuming fSize is the same for each chunk:
+		float fXOffs = cx * fSize;
+		float fZOffs = cz * fSize;
+		
+		SVector3 chunkCenter(fXOffs + 0.5f * fSize, pCamera->position.y, fZOffs + 0.5f * fSize);
+		float camChunkDist = (pCamera->position - chunkCenter).Length();
+
+		unsigned int lodLvl = (unsigned int)floor(camChunkDist / chunkStepDist);
+		if (lodLvl >= nLodLevels)
+			lodLvl = nLodLevels - 1;
+
+		return lodLvl;
 	}
-
-	~STerrainChunk()
-	{
-		SP_SAFE_DELETE_ARR(pVertices, nLodLevels);
-		SP_SAFE_DELETE_ARR(pIndices, nLodLevels);
-		SP_SAFE_DELETE_ARR(pLodCounts, nLodLevels);
-
-		nLodLevels = 0;
-	}
-
-	inline static unsigned int CountSideParts(unsigned int l, unsigned int lodLvl)
-	{
-		unsigned int sz = GetLodLevelQuadStartSz(lodLvl);
-		unsigned int accumulator = 0;
-		while (l > 0)
-		{
-			while ((int)l - (int)sz < 0)
-				sz = (sz > 1) ? (unsigned int)((double)sz * 0.5) : 0;
-
-			if (sz == 0)
-				break;
-
-			accumulator++;
-			l -= sz;
-		}
-
-		return accumulator;
-	}
-	
-	inline static unsigned int GetLodLevelQuadStartSz(unsigned int lodLevel)
-	{
-		return (lodLevel == 0) ? 1 : lodLevel * 2;
-	}	
-
-	static STerrainChunkCounts PrecalcCounts(unsigned int lodLevel, unsigned int segsX, unsigned int segsZ)
-	{
-		STerrainChunkCounts counts;
-		counts.quadsX = CountSideParts(segsX, lodLevel);
-		counts.quadsZ = CountSideParts(segsZ, lodLevel);
-
-		if (segsX * segsZ > 0)
-		{
-			counts.indices = counts.quadsX * counts.quadsZ * 6;
-			counts.vertices = (counts.quadsX + 1) * (counts.quadsZ + 1);
-		}
-		else
-		{
-			counts.indices = 0;
-			counts.vertices = 0;
-		}
-
-		return counts;
-	}
-
-	void STerrainChunk::AddQuad(unsigned int lodLevel, unsigned int w, unsigned int d,
-		unsigned long iStartVtx, unsigned long iStartIndex, unsigned long vtxRowShift,
-		float baseHeight, float xoffs, float zoffs, float uoffs, float voffs);
-
-	// startSz - Size of biggest quad
-	void GenerateLodLevel(unsigned int lodLevel, unsigned int startSz, float baseHeight);
 };
 
 
@@ -151,52 +138,69 @@ struct S_API STerrainChunk
 struct S_API ITerrain
 {
 public:
+	struct LodLevel
+	{
+		unsigned long quadSegs; // Segments on one side of a quad in a chunk of this lod level
+		unsigned long chunkQuads; // quads on one side of a chunk in this lod level
+
+		std::vector<STerrainChunk*> chunks;
+
+		SVertex* pChunkVertices;
+		unsigned long nChunkVertices; // all (not only one side)
+
+		SLargeIndex* pIndices;
+		unsigned long nIndices;
+		unsigned long nActualIndices;
+
+		SVertex* pVertices;
+		unsigned long nVertices;
+
+		IVertexBuffer* pVB;
+		IIndexBuffer* pIB;		
+
+		LodLevel()
+			: quadSegs(0),
+			chunkQuads(0),
+			pChunkVertices(0),
+			nChunkVertices(0),
+			pIndices(0),
+			nIndices(0),
+			nActualIndices(0),
+			pVertices(0),
+			nVertices(0),
+			pVB(0),
+			pIB(0)
+		{
+		}
+	};
+
 	virtual ~ITerrain() {}
 
 	virtual bool IsInited() const = 0;
-
-	// Initialize with the engine
-	// nX and nZ is the resolution
-	virtual SResult Initialize(IGameEngine* pEngine) = 0;
-
-	// Create a planar terrain using given terrain description	
-	//virtual SResult CreatePlanar(const STerrainDescription& tdsc) = 0;
-
-
-	virtual void Generate(const STerrainDescription& tdsc) = 0;
+		
+	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4) = 0;
+	virtual void GenLodLevelChunks(SCamera* pCamera) = 0;
+	virtual SResult Render(SCamera* pCamera) = 0;
+	virtual void SetHeightmap(ITexture* heightmap) = 0;
+	virtual ITexture* GetHeightmap() const = 0;
+	
+	// Does not clear the heightmap
+	virtual void Clear() = 0;
 
 	virtual float GetMaxHeight() const = 0;
-	virtual void SetMaxHeight(float f) = 0;
+	virtual void SetMaxHeight(float f) = 0;	
 
-
-	virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
+	//virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
 
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
-	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;
-
-	virtual IVertexBuffer* GetVertexBuffer(unsigned int lodLevel) = 0;
-	virtual IIndexBuffer* GetIndexBuffer(unsigned int lodLevel) = 0;
+	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;	
 	
 	// Summary:
 	//	Flags that the terrain Constant Buffer has to be updated.
 	//	Be careful to not call this during rendering of the terrain, as it might be reset before taking effect.
 	virtual void RequireCBUpdate() = 0;
 
-	/////////////////////
-	///// TODO: Implement function to add / remove assigned texture
-	/// this is not really clear as of now:
-	///	- Do we support multiple texture using?
-	///	- Or only support a single texture + color map for the whole terrain that has to be rendered outside?
-	///	- Do we add a single function for runtime LOD change or do we implement that into the render function?
-	///////////////////
-
-	virtual void RequireRender() = 0;
-
-	// Render the Terrain. Fails if pointer to SpeedPointEngine is not correct
-	virtual SResult RenderTerrain( const SVector3& camPos ) = 0;
-
-	// Clearout the terrain data BUT not the heightmap
-	virtual SResult Clear( void ) = 0;
+	virtual void RequireRender() = 0;	
 };
 
 SP_NMSPACE_END

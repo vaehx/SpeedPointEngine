@@ -54,6 +54,13 @@ bool Test::KeyPressed(EKey key) const
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+void Test::ToggleWireframe()
+{
+	SpeedPoint::IEngineSettings* pSettings = m_pEngine->GetSettings();	
+	pSettings->EnableWireframe(!pSettings->Get().render.bRenderWireframe);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 {
@@ -66,10 +73,10 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.app.hWnd = hWnd;	
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.fClipFar = 600.0f;
-	dsc.render.bEnableVSync = false;
+	dsc.render.bEnableVSync = true;
 	dsc.render.vsyncInterval = 1;	
-	dsc.render.bRenderWireframe = false;
-	dsc.render.fTerrainDMFadeRange = 5.0f;
+	dsc.render.bRenderWireframe = true;
+	dsc.render.fTerrainDMFadeRange = 5.0f;	
 
 	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;	
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeLogger(&logHandler));
@@ -108,7 +115,8 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	pRenderer->GetTargetViewport()->SetProjectionByDesc(projDsc);
 
 	pCamera = pRenderer->GetTargetViewport()->GetCamera();
-	pCamera->position = SpeedPoint::SVector3(0, 5.0f, -60.0f);
+	pCamera->position = SpeedPoint::SVector3(-15, 19.0f, -1.0f);
+	pCamera->rotation = SpeedPoint::SVector3(-0.48f, 1.44f, 0);
 	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));
 	alpha = 0.0f;	
 
@@ -174,9 +182,11 @@ void Test::OnInitGeometry()
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
 	// Create terrain
 
-	m_pScene->CreateTerrain(200.0f, 200.0f, 220, 220, 7, 20, 20, 0.0f, pTestColorMap, pTestDetailMap);
-	m_pScene->GetTerrain()->SetMaxHeight(10.0f);
+	SpeedPoint::ITerrain* pTerrain = m_pScene->CreateTerrain(256, 16, 256.0f, 0.0f, 20.0f, 4, pTestColorMap, pTestDetailMap);				
+	pTerrain->SetMaxHeight(10.0f);
 	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);
+
+	m_bFirstTerrainGeomSet = false; // do this in the first tick call
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////		
 
@@ -217,6 +227,8 @@ bool Test::Tick()
 
 	// TODO: Move to Input section of Dynamics pipeline of engine sometimes!
 
+	SpeedPoint::SVector3 prevCamPos = pCamera->position;
+
 	HandleMouse();
 
 	float moveDiff = (KeyPressed(KEY_SHIFT) ? 0.5f : 0.1f);
@@ -245,6 +257,16 @@ bool Test::Tick()
 	*/
 
 
+	// Regenerate terrain chunks if necessary
+	if (!m_bFirstTerrainGeomSet || prevCamPos.x != pCamera->position.x ||
+		prevCamPos.y != pCamera->position.y || prevCamPos.z != pCamera->position.z)
+	{
+		SpeedPoint::ITerrain* pTerrain = m_pScene->GetTerrain();
+		if (pTerrain)
+			pTerrain->GenLodLevelChunks(pCamera);
+
+		m_bFirstTerrainGeomSet = true;
+	}
 
 
 
@@ -360,17 +382,19 @@ void Test::Render()
 	// Render the Terrain
 	m_pScene->GetTerrain()->RequireRender();
 
-	if (Failure(m_pScene->GetTerrain()->RenderTerrain(pCamera->position)))
-		m_pEngine->LogE("Failed render terrain!");
-
-
+	if (Failure(m_pScene->GetTerrain()->Render(pCamera)))
+		m_pEngine->LogE("Failed render terrain!");	
 
 
 	//testObject.Render();
 	
 	if (IS_VALID_PTR(pTest3DSObject))
 	{
-		pTest3DSObject->Render();
+		
+		//pTest3DSObject->Render();
+
+
+
 		/*
 		if (Failure(pTest3DSNormalsObject->Render()))
 			m_pEngine->LogE("Failed render 3ds model!");

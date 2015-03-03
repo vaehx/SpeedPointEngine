@@ -35,9 +35,10 @@ struct S_API IScene
 	virtual SResult Initialize(IGameEngine* pGameEngine) = 0;
 
 	virtual ITerrain* GetTerrain() = 0;
-	virtual ITerrain* CreateTerrain(float width, float depth, unsigned int nX, unsigned int nZ,
-		unsigned int nLodLevels, unsigned int nChunkSegsX, unsigned int nChunkSegsZ,
-		float baseHeight, ITexture* pColorMap, ITexture* pDetailMap) = 0;
+	
+	// Notice: Make sure to call ITerrain->GenLodLevelChunks() with your camera afterwards.	
+	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight,
+		float fChunkStepDist, unsigned int nLodLevels, ITexture* pColorMap, ITexture* pDetailMap) = 0;
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file) = 0;
 

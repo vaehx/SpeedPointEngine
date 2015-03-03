@@ -54,39 +54,43 @@ private:
 	IGameEngine*		m_pEngine;
 	IRenderer*			m_pRenderer;
 	ID3D11Buffer*			m_pHWIndexBuffer;
-	SIndex*			m_pShadowBuffer;
+	void*			m_pShadowBuffer;
 	unsigned long			m_nIndices;
 	unsigned long			m_nIndicesWritten;
 	EIBUsage			m_Usage;
 	bool				m_bLocked;
 	bool				m_bInitialDataWritten;
-
+	S_INDEXBUFFER_FORMAT m_Format;
 
 public:
 	DirectX11IndexBuffer();
 	DirectX11IndexBuffer(const DirectX11IndexBuffer& o);
 	~DirectX11IndexBuffer();
 	
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, SIndex* pInitialData = nullptr);
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, void* pInitialData = nullptr);
 
 	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, SIndex* pInitialData = nullptr)
 	{
-		return Initialize(pEngine, pRenderer, usage, nSize, S_INDEXBUFFER_16, pInitialData);
+		return Initialize(pEngine, pRenderer, usage, nSize, S_INDEXBUFFER_16, (void*)pInitialData);
 	}
 
-	virtual SResult Create(unsigned long nSize, SIndex* pInitialData = nullptr, usint32 nInitialDataCount = 0);	
+	virtual SResult Create(unsigned long nSize, void* pInitialData = nullptr, usint32 nInitialDataCount = 0);	
 
 	virtual BOOL IsInited(void);	
 	virtual SResult Resize(unsigned long nNewSize);	
-	virtual SResult Lock(UINT iBegin, UINT iLength, SIndex** buf, EIBLockType lockType);
-	virtual SResult Lock(UINT iBegin, UINT iLength, SIndex** buf);	
-	virtual SResult Fill(SIndex* pIndices, unsigned long nIndices, bool append);	
+	virtual SResult Lock(UINT iBegin, UINT iLength, void** buf, EIBLockType lockType);
+	virtual SResult Lock(UINT iBegin, UINT iLength, void** buf);	
+	virtual SResult Fill(void* pIndices, unsigned long nIndices, bool append);	
 	virtual SResult Unlock(void);	
-	virtual SIndex* GetShadowBuffer(void);	
+	virtual void* GetShadowBuffer(void);	
 	virtual SIndex* GetIndex(unsigned long iIndex);	
+	virtual SLargeIndex* GetLargeIndex(unsigned long iIndex);
 	virtual unsigned long GetIndexCount(void) const;	
 	virtual SResult Clear(void);
-//virtual S_INDEXBUFFER_FORMAT GetFormat();
+	virtual S_INDEXBUFFER_FORMAT GetFormat() const
+	{
+		return m_Format;
+	}
 
 	// DX
 	ID3D11Buffer* D3D11_GetBuffer()

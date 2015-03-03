@@ -17,13 +17,11 @@ cbuffer SceneCB : register(b0)
 }
 
 cbuffer TerrainCB : register(b1)
-{
-    float terrainTexRatioU;
-    float terrainTexRatioV;
+{    
     float terrainDMFadeRadius;
     float terrainMaxHeight;
-    uint2 terrainHeightmapSz;
-    float2 terrainSegSz;
+    uint terrainHeightmapSz;
+    float terrainSegSz;
 }
 
 Texture2D vtxHeightMap : register(t0);
@@ -56,7 +54,7 @@ struct VS_OUTPUT
 
 float SampleVertexHeightmap(float2 texcoord)
 {
-    uint2 pos = { texcoord.x * terrainHeightmapSz.x, texcoord.y * terrainHeightmapSz.y };
+    uint2 pos = { texcoord.x * terrainHeightmapSz, texcoord.y * terrainHeightmapSz };
     return vtxHeightMap[pos].r;
 }
 
@@ -64,8 +62,8 @@ float SampleVertexHeightmap(float2 texcoord)
 float SampleVertexHeightmapBilinear(float2 texcoord)
 {    
     float2 pixelSizeInTexcoords;
-    pixelSizeInTexcoords.x = 1.0f / terrainHeightmapSz.x;
-    pixelSizeInTexcoords.y = 1.0f / terrainHeightmapSz.y;
+    pixelSizeInTexcoords.x = 1.0f / terrainHeightmapSz;
+    pixelSizeInTexcoords.y = 1.0f / terrainHeightmapSz;
     
     // round to floor    
     float2 remainder = texcoord % pixelSizeInTexcoords;
@@ -104,7 +102,7 @@ VS_OUTPUT VS_terrain(VS_INPUT IN)
     
     
     // Calculate normal
-    uint2 vtxTexelPos = { IN.TexCoord.x * terrainHeightmapSz.x, IN.TexCoord.y * terrainHeightmapSz.y };
+    uint2 vtxTexelPos = { IN.TexCoord.x * terrainHeightmapSz, IN.TexCoord.y * terrainHeightmapSz };
     float4 neighborSamples = float4(
         vtxHeightMap[uint2(vtxTexelPos.x - 1, vtxTexelPos.y)].r * terrainMaxHeight,
         vtxHeightMap[uint2(vtxTexelPos.x, vtxTexelPos.y - 1)].r * terrainMaxHeight,
@@ -112,10 +110,10 @@ VS_OUTPUT VS_terrain(VS_INPUT IN)
         vtxHeightMap[uint2(vtxTexelPos.x, vtxTexelPos.y + 1)].r * terrainMaxHeight
     );
     
-    float3 neighbor1 = float3(wPos.x - terrainSegSz.x, neighborSamples.x, wPos.z);
-    float3 neighbor2 = float3(wPos.x, neighborSamples.y, wPos.z - terrainSegSz.y);
-    float3 neighbor3 = float3(wPos.x + terrainSegSz.x, neighborSamples.z, wPos.z);
-    float3 neighbor4 = float3(wPos.x, neighborSamples.w, wPos.z + terrainSegSz.y);
+    float3 neighbor1 = float3(wPos.x - terrainSegSz, neighborSamples.x, wPos.z);
+    float3 neighbor2 = float3(wPos.x, neighborSamples.y, wPos.z - terrainSegSz);
+    float3 neighbor3 = float3(wPos.x + terrainSegSz, neighborSamples.z, wPos.z);
+    float3 neighbor4 = float3(wPos.x, neighborSamples.w, wPos.z + terrainSegSz);
         
     float3 normal1 = normalize(cross(neighbor1 - wPos, neighbor2 - wPos));
     float3 normal2 = normalize(cross(neighbor2 - wPos, neighbor3 - wPos));
@@ -214,7 +212,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     
     float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
     
-    uint2 pos = { IN.TexCoord.x * terrainHeightmapSz.x, IN.TexCoord.y * terrainHeightmapSz.y };
+    uint2 pos = { IN.TexCoord.x * terrainHeightmapSz, IN.TexCoord.y * terrainHeightmapSz };
     vtxHeight = vtxHeightMap[pos];
     
     // Calculate lighting factor. Using a fixed light dir    

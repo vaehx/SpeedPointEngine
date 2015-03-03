@@ -829,15 +829,15 @@ S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 
 	if (IS_VALID_PTR(pIB))
 	{
-		//S_INDEXBUFFER_FORMAT ibFmt = pIB->GetFormat();
+		S_INDEXBUFFER_FORMAT ibFmt = pIB->GetFormat();
 		DXGI_FORMAT ibFmtDX = DXGI_FORMAT_R16_UINT;
-		/*switch (ibFmt)
+		switch (ibFmt)
 		{
 		case S_INDEXBUFFER_16: ibFmtDX = DXGI_FORMAT_R16_UINT; break;
 		case S_INDEXBUFFER_32: ibFmtDX = DXGI_FORMAT_R32_UINT; break;
 		default:
 		return S_ERROR;
-		}*/
+		}
 
 		m_pD3DDeviceContext->IASetIndexBuffer(((DirectX11IndexBuffer*)pIB)->D3D11_GetBuffer(), ibFmtDX, 0);
 	}
@@ -1087,8 +1087,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		FrameDump("Rendering Terrain...");		
 
 		// Render Terrain directly to the backbuffer
-		BindSingleRT(m_pTargetViewport);
-
+		BindSingleRT(m_pTargetViewport);		
 
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMap))) m_pEngine->LogE("Invalid detail map in Terrain render Desc!");
@@ -1287,6 +1286,9 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::DrawTerrainSubset(const SDrawCallDesc& dcd)
 {
+	if (!dcd.bRender)
+		return S_SUCCESS;
+
 	if (Failure(SetVBStream(dcd.pVertexBuffer))) return S_ERROR;
 	if (Failure(SetIBStream(dcd.pIndexBuffer))) return S_ERROR;
 

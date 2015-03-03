@@ -69,6 +69,8 @@ private:
 
 	bool m_bFirstFrame;
 
+	bool m_bFirstTerrainGeomSet;
+
 protected:
 	void OnInitGeometry();
 
@@ -82,6 +84,8 @@ public:
 	void HandleMouse();
 	bool Start(HWND hWnd, HINSTANCE hInstance);
 	bool Tick();
+
+	void ToggleWireframe();
 
 	void Render();
 
