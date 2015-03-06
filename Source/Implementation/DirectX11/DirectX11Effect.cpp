@@ -127,7 +127,7 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 	
 	// 3. delete the ifstream buffer
 
-	delete fxBuffer;
+	delete[] fxBuffer;
 
 
 
