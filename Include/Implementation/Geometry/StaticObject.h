@@ -25,30 +25,26 @@ using std::vector;
 class S_API CStaticObjectRenderable : public IRenderableComponent
 {
 private:	
-	Geometry m_Geometry;
-	MaterialPtrList m_Materials;
-	SRenderSlot* m_pRenderSlot;
+	Geometry m_Geometry;	
+	SRenderSlot* m_pRenderSlot;	
 
-public:
+public:	
 	virtual ~CStaticObjectRenderable()
 	{
 		Clear();
 	}
 
 	virtual IGeometry* GetGeometry() { return (IGeometry*)&m_Geometry; };
-	virtual MaterialPtrList& GetMaterials() { return m_Materials; };
-	virtual unsigned int GetMaterialCount() const { return m_Materials.GetCount(); };
 
 	virtual void Clear()
 	{
-		m_Geometry.Clear();
-		m_Materials.Clear();
+		m_Geometry.Clear();		
 	}
 
 	virtual SRenderSlot* GetRenderSlot() { return m_pRenderSlot; }
 	virtual void SetRenderSlot(SRenderSlot* pSlot) { m_pRenderSlot = pSlot; }
 
-	virtual void FillRenderSlot(SRenderSlot* pSlot);
+	virtual void FillRenderSlot(IGameEngine* pEngine, SRenderSlot* pSlot);
 
 	virtual IVertexBuffer* GetVertexBuffer();
 	virtual SGeomSubset* GetSubset(unsigned int i);
@@ -73,7 +69,7 @@ public:
 	StaticObject();
 	virtual ~StaticObject();
 	
-	virtual SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr, MaterialPtrList* pInitialMaterials = nullptr);
+	virtual SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr);
 
 	virtual EObjectType GetType() const
 	{
@@ -84,17 +80,9 @@ public:
 	{
 		return m_Renderable.GetGeometry();
 	}
-	virtual MaterialPtrList& GetMaterials()
-	{
-		return m_Renderable.GetMaterials();
-	}	
-	virtual unsigned int GetMaterialCount() const
-	{
-		return m_Renderable.GetMaterialCount();
-	}
 	
-	virtual void SetSingleMaterial(SMaterial* pMaterial);
-	virtual SMaterial* GetSingleMaterial();
+	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0);
+	virtual unsigned int GetSubsetCount() const;		
 
 	//virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;	
 

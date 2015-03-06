@@ -4,7 +4,7 @@
 #include <Implementation\Geometry\File3DS.h>
 #include <Implementation\Geometry\StaticObject.h>
 #include <Abstract\IResourcePool.h>
-#include <Abstract\Material.h>
+#include <Abstract\IMaterial.h>
 
 SP_NMSPACE_BEG
 
@@ -77,8 +77,7 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	SInitialMaterials mats;
 	mats.nMaterials = file3ds.materials.size();
 	mats.pMaterials = new SMaterial[mats.nMaterials];
-	*/
-	MaterialPtrList mats;
+	*/	
 
 	SInitialGeometryDesc geom;
 	geom.nMatIndexAssigns = file3ds.materials.size();
@@ -95,14 +94,14 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 				
 
 		// fill initial materials
-		SMaterial* mat = m_pEngine->GetResources()->AddNewMaterial(itMat->material_name);
-		mats.Add(mat);		
-		mat->name = new char[matNameLn + 1];
-		memcpy(mat->name, itMat->material_name, matNameLn);
-		mat->name[matNameLn] = 0;
+		IMaterial* mat = m_pEngine->GetMaterialManager()->CreateMaterial(itMat->material_name);
+		SShaderResources& matRes = mat->GetLayer(0)->resources;
 
-		if (IS_VALID_PTR(itMat->texturemap.name)) mat->textureMap = m_pEngine->GetResources()->GetTexture(itMat->texturemap.name);
-		if (IS_VALID_PTR(itMat->bumpmap.name)) mat->normalMap = m_pEngine->GetResources()->GetTexture(itMat->bumpmap.name);
+		if (IS_VALID_PTR(itMat->texturemap.name))
+			matRes.textureMap = m_pEngine->GetResources()->GetTexture(itMat->texturemap.name);
+
+		if (IS_VALID_PTR(itMat->bumpmap.name))
+			matRes.normalMap = m_pEngine->GetResources()->GetTexture(itMat->bumpmap.name);
 
 
 		iMatIdx++;
@@ -224,7 +223,7 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 
 	// Initialize result object
 	IStaticObject* pStaticObject = new StaticObject();
-	if (Failure(pStaticObject->Init(m_pEngine, &geom, &mats)))
+	if (Failure(pStaticObject->Init(m_pEngine, &geom)))
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed Init Static Object to store loaded 3ds file!");
 		return nullptr;

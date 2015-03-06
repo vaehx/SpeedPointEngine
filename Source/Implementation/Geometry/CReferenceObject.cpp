@@ -31,7 +31,7 @@ S_API SResult CReferenceObject::Render()
 		if (!IS_VALID_PTR(m_pRenderSlot))
 			return S_ERROR;
 
-		pRenderable->FillRenderSlot(m_pRenderSlot);		
+		pRenderable->FillRenderSlot(m_pEngine, m_pRenderSlot);		
 	}
 
 	STransformationDesc& transformDesc = m_pRenderSlot->renderDesc.transform;

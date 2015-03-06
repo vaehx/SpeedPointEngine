@@ -31,16 +31,14 @@ struct IRenderableComponent
 	{
 	}
 
-	virtual IGeometry* GetGeometry() = 0;
-	virtual MaterialPtrList& GetMaterials() = 0;
-	virtual unsigned int GetMaterialCount() const = 0;
+	virtual IGeometry* GetGeometry() = 0;	
 	virtual void Clear() = 0;
 	
 	virtual SRenderSlot* GetRenderSlot() = 0;
 	virtual void SetRenderSlot(SRenderSlot* pSlot) = 0;
 
 	// Fills the given render slot
-	virtual void FillRenderSlot(SRenderSlot* pSlot) = 0;
+	virtual void FillRenderSlot(IGameEngine* pEngine, SRenderSlot* pSlot) = 0;
 
 	virtual IVertexBuffer* GetVertexBuffer() = 0;
 	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
@@ -87,20 +85,13 @@ struct S_API IStaticObject : public IRenderableObject
 	{
 		return eGEOMOBJ_STATIC;
 	}
+	
+	// Looks for the materials in the material manager based on the material names set in pInitialGeom.
+	// Set material pointers are set regardless of whether they've been set yet or not.
+	virtual SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
 
-	// pInitialMaterials - If nullptr, then the engine's default material is taken
-	virtual SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr, MaterialPtrList* pInitialMaterials = nullptr) = 0;
-
-	virtual MaterialPtrList& GetMaterials() = 0;
-	virtual unsigned int GetMaterialCount() const = 0;
-
-	// Summary:
-	//	Sets first material, which is the single material if this object has no subsets
-	virtual void SetSingleMaterial(SMaterial* singleMat) = 0;
-
-	// Summary:
-	//	Verifies that there is a single material and always returns a non-null pointer
-	virtual SMaterial* GetSingleMaterial() = 0;		
+	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) = 0;
+	virtual unsigned int GetSubsetCount() const = 0;
 
 	virtual void Clear() = 0;
 };

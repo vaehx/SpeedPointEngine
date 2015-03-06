@@ -16,7 +16,7 @@
 
 SP_NMSPACE_BEG
 
-struct S_API ILogHandler
+struct S_API IFileLogHandler
 {
 	virtual void OnLog(SResult res, const SString& formattedMsg) = 0;
 };
@@ -28,11 +28,11 @@ enum S_API ELogLevel
 	ELOGLEVEL_DEBUG = 2
 };
 
-struct S_API ILog
+struct S_API IFileLog
 {
 	virtual void Clear() = 0;
 	virtual SResult SetLogFile(const SString& file) = 0;
-	virtual SResult RegisterLogHandler(ILogHandler* pLogHandler) = 0;
+	virtual SResult RegisterLogHandler(IFileLogHandler* pLogHandler) = 0;
 	virtual SResult SetLogLevel(ELogLevel loglevel) = 0;
 	virtual ELogLevel GetLogLevel() const = 0;
 	virtual SResult Log(SResult res, const SString& msg) = 0;

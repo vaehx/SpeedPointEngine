@@ -31,7 +31,7 @@ private:
 	ChunkPool<DirectX11VertexBuffer> m_plVertexBuffers;
 	ChunkPool<DirectX11Effect> m_plShaders;
 	ChunkPool<DirectX11Texture> m_plTextures;
-	ChunkPool<SMaterial> m_plMaterials;
+	//ChunkPool<SMaterial> m_plMaterials;
 
 public:		
 	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer);
@@ -64,10 +64,11 @@ public:
 
 
 
-
+	/*
 	virtual SMaterial* AddNewMaterial(const SString& specification);
 	virtual SMaterial* GetMaterial(const SString& specification);
 	virtual void RemoveMaterial(SMaterial** pMat);
+	*/
 };
 
 

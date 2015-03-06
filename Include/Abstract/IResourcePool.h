@@ -67,6 +67,7 @@ public:
 
 
 
+	/*
 	// The pointer, this function returns gets never invalidated until RemoveMaterial is called.
 	// specifiction != name of material. The name of material is not used for indexing.
 	// Specification is case insensitive.
@@ -79,6 +80,7 @@ public:
 
 	// *pMat is set to 0 if removal succeeded
 	virtual void RemoveMaterial(SMaterial** pMat) = 0;
+	*/
 };
 
 

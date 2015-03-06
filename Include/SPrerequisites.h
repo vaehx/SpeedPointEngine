@@ -38,6 +38,7 @@
 
 #include "Util\SPoolIndex.h"
 #include "Util\SString.h"
+#include "Abstract\CLog.h"
 // DO NOT ADD ANY HEADER HERE if you do not know why!Many things depend on it!
 
 

@@ -30,7 +30,7 @@ SP_NMSPACE_BEG
 
 struct S_API ITexture;
 struct S_API IVertexBuffer;
-struct S_API SMaterial;
+struct S_API IMaterial;
 struct SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
 
@@ -44,7 +44,7 @@ struct S_API SMaterialIndices
 
 
 	// TODO: Make this more abstract to avoid having invalid pointers
-	SMaterial* pMaterial;	// accumulation
+	IMaterial* pMaterial;	// accumulation
 
 
 
@@ -128,13 +128,13 @@ struct S_API SInitialGeometryDesc
 	EGeomUsage vertexUsage;
 	EGeomUsage indexUsage;
 
-	SVertex* pVertices;	// gets deleted automatically when constructed. Otherwise make sure to set pointer to 0
+	SVertex* pVertices;	// gets deleted automatically when destructed. Otherwise make sure to set pointer to 0
 	usint32 nVertices;
 
-	SIndex* pIndices;	// gets deleted automatically when constructed. Otherwise make sure to set pointer to 0
+	SIndex* pIndices;	// gets deleted automatically when destructed. Otherwise make sure to set pointer to 0
 	usint32 nIndices;
 
-	SMaterial* pSingleMaterial;
+	char* singleMatName;
 
 	SMaterialIndices* pMatIndexAssigns;
 	unsigned int nMatIndexAssigns;
@@ -153,7 +153,7 @@ struct S_API SInitialGeometryDesc
 		nIndices(0),
 		pMatIndexAssigns(0),
 		nMatIndexAssigns(0),
-		pSingleMaterial(0),
+		singleMatName(0),
 		bRequireNormalRecalc(false),
 		bRequireTangentRecalc(false),
 		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)
@@ -171,12 +171,15 @@ struct S_API SInitialGeometryDesc
 		if (IS_VALID_PTR(pMatIndexAssigns))
 			delete[] pMatIndexAssigns;
 
+		if (IS_VALID_PTR(singleMatName))
+			delete[] singleMatName;
+
 		pVertices = 0;
 		pIndices = 0;
 		nVertices = 0;
 		nIndices = 0;
 		nMatIndexAssigns = 0;
-		pSingleMaterial = 0;
+		singleMatName = 0;
 		bRequireNormalRecalc = false;
 		bRequireTangentRecalc = false;
 	}
@@ -227,7 +230,7 @@ struct S_API SGeomSubset
 {
 	unsigned long indexOffset;
 	IIndexBuffer* pIndexBuffer;	
-	SMaterial* pMaterial;
+	IMaterial* pMaterial;
 
 	SGeomSubset()
 		: indexOffset(0),

@@ -1,0 +1,31 @@
+
+
+// Material:
+- One material accumulation per subset
+
+
+IMaterial* IMaterialManager::CreateMaterial(const char* matName)
+IMaterial* IMaterialManager::LoadMaterial(const char* filename)
+IMaterial* IMaterialManager::GetMaterialByName(const char* matName)
+
+
+
+struct SGeomSubset
+{
+	unsigned long indexOffset;
+	IIndexBuffer* pIndexBuffer;
+	IMaterial* pMaterial;
+};
+
+
+RenderableComponent::GetSubsetMaterial(unsigned int iSubset)
+
+struct IMaterialLayer
+{
+	
+};
+
+struct IMaterial
+{
+		
+};

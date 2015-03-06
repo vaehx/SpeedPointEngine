@@ -11,7 +11,7 @@
 #include "IViewport.h"	// for SViewportDescription
 #include "IGeometry.h" // for STransformation
 #include "IObject.h"
-#include "Material.h"
+#include "IMaterial.h"
 #include "IGameEngine.h"
 #include "IFont.h" // for FontSize
 
@@ -227,7 +227,7 @@ enum S_API ERenderPipeline
 
 struct SRenderSubset
 {
-	SMaterial material;	// copied, no pointer used
+	SShaderResources shaderResources;
 	SDrawCallDesc drawCallDesc;
 	bool render; // true to render, false to skip
 };

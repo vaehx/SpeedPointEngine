@@ -14,6 +14,7 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\CReferenceObject.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationJoint.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationKey.cpp" />
@@ -30,6 +31,7 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\File3DS.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h" />

@@ -32,22 +32,40 @@ struct S_API IRenderer;
 
 
 
-class S_API EngineLog : public ILog
+class S_API EngineFileLog : public IFileLog
 {
 private:
 	ELogLevel m_LogLevel;	
 	std::ofstream m_LogFile;
-	std::vector<ILogHandler*> m_LogHandlers;
+	std::vector<IFileLogHandler*> m_LogHandlers;
 
 public:
-	~EngineLog() {}
+	~EngineFileLog() {}
 
 	virtual void Clear();
 	virtual SResult SetLogFile(const SString& file);
-	virtual SResult RegisterLogHandler(ILogHandler* pLogHandler);
+	virtual SResult RegisterLogHandler(IFileLogHandler* pLogHandler);
 	virtual SResult SetLogLevel(ELogLevel loglevel);
 	virtual ELogLevel GetLogLevel() const;
 	virtual SResult Log(SResult res, const SString& msg);
+};
+
+class CLogWrapper
+{
+public:
+	SResult Log(SResult res, const SString& msg)
+	{
+		return CLog::Log(res, msg);
+	}
+	SResult LogE(const SString& msg) { return Log(S_ERROR, msg); }
+	SResult LogI(const SString& msg) { return Log(S_INFO, msg); }
+	SResult LogW(const SString& msg) { return Log(S_WARN, msg); }
+	SResult LogD(const SString& msg) { return Log(S_DEBUG, msg); }
+
+	SResult SetLogLevel(ELogLevel logLevel)
+	{
+		return S_SUCCESS;
+	}
 };
 
 
@@ -108,7 +126,7 @@ template<typename T> struct S_API EngineComponent
 
 // SpeedPoint Game Engine contains all parts of the default SpeedPoint Engine components (Frame, Physics, Rendering, ...)
 // If you want to use custom components you can either hook your components into the other components
-class S_API SpeedPointEngine : public IExceptionProxy, public IGameEngine
+class S_API SpeedPointEngine : public IExceptionProxy, public IGameEngine, public ILogListener
 {
 private:	
 	IApplication*		m_pApplication;
@@ -122,11 +140,11 @@ private:
 	EngineComponent<IFontRenderer> m_pFontRenderer;
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
 	EngineComponent<IScene> m_pScene;
-	ILog* m_pLog;
+	EngineComponent<IMaterialManager> m_pMaterialManager;
+	EngineFileLog m_FileLog;
+	CLogWrapper m_LogWrapper;
 
-	std::vector<IShutdownHandler*> m_ShutdownHandlers;
-
-	SMaterial m_DefaultMaterial;
+	std::vector<IShutdownHandler*> m_ShutdownHandlers;	
 
 	void CheckFinishInit();
 
@@ -154,7 +172,7 @@ public:
 	virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true);
 	virtual SResult InitializeFontRenderer();
 	virtual SResult InitializeResourcePool();
-	virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0);
+	virtual SResult InitializeLogger(IFileLogHandler* pCustomLogHandler = 0);
 	virtual SResult InitializeScene(IScene* pScene);
 
 
@@ -179,6 +197,8 @@ public:
 	// Implement IExceptionProxy methods
 	virtual void HandleException(char* msg);	
 
+	// Implement ILogListener
+	virtual void OnLog(SResult res, const SString& msg);
 
 public:
 	virtual bool IsRunning() const
@@ -191,11 +211,13 @@ public:
 	virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }
 	virtual IResourcePool* GetResources() const { return m_pResourcePool; }
-	virtual ILog* GetLog() const { return m_pLog; }	
+	virtual IFileLog* GetFileLog() { return &m_FileLog; }	
+	virtual CLogWrapper* GetLog() { return &m_LogWrapper; }	
 	virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 	virtual IScene* GetLoadedScene() const { return m_pScene; }
+	virtual IMaterialManager* GetMaterialManager() const { return m_pMaterialManager; }
 
-	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
+//	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
 
 	virtual SString GetShaderPath(EShaderType shader);
 };

@@ -148,9 +148,6 @@
     <ClInclude Include="..\..\Include\Util\SString.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Material.h">
-      <Filter>Headers\Data</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\Transformable.h">
       <Filter>Headers\Data</Filter>
     </ClInclude>
@@ -198,6 +195,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IFont.h">
       <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IMaterial.h">
+      <Filter>Headers\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

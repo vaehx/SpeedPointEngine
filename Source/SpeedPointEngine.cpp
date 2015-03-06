@@ -17,18 +17,21 @@
 #include <Pipelines\RenderPipeline.h>
 #include <fstream>
 #include <Abstract\IScene.h>
+#include <Implementation\Geometry\Material.h>
 
 SP_NMSPACE_BEG
+
+std::vector<ILogListener*> g_LogListeners;
 	
 
 
-S_API void EngineLog::Clear()
+S_API void EngineFileLog::Clear()
 {
 	if (m_LogFile.is_open())
 		m_LogFile.close();
 }
 
-S_API SResult EngineLog::SetLogFile(const SString& file)
+S_API SResult EngineFileLog::SetLogFile(const SString& file)
 {
 	if (m_LogFile.is_open())
 		m_LogFile.close();
@@ -40,7 +43,7 @@ S_API SResult EngineLog::SetLogFile(const SString& file)
 	return S_SUCCESS;
 }
 
-S_API SResult EngineLog::RegisterLogHandler(ILogHandler* pLogHandler)
+S_API SResult EngineFileLog::RegisterLogHandler(IFileLogHandler* pLogHandler)
 {
 	assert(IS_VALID_PTR(pLogHandler));
 
@@ -55,18 +58,18 @@ S_API SResult EngineLog::RegisterLogHandler(ILogHandler* pLogHandler)
 	return S_SUCCESS;
 }
 
-S_API SResult EngineLog::SetLogLevel(ELogLevel loglevel)
+S_API SResult EngineFileLog::SetLogLevel(ELogLevel loglevel)
 {
 	m_LogLevel = loglevel;
 	return S_SUCCESS;
 }
 
-S_API ELogLevel EngineLog::GetLogLevel() const
+S_API ELogLevel EngineFileLog::GetLogLevel() const
 {
 	return m_LogLevel;
 }
 
-S_API SResult EngineLog::Log(SResult res, const SString& msg)
+S_API SResult EngineFileLog::Log(SResult res, const SString& msg)
 {
 	SString formattedMsg;
 	switch (res.result)
@@ -162,6 +165,8 @@ S_API void SpeedPointEngine::Shutdown(void)
 	
 	m_pFontRenderer.Clear();
 
+	m_pMaterialManager.Clear();
+
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool	
 	m_pRenderer.Clear();
 
@@ -173,13 +178,7 @@ S_API void SpeedPointEngine::Shutdown(void)
 		m_pSettings = nullptr;
 	}
 
-	if (IS_VALID_PTR(m_pLog))
-	{
-		m_pLog->LogI("Engine shut down");
-		m_pLog->Clear();
-		delete m_pLog;
-		m_pLog = nullptr;
-	}
+	CLog::Log(S_INFO, "Engine shut down");
 }
 
 // ----------------------------------------------------------------------------------
@@ -262,8 +261,7 @@ S_API void SpeedPointEngine::CheckFinishInit()
 
 	if (IS_VALID_PTR(m_pFramePipeline.pComponent)
 		&& IS_VALID_PTR(m_pRenderer.pComponent)
-		&& IS_VALID_PTR(m_pResourcePool.pComponent)
-		&& IS_VALID_PTR(m_pLog))
+		&& IS_VALID_PTR(m_pResourcePool.pComponent))
 	{		
 		m_pApplication->OnInit(m_pFramePipeline, this);
 	}
@@ -345,20 +343,20 @@ S_API SResult SpeedPointEngine::InitializeResourcePool()
 	assert(IS_VALID_PTR(m_pRenderer.pComponent));
 	m_pResourcePool.SetCustom(m_pRenderer->GetResourcePool());
 
-	LogD("Initiailzed Resource pool!");
+	LogD("Initialized Resource pool!");
+
+	m_pMaterialManager.SetOwn(new BasicMaterialManager());
 
 	return S_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::InitializeLogger(ILogHandler* pCustomLogHandler /* = 0 */)
+S_API SResult SpeedPointEngine::InitializeLogger(IFileLogHandler* pCustomFileLogHandler /* = 0 */)
 {
-	m_pLog = new EngineLog();
+	if (IS_VALID_PTR(pCustomFileLogHandler))
+		m_FileLog.RegisterLogHandler(pCustomFileLogHandler);
 
-	if (IS_VALID_PTR(pCustomLogHandler))
-		m_pLog->RegisterLogHandler(pCustomLogHandler);
-
-	LogD("Initialized Logger!");
+	LogD("Initialized File Logger!");
 
 
 	return S_SUCCESS;
@@ -451,9 +449,12 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& msg )
 {
-	if( !IS_VALID_PTR(m_pLog) )
-		return S_ABORTED;		
+	// --> CLog --> SpeedPointEngine::OnLog()
+	return m_LogWrapper.Log(res, msg);
 
+
+
+	/*
 	char* cPrefix;
 	switch( m_pSettings->Get().render.tyRendererType )
 	{
@@ -473,6 +474,8 @@ S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& ms
 		m_pApplication->OnLogReport(res, sActualMsg);
 
 	return m_pLog->Log( res, sActualMsg );
+	*/
+
 }
 
 // ----------------------------------------------------------------------------------
@@ -534,6 +537,17 @@ S_API void SpeedPointEngine::LogD(float f, const SString& floatname)
 S_API void SpeedPointEngine::LogD(const SString& str, const SString& strname)
 {
 	LogD(SString("Dump: ") + strname + " = \"" + str + "\"");	
+}
+
+// ----------------------------------------------------------------------------------
+S_API void SpeedPointEngine::OnLog(SResult res, const SString& msg)
+{
+	// console output is done in CLog, which calls this function
+
+	m_FileLog.Log(res, msg);
+
+	if (IS_VALID_PTR(m_pApplication))
+		m_pApplication->OnLogReport(res, msg);	
 }
 
 // ----------------------------------------------------------------------------------

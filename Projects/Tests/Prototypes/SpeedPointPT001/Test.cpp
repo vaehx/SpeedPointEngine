@@ -73,7 +73,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	dsc.app.hWnd = hWnd;	
 	dsc.render.fClipNear = 0.1f;
 	dsc.render.fClipFar = 600.0f;
-	dsc.render.bEnableVSync = true;
+	dsc.render.bEnableVSync = false;
 	dsc.render.vsyncInterval = 1;	
 	dsc.render.bRenderWireframe = true;
 	dsc.render.fTerrainDMFadeRange = 5.0f;	
@@ -93,7 +93,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 		return false;
 	}
 
-	m_pEngine->GetLog()->SetLogFile("App.log");
+	m_pEngine->GetFileLog()->SetLogFile("App.log");
 
 	m_pScene = m_pEngine->GetLoadedScene();
 	
@@ -168,15 +168,13 @@ void Test::OnInitGeometry()
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Add first geometry
 
-	GeometryLib::GenerateBox(m_pEngine, testObject.GetGeometry(), testObject.GetSingleMaterial(), 1.0f, 1.0f, 1.0f);
-	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);
+	SpeedPoint::IMaterial* pTestObjectMat = m_pEngine->GetMaterialManager()->CreateMaterial("mat_testobject");
+	SpeedPoint::SShaderResources& matres = pTestObjectMat->GetLayer(0)->resources;
+	matres.textureMap = pTestTextureMap;
+	matres.normalMap = pTestNormalMap;
 
-	// Set object material
-	SpeedPoint::SMaterial* testMat = m_pEngine->GetResources()->AddNewMaterial("testMat");
-	testMat->textureMap = pTestTextureMap;
-	testMat->normalMap = pTestNormalMap;
-	
-	testObject.SetSingleMaterial(testMat);
+	GeometryLib::GenerateBox(m_pEngine, testObject.GetGeometry(), "mat_testobject", 1.0f, 1.0f, 1.0f);
+	testObject.vPosition = SpeedPoint::SVector3(0.0, 0.0, 0.0f);	
 
 
 	///////////////////////////////////////////////////////////////////////1/////////////////////////////////
@@ -323,13 +321,19 @@ void Test::Render()
 	testObject.vRotation.x = SP_PI * 0.5f;
 	testObject.vPosition = SpeedPoint::SVector3(0, 0.0f, 0.0f);
 
-	pTest3DSObject->vPosition = testObject.vPosition;
-	pTest3DSObject->vRotation = testObject.vRotation;
-	pTest3DSObject->vSize = SpeedPoint::SVector3(0.3f, 0.3f, 0.3f);
+	if (pTest3DSObject)
+	{
+		pTest3DSObject->vPosition = testObject.vPosition;
+		pTest3DSObject->vRotation = testObject.vRotation;
+		pTest3DSObject->vSize = SpeedPoint::SVector3(0.3f, 0.3f, 0.3f);
+	}
 	
-	pTest3DSNormalsObject->vPosition = pTest3DSObject->vPosition;
-	pTest3DSNormalsObject->vRotation = pTest3DSObject->vRotation;
-	pTest3DSNormalsObject->vSize = pTest3DSObject->vSize;
+	if (pTest3DSNormalsObject)
+	{
+		pTest3DSNormalsObject->vPosition = pTest3DSObject->vPosition;
+		pTest3DSNormalsObject->vRotation = pTest3DSObject->vRotation;
+		pTest3DSNormalsObject->vSize = pTest3DSObject->vSize;
+	}
 
 	/*
 	float camTurnRad = 3.0f;

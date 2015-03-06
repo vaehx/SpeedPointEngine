@@ -35,7 +35,7 @@ struct S_API STransformation;
 struct S_API IGameEngine;
 struct S_API IRenderer;
 struct S_API SInitialGeometryDesc;
-struct S_API SMaterial;
+struct S_API IMaterial;
 struct S_API SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
 struct S_API SSceneNode;
@@ -69,7 +69,7 @@ enum S_API EObjectType
 class MaterialPtrList
 {
 private:
-	vector<SMaterial*> m_Mats;
+	vector<IMaterial*> m_Mats;
 public:
 	MaterialPtrList() {}	
 
@@ -78,7 +78,7 @@ public:
 		Clear();
 	}
 
-	void Add(SMaterial* pMat)
+	void Add(IMaterial* pMat)
 	{
 		m_Mats.push_back(pMat);
 	}
@@ -90,7 +90,7 @@ public:
 			m_Mats.push_back(matlist.Get(i));
 	}
 
-	void Del(SMaterial* pMat)
+	void Del(IMaterial* pMat)
 	{
 		for (auto itMat = m_Mats.begin(); itMat != m_Mats.end(); itMat++)
 		{
@@ -102,7 +102,7 @@ public:
 		}
 	}
 
-	SMaterial* Get(unsigned int index)
+	IMaterial* Get(unsigned int index)
 	{
 		if (index >= GetCount())
 			return nullptr;
@@ -110,7 +110,7 @@ public:
 		return m_Mats[index];
 	}
 
-	void Set(unsigned int index, SMaterial* pMat)
+	void Set(unsigned int index, IMaterial* pMat)
 	{
 		if (index >= GetCount())
 			return;

@@ -1110,9 +1110,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		m_bPerObjectCBBound = false;
 
 		m_pD3DDeviceContext->OMSetBlendState(m_pTerrainBlendState, 0, 0xffffffff);
-
-		// TODO: Draw Section based different lod levels
-
+		
 		// render all chunks
 		if (IS_VALID_PTR(m_TerrainRenderDesc.pDrawCallDescs) && m_TerrainRenderDesc.nDrawCallDescs > 0)
 		{
@@ -1226,8 +1224,8 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			continue;
 
 		// Set material
-		ITexture* pTextureMap = IS_VALID_PTR(subset.material.textureMap) ? subset.material.textureMap : (ITexture*)&m_DummyTexture;
-		ITexture* pNormalMap = IS_VALID_PTR(subset.material.normalMap) ? subset.material.normalMap : (ITexture*)&m_DummyNormalMap;
+		ITexture* pTextureMap = IS_VALID_PTR(subset.shaderResources.textureMap) ? subset.shaderResources.textureMap : (ITexture*)&m_DummyTexture;
+		ITexture* pNormalMap = IS_VALID_PTR(subset.shaderResources.normalMap) ? subset.shaderResources.normalMap : (ITexture*)&m_DummyNormalMap;
 		
 		BindTexture(pTextureMap, 0);
 		BindTexture(pNormalMap, 1);

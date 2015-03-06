@@ -37,7 +37,7 @@ enum EKey
 };
 
 
-class TestLogHandler : public SpeedPoint::ILogHandler
+class TestLogHandler : public SpeedPoint::IFileLogHandler
 {
 public:
 	virtual void OnLog(SpeedPoint::SResult res, const SpeedPoint::SString& formattedMsg);

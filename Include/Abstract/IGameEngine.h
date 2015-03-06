@@ -25,11 +25,13 @@ namespace SpeedPoint
 	struct S_API IApplication;
 	//struct S_API IScriptEngine;
 	struct S_API IResourcePool;
-	struct S_API ILogHandler;
-	struct S_API ILog;
+	struct S_API IFileLogHandler;
+	struct S_API IFileLog;
+	class CLogWrapper;
 	struct S_API SVector3;
 	struct S_API IScene;
-	struct S_API SMaterial;
+	struct S_API IMaterial;
+	struct S_API IMaterialManager;
 
 
 
@@ -325,8 +327,10 @@ namespace SpeedPoint
 //		virtual SResult InitializePhysics() = 0;
 //		virtual SResult InitializeAI() = 0;
 //		virtual SResult InitializeScriptEngine() = 0;		
-		virtual SResult InitializeResourcePool() = 0;
-		virtual SResult InitializeLogger(ILogHandler* pCustomLogHandler = 0) = 0;
+		virtual SResult InitializeLogger(IFileLogHandler* pCustomFileLogHandler = 0) = 0;
+
+		// Inits Renderer specific resource pool and the material manager
+		virtual SResult InitializeResourcePool() = 0;		
 		
 		// instance is deleted by engine on shutdown
 		virtual SResult InitializeScene(IScene* pScene) = 0;
@@ -344,11 +348,11 @@ namespace SpeedPoint
 //		virtual IAI* GetAI() const = 0;
 //		virtual IScriptEngine* GetScriptEngine() const = 0;
 		virtual IResourcePool* GetResources() const = 0;
-		virtual ILog* GetLog() const = 0;	
+		virtual CLogWrapper* GetLog() = 0;	
+		virtual IFileLog* GetFileLog() = 0;
 		virtual IEngineSettings* GetSettings() const = 0;	
 		virtual IScene* GetLoadedScene() const = 0;
-
-		virtual SMaterial* GetDefaultMaterial() = 0;
+		virtual IMaterialManager* GetMaterialManager() const = 0;
 
 		virtual SString GetShaderPath(EShaderType shader) = 0;
 

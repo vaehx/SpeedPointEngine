@@ -53,7 +53,7 @@ S_API EPrimitiveType CStaticObjectRenderable::GetGeometryPrimitiveType() const
 }
 
 // ----------------------------------------------------------------------------------------
-S_API void CStaticObjectRenderable::FillRenderSlot(SRenderSlot* pRenderSlot)
+S_API void CStaticObjectRenderable::FillRenderSlot(IGameEngine* pEngine, SRenderSlot* pRenderSlot)
 {
 	SRenderDesc* pRenderDesc = &pRenderSlot->renderDesc;
 
@@ -106,10 +106,18 @@ S_API void CStaticObjectRenderable::FillRenderSlot(SRenderSlot* pRenderSlot)
 		// TODO: To update a material, implement a method to flag a subset material to be updated,
 		// 	 then do it below when updating the transform.
 		if (subset->pMaterial)
-			renderSubset.material = *subset->pMaterial;
+		{
+			renderSubset.shaderResources = subset->pMaterial->GetLayer(0)->resources;
+		}
 		else
-			renderSubset.material = SMaterial();
-		//renderSubset.material = m_pEngine->GetResources()->GetDefaultMaterial();
+		{
+			IMaterialManager* pMatMgr;
+			if (IS_VALID_PTR(pEngine) && IS_VALID_PTR((pMatMgr = pEngine->GetMaterialManager())))
+			{
+				IMaterial* pDefMat = pMatMgr->GetDefaultMaterial();
+				renderSubset.shaderResources = pDefMat->GetLayer(0)->resources;
+			}
+		}
 	}
 }
 
@@ -169,57 +177,46 @@ S_API void StaticObject::Clear()
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom /*= nullptr*/, MaterialPtrList* pInitialMaterials /*= nullptr*/)
+S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
 {
-	m_Renderable.Clear();
+	m_Renderable.Clear();	
 
-	if (!IS_VALID_PTR((m_pEngine = pEngine)))
-		return S_INVALIDPARAM;
+	if (!IS_VALID_PTR(m_pEngine))
+		return CLog::Log(S_ERROR, "Tried init Static Object, but engine ptr is invalid!");
 
-	if (IS_VALID_PTR(pInitialMaterials) && pInitialMaterials->GetCount() > 0)
+
+	// Find matching material pointers based on given material names	
+	if (pInitialGeom->nMatIndexAssigns > 0)
 	{
-		MaterialPtrList& materials = m_Renderable.GetMaterials();
-		materials.AddAll(*pInitialMaterials);
+		IMaterialManager* pMatMgr = m_pEngine->GetMaterialManager();
+		if (!IS_VALID_PTR(pMatMgr))
+			return S_ERROR;
 
-		if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) && pInitialGeom->nMatIndexAssigns > 0)
+		for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < pInitialGeom->nMatIndexAssigns; ++iMatIndexAssign)
 		{
-			// find matching material pointers based on given material names
-			for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < pInitialGeom->nMatIndexAssigns; ++iMatIndexAssign)
-			{
-				SMaterialIndices& matIndexAssign = pInitialGeom->pMatIndexAssigns[iMatIndexAssign];
-				matIndexAssign.pMaterial = 0;				
-				for (unsigned short iMat = 0; iMat < materials.GetCount(); ++iMat)
-				{
-					if (strcmp(materials.Get(iMat)->name, matIndexAssign.materialName) != 0)
-						continue;
-
-					matIndexAssign.pMaterial = materials.Get(iMat);
-					break;
-				}
-			}
+			SMaterialIndices& matIndexAssign = pInitialGeom->pMatIndexAssigns[iMatIndexAssign];
+			matIndexAssign.pMaterial = pMatMgr->FindMaterial(matIndexAssign.materialName);
 		}
 	}
 
-	return m_Renderable.GetGeometry()->Init(pEngine, pEngine->GetRenderer(), pInitialGeom);
-}
-
-
-// ----------------------------------------------------------------------------------------
-S_API void StaticObject::SetSingleMaterial(SMaterial* pMaterial)
-{
-	MaterialPtrList& materials = m_Renderable.GetMaterials();
-	if (materials.GetCount() == 0)
-		materials.Add(pMaterial);
-	else
-		materials.Set(0, pMaterial);	
+	return m_Renderable.GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), pInitialGeom);
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SMaterial* StaticObject::GetSingleMaterial()
+S_API IMaterial* StaticObject::GetSubsetMaterial(unsigned int subset /*= 0*/)
 {
-	return m_Renderable.GetMaterials().Get(0);
+	if (subset >= m_Renderable.GetSubsetCount())
+		return 0;
+
+	SGeomSubset* pSubset = m_Renderable.GetSubset(subset);
+	return (IS_VALID_PTR(pSubset)) ? pSubset->pMaterial : 0;
 }
 
+// ----------------------------------------------------------------------------------------
+S_API unsigned int StaticObject::GetSubsetCount() const
+{
+	return m_Renderable.GetSubsetCount();
+}
 
 // ----------------------------------------------------------------------------------------
 /*
@@ -296,7 +293,7 @@ S_API SResult StaticObject::Render()
 
 		pRenderDesc = &pRenderSlot->renderDesc;
 
-		m_Renderable.FillRenderSlot(pRenderSlot);
+		m_Renderable.FillRenderSlot(m_pEngine, pRenderSlot);
 		m_Renderable.SetRenderSlot(pRenderSlot);		
 	}
 	else

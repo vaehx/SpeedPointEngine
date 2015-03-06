@@ -208,8 +208,8 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 				RETURN_ON_ERR(pDefSubset->pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false));
 		}
 
-		pDefSubset->pMaterial = (IS_VALID_PTR(pInitialGeom) ? pInitialGeom->pSingleMaterial : m_pEngine->GetDefaultMaterial());
-
+		// Warning: FindMaterial() may return 0, which results in the renderer using default material
+		pDefSubset->pMaterial = m_pEngine->GetMaterialManager()->FindMaterial(pInitialGeom->singleMatName);
 	}
 	else
 	{
