@@ -57,6 +57,8 @@ private:
 public:
 	BasicMaterialManager();
 
+	virtual void LogAllMaterials();
+
 	virtual IMaterial* FindMaterial(const char* name);
 	virtual IMaterial* CreateMaterial(const char* name);
 

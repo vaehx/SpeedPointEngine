@@ -16,7 +16,7 @@
 
 void TestLogHandler::OnLog(SpeedPoint::SResult res, const SpeedPoint::SString& formattedMsg)
 {
-	std::cout << formattedMsg << std::endl;
+	//std::cout << formattedMsg << std::endl;
 }
 
 void Test::OnLogReport(SpeedPoint::SResult res, const SpeedPoint::SString& msg)

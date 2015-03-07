@@ -130,7 +130,7 @@ struct S_API IMaterialManager
 	virtual void RemoveMaterial(IMaterial** pMat) = 0;
 
 	virtual IMaterial* GetDefaultMaterial() = 0;
-
+	virtual void LogAllMaterials() = 0;
 	virtual void Clear() = 0;
 };
 

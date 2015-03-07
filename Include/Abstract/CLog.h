@@ -23,28 +23,34 @@ struct S_API ILogListener
 // Static Log
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API extern std::vector<ILogListener*> g_LogListeners;
-
-class S_API CLog
+class S_API CLogIntrnl
 {
+private:
+	std::vector<ILogListener*> m_LogListeners;
+	bool m_bLogLocked;
 public:
-	static void RegisterListener(ILogListener* pListener)
+	CLogIntrnl()
+		: m_bLogLocked(false)
 	{
-		g_LogListeners.push_back(pListener);
 	}
 
-	static void UnregisterListener(ILogListener* pListener)
+	void RegisterListener(ILogListener* pListener)
 	{
-		for (auto itListener = g_LogListeners.begin(); itListener != g_LogListeners.end();)
+		m_LogListeners.push_back(pListener);
+	}
+
+	void UnregisterListener(ILogListener* pListener)
+	{
+		for (auto itListener = m_LogListeners.begin(); itListener != m_LogListeners.end();)
 		{
 			if (*itListener == pListener)
-				itListener = g_LogListeners.erase(itListener);
+				itListener = m_LogListeners.erase(itListener);
 			else
 				itListener++;
 		}
 	}
 
-	static SResult Log(SResult res, const SString& msg)
+	SResult Log(SResult res, const SString& msg)
 	{
 		char* resDsc = "";
 		switch (res)
@@ -58,9 +64,16 @@ public:
 		char* msgstr = new char[msgln];
 		SPSPrintf(msgstr, msgln, "%s%s\n", resDsc, (char*)msg);
 
-		if (g_LogListeners.size() > 0)
+		while (m_bLogLocked)
 		{
-			for (auto itListener = g_LogListeners.begin(); itListener != g_LogListeners.end(); itListener++)
+			Sleep(1);
+		}
+
+		m_bLogLocked = true;
+
+		if (m_LogListeners.size() > 0)
+		{
+			for (auto itListener = m_LogListeners.begin(); itListener != m_LogListeners.end(); itListener++)
 			{
 				if (IS_VALID_PTR(*itListener))
 					(*itListener)->OnLog(res, msgstr);
@@ -68,19 +81,55 @@ public:
 		}
 
 		printf("%s", msgstr);
+
+		m_bLogLocked = false;
 		return res;
 	}
 
-	static SResult Log(SResult res, const char* fmt, ...)
+	SResult Log(SResult res, const char* fmt, ...)
 	{
 		char out[300];
 		va_list args;
-		va_start(args, fmt);		
+		va_start(args, fmt);
 		//SPSPrintf(out, 500, fmt, args);
 		vsnprintf_s(out, 300, fmt, args);
 		va_end(args);
 
 		return Log(res, SString(out));
+	}
+};
+
+//S_API extern std::vector<ILogListener*> g_LogListeners;
+//S_API extern bool g_bLogLocked;
+
+S_API extern CLogIntrnl g_LogIntrnl;
+
+class S_API CLog
+{
+public:
+	static void RegisterListener(ILogListener* pListener)
+	{		
+		g_LogIntrnl.RegisterListener(pListener);
+	}
+
+	static void UnregisterListener(ILogListener* pListener)
+	{
+		g_LogIntrnl.UnregisterListener(pListener);
+	}
+
+	static SResult Log(SResult res, const SString& msg)
+	{
+		return g_LogIntrnl.Log(res, msg);
+	}
+
+	static SResult Log(SResult res, const char* fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		g_LogIntrnl.Log(res, fmt, args);
+		va_end(args);
+
+		return res;
 	}
 };
 

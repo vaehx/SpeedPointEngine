@@ -21,7 +21,7 @@
 
 SP_NMSPACE_BEG
 
-std::vector<ILogListener*> g_LogListeners;
+CLogIntrnl g_LogIntrnl;
 	
 
 
@@ -72,6 +72,7 @@ S_API ELogLevel EngineFileLog::GetLogLevel() const
 S_API SResult EngineFileLog::Log(SResult res, const SString& msg)
 {
 	SString formattedMsg;
+	/*
 	switch (res.result)
 	{
 	case S_INFO:
@@ -96,6 +97,7 @@ S_API SResult EngineFileLog::Log(SResult res, const SString& msg)
 		formattedMsg = SString("INFO: ") + msg;
 		break;
 	}
+	*/
 
 	//formattedMsg += "\n";
 	if (m_LogHandlers.size() > 0)

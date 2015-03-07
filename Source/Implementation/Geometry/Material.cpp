@@ -147,6 +147,27 @@ S_API void BasicMaterialManager::RemoveMaterial(IMaterial** pMat)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+S_API void BasicMaterialManager::LogAllMaterials()
+{
+	if (m_Materials.GetUsedObjectCount() == 0)
+	{
+		CLog::Log(S_DEBUG, "No materials");		
+	}
+	else
+	{
+		unsigned int iterator = 0;
+		BasicMaterial* pMat;
+		while ((pMat = m_Materials.GetNextUsedObject(iterator)))
+		{
+			if (!IS_VALID_PTR(pMat))
+				break;
+
+			CLog::Log(S_DEBUG, "Mat '%s': index=%u", pMat->GetName(), iterator);
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 S_API void BasicMaterialManager::Clear()
 {
 	m_Materials.Clear();
