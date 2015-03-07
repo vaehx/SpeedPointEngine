@@ -14,6 +14,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include "Vector3.h"
 
 
 SP_NMSPACE_BEG
@@ -26,7 +27,7 @@ struct S_API SShaderResources
 	ITexture* textureMap;	// aggregation, color for full unlit roughness
 	ITexture* normalMap;
 	ITexture* ambientOcclusionMap;
-	float emissivity;
+	float3 emissive;
 
 	ITexture* roughnessMap;
 	float roughness;	// if the glossiness Map is set it is used instead of the global gloss factor
@@ -35,7 +36,7 @@ struct S_API SShaderResources
 		: textureMap(0),
 		normalMap(0),
 		ambientOcclusionMap(0),
-		emissivity(0.0f),
+		emissive(0, 0, 0),
 		roughnessMap(0),
 		roughness(1.0f)
 	{
@@ -57,7 +58,7 @@ struct S_API SShaderResources
 		textureMap = src.textureMap;
 		normalMap = src.normalMap;
 		ambientOcclusionMap = src.ambientOcclusionMap;
-		emissivity = src.emissivity;
+		emissive = src.emissive;
 		roughnessMap = src.roughnessMap;
 		roughness = src.roughness;
 	}

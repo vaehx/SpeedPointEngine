@@ -49,6 +49,11 @@ struct S_API SColor
 		: r(other.r), g(other.g), b(other.b), a(other.a)
 	{
 	};
+
+	inline float3 ToFloat3() const
+	{
+		return float3(r, g, b);
+	}
 };
 
 // --------------------------------------------------------------------------
