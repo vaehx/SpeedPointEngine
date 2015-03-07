@@ -223,13 +223,19 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 
 	// Initialize result object
 	IStaticObject* pStaticObject = new StaticObject();
+	IStaticObject* pReturn = pStaticObject;
 	if (Failure(pStaticObject->Init(m_pEngine, &geom)))
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed Init Static Object to store loaded 3ds file!");
-		return nullptr;
+		pReturn = 0;
 	}
 
-	return pStaticObject;
+	SP_SAFE_DELETE_ARR(geom.pVertices, 1);
+	SP_SAFE_DELETE_ARR(geom.pIndices, 1);
+	SP_SAFE_DELETE_ARR(geom.pMatIndexAssigns, 1);	
+
+
+	return pReturn;
 }
 
 // -------------------------------------------------------------------------------------------------

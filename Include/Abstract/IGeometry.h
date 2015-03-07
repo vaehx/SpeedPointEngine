@@ -121,17 +121,15 @@ enum S_API EGeomUsage
 };
 
 
-// Note:
-//	This structure deletes the vertices and indices arrays when being destructed!
 struct S_API SInitialGeometryDesc
 {
 	EGeomUsage vertexUsage;
 	EGeomUsage indexUsage;
 
-	SVertex* pVertices;	// gets deleted automatically when destructed. Otherwise make sure to set pointer to 0
+	SVertex* pVertices;
 	usint32 nVertices;
 
-	SIndex* pIndices;	// gets deleted automatically when destructed. Otherwise make sure to set pointer to 0
+	SIndex* pIndices;
 	usint32 nIndices;
 
 	char* singleMatName;
@@ -162,18 +160,6 @@ struct S_API SInitialGeometryDesc
 
 	~SInitialGeometryDesc()
 	{
-		if (IS_VALID_PTR(pVertices))	
-			delete[] pVertices;			
-
-		if (IS_VALID_PTR(pIndices))
-			delete[] pIndices;
-
-		if (IS_VALID_PTR(pMatIndexAssigns))
-			delete[] pMatIndexAssigns;
-
-		if (IS_VALID_PTR(singleMatName))
-			delete[] singleMatName;
-
 		pVertices = 0;
 		pIndices = 0;
 		nVertices = 0;
