@@ -125,7 +125,9 @@ S_API IMaterial* BasicMaterialManager::FindMaterial(const char* name)
 ///////////////////////////////////////////////////////////////////////////////////////////
 S_API IMaterial* BasicMaterialManager::CreateMaterial(const char* name)
 {
-	return m_Materials.Get();
+	IMaterial* pMat = m_Materials.Get();
+	pMat->SetName(name);
+	return pMat;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

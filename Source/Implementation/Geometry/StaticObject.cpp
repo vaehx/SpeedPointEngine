@@ -181,6 +181,7 @@ S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pIn
 {
 	m_Renderable.Clear();	
 
+	m_pEngine = pEngine;
 	if (!IS_VALID_PTR(m_pEngine))
 		return CLog::Log(S_ERROR, "Tried init Static Object, but engine ptr is invalid!");
 

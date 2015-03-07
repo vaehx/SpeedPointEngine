@@ -58,10 +58,13 @@ public:
 		char* msgstr = new char[msgln];
 		SPSPrintf(msgstr, msgln, "%s%s\n", resDsc, (char*)msg);
 
-		for (auto itListener = g_LogListeners.begin(); itListener != g_LogListeners.end(); itListener++)
+		if (g_LogListeners.size() > 0)
 		{
-			if (IS_VALID_PTR(*itListener))
-				(*itListener)->OnLog(res, msgstr);
+			for (auto itListener = g_LogListeners.begin(); itListener != g_LogListeners.end(); itListener++)
+			{
+				if (IS_VALID_PTR(*itListener))
+					(*itListener)->OnLog(res, msgstr);
+			}
 		}
 
 		printf("%s", msgstr);

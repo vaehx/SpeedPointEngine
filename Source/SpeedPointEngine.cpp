@@ -97,15 +97,15 @@ S_API SResult EngineFileLog::Log(SResult res, const SString& msg)
 		break;
 	}
 
-	formattedMsg += "\n";
+	//formattedMsg += "\n";
 	if (m_LogHandlers.size() > 0)
 	{
 		for (auto itLH = m_LogHandlers.begin(); itLH != m_LogHandlers.end(); itLH++)
-			(*itLH)->OnLog(res, formattedMsg);
+			(*itLH)->OnLog(res, msg);
 	}
 
 	if (m_LogFile.is_open())
-		m_LogFile << formattedMsg << std::endl;
+		m_LogFile << msg;
 
 	return res;
 }
@@ -355,6 +355,8 @@ S_API SResult SpeedPointEngine::InitializeLogger(IFileLogHandler* pCustomFileLog
 {
 	if (IS_VALID_PTR(pCustomFileLogHandler))
 		m_FileLog.RegisterLogHandler(pCustomFileLogHandler);
+
+	CLog::RegisterListener((ILogListener*)this);
 
 	LogD("Initialized File Logger!");
 
