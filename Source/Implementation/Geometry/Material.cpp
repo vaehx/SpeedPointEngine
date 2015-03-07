@@ -108,12 +108,12 @@ S_API IMaterial* BasicMaterialManager::FindMaterial(const char* name)
 
 	unsigned int iterator = 0;
 	BasicMaterial* pMat;
-	while (IS_VALID_PTR((pMat = m_Materials.GetNextUsedObject(iterator))))
+	while (pMat = m_Materials.GetNextUsedObject(iterator))
 	{	
 		if (!IS_VALID_PTR(pMat))
 			break;
 
-		if (strcmp(pMat->GetName(), name))
+		if (_stricmp(pMat->GetName(), name) == 0)
 			return pMat;
 	}
 

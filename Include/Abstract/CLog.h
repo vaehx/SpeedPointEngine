@@ -84,18 +84,25 @@ public:
 
 		m_bLogLocked = false;
 		return res;
+	}	
+
+	SResult Log(SResult res, const char* fmt, va_list args)
+	{
+		char out[300];		
+		//SPSPrintf(out, 500, fmt, args);
+		vsnprintf_s(out, 300, fmt, args);		
+
+		return Log(res, SString(out));
 	}
 
 	SResult Log(SResult res, const char* fmt, ...)
 	{
-		char out[300];
 		va_list args;
 		va_start(args, fmt);
-		//SPSPrintf(out, 500, fmt, args);
-		vsnprintf_s(out, 300, fmt, args);
+		Log(res, fmt, args);
 		va_end(args);
 
-		return Log(res, SString(out));
+		return res;
 	}
 };
 
