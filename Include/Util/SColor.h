@@ -6,6 +6,7 @@
 
 #pragma once
 #include "SAPI.h"
+#include <Abstract\Vector3.h>
 
 SP_NMSPACE_BEG
 
