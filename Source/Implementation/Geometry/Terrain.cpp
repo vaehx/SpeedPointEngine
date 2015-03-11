@@ -623,13 +623,13 @@ S_API SResult Terrain::Render(SCamera* pCamera)
 
 	if (!IS_VALID_PTR(dsc->pDrawCallDescs))
 	{
-		dsc->pDrawCallDescs = new SDrawCallDesc[m_nLodLevels];
+		dsc->pDrawCallDescs = new STerrainDrawCallDesc[m_nLodLevels];
 		dsc->nDrawCallDescs = m_nLodLevels;
 	}
 
 	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
 	{		
-		SDrawCallDesc* dcd = &dsc->pDrawCallDescs[iLodLvl];
+		STerrainDrawCallDesc* dcd = &dsc->pDrawCallDescs[iLodLvl];
 		ITerrain::LodLevel* lodLvl = &m_pLodLevels[iLodLvl];				
 				
 		if (!IS_VALID_PTR(lodLvl->pIndices) || !IS_VALID_PTR(lodLvl->pVertices)

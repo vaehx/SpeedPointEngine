@@ -80,6 +80,8 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 
 	SpeedPoint::SResult initResult = SpeedPoint::S_SUCCESS;	
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeLogger(&logHandler));
+	m_pEngine->GetFileLog()->SetLogFile("App.log");
+
 	EXEC_CONDITIONAL(initResult, m_pEngine->GetLog()->SetLogLevel(SpeedPoint::ELOGLEVEL_DEBUG));	
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeFramePipeline());
 	EXEC_CONDITIONAL(initResult, m_pEngine->InitializeRenderer(SpeedPoint::S_DIRECTX11, SpeedPoint::DirectX11Renderer::GetInstance(), true));
@@ -91,9 +93,7 @@ bool Test::Start(HWND hWnd, HINSTANCE hInstance)
 	{
 		delete m_pEngine;
 		return false;
-	}
-
-	m_pEngine->GetFileLog()->SetLogFile("App.log");
+	}	
 
 	m_pScene = m_pEngine->GetLoadedScene();
 	

@@ -65,6 +65,8 @@ public:
 	virtual void RemoveMaterial(const char* name);
 	virtual void RemoveMaterial(IMaterial** pMat);
 
+	virtual void CollectInitGeomMaterials(SInitialGeometryDesc* pInitGeomDesc);
+
 	virtual IMaterial* GetDefaultMaterial()
 	{
 		return &m_DefMat;

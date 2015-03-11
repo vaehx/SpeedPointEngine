@@ -37,7 +37,8 @@ namespace SpeedPoint
 
 	enum EShaderType
 	{
-		eSHADER_FORWARD,
+		eSHADER_ILLUM,
+		eSHADER_HELPER,
 		eSHADER_TERRAIN,
 		eSHADER_FONT
 	};

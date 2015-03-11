@@ -15,19 +15,22 @@
 
 #include <SPrerequisites.h>
 #include "Vector3.h"
+#include "IGameEngine.h"
 
 
 SP_NMSPACE_BEG
 
 struct S_API ITexture;
-
+struct S_API SInitialGeometryDesc;
 
 struct S_API SShaderResources
 {
 	ITexture* textureMap;	// aggregation, color for full unlit roughness
 	ITexture* normalMap;
 	ITexture* ambientOcclusionMap;
+	float3 diffuse;
 	float3 emissive;
+	EShaderType shaderType;
 
 	ITexture* roughnessMap;
 	float roughness;	// if the glossiness Map is set it is used instead of the global gloss factor
@@ -36,9 +39,11 @@ struct S_API SShaderResources
 		: textureMap(0),
 		normalMap(0),
 		ambientOcclusionMap(0),
-		emissive(0, 0, 0),
+		diffuse(0, 0, 0),		
+		emissive(0, 0, 0),		
 		roughnessMap(0),
-		roughness(1.0f)
+		roughness(1.0f),
+		shaderType(eSHADER_ILLUM)
 	{
 	}
 
@@ -59,6 +64,8 @@ struct S_API SShaderResources
 		normalMap = src.normalMap;
 		ambientOcclusionMap = src.ambientOcclusionMap;
 		emissive = src.emissive;
+		diffuse = src.diffuse;
+		shaderType = src.shaderType;
 		roughnessMap = src.roughnessMap;
 		roughness = src.roughness;
 	}
@@ -128,6 +135,8 @@ struct S_API IMaterialManager
 
 	virtual void RemoveMaterial(const char* name) = 0;
 	virtual void RemoveMaterial(IMaterial** pMat) = 0;
+
+	virtual void CollectInitGeomMaterials(SInitialGeometryDesc* pInitGeomDesc) = 0;
 
 	virtual IMaterial* GetDefaultMaterial() = 0;
 	virtual void LogAllMaterials() = 0;

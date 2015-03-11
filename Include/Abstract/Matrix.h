@@ -348,7 +348,7 @@ static inline void SVector3Unproject(SVector3 *pout, const SVector3& pv, const S
 	vec.y = 1.0f - 2.0f * (pv.y - subsetOffsetY) / vpDesc.viewportHeight;
 	vec.z = (pv.z - vpDesc.minZ) / (vpDesc.maxZ - vpDesc.minZ);
 	
-	SVector3TransformCoord(pout, pv, m3);
+	SVector3TransformCoord(pout, vec, m3);
 }
 
 // calculate view matrix

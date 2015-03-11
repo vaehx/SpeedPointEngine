@@ -44,6 +44,9 @@ struct IRenderableComponent
 	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
 	virtual unsigned int GetSubsetCount() const = 0;
 	virtual EPrimitiveType GetGeometryPrimitiveType() const = 0;
+
+	virtual void SetViewProjMatrix(const SMatrix& mtx) = 0;	
+	virtual void UnsetViewProjMatrix() = 0;
 };
 
 
@@ -57,17 +60,14 @@ struct S_API IRenderableObject : public IObject
 
 	virtual bool IsRenderable() const { return true; }
 
-	virtual IRenderableComponent* GetRenderable() = 0;
-
-	// Moved this to Scene! Get normal geometry from GetGeometry();
-	//virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const = 0;
+	virtual IRenderableComponent* GetRenderable() = 0;	
 
 	virtual IGeometry* GetGeometry() = 0;
 
 	// Warning: References created on heap. PAY ATTENTION TO DELETE THEM PROPERLY!
 	// If the base object is destructed, the base pointer in the reference object might get
 	// automatically zero'ed, depending on its implementation.
-	virtual IReferenceObject* CreateReferenceObject() = 0;
+	virtual IReferenceObject* CreateReferenceObject() { return 0; }
 };
 
 

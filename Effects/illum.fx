@@ -1,21 +1,21 @@
 /////////////////////////////////////////////////////////////////////////
 //
 //
-//		GBuffer Shader
+//		Illum Shader
 //
 //
 /////////////////////////////////////////////////////////////////////////
 
 cbuffer SceneCB : register(b0)
 {    
-    float4x4 mtxView;
-    float4x4 mtxProjection;
+    float4x4 mtxViewProj;    
     float4 sunPos;
     float4 eyePos;
 }
 cbuffer ObjectCB : register(b1)
 {
     float4x4 mtxWorld;
+    float matAmbience;
 }
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
@@ -52,7 +52,7 @@ struct VS_OUTPUT
     float2 TexCoord : TEXCOORD3;
 };
 
-VS_OUTPUT VS_forward(VS_INPUT IN)
+VS_OUTPUT VS_illum(VS_INPUT IN)
 {
     VS_OUTPUT OUT;        
 
@@ -61,10 +61,8 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
     // Convert Position from Object into World-, Camera- and Projection Space
     float4 wPos = mul(mtxWorld, float4(IN.Position,1.0f));
     OUT.WorldPos = wPos.xyz;
-    
-    float4 sPos = mul(mtxView, wPos);
-    float4 rPos = mul(mtxProjection, sPos);
-    OUT.Position = rPos;
+        
+    OUT.Position = mul(transpose(mtxViewProj), wPos);
     
     
     
@@ -133,11 +131,11 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  MAIN FORWARD PIXEL SHADER
+//  MAIN ILLUM PIXEL SHADER
 //
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-PS_OUTPUT PS_forward(PS_INPUT IN)
+PS_OUTPUT PS_illum(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
     
@@ -178,7 +176,7 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float3 phong = calc_phong(normalize(normal), -lightDir, dirToEye, roughness, 0.7f);  
     
     // Global illumination "Ambient" fake
-    float ambient = 0.1f;
+    float ambient = matAmbience;
     
     // Final lighting factor
     float3 lightingFactor = phong + float3(ambient, ambient, ambient);        

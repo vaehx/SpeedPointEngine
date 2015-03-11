@@ -62,6 +62,10 @@ S_API void CStaticObjectRenderable::FillRenderSlot(IGameEngine* pEngine, SRender
 
 	pRenderDesc->renderPipeline = eRENDER_FORWARD;
 
+	pRenderDesc->bCustomViewProjMtx = m_bUseCustomViewProjMtx;
+	if (m_bUseCustomViewProjMtx)
+		pRenderDesc->viewProjMtx = m_ViewProjMtx;
+
 	// copy over subsets
 	pRenderDesc->nSubsets = GetSubsetCount();
 	pRenderDesc->pSubsets = new SRenderSubset[pRenderDesc->nSubsets];
@@ -75,7 +79,7 @@ S_API void CStaticObjectRenderable::FillRenderSlot(IGameEngine* pEngine, SRender
 			continue;
 		}
 
-		renderSubset.drawCallDesc.primitiveType = GetGeometryPrimitiveType();
+		renderSubset.drawCallDesc.primitiveType = GetGeometryPrimitiveType();		
 
 		renderSubset.drawCallDesc.pVertexBuffer = GetVertexBuffer();
 		renderSubset.drawCallDesc.pIndexBuffer = subset->pIndexBuffer;
@@ -186,20 +190,7 @@ S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pIn
 		return CLog::Log(S_ERROR, "Tried init Static Object, but engine ptr is invalid!");
 
 
-	// Find matching material pointers based on given material names	
-	if (pInitialGeom->nMatIndexAssigns > 0)
-	{
-		IMaterialManager* pMatMgr = m_pEngine->GetMaterialManager();
-		if (!IS_VALID_PTR(pMatMgr))
-			return S_ERROR;
-
-		for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < pInitialGeom->nMatIndexAssigns; ++iMatIndexAssign)
-		{
-			SMaterialIndices& matIndexAssign = pInitialGeom->pMatIndexAssigns[iMatIndexAssign];
-			matIndexAssign.pMaterial = pMatMgr->FindMaterial(matIndexAssign.materialName);
-		}
-	}
-
+	m_pEngine->GetMaterialManager()->CollectInitGeomMaterials(pInitialGeom);
 	return m_Renderable.GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), pInitialGeom);
 }
 

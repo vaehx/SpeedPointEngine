@@ -121,6 +121,9 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 		return S_ERROR;
 	}
 
+	CLog::Log(S_DEBUG, "Loaded and compiled effect '%s'", cFilename);
+
+
 	delete[] composedEntryName;
 
 

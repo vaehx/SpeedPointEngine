@@ -25,8 +25,10 @@ using std::vector;
 class S_API CStaticObjectRenderable : public IRenderableComponent
 {
 private:	
-	Geometry m_Geometry;	
-	SRenderSlot* m_pRenderSlot;	
+	Geometry m_Geometry;
+	SMatrix m_ViewProjMtx;
+	bool m_bUseCustomViewProjMtx;
+	SRenderSlot* m_pRenderSlot;
 
 public:	
 	virtual ~CStaticObjectRenderable()
@@ -50,6 +52,16 @@ public:
 	virtual SGeomSubset* GetSubset(unsigned int i);
 	virtual unsigned int GetSubsetCount() const;
 	virtual EPrimitiveType GetGeometryPrimitiveType() const;
+
+	virtual void SetViewProjMatrix(const SMatrix& mtx)
+	{
+		m_ViewProjMtx = mtx;
+		m_bUseCustomViewProjMtx = true; 
+	}
+	virtual void UnsetViewProjMatrix()
+	{
+		m_bUseCustomViewProjMtx = false;
+	}
 };
 
 

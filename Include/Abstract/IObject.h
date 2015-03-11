@@ -49,6 +49,7 @@ struct IScriptableComponent;
 
 enum S_API EObjectType
 {
+	eGEOMOBJ_UNKNOWN = 0,
 	eGEOMOBJ_STATIC,
 	eGEOMOBJ_RIGID, // has physics
 	eGEOMOBJ_ENTITY, // all components are optional except scripting
@@ -57,7 +58,7 @@ enum S_API EObjectType
 	eGEOMOBJ_WATER,
 	eGEOMOBJ_TERRAIN,
 	eGEOMOBJ_SKYBOX,
-	eGEOMOBJ_REFERENCE
+	eGEOMOBJ_REFERENCE	
 	// ...
 };
 

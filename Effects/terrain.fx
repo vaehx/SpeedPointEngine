@@ -10,8 +10,7 @@ static const float PI = 3.14159265f;
 
 cbuffer SceneCB : register(b0)
 {    
-    float4x4 mtxView;
-    float4x4 mtxProjection;
+    float4x4 mtxViewProj;    
     float4 sunPos;
     float4 eyePos;
 }
@@ -94,11 +93,8 @@ VS_OUTPUT VS_terrain(VS_INPUT IN)
     // Sample vertex height from vertex heightmap texture    
     float4 wPos = float4(IN.Position, 1.0f);        
     wPos.y = SampleVertexHeightmapBilinear(IN.TexCoord) * 10.0f;                                
-    OUT.WorldPos = wPos.xyz;
-        
-    float4 sPos = mul(mtxView, wPos);
-    float4 rPos = mul(mtxProjection, sPos);            
-    OUT.Position = rPos;
+    OUT.WorldPos = wPos.xyz;                        
+    OUT.Position = mul(mtxViewProj, wPos);
     
     
     // Calculate normal
@@ -119,7 +115,7 @@ VS_OUTPUT VS_terrain(VS_INPUT IN)
     float3 normal2 = normalize(cross(neighbor2 - wPos, neighbor3 - wPos));
     float3 normal3 = normalize(cross(neighbor3 - wPos, neighbor4 - wPos));
     float3 normal4 = normalize(cross(neighbor4 - wPos, neighbor1 - wPos));             
-    float3 N = normalize(normal1 + normal2 + normal3 + normal4 + float3(0, 1.0f, 0));
+    float3 N = normalize(normal1 + normal2 + normal3 + normal4);
     
     OUT.Normal = -N;            
     
@@ -213,7 +209,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
     
     uint2 pos = { IN.TexCoord.x * terrainHeightmapSz, IN.TexCoord.y * terrainHeightmapSz };
-    vtxHeight = vtxHeightMap[pos];
+    //vtxHeight = vtxHeightMap[pos];
     
     // Calculate lighting factor. Using a fixed light dir    
     float3 lightDir = normalize(float3(0, -0.3f, 0.8f));
@@ -233,7 +229,8 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float terrainFadeFactor = terrain_fade_factor(dirln);
     OUT.Color = (sampleCM * 0.5f * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity); 
 
-    //OUT.Color = float4(IN.Normal, 1.0f);
+    //OUT.Color = float4(IN.Normal, 0.0f);
+    //OUT.Color = vtxHeight.rrrr;
                
     return OUT;
 }

@@ -13,6 +13,7 @@
 
 #include <Implementation\Geometry\Material.h>
 #include <Abstract\IResourcePool.h>
+#include <Abstract\IGeometry.h>
 
 SP_NMSPACE_BEG
 
@@ -103,6 +104,9 @@ S_API BasicMaterialManager::BasicMaterialManager()
 ///////////////////////////////////////////////////////////////////////////////////////////
 S_API IMaterial* BasicMaterialManager::FindMaterial(const char* name)
 {	
+	if (!IS_VALID_PTR(name))
+		return 0;
+
 	if (m_Materials.GetUsedObjectCount() == 0)
 		return 0;
 
@@ -120,6 +124,23 @@ S_API IMaterial* BasicMaterialManager::FindMaterial(const char* name)
 	CLog::Log(S_ERROR, "Could not find material '%s'.", name);
 
 	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+S_API void BasicMaterialManager::CollectInitGeomMaterials(SInitialGeometryDesc* pInitialGeom)
+{
+	if (!IS_VALID_PTR(pInitialGeom))
+		return;
+
+	// Find matching material pointers based on given material names	
+	if (pInitialGeom->nMatIndexAssigns > 0)
+	{		
+		for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < pInitialGeom->nMatIndexAssigns; ++iMatIndexAssign)
+		{
+			SMaterialIndices& matIndexAssign = pInitialGeom->pMatIndexAssigns[iMatIndexAssign];
+			matIndexAssign.pMaterial = FindMaterial(matIndexAssign.materialName);
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

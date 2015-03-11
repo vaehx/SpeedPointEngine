@@ -76,13 +76,14 @@ m_pDSV(0),
 m_nRenderTargets(0),
 m_pDepthStencilState(0),
 m_pPerSceneCB(nullptr),
-m_pPerObjectCB(nullptr),
+m_pIllumCB(nullptr),
+m_pHelperCB(nullptr),
 m_pTerrainCB(nullptr),
+m_pBoundCB(nullptr),
 m_bInScene(false),
 m_bDumpFrame(false),
-m_bPerObjectCBBound(false),
 m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
-{	
+{
 };
 
 // --------------------------------------------------------------------
@@ -569,14 +570,13 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 
 
 	// initialize the shaders
-	SString forwardFXFile = m_pEngine->GetShaderPath(eSHADER_FORWARD);
+	SString illumFXFile = m_pEngine->GetShaderPath(eSHADER_ILLUM);
+	SString helperFXFile = m_pEngine->GetShaderPath(eSHADER_HELPER);
 	SString terrainFXFile = m_pEngine->GetShaderPath(eSHADER_TERRAIN);
 
-	if (Failure(m_ForwardEffect.Initialize(m_pEngine, forwardFXFile, "forward")))
-		return S_ERROR;
-
-	if (Failure(m_TerrainEffect.Initialize(m_pEngine, terrainFXFile, "terrain")))
-		return S_ERROR;
+	if (Failure(m_IllumEffect.Initialize(m_pEngine, illumFXFile, "illum"))) return S_ERROR;
+	if (Failure(m_TerrainEffect.Initialize(m_pEngine, terrainFXFile, "terrain"))) return S_ERROR;
+	if (Failure(m_HelperEffect.Initialize(m_pEngine, helperFXFile, "helper"))) return S_ERROR;
 
 	// Create unset texture dummy
 	m_DummyTexture.Initialize(m_pEngine, "notexture", false);
@@ -628,14 +628,16 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);	
 
 	m_TerrainEffect.Clear();
-	m_ForwardEffect.Clear();	
+	m_IllumEffect.Clear();	
+	m_HelperEffect.Clear();
 	m_Viewport.Clear();
 
 	SP_SAFE_RELEASE(m_pDefaultSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	SP_SAFE_RELEASE(m_pRSState);
 	SP_SAFE_RELEASE(m_pPerSceneCB);
-	SP_SAFE_RELEASE(m_pPerObjectCB);
+	SP_SAFE_RELEASE(m_pIllumCB);
+	SP_SAFE_RELEASE(m_pHelperCB);	
 	SP_SAFE_RELEASE(m_pTerrainCB);
 	if (IS_VALID_PTR(m_pD3DDeviceContext))
 	{		
@@ -852,11 +854,9 @@ S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/, bool vs /*=false*/)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(IS_VALID_PTR(pTex), S_INVALIDPARAM);
+	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
-	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
-	SP_ASSERTRD(IS_VALID_PTR(pSRV), S_ERROR, "SRV of Texture not set or invalid!");	
+	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;	
 
 	if (vs)
 		m_pD3DDeviceContext->VSSetShaderResources(lvl, 1, &pSRV);
@@ -869,14 +869,17 @@ S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/,
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(pFBO, S_INVALIDPARAM);
+	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
-	DirectX11FBO* pDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);	
-	SP_ASSERTR(pDXFBO, S_INVALIDPARAM);
+	ID3D11ShaderResourceView* pSRV = 0;
+	if (IS_VALID_PTR(pFBO))
+	{
+		DirectX11FBO* pDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);
+		SP_ASSERTR(pDXFBO, S_INVALIDPARAM);
 
-	ID3D11ShaderResourceView* pSRV = pDXFBO->GetSRV();
-	SP_ASSERTR(pSRV, S_ERROR);
+		pSRV = pDXFBO->GetSRV();
+		SP_ASSERTR(pSRV, S_ERROR);
+	}
 
 	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
 
@@ -1059,19 +1062,10 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		FrameDump("Cannot Unleash Render SChedule: Not in scene!");
 		return S_INVALIDSTAGE;
 	}
-
-	//ERenderPipeline previousTechnique = eRENDER_FORWARD;
-	//RETURN_ON_ERR(BindSingleRT(m_pTargetViewport));
-
-
-
-
-	// TODO: Decide whether extra terrain render desc is good.
-
 	
 
 	// Update Per-Scene Constants Buffer
-	SetViewportMatrices(m_pTargetViewport);
+	SetViewProjMatrix(m_pTargetViewport);
 	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
 
 	// In case something else was bound to the slot before...
@@ -1105,9 +1099,12 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 			UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &m_TerrainRenderDesc.constants);
 
 		// bind terrain cb
-		m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pTerrainCB);
-		m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
-		m_bPerObjectCBBound = false;
+		if (m_pBoundCB != m_pTerrainCB)
+		{
+			m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pTerrainCB);
+			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
+			m_pBoundCB = m_pTerrainCB;
+		}
 
 		m_pD3DDeviceContext->OMSetBlendState(m_pTerrainBlendState, 0, 0xffffffff);
 		
@@ -1145,11 +1142,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	unsigned int iRSIterator = 0;
 	for (unsigned int iSlot = 0; iSlot < m_RenderSchedule.GetUsedObjectCount(); ++iSlot)
 	{
-		SRenderSlot* pSlot;
-		if (iSlot >= 49)
-			pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
-		else
-			pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
+		SRenderSlot* pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);		
 		
 		if (pSlot == 0)
 			break; // End of Schedule reached
@@ -1167,27 +1160,16 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 				return S_ERROR;
 
 			
-			// Set the viewport matrices
-			SetViewportMatrices(m_pTargetViewport);
-			UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+			// Set the viewport matrices			
+			if (pDesc->bCustomViewProjMtx)
+				SetViewProjMatrix(pDesc->viewProjMtx);
+			else
+				SetViewProjMatrix(m_pTargetViewport);
 
+			const SVector3& camPos = m_pTargetViewport->GetCamera()->position;
+			SetEyePosition(Vec3f(camPos.x, camPos.y, camPos.z));
 
-			// Set the transformation matrices
-			SetWorldMatrix(pDesc->transform);
-			if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
-				return S_ERROR;
-
-
-			// Make sure to bind the Object CB, which is not bound if
-			// terrain has been rendered before.
-			if (!m_bPerObjectCBBound)
-			{
-				m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pPerObjectCB);
-				m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pPerObjectCB);
-				m_bPerObjectCBBound = true;
-			}
-
-
+			UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);		
 
 			// NOW RENDER THE SUBSETS
 			DrawForwardSubsets(*pDesc);
@@ -1221,17 +1203,27 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 		SRenderSubset& subset = renderDesc.pSubsets[iSubset];
 	
 		if (!subset.render)
-			continue;
+			continue;		
+
+		// Enable correct shader
+		switch (subset.shaderResources.shaderType)
+		{
+		case eSHADER_ILLUM: m_IllumEffect.Enable(); break;
+		case eSHADER_HELPER: m_HelperEffect.Enable(); break;
+		default:
+			continue; // invalid shader
+		}
 
 		// Set material
-		ITexture* pTextureMap = IS_VALID_PTR(subset.shaderResources.textureMap) ? subset.shaderResources.textureMap : (ITexture*)&m_DummyTexture;
-		ITexture* pNormalMap = IS_VALID_PTR(subset.shaderResources.normalMap) ? subset.shaderResources.normalMap : (ITexture*)&m_DummyNormalMap;
-		
-		BindTexture(pTextureMap, 0);
-		BindTexture(pNormalMap, 1);
+		SMatrix4 worldMtx = SMatrixTranspose(renderDesc.transform.BuildTRS());
+		SetShaderResources(subset.shaderResources, worldMtx);
 
+		if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
+			return S_ERROR;
 
 		DrawForward(subset.drawCallDesc);
+		if (subset.bOnce)
+			subset.render = false;
 	}
 
 	return S_SUCCESS;
@@ -1248,10 +1240,7 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 	if (desc.primitiveType == PRIMITIVE_TYPE_LINES)
 	{
 		if (Failure(SetIBStream(0)))
-			return S_ERROR;
-
-		if (Failure(m_ForwardEffect.Enable()))
-			return S_ERROR;
+			return S_ERROR;		
 
 		if (m_SetPrimitiveType != PRIMITIVE_TYPE_LINES)
 		{
@@ -1264,9 +1253,6 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 	else
 	{
 		if (Failure(SetIBStream(desc.pIndexBuffer)))
-			return S_ERROR;
-
-		if (Failure(m_ForwardEffect.Enable()))
 			return S_ERROR;
 
 		if (m_SetPrimitiveType != PRIMITIVE_TYPE_TRIANGLELIST)
@@ -1282,7 +1268,7 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawTerrainSubset(const SDrawCallDesc& dcd)
+S_API SResult DirectX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
 {
 	if (!dcd.bRender)
 		return S_SUCCESS;
@@ -1434,7 +1420,7 @@ S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
 	SP_ASSERTR(pViewport, S_INVALIDPARAM);
 
 	m_pTargetViewport = pViewport;
-	SetViewportMatrices(pViewport);
+	SetViewProjMatrix(pViewport);
 	if (m_pD3DDeviceContext)
 	{
 		DirectX11Viewport* pDXViewport = dynamic_cast<DirectX11Viewport*>(pViewport);
@@ -1470,18 +1456,22 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 
 	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
 	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
-	m_pEngine->LogD("Created and set per scene CB");
 
 
 
-	// Per-Object CB
-	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerObjectCB, sizeof(SPerObjectConstantBuffer))))
-		return S_ERROR;
+
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pIllumCB, sizeof(SIllumConstantBuffer))))
+		return CLog::Log(S_ERROR, "Failed create illum CB!");
+
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pHelperCB, sizeof(SHelperConstantBuffer))))
+		return CLog::Log(S_ERROR, "Failed create helper CB!");
 	
-	m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pPerObjectCB);
-	m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pPerObjectCB);
+	/*
+	m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pIllumCB);
+	m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pIllumCB);
 	m_bPerObjectCBBound = true;
-	m_pEngine->LogD("Created and set per object CB");	
+	m_pEngine->LogD("Created and set per object CB");
+	*/
 
 
 
@@ -1507,17 +1497,6 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb, co
 		assert(IS_VALID_PTR(pSceneBuffer));
 		memcpy((void*)pSceneBuffer, (void*)&m_PerSceneCB, sizeof(SPerSceneConstantBuffer));
 		D3D11_UnlockConstantsBuffer(m_pPerSceneCB);
-		break;
-
-
-	case CONSTANTBUFFER_PEROBJECT:
-		SPerObjectConstantBuffer* pObjectBuffer;
-		if (Failure(D3D11_LockConstantsBuffer(m_pPerObjectCB, (void**)&pObjectBuffer)))
-			return S_ERROR;
-
-		assert(IS_VALID_PTR(pObjectBuffer));
-		*pObjectBuffer = m_PerObjectCB;
-		D3D11_UnlockConstantsBuffer(m_pPerObjectCB);
 		break;
 
 
@@ -1585,56 +1564,99 @@ S_API SResult DirectX11Renderer::D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetViewportMatrices(IViewport* pViewport)
+S_API void DirectX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 {	
 	IViewport* pV = (pViewport) ? pViewport : GetTargetViewport();
 
-
-
-
-	// PROJECTION MATRIX
-
-
-	m_PerSceneCB.mtxProjection = pV->GetProjectionMatrix();
-
-	FrameDump(m_PerSceneCB.mtxProjection, "Projection matrix");
-
-
-
-
-
-	// VIEW MATRIX
-
-
 	pV->RecalculateCameraViewMatrix();
-	m_PerSceneCB.mtxView = pV->GetCameraViewMatrix();
-	FrameDump(m_PerSceneCB.mtxView, "View matrix");
-
-	m_PerSceneCB.eyePosition = float4(pV->GetCamera()->position, 1.0f);	
-
-	SCamera* pCamera = pV->GetCamera();
-	FrameDump(pCamera->position, "Camera position");	
-	FrameDump(pCamera->rotation, "Camera rotation");
-
-
-
-	return S_SUCCESS;
+	const SMatrix4& viewMtx = pV->GetCameraViewMatrix();
+	const SMatrix4& projMtx = pV->GetProjectionMatrix();
+	m_PerSceneCB.mtxViewProj = viewMtx * projMtx;	
+	//m_PerSceneCB.mtxViewProj = projMtx * viewMtx;
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj)
+S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
-	m_PerSceneCB.mtxProjection = mtxProj;
-	m_PerSceneCB.mtxView = mtxView;
-	return S_SUCCESS;
+	m_PerSceneCB.mtxViewProj = mtxView * mtxProj;		
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetWorldMatrix(const STransformationDesc& transform)
+S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
 {
-	m_PerObjectCB.mtxTransform = SMatrixTranspose(transform.BuildTRS());
-	//m_PerObjectCB.mtxTransform = transform.BuildTRS();
-	return S_SUCCESS;
+	m_PerSceneCB.mtxViewProj = mtxViewProj;	
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
+{
+	m_PerSceneCB.eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
+}
+
+// --------------------------------------------------------------------
+S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMat)
+{
+	// Bind CB according to shader
+	ID3D11Buffer* pCB = 0;	
+	void* pConstantsData = 0;
+	unsigned int cbSize = 0;
+	switch (shaderResources.shaderType)
+	{
+	case eSHADER_ILLUM:
+	{
+		if (!(pCB = m_pIllumCB))
+			return false;
+
+		// Bind textures
+		ITexture* pTextureMap = IS_VALID_PTR(shaderResources.textureMap) ? shaderResources.textureMap : (ITexture*)&m_DummyTexture;
+		ITexture* pNormalMap = IS_VALID_PTR(shaderResources.normalMap) ? shaderResources.normalMap : (ITexture*)&m_DummyNormalMap;
+
+		BindTexture(pTextureMap, 0);
+		BindTexture(pNormalMap, 1);
+
+		// Set constants
+		m_IllumCB.mtxTransform = worldMat;
+		m_IllumCB.matAmbient = 0.1f;
+
+		pConstantsData = (void*)&m_IllumCB;
+		cbSize = sizeof(m_IllumCB);
+		break;
+	}
+
+	case eSHADER_HELPER:
+	{
+		if (!(pCB = m_pHelperCB))
+			return false;
+
+		m_HelperCB.color = shaderResources.diffuse;
+		m_HelperCB.mtxTransform = worldMat;
+
+		pConstantsData = (void*)&m_HelperCB;
+		cbSize = sizeof(m_HelperCB);
+		break;
+	}
+
+	default:
+		// Invalid shader!
+		return false;
+	}
+	
+	if (!pConstantsData)
+		return false;
+
+	void* pLockedData = 0;
+	D3D11_LockConstantsBuffer(pCB, &pLockedData);	
+	memcpy(pLockedData, pConstantsData, cbSize);
+	D3D11_UnlockConstantsBuffer(pCB);
+	
+	if (m_pBoundCB != pCB)
+	{
+		m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &pCB);
+		m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &pCB);
+		m_pBoundCB = pCB;
+	}	
+
+	return true;
 }
 
 // --------------------------------------------------------------------

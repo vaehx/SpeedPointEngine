@@ -40,6 +40,8 @@ S_API SResult EngineFileLog::SetLogFile(const SString& file)
 	if (!m_LogFile.is_open())
 		return S_ERROR;
 
+	CLog::Log(S_DEBUG, "Opened %s as log file!", (char*)file);
+
 	return S_SUCCESS;
 }
 
@@ -181,6 +183,7 @@ S_API void SpeedPointEngine::Shutdown(void)
 	}
 
 	CLog::Log(S_INFO, "Engine shut down");
+	m_FileLog.Clear();
 }
 
 // ----------------------------------------------------------------------------------
@@ -383,8 +386,11 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderType shader)
 	char* relativePath;
 	switch (shader)
 	{
-	case eSHADER_FORWARD:
-		relativePath = "Effects\\forward.fx";
+	case eSHADER_ILLUM:
+		relativePath = "Effects\\illum.fx";
+		break;
+	case eSHADER_HELPER:
+		relativePath = "Effects\\helper.fx";
 		break;
 	case eSHADER_TERRAIN:
 		relativePath = "Effects\\terrain.fx";
@@ -393,7 +399,7 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderType shader)
 		relativePath = "Effects\\font.fx";
 		break;
 	default:
-		relativePath = "Effects\\forward.fx";
+		relativePath = "Effects\\illum.fx";
 	}
 
 #ifdef _DEBUG

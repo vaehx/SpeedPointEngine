@@ -130,8 +130,7 @@ struct S_API SPerSceneConstantBuffer
 	// save memory bandwidth. Also it might be that the camera or projection changes
 	// per scene.
 
-	SMatrix4 mtxView;
-	SMatrix4 mtxProjection;
+	SMatrix4 mtxViewProj;	
 
     // Pos used instead of Dir, to avoid struggling around with angles when calculating
     // sun traveling due to TOD.   sun dir = normalize(-sunPosition)
@@ -141,21 +140,37 @@ struct S_API SPerSceneConstantBuffer
 
 	SPerSceneConstantBuffer& operator = (const SPerSceneConstantBuffer& b)
 	{
-		mtxView = b.mtxView;
-		mtxProjection = b.mtxProjection;
+		mtxViewProj = b.mtxViewProj;
 		sunPosition = b.sunPosition;
 		eyePosition = b.eyePosition;
 		return *this;
 	}
 };
 
-struct S_API SPerObjectConstantBuffer
+struct S_API SHelperConstantBuffer
 {
 	SMatrix4 mtxTransform;
+	float3 color;
 
-	SPerObjectConstantBuffer& operator = (const SPerObjectConstantBuffer& b)
+	float struct_padding;
+};
+
+struct S_API SIllumConstantBuffer
+{
+	SMatrix4 mtxTransform;
+	float matAmbient;
+
+	float struct_padding[3];
+
+	SIllumConstantBuffer()
+		: matAmbient(0.1f)
+	{
+	}
+
+	SIllumConstantBuffer& operator = (const SIllumConstantBuffer& b)
 	{
 		mtxTransform = b.mtxTransform;
+		matAmbient = b.matAmbient;
 		return *this;
 	}
 };
@@ -188,19 +203,14 @@ struct S_API SDrawCallDesc
 	usint32 iStartIBIndex;
 	usint32 iEndIBIndex;
 	usint32 iStartVBIndex;
-	usint32 iEndVBIndex;
+	usint32 iEndVBIndex;	
 
-	//STransformationDesc transform;
-
-	EPrimitiveType primitiveType;
-
-	bool bRender;
+	EPrimitiveType primitiveType;	
 
 	SDrawCallDesc()
 		: pVertexBuffer(0),
 		pIndexBuffer(0),
-		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST),
-		bRender(true)
+		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)	
 	{
 	}
 
@@ -212,8 +222,7 @@ struct S_API SDrawCallDesc
 		iStartVBIndex(o.iStartVBIndex),
 		iEndVBIndex(o.iEndVBIndex),
 		//transform(o.transform),
-		primitiveType(o.primitiveType),
-		bRender(o.bRender)
+		primitiveType(o.primitiveType)
 	{
 	}
 };
@@ -230,6 +239,12 @@ struct SRenderSubset
 	SShaderResources shaderResources;
 	SDrawCallDesc drawCallDesc;
 	bool render; // true to render, false to skip
+	bool bOnce;	// set bRender to false if drawcall passed the pipeline
+
+	SRenderSubset()
+		: bOnce(false)
+	{
+	}
 };
 
 struct S_API SRenderDesc
@@ -241,17 +256,45 @@ struct S_API SRenderDesc
 	//SMaterial material;
 	STransformationDesc transform;
 	//IGeometry* pGeometry;
+
+	SMatrix viewProjMtx; // custom view-proj-mtx, only used if bCustomViewProjMtx is set to true
+	bool bCustomViewProjMtx; // if false, uses current viewport viewproj
+
+	SRenderDesc()
+		: bCustomViewProjMtx(false)
+	{
+	}
+};
+
+
+// Summary:
+//	Draw call information for a terrain lod level
+struct S_API STerrainDrawCallDesc : SDrawCallDesc
+{	
+	bool bRender;
+
+	STerrainDrawCallDesc()
+		: SDrawCallDesc(),
+		bRender(false)
+	{
+	}
+
+	STerrainDrawCallDesc(const STerrainDrawCallDesc& o)
+		: SDrawCallDesc(o),
+		bRender(o.bRender)
+	{
+	}
 };
 
 struct S_API STerrainRenderDesc
 {
-	SDrawCallDesc *pDrawCallDescs;
+	STerrainDrawCallDesc *pDrawCallDescs;
 	unsigned int nDrawCallDescs;
 	STransformationDesc transform;	
 	ITexture* pColorMap;
 	ITexture* pDetailMap;
 	ITexture* pVtxHeightMap;
-	STerrainConstantBuffer constants;
+	STerrainConstantBuffer constants;	
 	bool bUpdateCB;
 	bool bRender;
 
@@ -262,7 +305,7 @@ struct S_API STerrainRenderDesc
 		pDetailMap(nullptr),
 		bUpdateCB(true),
 		bRender(true),
-		pVtxHeightMap(nullptr)
+		pVtxHeightMap(nullptr)		
 	{
 	}
 };
@@ -270,7 +313,7 @@ struct S_API STerrainRenderDesc
 struct S_API SRenderSlot
 {
 	SRenderDesc renderDesc;
-	bool keep; // true if slot may no be released after rendered
+	bool keep; // true if slot may no be released after rendered	
 
 	SRenderSlot()
 		: keep(true)
@@ -495,10 +538,12 @@ protected:
 	//	Update projection and View matrix in Constants Buffer to those of the given viewport
 	// Arguments:
 	//	If pViewport is 0 then the current target-viewport is used (default 0)
-	virtual SResult SetViewportMatrices(IViewport* pViewport = 0) = 0;
-	virtual SResult SetViewportMatrices(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
+	virtual void SetViewProjMatrix(IViewport* pViewport = 0) = 0;
+	virtual void SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
+	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj) = 0;	
 
-	virtual SResult SetWorldMatrix(const STransformationDesc& transform) = 0;
+	// Returns false if setting shader resources failed and the object should not be rendered.
+	virtual bool SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMtx) = 0;
 };
 
 SP_NMSPACE_END
