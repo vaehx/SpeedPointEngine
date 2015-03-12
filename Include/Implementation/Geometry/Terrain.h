@@ -58,6 +58,9 @@ private:
 
 	SResult GenerateFlatVertexHeightmap(float baseHeight);
 
+	ILINE bool RayHeightmapIntersectionRec(float maxHeight, float minHeight, const SRay& ray, const unsigned int recDepth,
+		const float step, Vec3f& intersection, const unsigned int curDepth) const;
+
 public:
 	Terrain()		
 		: m_pEngine(nullptr),
@@ -94,6 +97,15 @@ public:
 	
 	virtual float GetMinHeight() const;	
 	virtual float GetMaxHeight() const;
+
+	ILINE virtual Vec2f GetMinXZ() const { return Vec2f(0, 0); }
+	ILINE virtual Vec2f GetMaxXZ() const
+	{
+		float sz = m_nSegments * m_fSegSz;
+		return Vec2f(sz, sz);
+	}
+
+	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const;
 
 	// Create and fill vertex and index buffers
 	SResult FillVertexAndIndexBuffers();

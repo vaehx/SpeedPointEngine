@@ -99,7 +99,6 @@
     <ClInclude Include="..\..\Include\Util\SConfigFile.h" />
     <ClInclude Include="..\..\Include\Util\SLogFile.h" />
     <ClInclude Include="..\..\Include\Util\SLogStream.h" />
-    <ClInclude Include="..\..\Include\Util\SPlane.h" />
     <ClInclude Include="..\..\Include\Util\SPool.h" />
     <ClInclude Include="..\..\Include\Util\SPoolIndex.h" />
     <ClInclude Include="..\..\Include\Util\SPrimitive.h" />

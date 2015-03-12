@@ -649,6 +649,67 @@ S_API float Terrain::SampleHeight(const Vec2f& texcoords) const
 }
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight, const SRay& ray, const unsigned int recDepth,
+	const float step, Vec3f& intersection, const unsigned int curDepth) const
+{
+	// Create top and bottom planes from heights
+	SPlane minPlane = SPlane::FromHeight(minHeight);
+	SPlane maxPlane = SPlane::FromHeight(maxHeight);
+
+	// Calculate plane intersections
+	Vec3f minPlaneInt, maxPlaneInt;
+	GeomIntersects(minPlane, ray, &minPlaneInt);
+	GeomIntersects(maxPlane, ray, &maxPlaneInt);
+
+	// Calculate step vector     
+	Vec3f stepVec = Vec3Normalize(ray.v) * step;
+
+	Vec2f terrainDimensions = GetMaxXZ() - GetMinXZ();
+
+	// Loop through steps from max height to min height
+	float lastSampledHeight = SampleHeight(Vec2f(maxPlaneInt.x, maxPlaneInt.z) / terrainDimensions);
+	float lastHeight = maxHeight;
+	for (Vec3f curPos = maxPlaneInt + stepVec; curPos.y >= maxHeight; curPos += stepVec)
+	{
+		float newSampledHeight = SampleHeight(Vec2f(curPos.x, curPos.z) / terrainDimensions);
+		if ((lastSampledHeight < lastHeight && newSampledHeight > curPos.y)
+			|| (lastSampledHeight > lastHeight && newSampledHeight < curPos.y))
+		{
+			// if not reached max recursive depth, use a smaller step, otherwise we found the intersection
+			if (curDepth < recDepth)
+			{
+				if (RayHeightmapIntersectionRec(lastHeight, curPos.y, ray, recDepth, step, intersection, curDepth + 1))
+					return true;
+			}
+			else
+			{
+				// found intersection
+				intersection.x = curPos.x;
+				intersection.y = newSampledHeight;
+				intersection.z = curPos.z;
+				return true;
+			}
+		}
+
+		// need to go further, store (sampled) height
+		lastHeight = curPos.y;
+		lastSampledHeight = newSampledHeight;
+	}
+
+	// found nothing
+	return false;
+}
+
+S_API bool Terrain::RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const
+{
+	float maxHeight = GetMaxHeight();
+	float minHeight = GetMinHeight();
+	return RayHeightmapIntersectionRec(maxHeight, minHeight, ray, recDepth, step, intersection, 0);
+}
+
+
+
 
 
 

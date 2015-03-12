@@ -90,7 +90,7 @@ namespace SpeedPoint
 			return x * x + y * y + z * z;
 		}
 
-		ILINE Vec3<F>& Normalized() const
+		ILINE Vec3<F> Normalized() const
 		{
 			F invLn = finv(Length());
 			return Vec3<F>(x * invLn, y * invLn, z * invLn);
@@ -129,6 +129,11 @@ namespace SpeedPoint
 	S_API ILINE Vec3<F> Vec3Normalize(const Vec3<F>& v)
 	{
 		return v.Normalized();
+	}
+
+	template<typename F1, typename F2>
+	S_API ILINE Vec3<F2> operator *(F1 f, const Vec3<F2>& v) {
+		return v * f;
 	}
 
 

@@ -98,9 +98,6 @@
     <ClInclude Include="..\..\Include\Util\SLogStream.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SPlane.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Util\SPool.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>

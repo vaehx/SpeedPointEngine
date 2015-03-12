@@ -11,6 +11,9 @@
     <Filter Include="Headers\Objects">
       <UniqueIdentifier>{e860929a-c3e2-453a-a907-94a6b3e595d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Math">
+      <UniqueIdentifier>{909f56a6-ed94-4aee-ada3-19b2736a5660}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\Abstract\ICommandBuffer.h">
@@ -136,9 +139,6 @@
     <ClInclude Include="..\..\Include\Abstract\ILight.h">
       <Filter>Headers\Data</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\MathGeom.h">
-      <Filter>Headers\Data</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\ChunkPool.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -150,18 +150,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\Transformable.h">
       <Filter>Headers\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Matrix.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Vector3.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Vector2.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Vector4.h">
-      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\SAPI.h">
       <Filter>Headers</Filter>
@@ -198,6 +186,21 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IMaterial.h">
       <Filter>Headers\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Vector3.h">
+      <Filter>Headers\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Vector4.h">
+      <Filter>Headers\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Vector2.h">
+      <Filter>Headers\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Matrix.h">
+      <Filter>Headers\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\MathGeom.h">
+      <Filter>Headers\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

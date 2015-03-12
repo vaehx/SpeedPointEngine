@@ -7,7 +7,8 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include "Vector3.h"
+#include "MathGeom.h"
+//#include "Vector3.h"
 #include "Vector2.h"
 #include "IIndexBuffer.h"
 #include "IVertexBuffer.h"
@@ -197,6 +198,11 @@ public:
 
 	// Get the maximum height in the vtx heightmap
 	virtual float GetMaxHeight() const = 0;
+
+	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const = 0;
+
+	ILINE virtual Vec2f GetMinXZ() const = 0;
+	ILINE virtual Vec2f GetMaxXZ() const = 0;
 
 	//virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
 
