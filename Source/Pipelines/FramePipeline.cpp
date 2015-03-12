@@ -60,7 +60,7 @@ S_API void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SF
 	// FPS
 	InitFontRenderSlot(&m_pFPS, true, true, SpeedPoint::SColor(1.0f, 1.0f, 0.3f), 0, 37, SpeedPoint::eFONTSIZE_MEDIUM);
 	SpeedPoint::SPSPrintf(m_pFPS->text, 200, "FPS %u (%u..%u)",
-		fdi.lastFrameCounter, (unsigned int)(1.0 / fdi.lastMaxFrameTime), (unsigned int)(1.0 / fdi.lastMinFrameTime));
+		fdi.lastFrameCounter, (unsigned int)(1.0 / fdi.lastMaxFrameTime), (unsigned int)(1.0 / fdi.lastMinFrameTime));	
 
 	// Terrain info
 	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 65);

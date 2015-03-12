@@ -16,7 +16,7 @@
 #include <cstdio>
 
 #ifndef ILINE
-#define ILINE inline
+#define ILINE __forceinline
 #endif
 
 
@@ -24,7 +24,7 @@ namespace SpeedPoint
 {
 
 
-	inline int SPSPrintf(char* dst, size_t sz, const char* fmt, ...)
+	ILINE int SPSPrintf(char* dst, size_t sz, const char* fmt, ...)
 	{
 		int cnt;
 
@@ -99,7 +99,7 @@ namespace SpeedPoint
 		}
 
 		// Get the length of a char* buffer without terminated 0
-		static unsigned int GetCharArrLen(const char* str)
+		ILINE static unsigned int GetCharArrLen(const char* str)
 		{
 			if (!IS_VALID_PTR(str))
 			{
@@ -127,7 +127,7 @@ namespace SpeedPoint
 		// Copy one char* to another by given size (improvement of sprintf_S)
 		// size is with terminated 0
 		// returns cound of bytes copied (including terminated 0)
-		static unsigned int CopyCharS(char* Dst, unsigned int nSize, const char* Src, ...)
+		ILINE static unsigned int CopyCharS(char* Dst, unsigned int nSize, const char* Src, ...)
 		{
 			if (!IS_VALID_PTR(Dst) || !nSize || !IS_VALID_PTR(Src))
 			{
@@ -154,7 +154,7 @@ namespace SpeedPoint
 
 		// Catch CopyCharS with no given Source argument
 		// returns 0 as nothing has been copied (not even a terminated 0)
-		static unsigned int CopyCharS(char* Dst, unsigned int nSize, ...)
+		ILINE static unsigned int CopyCharS(char* Dst, unsigned int nSize, ...)
 		{
 			if (!IS_VALID_PTR(Dst) || !nSize)
 			{
@@ -169,7 +169,7 @@ namespace SpeedPoint
 			return 0; // we copied nothing
 		}
 
-		void CopyFromBytes(const char* str)
+		ILINE void CopyFromBytes(const char* str)
 		{
 			if (!IS_VALID_PTR(str))
 			{
@@ -189,7 +189,7 @@ namespace SpeedPoint
 			pBuffer[nLength - 1] = 0; // make sure last character is the terminating 0
 		}
 
-		void CopyFromOther(const SString& s)
+		ILINE void CopyFromOther(const SString& s)
 		{
 			char* pS = (char*)s;
 			if (IS_VALID_PTR(pS))
@@ -210,13 +210,13 @@ namespace SpeedPoint
 
 		// Conversion to char-Array
 		// This does NOT copy the buffer!		
-		operator char*() const
+		ILINE operator char*() const
 		{
 			return pBuffer;
 		}
 
 		// Concatenates strings
-		SString operator + (const SString& s) const
+		ILINE SString operator + (const SString& s) const
 		{
 			if (nLength == 0 && s.GetLength())
 				return SString();
@@ -230,7 +230,7 @@ namespace SpeedPoint
 			return res;
 		}
 
-		SString& operator = (const char* s)
+		ILINE SString& operator = (const char* s)
 		{
 			if (IS_VALID_PTR(pBuffer) && nLength > 0)
 			{
@@ -243,7 +243,7 @@ namespace SpeedPoint
 			return *this;
 		}
 
-		SString& operator = (const SString& s)
+		ILINE SString& operator = (const SString& s)
 		{
 			if (IS_VALID_PTR(pBuffer) && nLength > 0)
 			{
@@ -257,7 +257,7 @@ namespace SpeedPoint
 		}
 
 		// Conatenates string
-		SString& operator += (const SString& s)
+		ILINE SString& operator += (const SString& s)
 		{
 			if (s.GetLength() == 0)
 				return *this;

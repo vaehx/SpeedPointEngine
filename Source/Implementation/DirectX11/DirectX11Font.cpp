@@ -76,7 +76,7 @@ S_API SResult DirectX11FontRenderer::Init(IRenderer* pRenderer)
 
 	hr = pD2DFactory->CreateDxgiSurfaceRenderTarget(pSharedSurface, renderTargetProperties, &m_pD2DRenderTarget);
 
-	//m_pD2DRenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);	
+	m_pD2DRenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
 
 	pSharedSurface->Release();
 	pD2DFactory->Release();
@@ -96,8 +96,7 @@ S_API SResult DirectX11FontRenderer::Init(IRenderer* pRenderer)
 		DWRITE_FONT_STRETCH_NORMAL, 13.0f, L"", &m_pTextFormat);
 
 	hr = m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-	hr = m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-
+	hr = m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);	
 
 	// Bold Text format
 	hr = m_pDWriteFactory->CreateTextFormat(L"Script", 0, DWRITE_FONT_WEIGHT_BLACK, DWRITE_FONT_STYLE_NORMAL,
@@ -236,6 +235,9 @@ S_API void DirectX11FontRenderer::InitConstantsBuffer()
 // ------------------------------------------------------------------------------------------------------------
 S_API void DirectX11FontRenderer::BeginRender()
 {
+	if (m_SkipFrameCounter >= 1 && m_SkipFrameCounter <= m_nKeepFrames)
+		return; // iteration is done in EndRender()
+
 	m_pKeyedMutex11->ReleaseSync(0);
 	m_pKeyedMutex10->AcquireSync(0, 5);
 
@@ -247,6 +249,9 @@ S_API void DirectX11FontRenderer::BeginRender()
 S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos,
 	EFontSize fontSize /*=eFONTSIZE_NORMAL*/, bool alignRight /*=false*/)
 {
+	if (m_SkipFrameCounter >= 1 && m_SkipFrameCounter <= m_nKeepFrames)
+		return; // iteration is done in EndRender()
+
 	unsigned int screenPadding[2];
 	screenPadding[0] = 6;
 	screenPadding[1] = 5;
@@ -272,16 +277,20 @@ S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& col
 	else
 		pUsedTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 
+
 	// Convert multibyte string to wide string
 	unsigned int wbufsz = sp_strlen(text) + 1;
 	wchar_t* wtext = new wchar_t[wbufsz];
-	MultiByteToWideChar(CP_UTF8, 0, text, -1, wtext, wbufsz);			
+	MultiByteToWideChar(CP_UTF8, 0, text, -1, wtext, wbufsz);	
 
+	// Create layout
+	IDWriteTextLayout* pTextLayout;
+	m_pDWriteFactory->CreateTextLayout(wtext, wbufsz, pUsedTextFormat, drawRect.right - drawRect.left, drawRect.bottom - drawRect.top, &pTextLayout);		
 
 	// Draw the shadow	
 	D2D1_COLOR_F fontColor = D2D1::ColorF(0.01f, 0.01f, 0.01f, 1.0f);
 	m_pD2DBrush->SetColor(fontColor);
-	m_pD2DBrush->SetOpacity(1.0f);
+	m_pD2DBrush->SetOpacity(1.0f);		
 
 	D2D1_RECT_F shadowDrawRect = drawRect;
 	for (unsigned short i = 0; i < 2; ++i)
@@ -290,14 +299,16 @@ S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& col
 		shadowDrawRect.left += shadowOffset;
 		shadowDrawRect.top += shadowOffset;
 		shadowDrawRect.bottom += shadowOffset;
-		shadowDrawRect.right += shadowOffset;
-		m_pD2DRenderTarget->DrawTextA(wtext, wbufsz, pUsedTextFormat, shadowDrawRect, m_pD2DBrush);
+		shadowDrawRect.right += shadowOffset;		
+		m_pD2DRenderTarget->DrawTextLayout(D2D1::Point2F(shadowDrawRect.left, shadowDrawRect.top), pTextLayout, m_pD2DBrush, D2D1_DRAW_TEXT_OPTIONS_NONE);
 	}
 
 	// Draw the Text
 	fontColor = D2D1::ColorF(color.r, color.g, color.b, 1.0f);
 	m_pD2DBrush->SetColor(fontColor);
-	m_pD2DRenderTarget->DrawTextA(wtext, wbufsz, pUsedTextFormat, drawRect, m_pD2DBrush);		
+	m_pD2DRenderTarget->DrawTextLayout(D2D1::Point2F(shadowDrawRect.left, shadowDrawRect.top), pTextLayout, m_pD2DBrush, D2D1_DRAW_TEXT_OPTIONS_NONE);
+
+	pTextLayout->Release();
 
 
 	// Free multibyte string
@@ -307,10 +318,18 @@ S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& col
 // ------------------------------------------------------------------------------------------------------------
 S_API void DirectX11FontRenderer::EndRender()
 {
-	m_pD2DRenderTarget->EndDraw();
+	if (m_SkipFrameCounter == 0)
+	{
+		m_pD2DRenderTarget->EndDraw();
 
-	m_pKeyedMutex10->ReleaseSync(1);
-	m_pKeyedMutex11->AcquireSync(1, 5);
+		m_pKeyedMutex10->ReleaseSync(1);
+		m_pKeyedMutex11->AcquireSync(1, 5);
+	}
+
+	if (m_SkipFrameCounter == m_nKeepFrames)
+		m_SkipFrameCounter = 0;
+	else
+		++m_SkipFrameCounter;
 
 
 	ID3D11DeviceContext* pD3D11DeviceContext = m_pDXRenderer->GetD3D11DeviceContext();

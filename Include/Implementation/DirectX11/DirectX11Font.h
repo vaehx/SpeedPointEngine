@@ -36,7 +36,7 @@ private:
 	ID3D11ShaderResourceView* m_pD2DTexSRV; // d2dTexture
 
 	IDWriteFactory* m_pDWriteFactory;
-	IDWriteTextFormat* m_pTextFormat;	
+	IDWriteTextFormat* m_pTextFormat;		
 	IDWriteTextFormat* m_pMediumTextFormat;
 	IDWriteTextFormat* m_pLargeTextFormat;
 	IDWriteTextFormat* m_pBoldTextFormat;
@@ -49,6 +49,9 @@ private:
 	DirectX11Effect m_FontShader;
 
 	ID3D11Buffer* m_pConstantsBuffer;
+
+	unsigned int m_SkipFrameCounter; // used to count kept frames
+	unsigned int m_nKeepFrames; // show same text for n frames
 
 
 
@@ -71,7 +74,9 @@ public:
 		m_pD2DTexSRV(0),
 		m_pDWriteFactory(0),
 		m_pTextFormat(0),
-		m_pBlendState(0)
+		m_pBlendState(0),
+		m_SkipFrameCounter(0),
+		m_nKeepFrames(2)
 	{
 	}
 

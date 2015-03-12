@@ -22,7 +22,7 @@
 #define SP_NMSPACE_BEG namespace SpeedPoint {
 #define SP_NMSPACE_END }
 
-#define ILINE inline
+#define ILINE __forceinline
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Important core headers.
@@ -103,7 +103,7 @@ typedef usint32 SP_UNIQUE;
 
 // Note: This function assumes that the string properly terminates with a 0!
 //	Otherwise a memory access violation occurs.
-static unsigned short sp_strlen(const char* str)
+ILINE static unsigned short sp_strlen(const char* str)
 {
 	if (!IS_VALID_PTR(str))
 		return 0;
@@ -119,7 +119,7 @@ static unsigned short sp_strlen(const char* str)
 //	DST IS CREATED WITH new BY THIS FUNCTION IF NOT A VALID POINTER!
 //	Otherwise a memory access violation occurs.
 //	MAKE SURE TO DELETE IT PROPERLY!
-static void sp_strcpy(char** dst, const char* src)
+ILINE static void sp_strcpy(char** dst, const char* src)
 {
 	if (!IS_VALID_PTR(dst))
 		return;
