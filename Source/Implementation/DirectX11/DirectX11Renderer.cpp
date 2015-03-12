@@ -636,6 +636,8 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	m_HelperEffect.Clear();
 	m_Viewport.Clear();
 
+	SP_SAFE_RELEASE(m_pDefBlendState);
+	SP_SAFE_RELEASE(m_pTerrainBlendState);
 	SP_SAFE_RELEASE(m_pDefaultSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	SP_SAFE_RELEASE(m_pRSState);
@@ -643,6 +645,10 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pIllumCB);
 	SP_SAFE_RELEASE(m_pHelperCB);	
 	SP_SAFE_RELEASE(m_pTerrainCB);
+
+	m_DummyTexture.Clear();
+	m_DummyNormalMap.Clear();
+
 	if (IS_VALID_PTR(m_pD3DDeviceContext))
 	{		
 		m_pD3DDeviceContext->ClearState();
