@@ -192,6 +192,12 @@ public:
 	virtual float GetHeightScale() const = 0;
 	virtual void SetHeightScale(float f) = 0;	
 
+	// Get the minimum height in the vtx heightmap
+	virtual float GetMinHeight() const = 0;
+
+	// Get the maximum height in the vtx heightmap
+	virtual float GetMaxHeight() const = 0;
+
 	//virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
 
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;

@@ -66,6 +66,9 @@ public:
 	//	pData is assumed to hold data for one pixel
 	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const = 0;
 
+	// Be careful with it!
+	virtual void* GetStagedData() = 0;
+
 	// Get the specification
 	virtual SString GetSpecification( void ) = 0;
 

@@ -48,8 +48,13 @@ private:
 	float m_fTexSz; // texcoord size of a segment
 
 	float m_fChunkStepDist;
+	
+	float m_fMaxHeight; // w/o height scale
+	float m_fMinHeight; // w/o height scale
 					
 
+
+	void CalculateMinMaxHeights();
 
 	SResult GenerateFlatVertexHeightmap(float baseHeight);
 
@@ -86,6 +91,9 @@ public:
 	}
 
 	virtual float SampleHeight(const Vec2f& texcoords) const;
+	
+	virtual float GetMinHeight() const;	
+	virtual float GetMaxHeight() const;
 
 	// Create and fill vertex and index buffers
 	SResult FillVertexAndIndexBuffers();

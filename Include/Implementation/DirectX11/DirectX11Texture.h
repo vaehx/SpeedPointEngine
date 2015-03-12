@@ -90,6 +90,7 @@ public:
 	virtual bool IsStaged() const { return m_bStaged; }
 
 	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const;
+	virtual void* GetStagedData() { return m_pStagedData; }
 	
 	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);	
 	virtual SResult CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor);	

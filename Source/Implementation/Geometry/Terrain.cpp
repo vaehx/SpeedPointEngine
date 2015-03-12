@@ -528,9 +528,58 @@ S_API void Terrain::SetHeightmap(ITexture* heightmap)
 	}
 
 	m_pVtxHeightMap = heightmap;
-	m_bCustomHeightmapSet = true;		
+	m_bCustomHeightmapSet = true;			
+
+	CalculateMinMaxHeights();
 
 	//UpdateCollisionMesh();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API float Terrain::GetMinHeight() const
+{
+	return m_fMinHeight * m_HeightScale;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API float Terrain::GetMaxHeight() const
+{
+	return m_fMaxHeight * m_HeightScale;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API void Terrain::CalculateMinMaxHeights()
+{
+	if (!IS_VALID_PTR(m_pVtxHeightMap))
+	{
+		CLog::Log(S_ERROR, "Failed compute terrain min max heights: Heightmap not set!");
+		return;
+	}
+
+	// Find new min and max height
+	unsigned int heightmapSz[2];
+	m_pVtxHeightMap->GetSize(&heightmapSz[0], &heightmapSz[1]);
+	float* pStagedData = static_cast<float*>(m_pVtxHeightMap->GetStagedData());
+	if (!IS_VALID_PTR(pStagedData))
+	{
+		CLog::Log(S_ERROR, "Could not determine terrain min and max heights: Staged data invalid!");
+		return;
+	}
+
+	m_fMaxHeight = FLT_MIN;
+	m_fMinHeight = FLT_MAX;
+	for (unsigned int ii = 0; ii < heightmapSz[0] * heightmapSz[1]; ++ii)
+	{
+		const float& h = pStagedData[ii];
+		if (h < m_fMinHeight)
+			m_fMinHeight = h;
+
+		if (h > m_fMaxHeight)
+			m_fMaxHeight = h;
+	}
+
+	CLog::Log(S_DEBUG, "Terrain maxHeight=%.2f minHeight=%.2f", m_fMaxHeight, m_fMinHeight);
 }
 
 
@@ -552,7 +601,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	float baseHeightScaled = baseHeight / m_HeightScale;
 	SColor baseColor(baseHeightScaled, baseHeightScaled, baseHeightScaled);	
 
-	SResult res = pRes->AddTexture(m_nSegments + 1, m_nSegments + 1, "terrain_vtxheightmap", eTEXTURE_R32_FLOAT, baseColor, &m_pVtxHeightMap, true);
+	SResult res = pRes->AddTexture(m_nSegments + 1, m_nSegments + 1, "terrain_vtxheightmap", eTEXTURE_R32_FLOAT, baseColor, &m_pVtxHeightMap, true, true);
 	if (Failure(res))
 		return res;
 
@@ -570,7 +619,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 				float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);
 				unsigned long byteval = (unsigned char)(((val + 1.0f) * 0.5f) * 255.0f);
 
-				pPixels[x * rowPitch + y] = val;
+				pPixels[x * rowPitch + y] = (val + 1.0f) * 0.5f;
 			}
 		}
 
@@ -579,7 +628,9 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	else
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed lock vtx height map for terrain!");
-	}	
+	}
+
+	CalculateMinMaxHeights();
 
 	return S_SUCCESS;
 }
