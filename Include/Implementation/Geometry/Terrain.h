@@ -26,9 +26,9 @@ private:
 	bool m_bRequireCBUpdate;				
 
 	// -----
-	float m_MaxHeight;	
-	ITexture* m_pVtxHeightMap;
-	bool m_bCustomHeightmapSet;
+	float m_HeightScale;
+	ITexture* m_pVtxHeightMap;	
+	bool m_bCustomHeightmapSet;	
 
 	ITexture* m_pColorMap;
 	ITexture* m_pDetailMap;
@@ -61,10 +61,10 @@ public:
 		m_bRequireCBUpdate(true),
 		m_pLodLevels(0),
 		m_pChunks(0),		
-		m_MaxHeight(100.0f),		
+		m_HeightScale(100.0f),		
 		m_pVtxHeightMap(nullptr),
-		m_bCustomHeightmapSet(false)
-	{	
+		m_bCustomHeightmapSet(false)		
+	{			
 	}
 
 	virtual ~Terrain();
@@ -85,17 +85,19 @@ public:
 		return m_pVtxHeightMap;
 	}
 
+	virtual float SampleHeight(const Vec2f& texcoords) const;
+
 	// Create and fill vertex and index buffers
 	SResult FillVertexAndIndexBuffers();
 
-	virtual float GetMaxHeight() const
+	virtual float GetHeightScale() const
 	{
-		return m_MaxHeight;
+		return m_HeightScale;
 	}
 
-	virtual void SetMaxHeight(float f)
+	virtual void SetHeightScale(float f)
 	{
-		m_MaxHeight = f;
+		m_HeightScale = f;
 		RequireCBUpdate();
 		RequireRender();
 	}

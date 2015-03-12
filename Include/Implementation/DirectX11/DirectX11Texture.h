@@ -65,13 +65,17 @@ private:
 	IGameEngine* m_pEngine;
 	ETextureType m_Type;
 	bool m_bDynamic;
+	bool m_bStaged;
 	ID3D11Texture2D* m_pDXTexture;
 	D3D11_TEXTURE2D_DESC m_DXTextureDesc;
 	DirectX11Renderer* m_pDXRenderer;
 	ID3D11ShaderResourceView* m_pDXSRV;
 
+	bool m_bLocked;
 	void* m_pLockedData;
 	unsigned int m_nLockedBytes;
+
+	void* m_pStagedData;
 
 public:		
 	DirectX11Texture();
@@ -81,7 +85,11 @@ public:
 	
 
 	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec);	
-	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic);
+	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic, bool bStaged);
+
+	virtual bool IsStaged() const { return m_bStaged; }
+
+	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const;
 	
 	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);	
 	virtual SResult CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor);	

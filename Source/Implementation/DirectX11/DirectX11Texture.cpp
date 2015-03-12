@@ -27,7 +27,10 @@ m_pDXTexture(0),
 m_pDXRenderer(nullptr),
 m_pDXSRV(nullptr),
 m_pLockedData(nullptr),
-m_nLockedBytes(0)
+m_nLockedBytes(0),
+m_pStagedData(0),
+m_bStaged(false),
+m_bLocked(false)
 {
 }
 
@@ -37,7 +40,10 @@ DirectX11Texture::DirectX11Texture(const DirectX11Texture& o)
 m_Type(o.m_Type),
 m_bDynamic(o.m_bDynamic),
 m_pLockedData(nullptr),
-m_nLockedBytes(0)
+m_nLockedBytes(0),
+m_bLocked(false),
+m_pStagedData(0),
+m_bStaged(o.m_bStaged)
 {
 }
 
@@ -50,11 +56,11 @@ DirectX11Texture::~DirectX11Texture()
 // -----------------------------------------------------------------------------------
 S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& spec)
 {	
-	return Initialize(pEngine, spec, false);
+	return Initialize(pEngine, spec, false, false);
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic)
+S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic, bool bStaged)
 {
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);
 
@@ -66,6 +72,8 @@ S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& 
 	m_pDXRenderer = (DirectX11Renderer*)pRenderer;
 	m_Specification = spec;
 	m_bDynamic = bDynamic;
+	m_bStaged = bStaged;
+	m_bLocked = false;
 
 	return S_SUCCESS;
 }
@@ -271,6 +279,26 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 		pDXDevCon->GenerateMips(m_pDXSRV);
 	}
 
+	// Determine type
+	switch (loadedTextureFmt)
+	{
+	case DXGI_FORMAT_R32_FLOAT: m_Type = eTEXTURE_R32_FLOAT; break;
+	case DXGI_FORMAT_D32_FLOAT: m_Type = eTEXTURE_D32_FLOAT; break;		
+	case DXGI_FORMAT_R8G8B8A8_UNORM:
+	default:
+		m_Type = eTEXTURE_R8G8B8A8_UNORM; break;
+	}
+
+	// Store staged data
+	if (m_bStaged)
+	{
+		if (IS_VALID_PTR(m_pStagedData))
+			free(m_pStagedData);
+
+		m_pStagedData = malloc(imageSize);
+		memcpy(m_pStagedData, temp.get(), imageSize);
+	}
+
 	m_pEngine->LogD("Creating new texture from file succeeded!");
 
 	return S_SUCCESS;
@@ -313,6 +341,8 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	{	
 	case eTEXTURE_D32_FLOAT:
 		newTextureFmt = DXGI_FORMAT_D32_FLOAT; break;
+	case eTEXTURE_R32_FLOAT:
+		newTextureFmt = DXGI_FORMAT_R32_FLOAT; break;
 	case eTEXTURE_R8G8B8A8_UNORM:
 	default:	
 		newTextureFmt = DXGI_FORMAT_R8G8B8A8_UNORM; break;
@@ -373,6 +403,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	}
 
 	case eTEXTURE_D32_FLOAT:
+	case eTEXTURE_R32_FLOAT:
 	{
 		float* pEmptyPixels = new float[nPixels];
 		for (unsigned int iPxl = 0; iPxl < nPixels; ++iPxl)
@@ -420,6 +451,16 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 		//pDXDevCon->GenerateMips(m_pDXSRV);
 	}
 
+	// Store staging data
+	if (m_bStaged)
+	{
+		if (IS_VALID_PTR(m_pStagedData))
+			free(m_pStagedData);
+
+		m_pStagedData = malloc(initData.SysMemSlicePitch);
+		memcpy(m_pStagedData, initData.pSysMem, initData.SysMemSlicePitch);
+	}
+
 	delete[] initData.pSysMem;
 
 	m_pEngine->LogD("Creating new empty texture succeeded!");
@@ -457,6 +498,12 @@ S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 // -----------------------------------------------------------------------------------
 S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /* = 0*/)
 {
+	if (!m_bDynamic)
+		return CLog::Log(S_ERROR, "Tried DX11Texture::Lock on non-dynamic texture (%s)", (char*)m_Specification);	
+
+	if (m_bLocked)
+		return CLog::Log(S_ERROR, "Cannot lock DX11Texture (%s): Already locked!", (char*)m_Specification);
+
 	if (!IS_VALID_PTR(pPixels) || !IS_VALID_PTR(pnPixels))
 		return S_INVALIDPARAM;
 
@@ -467,30 +514,48 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 	if (!IS_VALID_PTR(pDXDevCon))
 		return S_NOTINIT;
 
-	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-	memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
-	{
-		m_pDXRenderer->FrameDump("Failed map texture (" + m_Specification + ") for Lock!");
-		return S_ERROR;
-	}
-
-	*pPixels = mappedSubresource.pData;
-	m_pLockedData = mappedSubresource.pData;
-
-	if (IS_VALID_PTR(pnRowPitch))
-		*pnRowPitch = mappedSubresource.RowPitch;
-	
-	*pnPixels = m_DXTextureDesc.Width * m_DXTextureDesc.Height;
+	// Determine bpp for locked data
+	unsigned int bytePerLockedPixel;
 	switch (m_Type)
 	{
-	case eTEXTURE_R8G8B8A8_UNORM:
-		m_nLockedBytes = (*pnPixels) * 4;
-		break;
+	case eTEXTURE_R8G8B8A8_UNORM: bytePerLockedPixel = 4; break;
+	case eTEXTURE_R32_FLOAT:
 	case eTEXTURE_D32_FLOAT:
-		m_nLockedBytes = (*pnPixels) * sizeof(float);
-		break;
+		bytePerLockedPixel = sizeof(float);
 	}
+
+	if (m_bStaged)
+	{
+		if (!IS_VALID_PTR(m_pStagedData))
+			return CLog::Log(S_ERROR, "Failed lock staged texture (%s): Staged data invalid (0x%p)!", (char*)m_Specification, m_pStagedData);
+
+		m_bLocked = true;
+		*pPixels = m_pStagedData;
+		m_pLockedData = 0;
+
+		if (IS_VALID_PTR(pnRowPitch))
+			*pnRowPitch = m_DXTextureDesc.Width * bytePerLockedPixel;
+	}
+	else
+	{
+		D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+		memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
+		if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
+		{
+			m_pDXRenderer->FrameDump("Failed map texture (" + m_Specification + ") for Lock!");
+			return S_ERROR;
+		}
+
+		m_bLocked = true;
+		*pPixels = mappedSubresource.pData;
+		m_pLockedData = mappedSubresource.pData;
+
+		if (IS_VALID_PTR(pnRowPitch))
+			*pnRowPitch = mappedSubresource.RowPitch;		
+	}		
+
+	*pnPixels = m_DXTextureDesc.Width * m_DXTextureDesc.Height;	
+	m_nLockedBytes = (*pnPixels) * bytePerLockedPixel;
 
 	return S_SUCCESS;
 }
@@ -498,15 +563,35 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 // -----------------------------------------------------------------------------------
 S_API SResult DirectX11Texture::Unlock()
 {
-	if (!IS_VALID_PTR(m_pLockedData))
+	if (!m_bLocked)
+		return CLog::Log(S_WARN, "Tried unlock texture (%s) which is not locked!", (char*)m_Specification);
+
+	assert(m_nLockedBytes > 0);
+
+	if (!m_bStaged && !IS_VALID_PTR(m_pLockedData))
 		return S_ERROR;
 
 	if (!IS_VALID_PTR(m_pDXRenderer) || !IS_VALID_PTR(m_pDXTexture))
-		return S_NOTINIT;
+		return S_NOTINIT;	
 
 	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
 	if (!IS_VALID_PTR(pDXDevCon))
 		return S_NOTINIT;
+
+	m_bLocked = false;
+
+	if (m_bStaged)
+	{
+		// copy over staged data
+		HRESULT hr;
+		D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+		hr = pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+		
+		if (FAILED(hr))
+			return CLog::Log(S_ERROR, "Failed map texture (%s) for staged update!", (char*)m_Specification);
+
+		memcpy(mappedSubresource.pData, m_pStagedData, m_nLockedBytes);
+	}
 
 	pDXDevCon->Unmap(m_pDXTexture, 0);
 
@@ -517,10 +602,48 @@ S_API SResult DirectX11Texture::Unlock()
 }
 
 // -----------------------------------------------------------------------------------
+S_API SResult DirectX11Texture::SampleStaged(const Vec2f& texcoords, void* pData) const
+{
+	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
+		return S_NOTINIT;
+
+	if (!IS_VALID_PTR(pData))
+		return S_INVALIDPARAM;
+
+	// convert texture coordinates to pixel coordinates
+	unsigned int pixelCoords[2];
+	pixelCoords[0] = (unsigned int)(texcoords.x * (float)m_DXTextureDesc.Width);
+	pixelCoords[1] = (unsigned int)(texcoords.y * (float)m_DXTextureDesc.Height);
+
+	// Apply wrap address mode
+	pixelCoords[0] = pixelCoords[0] % m_DXTextureDesc.Width;
+	pixelCoords[1] = pixelCoords[1] % m_DXTextureDesc.Height;
+
+	// sample data
+	unsigned int bpp;
+	switch (m_Type)
+	{
+	case eTEXTURE_R8G8B8A8_UNORM: bpp = 4; break;
+	case eTEXTURE_R32_FLOAT:
+	case eTEXTURE_D32_FLOAT:
+		bpp = sizeof(float);
+	}
+
+	unsigned int bytePos = (pixelCoords[0] * m_DXTextureDesc.Width + pixelCoords[0]) * bpp;
+	memcpy(pData, static_cast<char*>(m_pStagedData) + bytePos, bpp);
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------
 S_API SResult DirectX11Texture::Clear(void)
 {
 	m_pEngine = 0;
 	m_pDXRenderer = 0;
+
+	if (IS_VALID_PTR(m_pStagedData))
+		free(m_pStagedData);
+
+	m_pStagedData = 0;
 
 	SP_SAFE_RELEASE(m_pDXSRV);
 	SP_SAFE_RELEASE(m_pDXTexture);

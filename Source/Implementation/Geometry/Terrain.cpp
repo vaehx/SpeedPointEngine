@@ -509,6 +509,18 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API void Terrain::SetHeightmap(ITexture* heightmap)
 {
+	if (!IS_VALID_PTR(heightmap))
+	{
+		CLog::Log(S_ERROR, "Failed set terrain heightmap to 0x%p (invalid)", (void*)heightmap);
+		return;
+	}
+
+	if (!heightmap->IsStaged())
+	{
+		CLog::Log(S_ERROR, "Cannot set terrain heightmap texture that is not staged!");
+		return;
+	}
+
 	if (!m_bCustomHeightmapSet && IS_VALID_PTR(m_pVtxHeightMap) && IS_VALID_PTR(m_pEngine))
 	{
 		IResourcePool* pResources = m_pEngine->GetResources();
@@ -516,7 +528,7 @@ S_API void Terrain::SetHeightmap(ITexture* heightmap)
 	}
 
 	m_pVtxHeightMap = heightmap;
-	m_bCustomHeightmapSet = true;
+	m_bCustomHeightmapSet = true;		
 
 	//UpdateCollisionMesh();
 }
@@ -537,15 +549,15 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	m_bCustomHeightmapSet = false;
 
 	// Create new Texture
-	float baseHeightScaled = baseHeight / m_MaxHeight;
+	float baseHeightScaled = baseHeight / m_HeightScale;
 	SColor baseColor(baseHeightScaled, baseHeightScaled, baseHeightScaled);	
 
-	SResult res = pRes->AddTexture(m_nSegments + 1, m_nSegments + 1, "terrain_vtxheightmap", eTEXTURE_R8G8B8A8_UNORM, baseColor, &m_pVtxHeightMap, true);
+	SResult res = pRes->AddTexture(m_nSegments + 1, m_nSegments + 1, "terrain_vtxheightmap", eTEXTURE_R32_FLOAT, baseColor, &m_pVtxHeightMap, true);
 	if (Failure(res))
 		return res;
 
 	unsigned int rowPitch;
-	unsigned long *pPixels;
+	float *pPixels;
 	unsigned int nPixels;
 	if (Success(m_pVtxHeightMap->Lock((void**)&pPixels, &nPixels, &rowPitch)))
 	{
@@ -558,7 +570,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 				float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);
 				unsigned long byteval = (unsigned char)(((val + 1.0f) * 0.5f) * 255.0f);
 
-				pPixels[x * rowPitch + y] = byteval;
+				pPixels[x * rowPitch + y] = val;
 			}
 		}
 
@@ -572,6 +584,18 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	return S_SUCCESS;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API float Terrain::SampleHeight(const Vec2f& texcoords) const
+{
+	if (!IS_VALID_PTR(m_pVtxHeightMap) || !m_pVtxHeightMap->IsStaged())
+		return FLT_MIN;
+
+	float val;
+	if (Failure(m_pVtxHeightMap->SampleStaged(texcoords, &val)))
+		return FLT_MIN;
+
+	return val;
+}
 
 
 
@@ -607,7 +631,7 @@ S_API SResult Terrain::Render(SCamera* pCamera)
 	{
 		dsc->bUpdateCB = true;		
 		dsc->constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
-		dsc->constants.fTerrainMaxHeight = m_MaxHeight;
+		dsc->constants.fTerrainMaxHeight = m_HeightScale;
 		dsc->constants.vtxHeightMapSz = m_nSegments + 1;		
 		dsc->constants.segmentSize = m_fSegSz;
 		m_bRequireCBUpdate = false;

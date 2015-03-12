@@ -12,55 +12,87 @@ namespace SpeedPoint
 {
 
 	// SpeedPoint 2 Dimensional Vector
-	struct S_API SVector2
+	template<typename F>
+	struct S_API Vec2
 	{
-		float x;	// X Value of the vector
-		float y;	// Y Value of the vector
+		F x;	// X Value of the vector
+		F y;	// Y Value of the vector
 
 		// ---
 
-		SVector2() : x(0), y(0) {};
+		Vec2() : x(0), y(0) {};
 		
-		SVector2( float aa ) : x(aa), y(aa) {};
+		Vec2( F aa ) : x(aa), y(aa) {};
 		
-		SVector2( float xx, float yy ) : x(xx), y(yy) {};
+		Vec2( F xx, F yy ) : x(xx), y(yy) {};
 
 		// ---
 
-		SVector2& operator += ( const SVector2& v ) { this->x += v.x; this->y += v.y; return *this; }
+		Vec2<F>& operator += ( const Vec2<F>& v ) { this->x += v.x; this->y += v.y; return *this; }
 											      
-		SVector2& operator -= ( const SVector2& v ) { this->x -= v.x; this->y -= v.y; return *this; }		
+		Vec2<F>& operator -= ( const Vec2<F>& v ) { this->x -= v.x; this->y -= v.y; return *this; }		
 		
-		SVector2 operator - () { return SVector2( -x, -y ); }
-	};
+		Vec2<F> operator - () { return Vec2<F>( -x, -y ); }
+	};	
+	
+	template<typename F>
+	inline bool operator == ( const Vec2<F>& v1, const Vec2<F>& v2 ) { return ( v1.x == v2.x && v1.y == v2.y ); }
 
-	typedef struct S_API SVector2 float2;
+	template<typename F>
+	inline Vec2<F> operator - (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x - vb.x, va.y - vb.y); }
+
+	template<typename F>
+	inline Vec2<F> operator - (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x - f, va.y - f); }
+
+	template<typename F>
+	inline Vec2<F> operator - (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x - f, va.y - f); }
+
+	template<typename F>
+	inline Vec2<F> operator + (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x + vb.x, va.y + vb.y); }
+
+	template<typename F>
+	inline Vec2<F> operator + (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x + f, va.y + f); }
+
+	template<typename F>
+	inline Vec2<F> operator + (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x + f, va.y + f); }
+
+	template<typename F>
+	inline Vec2<F> operator * (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x * vb.x, va.y * vb.y); }
+
+	template<typename F>
+	inline Vec2<F> operator * (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x * f, va.y * f); }
+
+	template<typename F>
+	inline Vec2<F> operator * (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x * f, va.y * f); }
+
+	template<typename F>
+	inline Vec2<F> operator / (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x / vb.x, va.y / vb.y); }
+
+	template<typename F>
+	inline Vec2<F> operator / (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x / f, va.y / f); }
+
+	template<typename F>
+	inline Vec2<F> operator / (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x / f, va.y / f); }
 	
-	inline bool operator == ( const SVector2& v1, const SVector2& v2 ) { return ( v1.x == v2.x && v1.y == v2.y ); }
-	inline SVector2 operator - (const SVector2& va, const SVector2& vb) { return SVector2(va.x - vb.x, va.y - vb.y); }
-	inline SVector2 operator - (const SVector2& va, const float& f) { return SVector2(va.x - f, va.y - f); }
-	inline SVector2 operator - (const float& f, const SVector2& va) { return SVector2(va.x - f, va.y - f); }
-	inline SVector2 operator + (const SVector2& va, const SVector2& vb) { return SVector2(va.x + vb.x, va.y + vb.y); }
-	inline SVector2 operator + (const SVector2& va, const float& f) { return SVector2(va.x + f, va.y + f); }
-	inline SVector2 operator + (const float& f, const SVector2& va) { return SVector2(va.x + f, va.y + f); }
-	inline SVector2 operator * (const SVector2& va, const SVector2& vb) { return SVector2(va.x * vb.x, va.y * vb.y); }
-	inline SVector2 operator * (const SVector2& va, const float& f) { return SVector2(va.x * f, va.y * f); }
-	inline SVector2 operator * (const float& f, const SVector2& va) { return SVector2(va.x * f, va.y * f); }
-	inline SVector2 operator / (const SVector2& va, const SVector2& vb) { return SVector2(va.x / vb.x, va.y / vb.y); }
-	inline SVector2 operator / (const SVector2& va, const float& f) { return SVector2(va.x / f, va.y / f); }
-	inline SVector2 operator / (const float& f, const SVector2& va) { return SVector2(va.x / f, va.y / f); }
-	
-	inline float SVector2Dot( const SVector2& va, const SVector2& vb ) {
+	template<typename F>
+	inline float Vec2Dot( const Vec2<F>& va, const Vec2<F>& vb ) {
 		return va.x * vb.x + va.y * vb.y;
 	}
 
-	inline float SVector2Length(const SVector2& v) {
+	template<typename F>
+	inline float Vec2Length(const Vec2<F>& v) {
 		return sqrtf(v.x * v.x + v.y * v.y);
 	}
 	
-	inline SVector2 SVector2Normalize(const SVector2& v) {
+	template<typename F>
+	inline Vec2<F> Vec2Normalize(const Vec2<F>& v) {
 		return v / sqrtf(v.x * v.x + v.y * v.y);
 	}	
+
+
+	typedef Vec2<float> S_API Vec2f;
+	typedef Vec2f S_API SVector2;
+	typedef Vec2f S_API float2;
 
 }
 

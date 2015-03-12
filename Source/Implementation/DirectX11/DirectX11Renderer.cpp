@@ -583,14 +583,14 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	if (Failure(m_HelperEffect.Initialize(m_pEngine, helperFXFile, "helper"))) return S_ERROR;
 
 	// Create unset texture dummy
-	m_DummyTexture.Initialize(m_pEngine, "notexture", false);
+	m_DummyTexture.Initialize(m_pEngine, "notexture", false, false);
 	if (Failure(m_DummyTexture.CreateEmpty(64, 64, 0, eTEXTURE_R8G8B8A8_UNORM, SColor(0.0f, 1.0f, 0.0f))))
 		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");	
 
 
 
 	// Create (128,128,0) replacement normal map
-	m_DummyNormalMap.Initialize(m_pEngine, "nonormalmap", false);
+	m_DummyNormalMap.Initialize(m_pEngine, "nonormalmap", false, false);
 	if (Failure(m_DummyNormalMap.CreateEmpty(64, 64, 0, eTEXTURE_R8G8B8A8_UNORM, SColor(0.5f, 0.5f, 1.0f))))
 		m_pEngine->LogE("Could not create empty dummy normal map (nonormalmap)!");
 

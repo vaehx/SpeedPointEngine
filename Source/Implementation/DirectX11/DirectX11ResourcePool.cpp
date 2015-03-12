@@ -120,7 +120,7 @@ S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTexture)
+S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTexture, bool bDynamic, bool bStaged)
 {	
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
 		"Cannot load Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
@@ -141,7 +141,7 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
 		return m_pEngine->LogE("Failed add texture (" + src + ")");
 
-	if (Failure(pdxTexture->Initialize(m_pEngine, spec, false)))
+	if (Failure(pdxTexture->Initialize(m_pEngine, spec, bDynamic, bStaged)))
 	{
 		return S_ERROR;
 	}
@@ -149,7 +149,7 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 	if (Failure(pdxTexture->LoadFromFile(w, h, 5, src)))
 		return EngLog(S_ERROR, m_pEngine, "Failed load texture %s!", (char*)src);
 
-	m_pEngine->LogD("Loaded Texture " + src + ", spec: '" + spec + "'");
+	CLog::Log(S_DEBUG, "Loaded Texture %s, spec='%s', dyn=%d, staged=%d", (char*)src, (char*)spec, bDynamic, bStaged);
 
 	if (pTexture != NULL)
 		*pTexture = (ITexture*)pdxTexture;
@@ -159,7 +159,7 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTexture, bool bDynamic /*=false*/)
+S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTexture, bool bDynamic, bool bStaged)
 {
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
 		"Cannot add Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
@@ -175,7 +175,7 @@ S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& s
 	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
 		return m_pEngine->LogE("Failed add texture (" + spec + ")");
 
-	if (Failure(pdxTexture->Initialize(m_pEngine, spec, bDynamic)))
+	if (Failure(pdxTexture->Initialize(m_pEngine, spec, bDynamic, bStaged)))
 	{
 		return S_ERROR;
 	}
@@ -185,7 +185,7 @@ S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& s
 		return S_ERROR;
 	}
 
-	m_pEngine->LogD("Added Texture " + spec + "'");
+	CLog::Log(S_DEBUG, "Added Texture spec=%s, dyn=%d, staged=%d", (char*)spec, bDynamic, bStaged);
 
 	if (pTexture != NULL)
 		*pTexture = (ITexture*)pdxTexture;

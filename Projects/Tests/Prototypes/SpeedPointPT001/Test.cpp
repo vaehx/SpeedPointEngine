@@ -181,7 +181,7 @@ void Test::OnInitGeometry()
 	// Create terrain
 
 	SpeedPoint::ITerrain* pTerrain = m_pScene->CreateTerrain(256, 16, 256.0f, 0.0f, 20.0f, 4, pTestColorMap, pTestDetailMap);				
-	pTerrain->SetMaxHeight(10.0f);
+	pTerrain->SetHeightScale(10.0f);
 	m_pEngine->GetSettings()->SetTerrainDetailMapFadeRadius(10.0f);
 
 	m_bFirstTerrainGeomSet = false; // do this in the first tick call

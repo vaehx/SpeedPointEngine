@@ -29,8 +29,8 @@ struct v2f
 v2f VS_helper(a2v IN)
 {
     v2f OUT;
-    float4 wPos = mul(mtxWorld, IN.Position);
-    OUT.Position = mul(transpose(mtxViewProj), wPos);
+    float4 wPos = mul(mtxWorld, float4(IN.Position.xyz, 1.0f));
+    OUT.Position = mul(mtxViewProj, wPos);
 
     return OUT;
 }
