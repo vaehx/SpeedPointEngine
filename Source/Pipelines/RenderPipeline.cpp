@@ -62,9 +62,13 @@ S_API SResult RenderPipeline::Run()
 	m_pEngine->GetRenderer()->BeginScene();
 
 	IApplication* pApp = m_pEngine->GetApplication();
-	assert(pApp);
+	assert(pApp);	
 
 	pApp->Render();	// Render callback
+
+	// Let the Frame Pipeline render debug info
+	if (IS_VALID_PTR(m_pFramePipeline))
+		m_pFramePipeline->RenderDebugInfo();
 
 	m_pEngine->GetRenderer()->EndScene();
 

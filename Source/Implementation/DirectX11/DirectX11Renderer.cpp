@@ -26,6 +26,10 @@
 
 SP_NMSPACE_BEG
 
+#ifndef EXEC_CONDITIONAL
+#define EXEC_CONDITIONAL(res, exec) if (SpeedPoint::Success(res)) { res = exec; }
+#endif
+
 using ::std::vector;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1027,16 +1031,46 @@ S_API SResult DirectX11Renderer::EndScene(void)
 
 	m_bInScene = false;
 
-	RETURN_ON_ERR(UnleashRenderSchedule());	
-	RETURN_ON_ERR(UnleashFontRenderSchedule());
-	RETURN_ON_ERR(PresentTargetViewport());
+	SResult sr;
 
-	m_Settings.SetClearColor(SColor(.0f, 0.05f, .0f));
-	RETURN_ON_ERR(BindSingleRT(m_pTargetViewport));
-	RETURN_ON_ERR(ClearBoundRTs());
+	if (Success(sr))
+	{
+		sr = UnleashRenderSchedule();
+		if (Failure(sr))
+			CLog::Log(S_WARN, "Failed UnleashRenderSchedule");
+	}
+
+	if (Success(sr))
+	{
+		sr = UnleashFontRenderSchedule();
+		if (Failure(sr))
+			CLog::Log(S_WARN, "Failed UnleashFontRenderSchedule!");
+	}
+
+	if (Success(sr))
+	{
+		sr = PresentTargetViewport();
+		if (Failure(sr))
+			CLog::Log(S_WARN, "Failed Present target viewport!");
+	}
+	
+	if (Success(sr))
+	{
+		m_Settings.SetClearColor(SColor(.0f, 0.05f, .0f));
+		sr = BindSingleRT(m_pTargetViewport);
+		if (Failure(sr))
+			CLog::Log(S_WARN, "Failed Bind Single RT for clear!");
+	}
+
+	if (Success(sr))
+	{
+		sr = ClearBoundRTs();
+		if (Failure(sr))
+			CLog::Log(S_WARN, "Failed Clear RT!");
+	}	
 	
 	m_bDumpFrame = false;
-	return S_SUCCESS;
+	return sr;
 }
 
 

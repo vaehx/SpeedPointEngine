@@ -13,12 +13,93 @@ SP_NMSPACE_BEG
 
 
 
+S_API CDebugInfo::CDebugInfo()
+: m_pCamStats(0),
+m_pEngine(0),
+m_pFPS(0),
+m_pFrameTimes(0),
+m_pTerrain(0)
+{
+}
+
+// -----------------------------------------------------------------------------
+S_API void CDebugInfo::InitFontRenderSlot(SFontRenderSlot** ppFRS, bool bRightAlign, bool keep,
+	const SColor& color, unsigned int x, unsigned int y, EFontSize fontSize)
+{
+	if (!IS_VALID_PTR(ppFRS))
+		return;
+
+	if (!IS_VALID_PTR(*ppFRS))
+	{
+		*ppFRS = m_pEngine->GetRenderer()->GetFontRenderSlot();
+		SpeedPoint::SFontRenderSlot* pFRS = *ppFRS;
+		pFRS->keep = keep;
+		pFRS->alignRight = bRightAlign;
+		pFRS->color = color;
+		pFRS->screenPos[0] = x;
+		pFRS->screenPos[1] = y;
+		pFRS->text = new char[200];
+		pFRS->fontSize = fontSize;
+	}
+}
+
+// -----------------------------------------------------------------------------
+S_API void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SFrameDebugInfo& fdi)
+{
+	// CamStat
+	InitFontRenderSlot(&m_pCamStats, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 0);
+	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "Cam(%.2f %.2f %.f | %.2f %.2f %.2f)",
+		pCamera->position.x, pCamera->position.y, pCamera->position.z,
+		pCamera->rotation.x, pCamera->rotation.y, pCamera->rotation.z);
+
+	// Frame Timers
+	InitFontRenderSlot(&m_pFrameTimes, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 18);
+	SpeedPoint::SPSPrintf(m_pFrameTimes->text, 200, "Render: %.2f Tick: %.2f Frame: %.2f",
+		fdi.renderTimer.GetDuration() * 1000.0, fdi.tickTimer.GetDuration() * 1000.0, fdi.frameTimer.GetDuration() * 1000.0);
+
+	// FPS
+	InitFontRenderSlot(&m_pFPS, true, true, SpeedPoint::SColor(1.0f, 1.0f, 0.3f), 0, 37, SpeedPoint::eFONTSIZE_MEDIUM);
+	SpeedPoint::SPSPrintf(m_pFPS->text, 200, "FPS %u (%u..%u)",
+		fdi.lastFrameCounter, (unsigned int)(1.0 / fdi.lastMaxFrameTime), (unsigned int)(1.0 / fdi.lastMinFrameTime));
+
+	// Terrain info
+	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 65);
+	SpeedPoint::STerrainRenderDesc* pTerrainRenderDesc = m_pEngine->GetRenderer()->GetTerrainRenderDesc();
+	SpeedPoint::SPSPrintf(m_pTerrain->text, 200, "Terrain: %u DCs", pTerrainRenderDesc->nDrawCallDescs);
+}
+
+// -----------------------------------------------------------------------------
+S_API void CDebugInfo::Clear()
+{
+	m_pCamStats = 0;
+	m_pEngine = 0;
+	m_pFPS = 0;
+	m_pFrameTimes = 0;
+	m_pTerrain = 0;
+}
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
 S_API FramePipeline::FramePipeline()
 : m_pEngine(0),
 m_bStartedFPSTimer(false),
 m_dLastFPS(0),
 m_fLastFPS(0),
-m_pSections(nullptr),
+m_nUsedFramepipelineSections(0),
 m_pCurrentSection(nullptr)
 {
 }
@@ -38,13 +119,15 @@ S_API void FramePipeline::Initialize(IGameEngine* pEngine)
 	m_pFPSBeginTimestamp = new std::chrono::time_point<std::chrono::high_resolution_clock>();
 	m_pdLastFrameDuration = new std::chrono::duration<double>();
 
-	m_pSections = new std::vector<SFramePipeSectionPtr>();
+
+	// Initialize debug info
+	m_DebugInfo.m_pEngine = pEngine;	
 }
 
 // -------------------------------------------------------------------------------------
 S_API void FramePipeline::Clear()
 {
-	SResult res = S_SUCCESS;
+	SResult res = S_SUCCESS;	
 
 	// Clear the FPS timer timestamps
 	if (m_pFrameBeginTimestamp) delete m_pFrameBeginTimestamp;
@@ -57,14 +140,12 @@ S_API void FramePipeline::Clear()
 	m_pFPSBeginTimestamp = 0;		
 
 	m_pEngine = 0;
-	m_bStartedFPSTimer = false;	
+	m_bStartedFPSTimer = false;
 
-	if (m_pSections)
+	for (unsigned int iSection = 0; iSection < m_nUsedFramepipelineSections; ++iSection)
 	{
-		m_pSections->clear();
-		delete m_pSections;
+		m_pSections[iSection].Clear();
 	}
-	m_pSections = 0;	
 }
 
 
@@ -74,11 +155,17 @@ S_API SResult FramePipeline::RegisterSection(IFramePipelineSection* pSection)
 {
 	assert(pSection);
 	assert(m_pSections);
+
+	if (m_nUsedFramepipelineSections == MAX_FRAMEPIPELINE_SECTIONS)
+		return S_ERROR;
 	
 	pSection->SetFramePipeline(this);
-	m_pSections->push_back(SFramePipeSectionPtr());
-	m_pSections->back().pSection = pSection;
-	m_pSections->back().ref = 0;
+
+	SFramePipeSectionPtr& ptr = m_pSections[m_nUsedFramepipelineSections];
+	ptr.pSection = pSection;
+	ptr.ref = 0;
+
+	m_nUsedFramepipelineSections++;
 
 	return S_SUCCESS;
 }
@@ -89,21 +176,79 @@ S_API SResult FramePipeline::ExecuteSections(usint32 iSkippedSections)
 {
 	assert(m_pSections);
 
-	if (m_pSections->empty())
-		return S_SUCCESS;
 
-	for (auto itSection = m_pSections->begin(); itSection != m_pSections->end(); itSection++)
+	///////////////////////////// Frame Start //////////////////////////////
+
+	m_FrameDebugInfo.frameTimer.Start();
+
+	if (m_nUsedFramepipelineSections > 0)
 	{
-		SFramePipeSectionPtr pSection = (*itSection);
-		if (iSkippedSections & pSection->GetType())
-			continue;
+		for (unsigned int iSection = 0; iSection < m_nUsedFramepipelineSections; ++iSection)		
+		{
+			SFramePipeSectionPtr& pSection = m_pSections[iSection];
+			if (iSkippedSections & pSection->GetType())
+				continue;
 
-		if (Failure(pSection->Run()))
-			return S_ERROR;
+			if (pSection->GetType() == eFPSEC_RENDERING)
+				m_FrameDebugInfo.renderTimer.Start();
+
+
+			SResult sr = pSection->Run();
+			if (Failure(sr))
+				return S_ERROR;
+
+
+
+			// does not do anything if not running
+			m_FrameDebugInfo.renderTimer.Stop();
+		}
 	}
+
+	m_FrameDebugInfo.frameTimer.Stop();
+
+
+	///////////////////////////// Frame End //////////////////////////////	
 
 
 	return S_SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------
+S_API void FramePipeline::RenderDebugInfo()
+{
+	// Update DebugInfo Font Render Slots
+	double lastFrameTime = m_FrameDebugInfo.frameTimer.GetDuration();
+	m_FrameDebugInfo.frameTimeAcc += lastFrameTime;
+	if (m_FrameDebugInfo.frameTimeAcc >= 1.0)
+	{
+		m_FrameDebugInfo.lastFrameCounter = m_FrameDebugInfo.frameCounter;
+		m_FrameDebugInfo.lastMinFrameTime = m_FrameDebugInfo.minFrameTime;
+		m_FrameDebugInfo.lastMaxFrameTime = m_FrameDebugInfo.maxFrameTime;
+		m_FrameDebugInfo.frameTimeAcc = 0;
+		m_FrameDebugInfo.frameCounter = 0;
+		m_FrameDebugInfo.minFrameTime = DBL_MAX;
+		m_FrameDebugInfo.maxFrameTime = DBL_MIN;
+	}
+
+	m_FrameDebugInfo.frameCounter++;
+
+	if (lastFrameTime < m_FrameDebugInfo.minFrameTime)
+		m_FrameDebugInfo.minFrameTime = lastFrameTime;
+
+	if (lastFrameTime > m_FrameDebugInfo.maxFrameTime)
+		m_FrameDebugInfo.maxFrameTime = lastFrameTime;
+
+	IRenderer* pRenderer = m_pEngine->GetRenderer();
+	if (IS_VALID_PTR(pRenderer))
+	{
+		IViewport* pTargetVp = pRenderer->GetTargetViewport();
+		if (IS_VALID_PTR(pTargetVp))
+		{
+			SCamera* pCamera = pTargetVp->GetCamera();
+			if (IS_VALID_PTR(pCamera))
+				m_DebugInfo.Update(pCamera, 1.0 / m_FrameDebugInfo.frameTimer.GetDuration(), m_FrameDebugInfo);
+		}
+	}
 }
 
 

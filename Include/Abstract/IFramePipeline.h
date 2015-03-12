@@ -67,6 +67,7 @@ struct S_API IFramePipeline
 	virtual IFramePipelineSection* GetCurrentSection() const = 0;
 	virtual SResult RegisterSection(IFramePipelineSection* pSection) = 0;
 	virtual SResult ExecuteSections(usint32 iSkippedSections = DEFAULT_SKIPPED_SECTIONS) = 0;
+	virtual void RenderDebugInfo() = 0;
 };
 
 

@@ -202,8 +202,8 @@ void Test::OnInitGeometry()
 bool Test::Tick()
 {	
 	// Capture frame time	
-	m_FrameDebugInfo.frameTimer.Start();
-	m_FrameDebugInfo.tickTimer.Start();
+	//m_FrameDebugInfo.frameTimer.Start();
+	//m_FrameDebugInfo.tickTimer.Start();
 
 
 
@@ -273,12 +273,12 @@ bool Test::Tick()
 
 	// Start the frame pipeline
 
-	m_FrameDebugInfo.tickTimer.Stop();
+//	m_FrameDebugInfo.tickTimer.Stop();
 
 	if (Failure(m_pEngine->ExecuteFramePipeline()))
 		return false;
 
-	m_FrameDebugInfo.frameTimer.Stop();
+	//m_FrameDebugInfo.frameTimer.Stop();
 
 	return true;
 }
@@ -312,7 +312,7 @@ void Test::HandleMouse()
 
 void Test::Render()
 {
-	m_FrameDebugInfo.renderTimer.Start();
+	//m_FrameDebugInfo.renderTimer.Start();
 
 
 	// UPDATE:
@@ -343,20 +343,9 @@ void Test::Render()
 	camLookAt.z = cosf(alpha) * camTurnRad;
 	*/		
 
-	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));	
-
-	pCamera->RecalculateViewMatrix();
+	//pCamera->LookAt(SpeedPoint::SVector3(0, 0, 0));	// Update DebugInfo Font Render Slots
 	
-
-
-
-
-
-
-	// RENDER
-
-
-	// Update DebugInfo Font Render Slots
+	/*
 	double lastFrameTime = m_FrameDebugInfo.frameTimer.GetDuration();		
 	m_FrameDebugInfo.frameTimeAcc += lastFrameTime;
 	if (m_FrameDebugInfo.frameTimeAcc >= 1.0)
@@ -379,6 +368,20 @@ void Test::Render()
 		m_FrameDebugInfo.maxFrameTime = lastFrameTime;
 
 	m_DebugInfo.Update(pCamera, 1.0 / m_FrameDebugInfo.frameTimer.GetDuration(), m_FrameDebugInfo);	
+	*/
+
+	pCamera->RecalculateViewMatrix();
+	
+
+
+
+
+
+
+	// RENDER
+
+
+	
 
 
 
@@ -421,7 +424,7 @@ void Test::Render()
 
 
 	m_bFirstFrame = false;
-	m_FrameDebugInfo.renderTimer.Stop();
+	//m_FrameDebugInfo.renderTimer.Stop();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

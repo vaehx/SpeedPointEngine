@@ -269,6 +269,9 @@ S_API void SpeedPointEngine::CheckFinishInit()
 		&& IS_VALID_PTR(m_pResourcePool.pComponent))
 	{		
 		m_pApplication->OnInit(m_pFramePipeline, this);
+
+		if (!IS_VALID_PTR(m_pFontRenderer.pComponent))
+			CLog::Log(S_ERROR, "Font Renderer is not initialized!");
 	}
 }
 
@@ -278,9 +281,12 @@ S_API SResult SpeedPointEngine::FinishInitialization()
 	// Register the framepipeline sections
 	if (!IS_VALID_PTR(m_pRenderer.pComponent)) return S_ERROR;
 	
+	// Hook render pipeline
 	IRenderPipeline* pRenderPipeline = new RenderPipeline();
 	pRenderPipeline->Init(this);
 	m_pFramePipeline->RegisterSection(pRenderPipeline);
+
+	// Hook dynamics pipeline	
 
 	CheckFinishInit();
 

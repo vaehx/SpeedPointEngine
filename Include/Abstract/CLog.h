@@ -56,7 +56,10 @@ public:
 		switch (res)
 		{
 		case S_ERROR:
-			resDsc = "Error: ";
+			resDsc = "[ERROR] ";
+			break;
+		case S_WARN:
+			resDsc = "[Warning] ";
 			break;
 		}
 
