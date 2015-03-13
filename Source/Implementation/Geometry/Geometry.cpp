@@ -139,7 +139,7 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 
 					SVector3 v1(vtx1.x, vtx1.y, vtx1.z), v2(vtx2.x, vtx2.y, vtx2.z), v3(vtx3.x, vtx3.y, vtx3.z);
 
-					SVector3 normal = SVector3Normalize(SVector3Cross(v2 - v1, v3 - v1));
+					SVector3 normal = Vec3Normalize(Vec3Cross(v2 - v1, v3 - v1));
 
 					vtx1.nx += normal.x;
 					vtx1.ny += normal.y;

@@ -629,7 +629,7 @@ S_API SResult DirectX11Texture::SampleStaged(const Vec2f& texcoords, void* pData
 		bpp = sizeof(float);
 	}
 
-	unsigned int bytePos = (pixelCoords[0] * m_DXTextureDesc.Width + pixelCoords[0]) * bpp;
+	unsigned int bytePos = (pixelCoords[1] * m_DXTextureDesc.Width + pixelCoords[0]) * bpp;
 	memcpy(pData, static_cast<char*>(m_pStagedData) + bytePos, bpp);
 	return S_SUCCESS;
 }

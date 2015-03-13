@@ -20,9 +20,9 @@ private:
 	bool		m_WorldMatrixCalculated;	// whether the worldmtx ever has been calculated
 
 public:
-	SVector3	vPosition;
-	SVector3	vRotation;
-	SVector3	vSize;
+	Vec3f	vPosition;
+	Vec3f	vRotation;
+	Vec3f	vSize;
 
 	// Default constructor
 	STransformable()
@@ -32,7 +32,7 @@ public:
 	};
 
 	// Constructor with position
-	STransformable(const SVector3& pos)
+	STransformable(const Vec3f& pos)
 		: vPosition(pos),
 		vSize(1.0f),
 		m_WorldMatrixCalculated(false)
@@ -40,7 +40,7 @@ public:
 	};
 
 	// Constructor with position and rotation
-	STransformable(const SVector3& pos, const SVector3& rot)
+	STransformable(const Vec3f& pos, const Vec3f& rot)
 		: vPosition(pos),
 		vRotation(rot),
 		vSize(1.0f),
@@ -49,7 +49,7 @@ public:
 	};
 
 	// Constructor with position, rotation and scale
-	STransformable(const SVector3& pos, const SVector3& rot, const SVector3& scale)
+	STransformable(const Vec3f& pos, const Vec3f& rot, const Vec3f& scale)
 		: vPosition(pos),
 		vRotation(rot),
 		vSize(scale),
@@ -77,7 +77,7 @@ public:
 
 
 
-	ILINE void Move(const SVector3& pos)
+	ILINE void Move(const Vec3f& pos)
 	{
 		vPosition = pos;
 		RecalculateWorldMatrix();
@@ -85,11 +85,11 @@ public:
 
 	ILINE void Move(float x, float y, float z)
 	{
-		vPosition = SVector3(x, y, z);
+		vPosition = Vec3f(x, y, z);
 		RecalculateWorldMatrix();
 	}		
 
-	ILINE void Translate(const SVector3& vec)
+	ILINE void Translate(const Vec3f& vec)
 	{
 		vPosition += vec;
 		RecalculateWorldMatrix();
@@ -97,11 +97,11 @@ public:
 
 	ILINE void Translate(float x, float y, float z)
 	{
-		vPosition += SVector3(x, y, z);
+		vPosition += Vec3f(x, y, z);
 		RecalculateWorldMatrix();
 	}
 	
-	ILINE void Rotate(const SVector3& rotation)
+	ILINE void Rotate(const Vec3f& rotation)
 	{
 		vRotation = rotation;
 		RecalculateWorldMatrix();
@@ -109,11 +109,11 @@ public:
 
 	ILINE void Rotate(float p, float y, float r)
 	{
-		vRotation = SVector3(p, y, r);
+		vRotation = Vec3f(p, y, r);
 		RecalculateWorldMatrix();
 	}
 
-	ILINE void Turn(const SVector3& vec)
+	ILINE void Turn(const Vec3f& vec)
 	{
 		vRotation += vec;
 		RecalculateWorldMatrix();
@@ -121,11 +121,11 @@ public:
 
 	ILINE void Turn(float p, float y, float r)
 	{
-		vRotation += SVector3(p, y, r);
+		vRotation += Vec3f(p, y, r);
 		RecalculateWorldMatrix();
 	}
 	
-	ILINE void Size(const SVector3& size)
+	ILINE void Size(const Vec3f& size)
 	{
 		vSize = size;
 		RecalculateWorldMatrix();
@@ -133,11 +133,11 @@ public:
 
 	ILINE void Size(float w, float h, float d)
 	{
-		vSize = SVector3(w, h, d);
+		vSize = Vec3f(w, h, d);
 		RecalculateWorldMatrix();
 	}		
 
-	ILINE void Scale(const SVector3& vec)
+	ILINE void Scale(const Vec3f& vec)
 	{
 		vSize += vec;
 		RecalculateWorldMatrix();
@@ -145,7 +145,7 @@ public:
 	
 	ILINE void Scale(float w, float h, float d)
 	{
-		vSize += SVector3(w, h, d);
+		vSize += Vec3f(w, h, d);
 		RecalculateWorldMatrix();
 	}		
 
@@ -216,11 +216,11 @@ public:
 
 	// Getter / Setter
 public:
-	SVector3& GetPosition() { return vPosition; }
+	Vec3f& GetPosition() { return vPosition; }
 
-	SVector3& GetRotation() { return vRotation; }
+	Vec3f& GetRotation() { return vRotation; }
 
-	SVector3& GetSize() { return vSize; }
+	Vec3f& GetSize() { return vSize; }
 };
 
 

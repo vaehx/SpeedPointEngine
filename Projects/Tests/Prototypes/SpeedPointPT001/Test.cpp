@@ -23,9 +23,9 @@ void Test::OnLogReport(SpeedPoint::SResult res, const SpeedPoint::SString& msg)
 {
 }
 
-void CalcLookAt(SpeedPoint::SCamera& cam, const SpeedPoint::SVector3& lookAt)
+void CalcLookAt(SpeedPoint::SCamera& cam, const SpeedPoint::Vec3f& lookAt)
 {
-	SpeedPoint::SVector3 dir = SpeedPoint::SVector3Normalize(lookAt - cam.position);
+	SpeedPoint::Vec3f dir = SpeedPoint::Vec3Normalize(lookAt - cam.position);
 	cam.rotation.x = asinf(dir.y);	
 	cam.rotation.y = acosf(dir.z / sqrtf(1.0f - (dir.y * dir.y)));
 	if (dir.x < 0.0f)

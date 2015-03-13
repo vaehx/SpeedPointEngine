@@ -209,7 +209,7 @@ ILINE bool GeomIntersects(const PlaneT<F>& plane, const RayT<F>& ray, Vec3<F>* i
 	
 	if (ipoint)
 	{
-		F s = (plane.d - Vec3Dot(plane.n, ray.v)) / denominator;
+		F s = (plane.d - Vec3Dot(plane.n, ray.p)) / denominator;
 		*ipoint = ray.p + s * ray.v;
 	}
 

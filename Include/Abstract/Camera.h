@@ -20,8 +20,8 @@ struct S_API SCamera
 {
 	f32 fViewRadius;		// Keep it short for performant rendering	
 	SMatrix4 viewMatrix;
-	SVector3 position;
-	SVector3 rotation;	// tait-bryan angles
+	Vec3f position;
+	Vec3f rotation;	// tait-bryan angles
 
 	// Default constructor
 	SCamera()
@@ -38,9 +38,9 @@ struct S_API SCamera
 
 	// Summary:
 	//	Calculate and store rotation angles by look direction to a specified point
-	ILINE SVector3& LookAt(const SVector3& lookAt)
+	ILINE Vec3f& LookAt(const Vec3f& lookAt)
 	{
-		SVector3 dir = SVector3Normalize(lookAt - position);
+		Vec3f dir = Vec3Normalize(lookAt - position);
 		rotation.x = asinf(dir.y);
 		rotation.y = acosf(dir.z / sqrtf(1.0f - (dir.y * dir.y)));
 		
@@ -62,7 +62,7 @@ struct S_API SCamera
 	//	Returns new view matrix as const ref
 	ILINE SMatrix4& RecalculateViewMatrix(bool roll = false)
 	{
-		SVector3 lookAt;
+		Vec3f lookAt;
 		if (!roll)
 		{
 			lookAt.x = position.x + sinf(rotation.y) * cosf(rotation.x);
@@ -78,7 +78,7 @@ struct S_API SCamera
 
 		}
 
-		SPMatrixLookAtRH(&viewMatrix, position, lookAt, SVector3(0,1.0f,0));
+		SPMatrixLookAtRH(&viewMatrix, position, lookAt, Vec3f(0,1.0f,0));
 		//SPMatrixLookAtRH(&viewMatrix, SVector3(0, 5.0f, -10.0f), SVector3(0,0,0), SVector3(0,1.0f,0));	
 		return viewMatrix;
 	}

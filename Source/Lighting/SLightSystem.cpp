@@ -82,7 +82,7 @@ namespace SpeedPoint
 			if (pLightObject != 0 && pLightObject->iIndirectionIndex != __TRIVIAL)
 			{									
 				float fMinDist = (fRadius + pLightObject->tInstance.fRadius);
-				if (SVector3(vPosition - pLightObject->tInstance.vPosition).Square() >(fMinDist * fMinDist))
+				if (SVector3(vPosition - pLightObject->tInstance.vPosition).LengthSq() >(fMinDist * fMinDist))
 					continue;
 
 				(*pLightIds)[nFoundLights].iIndex = pLightObject->iIndirectionIndex;

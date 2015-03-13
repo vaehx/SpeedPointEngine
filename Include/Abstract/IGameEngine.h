@@ -13,6 +13,7 @@
 #include "Abstract\IFramePipeline.h"	// for default skipsections
 #include <Util\SLogStream.h>
 #include "Matrix.h"
+#include "Vector3.h"
 
 namespace SpeedPoint
 {
@@ -27,8 +28,7 @@ namespace SpeedPoint
 	struct S_API IResourcePool;
 	struct S_API IFileLogHandler;
 	struct S_API IFileLog;
-	class CLogWrapper;
-	struct S_API SVector3;
+	class CLogWrapper;	
 	struct S_API IScene;
 	struct S_API IMaterial;
 	struct S_API IMaterialManager;

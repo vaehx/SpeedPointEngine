@@ -34,21 +34,11 @@ struct S_API SMatrix
 		_31( 0 ), _32( 0 ), _33( 1 ), _34( 0 ),
 		_41( 0 ), _42( 0 ), _43( 0 ), _44( 1 ) {};
 
-	SMatrix( const SMatrix& o ) :
-		_11( o._11 ), _12( o._12 ), _13( o._13 ), _14( o._14 ),
-		_21( o._21 ), _22( o._22 ), _23( o._23 ), _24( o._24 ),
-		_31( o._31 ), _32( o._32 ), _33( o._33 ), _34( o._34 ),
-		_41( o._41 ), _42( o._42 ), _43( o._43 ), _44( o._44 ) {};
-
-	/*
-	SMatrix( const D3DXMATRIX& o )
-	{
-		m[0][0] = o._11; m[0][1] = o._12; m[0][2] = o._13; m[0][3] = o._14;
-		m[1][0] = o._21; m[1][1] = o._22; m[1][2] = o._23; m[1][3] = o._24;
-		m[2][0] = o._31; m[2][1] = o._32; m[2][2] = o._33; m[2][3] = o._34;
-		m[3][0] = o._41; m[3][1] = o._42; m[3][2] = o._43; m[3][3] = o._44;
-	}
-	*/
+	SMatrix(const SMatrix& o) :
+		_11(o._11), _12(o._12), _13(o._13), _14(o._14),
+		_21(o._21), _22(o._22), _23(o._23), _24(o._24),
+		_31(o._31), _32(o._32), _33(o._33), _34(o._34),
+		_41(o._41), _42(o._42), _43(o._43), _44(o._44) {};
 
 	SMatrix(const SVector4& v1, const SVector4& v2, const SVector4& v3, const SVector4& v4)
 	{
@@ -290,7 +280,8 @@ static SMatrix SMatrixInvert(const SMatrix& m) {
 	return res;
 }
 
-static inline void SVector3TransformCoord(SVector3 *pout, const SVector3 &pv, const SMatrix &pm)
+template<typename F>
+static inline void Vec3TransformCoord(Vec3<F> *pout, const Vec3f &pv, const SMatrix &pm)
 {
 	float norm = pm.m[0][3] * pv.x + pm.m[1][3] * pv.y + pm.m[2][3] * pv.z + pm.m[3][3];
 	
@@ -308,23 +299,32 @@ static inline void SVector3TransformCoord(SVector3 *pout, const SVector3 &pv, co
 	}	
 }
 
+// Deprecated
+template<typename F>
+static inline void SVector3TransformCoord(SVector3 *pout, const SVector3& pv, const SMatrix& pm)
+{
+	return Vec3TransformCoord(pout, pv, pm);
+}
+
+
 struct S_API SVec3ProjectViewportDesc
 {
 	float minZ, maxZ;
 	unsigned int viewportWidth, viewportHeight;	
 };
 
-static inline void SVector3Project(SVector3* pout, const SVector3& pv,
+template<typename F>
+ILINE static void Vec3Project(Vec3<F>* pout, const Vec3<F>& pv,
 	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
 	const SVec3ProjectViewportDesc& vpDesc, const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
 {
 	SMatrix m1, m2;
-	SVector3 vec;
+	Vec3<F> vec;
 
 	m1 = mtxWorld * mtxView;
 	m2 = m1 * mtxProjection;	
 
-	SVector3TransformCoord(&vec, pv, m2);
+	Vec3TransformCoord(&vec, pv, m2);
 
 	// Clip-Space to Screen-Space
 	pout->x = subsetOffsetX + (1.0f + vec.x) * vpDesc.viewportWidth / 2.0f;
@@ -333,12 +333,21 @@ static inline void SVector3Project(SVector3* pout, const SVector3& pv,
 	pout->z = vpDesc.minZ + vec.z * (vpDesc.maxZ - vpDesc.minZ);	
 }
 
-static inline void SVector3Unproject(SVector3 *pout, const SVector3& pv, const SVec3ProjectViewportDesc& vpDesc,
+// Deprecated
+ILINE static void SVector3Project(SVector3* pout, const SVector3& pv,
+	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const SVec3ProjectViewportDesc& vpDesc, const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
+{
+	return Vec3Project(pout, pv, mtxProjection, mtxView, mtxWorld, vpDesc, subsetOffsetX, subsetOffsetY);
+}
+
+template<typename F>
+ILINE static void Vec3Unproject(Vec3<F> *pout, const Vec3<F>& pv, const SVec3ProjectViewportDesc& vpDesc,
 	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
 	const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
 {
 	SMatrix m1, m2, m3;
-	SVector3 vec;
+	Vec3<F> vec;
 	
 	m1 = mtxWorld * mtxView;
 	m2 = m1 * mtxProjection;
@@ -348,23 +357,32 @@ static inline void SVector3Unproject(SVector3 *pout, const SVector3& pv, const S
 	vec.y = 1.0f - 2.0f * (pv.y - subsetOffsetY) / vpDesc.viewportHeight;
 	vec.z = (pv.z - vpDesc.minZ) / (vpDesc.maxZ - vpDesc.minZ);
 	
-	SVector3TransformCoord(pout, vec, m3);
+	Vec3TransformCoord(pout, vec, m3);
 }
 
+// Deprecated
+ILINE static void SVector3Unproject(SVector3 *pout, const SVector3& pv, const SVec3ProjectViewportDesc& vpDesc,
+	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
+{
+	return Vec3Unproject(pout, pv, vpDesc, mtxProjection, mtxView, mtxWorld, subsetOffsetX, subsetOffsetY);
+}
+
+
 // calculate view matrix
-static inline void SPMatrixLookAtRH(SMatrix* pMtx, const SVector3& eye, const SVector3& at, const SVector3& up)
+ILINE static void SPMatrixLookAtRH(SMatrix* pMtx, const Vec3f& eye, const Vec3f& at, const Vec3f& up)
 {
 	if (!pMtx)
 		return;
 
-	SVector3 zaxis = SVector3Normalize(eye - at);
-	SVector3 xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
-	SVector3 yaxis = SVector3Cross(zaxis, xaxis);
+	Vec3f zaxis = Vec3Normalize(eye - at);
+	Vec3f xaxis = Vec3Normalize(Vec3Cross(up, zaxis));
+	Vec3f yaxis = Vec3Cross(zaxis, xaxis);
 
 	*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
 		SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
 		SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
-		SVector4(-SVector3Dot(xaxis, eye), -SVector3Dot(yaxis, eye), -SVector3Dot(zaxis, eye), 1.0f));
+		SVector4(-Vec3Dot(xaxis, eye), -Vec3Dot(yaxis, eye), -Vec3Dot(zaxis, eye), 1.0f));
 }
 
 // calculate view matrix
@@ -373,14 +391,14 @@ static inline void SPMatrixLookAtLH(SMatrix* pMtx, const SVector3& eye, const SV
 	if (!pMtx)
 		return;
 
-	SVector3 zaxis = SVector3Normalize(at - eye);
-	SVector3 xaxis = SVector3Normalize(SVector3Cross(up, zaxis));
-	SVector3 yaxis = SVector3Cross(zaxis, xaxis);
+	SVector3 zaxis = Vec3Normalize(at - eye);
+	SVector3 xaxis = Vec3Normalize(Vec3Cross(up, zaxis));
+	SVector3 yaxis = Vec3Cross(zaxis, xaxis);
 
 	*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
 		SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
 		SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
-		SVector4(SVector3Dot(xaxis, eye), SVector3Dot(yaxis, eye), SVector3Dot(zaxis, eye), 1.0f));
+		SVector4(Vec3Dot(xaxis, eye), Vec3Dot(yaxis, eye), Vec3Dot(zaxis, eye), 1.0f));
 }
 
 // calculate orthographic projection matrix

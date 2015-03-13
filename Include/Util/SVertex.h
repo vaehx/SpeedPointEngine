@@ -71,7 +71,7 @@ namespace SpeedPoint
 			nx(nx_), ny(ny_), nz(nz_),
 			tx(tx_), ty(ty_), tz(tz_)
 		{				
-			//binormal = SVector3( nx, ny, nz ).Cross( SVector3( tx, ty, ty ) );				
+			//binormal = Vec3f( nx, ny, nz ).Cross( Vec3f( tx, ty, ty ) );				
 			textureCoords[0].u = tu_;
 			textureCoords[0].v = tv_;
 			//textureCoords[1].x = tu2_;
@@ -107,7 +107,7 @@ namespace SpeedPoint
 		{
 			float s1 = v2.textureCoords[0].u - textureCoords[0].u, t1 = v2.textureCoords[0].v - textureCoords[0].v;
 			float s2 = v3.textureCoords[0].u - textureCoords[0].u, t2 = v3.textureCoords[0].v - textureCoords[0].v;
-			SVector3 q1(v2.x - x, v2.y - y, v2.z - z), q2(v3.x - x, v3.y - y, v3.z - z);
+			Vec3f q1(v2.x - x, v2.y - y, v2.z - z), q2(v3.x - x, v3.y - y, v3.z - z);
 			float r = 1.0f / (s1 * t2 - s2 * t1);
 			float rt1neg = -r * t1, rt2 = r * t2;
 			tx = rt2 * q1.x + rt1neg * q2.x;
@@ -119,15 +119,15 @@ namespace SpeedPoint
 		// Get the binormal of this Vertex
 		SXYZ GetBinormal()
 		{
-			return SVector3Cross(SVector3(nx, ny, nz), SVector3(tx, ty, ty));
+			return Vec3Cross(Vec3f(nx, ny, nz), Vec3f(tx, ty, ty));
 		}
 	};
 
 	// normalize(cross(v2 - v1, v3 - v1))
-	inline S_API SVector3 SPNormalFromThreeVerts(const SVertex& v1, const SVertex& v2, const SVertex& v3)
+	inline S_API Vec3f SPNormalFromThreeVerts(const SVertex& v1, const SVertex& v2, const SVertex& v3)
 	{
-		return SVector3Normalize(SVector3Cross(
-			SVector3(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z),
-			SVector3(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z)));
+		return Vec3Normalize(Vec3Cross(
+			Vec3f(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z),
+			Vec3f(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z)));
 	}
 }

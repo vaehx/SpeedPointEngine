@@ -92,7 +92,7 @@ VS_OUTPUT VS_terrain(VS_INPUT IN)
 
     // Sample vertex height from vertex heightmap texture    
     float4 wPos = float4(IN.Position, 1.0f);        
-    wPos.y = SampleVertexHeightmapBilinear(IN.TexCoord) * 10.0f;                                
+    wPos.y = SampleVertexHeightmapBilinear(IN.TexCoord) * terrainMaxHeight;
     OUT.WorldPos = wPos.xyz;                        
     OUT.Position = mul(mtxViewProj, wPos);
     

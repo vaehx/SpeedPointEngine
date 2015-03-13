@@ -33,13 +33,14 @@ namespace SpeedPoint
 
 	// template math functions:
 
-	inline float finv(const float& f) { return 1.0f / f; }
-	inline double finv(const double& d) { return 1.0 / d; }
-	inline float sqrt_t(const float& f) { return sqrtf(f); }
-	inline double sqrt_t(const double& d) { return sqrt(d); }
+	ILINE float finv(const float& f) { return 1.0f / f; }
+	ILINE double finv(const double& d) { return 1.0 / d; }
+	ILINE float sqrt_t(const float& f) { return sqrtf(f); }
+	ILINE double sqrt_t(const double& d) { return sqrt(d); }
 
 	// SpeedPoint 3-Dimensional Vector
-	template<typename F> struct S_API Vec3
+	template<typename F>
+	struct S_API Vec3
 	{
 		F x, y, z;
 
@@ -64,7 +65,7 @@ namespace SpeedPoint
 		ILINE Vec3<F>& operator *=(const F& k) { x *= k; y *= k; z *= k; return *this; }
 
 		ILINE Vec3<F> operator /(const Vec3<F>& v) const { return Vec3<F>(x / v.x, y / v.y, z / v.z); }
-		ILINE Vec3<F> operator /(const F& k) const { F k_inv = finv(k); / k; return Vec3<F>(x * k_inv, y * k_inv, z * k_inv); }
+		ILINE Vec3<F> operator /(const F& k) const { F k_inv = finv(k); return Vec3<F>(x * k_inv, y * k_inv, z * k_inv); }
 		ILINE Vec3<F>& operator /=(const Vec3<F>& v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
 		ILINE Vec3<F>& operator /=(const F& k) { F k_inv = finv(k); x *= k_inv; y *= k_inv; z *= k_inv; return *this; }
 
@@ -111,6 +112,13 @@ namespace SpeedPoint
 			if (v.z > z) z = v.z;
 			return *this;
 		}
+
+		ILINE operator SXYZ() const
+		{
+			SXYZ r;
+			r.x = x; r.y = y; r.z = z;
+			return r;
+		}
 	};
 
 	template<typename F>
@@ -131,6 +139,12 @@ namespace SpeedPoint
 		return v.Normalized();
 	}
 
+	template<typename F>
+	S_API ILINE F Vec3Length(const Vec3<F>& v)
+	{
+		return v.Length();
+	}
+
 	template<typename F1, typename F2>
 	S_API ILINE Vec3<F2> operator *(F1 f, const Vec3<F2>& v) {
 		return v * f;
@@ -139,8 +153,10 @@ namespace SpeedPoint
 
 	// specific vectors
 
-	typedef Vec3<float> S_API Vec3f;
-	typedef Vec3<double> S_API Vec3d;
+	typedef struct Vec3<float> S_API Vec3f;
+	typedef struct Vec3<float> S_API SVector3;
+	typedef struct Vec3<float> S_API float3;
+	typedef struct Vec3<double> S_API Vec3d;	
 
 
 
@@ -149,7 +165,7 @@ namespace SpeedPoint
 
 
 
-
+	/*
 	// SpeedPoint 3 Dimensional Vector
 	struct S_API SVector3
 	{
@@ -293,6 +309,8 @@ namespace SpeedPoint
 
 #define S_DEFAULT_VEC3 SpeedPoint::SVector3()
 #define SPoint3 SpeedPoint::SVector3
+
+	*/
 
 
 
