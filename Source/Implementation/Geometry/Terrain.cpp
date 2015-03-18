@@ -614,12 +614,9 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 		for (unsigned int x = 0; x < m_nSegments + 1; ++x)
 		{
 			for (unsigned int y = 0; y < m_nSegments + 1; ++y)
-			{
-				// ff ff ff ff
-				float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);
-				unsigned long byteval = (unsigned char)(((val + 1.0f) * 0.5f) * 255.0f);
-
-				pPixels[x * rowPitch + y] = (val + 1.0f) * 0.5f;
+			{				
+				float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);				
+				pPixels[y * rowPitch + x] = (val + 1.0f) * 0.5f;				
 			}
 		}
 

@@ -28,6 +28,19 @@ enum S_API ETextureType
 
 #define COLOR_CHANNEL_FLOAT2UCHAR(f) (char)((f) * 255.0f)
 
+inline unsigned int GetTextureBPP(ETextureType type)
+{
+	switch (type)
+	{
+	case eTEXTURE_R8G8B8A8_UNORM: return 4;
+	case eTEXTURE_R32_FLOAT:
+	case eTEXTURE_D32_FLOAT:
+		return sizeof(float);
+	}
+
+	return 0;
+}
+
 
 // SpeedPoint Texture Resource (abstract)
 struct S_API ITexture

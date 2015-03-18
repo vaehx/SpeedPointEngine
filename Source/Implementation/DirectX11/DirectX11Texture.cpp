@@ -455,7 +455,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	if (m_bStaged)
 	{
 		if (IS_VALID_PTR(m_pStagedData))
-			free(m_pStagedData);
+			free(m_pStagedData);		
 
 		m_pStagedData = malloc(initData.SysMemSlicePitch);
 		memcpy(m_pStagedData, initData.pSysMem, initData.SysMemSlicePitch);
@@ -513,16 +513,8 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
 	if (!IS_VALID_PTR(pDXDevCon))
 		return S_NOTINIT;
-
-	// Determine bpp for locked data
-	unsigned int bytePerLockedPixel;
-	switch (m_Type)
-	{
-	case eTEXTURE_R8G8B8A8_UNORM: bytePerLockedPixel = 4; break;
-	case eTEXTURE_R32_FLOAT:
-	case eTEXTURE_D32_FLOAT:
-		bytePerLockedPixel = sizeof(float);
-	}
+	
+	unsigned int bytePerLockedPixel = GetTextureBPP(m_Type);
 
 	if (m_bStaged)
 	{
@@ -590,7 +582,15 @@ S_API SResult DirectX11Texture::Unlock()
 		if (FAILED(hr))
 			return CLog::Log(S_ERROR, "Failed map texture (%s) for staged update!", (char*)m_Specification);
 
-		memcpy(mappedSubresource.pData, m_pStagedData, m_nLockedBytes);
+		unsigned int bytePerLockedPixel = GetTextureBPP(m_Type);
+
+		// We have to copy each line separately to fit DX's pitch
+		for (unsigned int ln = 0; ln < m_DXTextureDesc.Height; ++ln)
+		{
+			memcpy((char*)mappedSubresource.pData + ln * mappedSubresource.RowPitch,
+				(const char*)m_pStagedData + ln * m_DXTextureDesc.Width * bytePerLockedPixel,
+				m_DXTextureDesc.Width * bytePerLockedPixel);
+		}
 	}
 
 	pDXDevCon->Unmap(m_pDXTexture, 0);
