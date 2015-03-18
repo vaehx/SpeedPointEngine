@@ -1276,16 +1276,24 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 	if (Failure(SetVBStream(desc.pVertexBuffer)))
 		return S_ERROR;	
 
+	bool bLines = (desc.primitiveType == PRIMITIVE_TYPE_LINES || desc.primitiveType == PRIMITIVE_TYPE_LINESTRIP);
+
 	// Make sure the correct primitive type is set, but don't change too often
-	if (desc.primitiveType == PRIMITIVE_TYPE_LINES)
+	if (bLines)
 	{
 		if (Failure(SetIBStream(0)))
 			return S_ERROR;		
 
-		if (m_SetPrimitiveType != PRIMITIVE_TYPE_LINES)
-		{
-			m_pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-			m_SetPrimitiveType = PRIMITIVE_TYPE_LINES;
+		if (m_SetPrimitiveType != desc.primitiveType)
+		{			
+			D3D11_PRIMITIVE_TOPOLOGY d3dTopology;
+			if (desc.primitiveType == PRIMITIVE_TYPE_LINES)
+				d3dTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+			else
+				d3dTopology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+
+			m_pD3DDeviceContext->IASetPrimitiveTopology(d3dTopology);
+			m_SetPrimitiveType = desc.primitiveType;
 		}
 
 		m_pD3DDeviceContext->Draw(desc.iEndVBIndex - desc.iStartVBIndex + 1, desc.iStartVBIndex);
@@ -1302,7 +1310,7 @@ S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 		}
 
 		m_pD3DDeviceContext->DrawIndexed(desc.iEndIBIndex - desc.iStartIBIndex + 1, desc.iStartIBIndex, desc.iStartVBIndex);
-	}
+	}	
 
 	return S_SUCCESS;
 }
