@@ -29,6 +29,12 @@ SP_NMSPACE_BEG
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+S_API CStaticObjectRenderable::CStaticObjectRenderable()
+: m_pRenderSlot(0)
+{
+}
+
+// ----------------------------------------------------------------------------------------
 S_API IVertexBuffer* CStaticObjectRenderable::GetVertexBuffer()
 {
 	return m_Geometry.GetVertexBuffer();

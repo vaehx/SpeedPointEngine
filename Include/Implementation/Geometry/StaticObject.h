@@ -31,6 +31,8 @@ private:
 	SRenderSlot* m_pRenderSlot;
 
 public:	
+	CStaticObjectRenderable();
+
 	virtual ~CStaticObjectRenderable()
 	{
 		Clear();
