@@ -1179,6 +1179,8 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 	m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
 
+	bool bDepthEnableBackup = m_depthStencilDesc.DepthEnable;
+
 	unsigned int iRSIterator = 0;
 	for (unsigned int iSlot = 0; iSlot < m_RenderSchedule.GetUsedObjectCount(); ++iSlot)
 	{
@@ -1192,6 +1194,9 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		// Skip render slot without subsets
 		if (pDesc->nSubsets == 0 || !IS_VALID_PTR(pDesc->pSubsets))
 			continue;
+
+		// Set correct depth stencil state
+		EnableDepthTest(pDesc->bDepthStencilEnable);
 
 		if (pDesc->renderPipeline == eRENDER_FORWARD)
 		{			
@@ -1230,7 +1235,10 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 			iRSIterator--;
 		}
 
-	}	
+	}
+
+	// Restore backed up depth stencil state
+	EnableDepthTest(bDepthEnableBackup);
 
 	return S_SUCCESS;
 }

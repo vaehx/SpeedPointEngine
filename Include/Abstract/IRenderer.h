@@ -260,8 +260,11 @@ struct S_API SRenderDesc
 	SMatrix viewProjMtx; // custom view-proj-mtx, only used if bCustomViewProjMtx is set to true
 	bool bCustomViewProjMtx; // if false, uses current viewport viewproj
 
+	bool bDepthStencilEnable;
+
 	SRenderDesc()
-		: bCustomViewProjMtx(false)
+		: bCustomViewProjMtx(false),
+		bDepthStencilEnable(true)
 	{
 	}
 };

@@ -38,7 +38,7 @@ v2f VS_helper(a2v IN)
 //////////////////////////// pixel shader ////////////////////////////////
 float4 PS_helper(v2f IN) : SV_Target0
 {
-//    return float4(1.0f, 0, 0, 0);
+    return float4(1.0f, 0, 0, 0);
     return float4(diffColor.x, diffColor.y, diffColor.z, 0);
 }
 
