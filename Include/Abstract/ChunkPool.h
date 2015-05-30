@@ -405,6 +405,7 @@ public:
 		}
 
 		delete[] pChunks;
+		pChunks = 0;
 		nChunks = 0;
 	}
 
