@@ -185,7 +185,7 @@ public:
 	virtual SResult Render(SCamera* pCamera) = 0;
 	virtual void SetHeightmap(ITexture* heightmap) = 0;
 	virtual ITexture* GetHeightmap() const = 0;
-	virtual float SampleHeight(const Vec2f& texcoords) const = 0;
+	virtual float SampleHeight(const Vec2f& texcoords, bool bilinear = false) const = 0;
 	
 	// Does not clear the heightmap
 	virtual void Clear() = 0;

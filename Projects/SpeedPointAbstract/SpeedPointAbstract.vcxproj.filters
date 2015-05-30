@@ -202,5 +202,8 @@
     <ClInclude Include="..\..\Include\Abstract\MathGeom.h">
       <Filter>Headers\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Math.h">
+      <Filter>Headers\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -633,13 +633,15 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API float Terrain::SampleHeight(const Vec2f& texcoords) const
+S_API float Terrain::SampleHeight(const Vec2f& texcoords, bool bilinear /* = false */) const
 {
 	if (!IS_VALID_PTR(m_pVtxHeightMap) || !m_pVtxHeightMap->IsStaged())
 		return FLT_MIN;
 
 	float val;
-	if (Failure(m_pVtxHeightMap->SampleStaged(texcoords, &val)))
+	if (!bilinear && Failure(m_pVtxHeightMap->SampleStaged(texcoords, &val)))
+		return FLT_MIN;
+	else if (bilinear && Failure(m_pVtxHeightMap->SampleStagedBilinear(texcoords, &val)))
 		return FLT_MIN;
 
 	return val * m_HeightScale;

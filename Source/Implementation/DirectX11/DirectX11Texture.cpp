@@ -602,6 +602,82 @@ S_API SResult DirectX11Texture::Unlock()
 }
 
 // -----------------------------------------------------------------------------------
+S_API SResult DirectX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pData) const
+{
+	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
+		return S_NOTINIT;
+
+	if (!IS_VALID_PTR(pData))
+		return S_INVALIDPARAM;
+
+	if (m_Type != eTEXTURE_D32_FLOAT && m_Type != eTEXTURE_R32_FLOAT && m_Type != eTEXTURE_R8G8B8A8_UNORM)
+		return S_ERROR;
+
+	Vec2f pixelSizeInTexcoords = 1.0f / Vec2f((float)m_DXTextureDesc.Width, (float)m_DXTextureDesc.Height);
+
+	// Round texcoords to floor
+	Vec2f remainder = texcoords % pixelSizeInTexcoords;
+	Vec2f roundedTC = texcoords - remainder;
+
+	// transform remainder from [0;pixelSizeInTexcoords] to [0;1]
+	remainder /= pixelSizeInTexcoords;		
+
+	// Get all 4 samples
+	Vec4f samples[4];
+	switch (m_Type)
+	{
+	case eTEXTURE_D32_FLOAT:
+	case eTEXTURE_R32_FLOAT:
+	case eTEXTURE_R8G8B8A8_UNORM:
+		SampleStaged(roundedTC + Vec2f(-0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[0]);
+		SampleStaged(roundedTC + Vec2f( 0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[1]);
+		SampleStaged(roundedTC + Vec2f(-0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[2]);		
+		SampleStaged(roundedTC + Vec2f( 0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[3]);
+		break;
+	/*case eTEXTURE_R8G8B8A8_UNORM:
+		SampleStaged(roundedTC + Vec2f(-0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[0]);
+		SampleStaged(roundedTC + Vec2f( 0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[1]);
+		SampleStaged(roundedTC + Vec2f(-0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[2]);
+		SampleStaged(roundedTC + Vec2f( 0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[3]);
+		break;*/
+	default:
+		return CLog::Log(S_ERROR, "Cannot SampleStagedBilinear() a texture without floating point format");
+	}
+
+	// Interpolate
+	Vec4f interpolated[] = 
+	{
+		Lerp(samples[0], samples[1], remainder.x),
+		Lerp(samples[2], samples[3], remainder.x)
+	};
+
+	Vec4f out = Lerp(interpolated[0], interpolated[1], remainder.y);
+
+	switch (m_Type)
+	{
+	case eTEXTURE_D32_FLOAT:
+	case eTEXTURE_R32_FLOAT:
+		{
+			float* pOut = (float*)pData;
+			*pOut = out.x;
+			break;
+		}
+	
+	case eTEXTURE_R8G8B8A8_UNORM:	
+		{
+			Vec4f* pOut = (Vec4f*)pData;
+			*pOut = out;
+			break;
+		}
+
+	default:
+		return S_ERROR;
+	}
+
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------
 S_API SResult DirectX11Texture::SampleStaged(const Vec2f& texcoords, void* pData) const
 {
 	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))

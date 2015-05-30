@@ -79,6 +79,9 @@ public:
 	//	pData is assumed to hold data for one pixel
 	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const = 0;
 
+	// This function fails if the texture is not a floating point or unorm texture.
+	virtual SResult SampleStagedBilinear(Vec2f texcoords, void* pData) const = 0;
+
 	// Be careful with it!
 	virtual void* GetStagedData() = 0;
 

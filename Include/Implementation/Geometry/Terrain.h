@@ -93,7 +93,7 @@ public:
 		return m_pVtxHeightMap;
 	}
 
-	virtual float SampleHeight(const Vec2f& texcoords) const;
+	virtual float SampleHeight(const Vec2f& texcoords, bool bilinear = false) const;
 	
 	virtual float GetMinHeight() const;	
 	virtual float GetMaxHeight() const;

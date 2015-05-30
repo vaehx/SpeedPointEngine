@@ -28,9 +28,15 @@ namespace SpeedPoint
 
 		// ---
 
-		Vec2<F>& operator += ( const Vec2<F>& v ) { this->x += v.x; this->y += v.y; return *this; }
-											      
-		Vec2<F>& operator -= ( const Vec2<F>& v ) { this->x -= v.x; this->y -= v.y; return *this; }		
+		Vec2<F>& operator += (const Vec2<F>& v) { x += v.x; y += v.y; return *this; }		
+		Vec2<F>& operator -= (const Vec2<F>& v) { x -= v.x; y -= v.y; return *this; }
+		Vec2<F>& operator *= (const Vec2<F>& v) { x += v.x; y *= v.y; return *this; }
+		Vec2<F>& operator /= (const Vec2<F>& v) { x /= v.x; y /= v.y; return *this; }
+
+		Vec2<F>& operator += (float k) { x += k; y += k; return *this; }
+		Vec2<F>& operator -= (float k) { x -= k; y -= k; return *this; }
+		Vec2<F>& operator *= (float k) { x *= k; y *= k; return *this; }
+		Vec2<F>& operator /= (float k) { x /= k; y /= k; return *this; }
 		
 		Vec2<F> operator - () { return Vec2<F>( -x, -y ); }
 	};	
@@ -42,37 +48,40 @@ namespace SpeedPoint
 	inline Vec2<F> operator - (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x - vb.x, va.y - vb.y); }
 
 	template<typename F>
-	inline Vec2<F> operator - (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x - f, va.y - f); }
+	inline Vec2<F> operator - (const Vec2<F>& va, const F& f) { return Vec2<F>(va.x - f, va.y - f); }
 
 	template<typename F>
-	inline Vec2<F> operator - (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x - f, va.y - f); }
+	inline Vec2<F> operator - (const F& f, const Vec2<F>& va) { return Vec2<F>(f - va.x, f - va.y); }
 
 	template<typename F>
 	inline Vec2<F> operator + (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x + vb.x, va.y + vb.y); }
 
 	template<typename F>
-	inline Vec2<F> operator + (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x + f, va.y + f); }
+	inline Vec2<F> operator + (const Vec2<F>& va, const F& f) { return Vec2<F>(va.x + f, va.y + f); }
 
 	template<typename F>
-	inline Vec2<F> operator + (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x + f, va.y + f); }
+	inline Vec2<F> operator + (const F& f, const Vec2<F>& va) { return Vec2<F>(va.x + f, va.y + f); }
 
 	template<typename F>
 	inline Vec2<F> operator * (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x * vb.x, va.y * vb.y); }
 
 	template<typename F>
-	inline Vec2<F> operator * (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x * f, va.y * f); }
+	inline Vec2<F> operator * (const Vec2<F>& va, const F& f) { return Vec2<F>(va.x * f, va.y * f); }
 
 	template<typename F>
-	inline Vec2<F> operator * (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x * f, va.y * f); }
+	inline Vec2<F> operator * (const F& f, const Vec2<F>& va) { return Vec2<F>(va.x * f, va.y * f); }
 
 	template<typename F>
 	inline Vec2<F> operator / (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(va.x / vb.x, va.y / vb.y); }
 
 	template<typename F>
-	inline Vec2<F> operator / (const Vec2<F>& va, const float& f) { return Vec2<F>(va.x / f, va.y / f); }
+	inline Vec2<F> operator / (const Vec2<F>& va, const F& f) { return Vec2<F>(va.x / f, va.y / f); }
 
 	template<typename F>
-	inline Vec2<F> operator / (const float& f, const Vec2<F>& va) { return Vec2<F>(va.x / f, va.y / f); }
+	inline Vec2<F> operator / (const F& f, const Vec2<F>& va) { return Vec2<F>(f / va.x, f / va.y); }
+
+	template<typename F>
+	inline Vec2<F> operator % (const Vec2<F>& va, const Vec2<F>& vb) { return Vec2<F>(fmod(va.x, vb.x), fmod(va.y, vb.y)); }
 	
 	template<typename F>
 	inline float Vec2Dot( const Vec2<F>& va, const Vec2<F>& vb ) {
