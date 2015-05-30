@@ -199,6 +199,8 @@ public:
 	// Get the maximum height in the vtx heightmap
 	virtual float GetMaxHeight() const = 0;
 
+	ILINE virtual void CalcMinMaxHeightAfterChange(Vec2f areaMin = Vec2f(0, 0), Vec2f areaMax = Vec2f(1.0f, 1.0f)) = 0;
+
 	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const = 0;
 
 	ILINE virtual Vec2f GetMinXZ() const = 0;

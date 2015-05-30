@@ -549,13 +549,19 @@ S_API float Terrain::GetMaxHeight() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API void Terrain::CalculateMinMaxHeights()
+S_API void Terrain::CalcMinMaxHeightAfterChange(Vec2f areaMin /*= Vec2f(0, 0)*/, Vec2f areaMax /*= Vec2f(1.0f, 1.0f)*/)
 {
 	if (!IS_VALID_PTR(m_pVtxHeightMap))
 	{
 		CLog::Log(S_ERROR, "Failed compute terrain min max heights: Heightmap not set!");
 		return;
 	}
+
+	// Just to make sure...
+	areaMin.x = max(min(areaMin.x, 1.0f), 0.0f);
+	areaMin.y = max(min(areaMin.y, 1.0f), 0.0f);
+	areaMax.x = max(min(areaMax.x, 1.0f), 0.0f);
+	areaMax.y = max(min(areaMax.y, 1.0f), 0.0f);
 
 	// Find new min and max height
 	unsigned int heightmapSz[2];
@@ -567,19 +573,34 @@ S_API void Terrain::CalculateMinMaxHeights()
 		return;
 	}
 
+	unsigned int area[] =
+	{
+		(unsigned int)(areaMin.x * (float)heightmapSz[0]),
+		(unsigned int)(areaMin.y * (float)heightmapSz[1]),
+		(unsigned int)(areaMax.x * (float)heightmapSz[0]),
+		(unsigned int)(areaMax.y * (float)heightmapSz[1])
+	};
+
 	m_fMaxHeight = FLT_MIN;
 	m_fMinHeight = FLT_MAX;
-	for (unsigned int ii = 0; ii < heightmapSz[0] * heightmapSz[1]; ++ii)
+	for (unsigned int y = area[1]; y < area[3]; ++y)
 	{
-		const float& h = pStagedData[ii];
-		if (h < m_fMinHeight)
-			m_fMinHeight = h;
+		for (unsigned int x = area[0]; x < area[2]; ++x)
+		{
+			const float& h = pStagedData[y * heightmapSz[1] + x];
+			if (h < m_fMinHeight)
+				m_fMinHeight = h;
 
-		if (h > m_fMaxHeight)
-			m_fMaxHeight = h;
-	}
+			if (h > m_fMaxHeight)
+				m_fMaxHeight = h;
+		}
+	}	
+}
 
-	CLog::Log(S_DEBUG, "Terrain maxHeight=%.2f minHeight=%.2f", m_fMaxHeight, m_fMinHeight);
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API void Terrain::CalculateMinMaxHeights()
+{
+	CalcMinMaxHeightAfterChange();
 }
 
 
@@ -615,8 +636,9 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 		{
 			for (unsigned int y = 0; y < m_nSegments + 1; ++y)
 			{				
-				float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);				
-				pPixels[y * rowPitch + x] = (val + 1.0f) * 0.5f;				
+				/*float val = sinf((float)x / 10.0f) * sinf((float)y / 10.0f);				
+				pPixels[y * rowPitch + x] = (val + 1.0f) * 0.5f;*/
+				pPixels[y * rowPitch + x] = baseHeight;
 			}
 		}
 
@@ -662,13 +684,13 @@ S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight
 	Vec3f minPlaneInt, maxPlaneInt;
 	if (!GeomIntersects(minPlane, ray, &minPlaneInt))
 	{
-		//CLog::Log(S_DEBUG, "Ray not intersecting with min plane (h=%.2f, i=%.2f,%.2f,%.2f)", minHeight, minPlaneInt.x, minPlaneInt.y, minPlaneInt.z);
+		CLog::Log(S_DEBUG, "Ray not intersecting with min plane (h=%.2f, i=%.2f,%.2f,%.2f)", minHeight, minPlaneInt.x, minPlaneInt.y, minPlaneInt.z);
 		return false;
 	}
 
 	if (!GeomIntersects(maxPlane, ray, &maxPlaneInt))
 	{
-		//CLog::Log(S_DEBUG, "Ray not intersecting with max plane (h=%.2f, i=%.2f,%.2f,%.2f)", maxHeight, maxPlaneInt.x, maxPlaneInt.y, maxPlaneInt.z);
+		CLog::Log(S_DEBUG, "Ray not intersecting with max plane (h=%.2f, i=%.2f,%.2f,%.2f)", maxHeight, maxPlaneInt.x, maxPlaneInt.y, maxPlaneInt.z);
 		return false;
 	}
 
@@ -678,14 +700,14 @@ S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight
 	Vec2f terrainDimensions = GetMaxXZ() - GetMinXZ();
 
 	// Loop through steps from max height to min height
-	float lastSampledHeight = SampleHeight(Vec2f(maxPlaneInt.x, maxPlaneInt.z) / terrainDimensions);
+	float lastSampledHeight = SampleHeight(Vec2f(maxPlaneInt.x, maxPlaneInt.z) / terrainDimensions, true);
 	float lastHeight = maxHeight;
 	//CLog::Log(S_DEBUG, "lh=%.2f lsh=%.2f", lastHeight, lastSampledHeight);
 	unsigned int iStep = 0;
 	bool bGoFurther = true;
 	for (Vec3f curPos = maxPlaneInt + stepVec; bGoFurther; curPos += stepVec)
 	{
-		float newSampledHeight = SampleHeight(Vec2f(curPos.x, curPos.z) / terrainDimensions);
+		float newSampledHeight = SampleHeight(Vec2f(curPos.x, curPos.z) / terrainDimensions, true);
 		//CLog::Log(S_DEBUG, "Step %u. nsh=%.4f nh=%.4f lsh=%.4f lh=%.4f", iStep, newSampledHeight, curPos.y, lastSampledHeight, lastHeight);
 		++iStep;		
 
@@ -735,7 +757,7 @@ S_API bool Terrain::RayHeightmapIntersection(const SRay& ray, const unsigned int
 {
 	float maxHeight = GetMaxHeight();
 	float minHeight = GetMinHeight();	
-	return RayHeightmapIntersectionRec(maxHeight, minHeight, ray, recDepth, step, intersection, 0);
+	return RayHeightmapIntersectionRec(maxHeight, minHeight - 1.0f, ray, recDepth, step, intersection, 0);
 }
 
 

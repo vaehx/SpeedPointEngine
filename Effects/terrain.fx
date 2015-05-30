@@ -230,7 +230,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     OUT.Color = (sampleCM * 0.5f * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity); 
 
     //OUT.Color = float4(IN.Normal, 0.0f);
-    //OUT.Color = vtxHeight.rrrr;
+	//OUT.Color = vtxHeight.rrrr;
                
     return OUT;
 }
