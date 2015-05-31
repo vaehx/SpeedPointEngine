@@ -1,6 +1,11 @@
-Projects/Debug/
-Projects/*/Debug/
+*/Debug/
+*/*/Debug/
 Projects/Tests/Prototypes/*/Debug/
 *.sdf
+*.opensdf
 *.suo
 *.vcxproj.user
+*.log
+*.vsglog*
+Projects/Tests/Prototypes/*/*.exe
+import3ds/
