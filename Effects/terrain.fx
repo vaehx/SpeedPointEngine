@@ -198,36 +198,33 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     
     float3 normal = normalize(IN.Normal);
     
-    
-    //OUT.Color = float4(0.0f, 1.0f, 0.0f, 1.0f);
-    //return OUT;    
-    
     // Sample CM and DM
     float4 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord);
     float4 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz);
-    
-    float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
-    
-    uint2 pos = { IN.TexCoord.x * terrainHeightmapSz, IN.TexCoord.y * terrainHeightmapSz };
-    //vtxHeight = vtxHeightMap[pos];
-    
-    // Calculate lighting factor. Using a fixed light dir    
-    float3 lightDir = normalize(float3(0, -0.3f, 0.8f));
-    float lightIntensity = 10.0f;                    
-    float lambert = max(dot(-lightDir, normal),0);  
-    
-    //OUT.Color = float4(normal, 1.0f);
-    //return OUT;
-    
-    // Global illumination "Ambient" fake
-    float ambient = 0.1f;
-    
-    // Final lighting factor
-    float lightingFactor = lambert / PI + ambient;        
-        
+
+	// Calculate blended Diffuse Color
     float dirln = length(eyePos.xz - IN.WorldPos.xz);
     float terrainFadeFactor = terrain_fade_factor(dirln);
-    OUT.Color = (sampleCM * 0.5f * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity); 
+	float4 blendedDiffuse = sampleDM * terrainFadeFactor + sampleCM * (1.0f - terrainFadeFactor);
+    
+	// Sample vtx Height
+    float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
+    
+    // Calculate lighting factor. Using a fixed light dir.
+	// Light Dir is assumed to be INCOMING directed
+    float3 lightDir = normalize(float3(0, -0.8f, 0.1f));
+
+	float monoLightIntensity = 8.0f;
+	float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
+
+    float monoAmbient = 0.003f;
+	float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
+
+    float lambert = saturate(dot(normal, -lightDir));
+
+	OUT.Color = lambert * (blendedDiffuse / PI + ambient) * lightIntensity;
+
+	//OUT.Color = (sampleCM * 0.5f * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity);
 
     //OUT.Color = float4(IN.Normal, 0.0f);
 	//OUT.Color = vtxHeight.rrrr;
