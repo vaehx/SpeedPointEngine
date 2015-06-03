@@ -222,8 +222,12 @@ public:
 
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
 
-	ILINE virtual void AddLayer(const STerrainLayer& layer) = 0;
+	// Returns index of added layer
+	ILINE virtual unsigned int AddLayer(const STerrainLayer& layer) = 0;
+
 	ILINE virtual STerrainLayer* GetLayer(unsigned int index) = 0;
+
+	ILINE virtual unsigned int GetLayerCount() const = 0;
 	
 	// Summary:
 	//	Flags that the terrain Constant Buffer has to be updated.

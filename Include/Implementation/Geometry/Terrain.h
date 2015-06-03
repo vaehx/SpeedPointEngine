@@ -124,8 +124,9 @@ public:
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
 
-	ILINE virtual void AddLayer(const STerrainLayer& layer);
+	ILINE virtual unsigned int AddLayer(const STerrainLayer& layer);
 	ILINE virtual STerrainLayer* GetLayer(unsigned int index);
+	ILINE virtual unsigned int GetLayerCount() const;
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 
