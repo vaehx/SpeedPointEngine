@@ -42,7 +42,17 @@ S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs
 		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");	
 	
 	m_pTerrain->SetColorMap(pColorMap);
-	m_pTerrain->SetDetailMap(pDetailMap);
+
+	// Add zero layer
+	unsigned int colorMapSz[2];
+	pColorMap->GetSize(&colorMapSz[0], &colorMapSz[1]);
+
+	STerrainLayer zeroLayer;
+	zeroLayer.pDetailMap = pDetailMap;
+	m_pEngine->GetResources()->AddTexture(colorMapSz[0], colorMapSz[1], "terrain_am_0",
+		eTEXTURE_R8G8B8A8_UNORM, SColor(0, 0, 0, 0), &zeroLayer.pAlphaMask);
+	
+	m_pTerrain->AddLayer(zeroLayer);
 
 	return m_pTerrain;
 }

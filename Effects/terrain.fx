@@ -26,6 +26,7 @@ cbuffer TerrainCB : register(b1)
 Texture2D vtxHeightMap : register(t0);
 Texture2D colorMap : register(t1);
 Texture2D detailMap : register(t2);
+Texture2D alphaMask : register(t3);
 SamplerState MapSampler
 {
     Filter = MIN_MAG_MIP_POINT;
@@ -141,44 +142,6 @@ struct PS_OUTPUT
     float4 Color : SV_Target0;
 };
 
-float quadr_fade(float val)
-{
-    float a = (val - 1.0f);
-    return -(a * a) + 1.0f; 
-}
-
-// N should be normalized already
-float calc_lambert(float3 N, float3 lightDirOut)
-{
-    return saturate(dot(N, lightDirOut));
-}
-
-float saturate_negpos(float val)
-{
-    return val * 0.5f + 0.5f;
-}
-
-float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness, float intensityIn)
-{
-    float diffuseFactor = roughness;
-    float specularFactor = 1.0f - roughness;
-    
-    // Diffuse:
-    float lambert = calc_lambert(N, lightDirOut);
-    
-    // Specular:
-    float alpha = 2.0f;
-    if (roughness > 0.0f)
-        alpha = 1.0f / saturate(roughness - 0.5f); // the rougher the surface, the wider the specular highlight
-        
-    float3 R = -lightDirOut + 2.0f * saturate(dot(lightDirOut, N)) * N; 
-    float specular = pow(saturate(dot(R, dirToEye)), 16.0f);     
-    
-    // compose:
-    float intensityOut = (intensityIn * (diffuseFactor * lambert + specularFactor * specular));
-    return float3(intensityOut, intensityOut, intensityOut);
-}
-
 float terrain_fade_factor(float radius)
 {
     float factor = -0.05f * (radius - terrainDMFadeRadius) + 1.0f;
@@ -197,10 +160,10 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     PS_OUTPUT OUT;              
     
     float3 normal = normalize(IN.Normal);
-    
+
     // Sample CM and DM
     float4 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord);
-    float4 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz);
+    float4 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz);    
 
 	// Calculate blended Diffuse Color
     float dirln = length(eyePos.xz - IN.WorldPos.xz);
@@ -223,6 +186,10 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float lambert = saturate(dot(normal, -lightDir));
 
 	OUT.Color = lambert * (blendedDiffuse / PI + ambient) * lightIntensity;
+
+	// Sample alpha value
+	float4 sampleMask = alphaMask.Sample(MapSampler, IN.TexCoord);
+	OUT.Color.a = sampleMask;
 
 	//OUT.Color = (sampleCM * 0.5f * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity);
 

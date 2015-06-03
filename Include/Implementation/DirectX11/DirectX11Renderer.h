@@ -144,7 +144,7 @@ private:
 	ChunkedObjectPool<SRenderSlot, 50> m_RenderSchedule;	
 	
 	STerrainRenderDesc m_TerrainRenderDesc;
-	D3D11_BLEND_DESC m_TerrainBlendDesc;
+	D3D11_BLEND_DESC m_TerrainBlendDesc;	
 	ID3D11BlendState* m_pTerrainBlendState;
 
 	ChunkedObjectPool<SFontRenderSlot, 20> m_FontRenderSchedule;

@@ -295,8 +295,12 @@ struct S_API STerrainRenderDesc
 	unsigned int nDrawCallDescs;
 	STransformationDesc transform;	
 	ITexture* pColorMap;
-	ITexture* pDetailMap;
 	ITexture* pVtxHeightMap;
+	
+	ITexture** pLayerMasks;	// numLayers
+	ITexture** pDetailMaps; // numLayers
+	unsigned int nLayers;
+
 	STerrainConstantBuffer constants;	
 	bool bUpdateCB;
 	bool bRender;
@@ -305,10 +309,12 @@ struct S_API STerrainRenderDesc
 		: pDrawCallDescs(nullptr),
 		nDrawCallDescs(0),
 		pColorMap(nullptr),
-		pDetailMap(nullptr),
 		bUpdateCB(true),
 		bRender(true),
-		pVtxHeightMap(nullptr)		
+		pVtxHeightMap(nullptr),
+		nLayers(0),
+		pLayerMasks(0),
+		pDetailMaps(0)
 	{
 	}
 };

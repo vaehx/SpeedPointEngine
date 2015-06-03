@@ -781,13 +781,11 @@ S_API SResult Terrain::Render(SCamera* pCamera)
 	IRenderer* pRenderer = m_pEngine->GetRenderer();
 
 	
-
 	STerrainRenderDesc* dsc = pRenderer->GetTerrainRenderDesc();
-	dsc->pColorMap = m_pColorMap;
-	dsc->pDetailMap = m_pDetailMap;
+	dsc->pColorMap = m_pColorMap;	
 	dsc->pVtxHeightMap = m_pVtxHeightMap;
 	dsc->bRender = true;
-	SMatrixIdentity(&dsc->transform.scale);
+	SMatrixIdentity(&dsc->transform.scale);	
 
 	dsc->bUpdateCB = false;
 
@@ -801,6 +799,41 @@ S_API SResult Terrain::Render(SCamera* pCamera)
 		m_bRequireCBUpdate = false;
 	}
 	
+
+	// Prepare layer arrays
+	if (!IS_VALID_PTR(dsc->pDetailMaps) || (IS_VALID_PTR(dsc->pDetailMaps) && dsc->nLayers != m_Layers.size()))
+	{
+		if (IS_VALID_PTR(dsc->pDetailMaps))
+			delete[] dsc->pDetailMaps;
+
+		dsc->pDetailMaps = new ITexture*[m_Layers.size()];
+	}
+
+	if (!IS_VALID_PTR(dsc->pLayerMasks) || (IS_VALID_PTR(dsc->pLayerMasks) && dsc->nLayers != m_Layers.size()))
+	{
+		if (IS_VALID_PTR(dsc->pLayerMasks))
+			delete[] dsc->pLayerMasks;
+
+		dsc->pLayerMasks = new ITexture*[m_Layers.size()];
+	}
+
+	// Fill layer arrays
+	unsigned int iLayer = 0;
+	for (auto itLayer = m_Layers.begin(); itLayer != m_Layers.end(); itLayer++)
+	{
+		STerrainLayer* pLayer = *itLayer;
+		if (!IS_VALID_PTR(pLayer))
+		{
+			m_pEngine->LogE("Invalid terrain layer pointer!");
+			return S_ERROR;
+		}
+
+		dsc->pLayerMasks[iLayer] = pLayer->pAlphaMask;
+		dsc->pDetailMaps[iLayer] = pLayer->pDetailMap;
+		++iLayer;
+	}
+
+	dsc->nLayers = iLayer;
 
 
 	if (IS_VALID_PTR(dsc->pDrawCallDescs) && dsc->nDrawCallDescs < m_nLodLevels)
@@ -858,13 +891,18 @@ S_API SResult Terrain::SetColorMap(ITexture* pColorMap)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult Terrain::SetDetailMap(ITexture* pDetailMap)
+S_API void Terrain::AddLayer(const STerrainLayer& layer)
 {
-	if (!IS_VALID_PTR(pDetailMap))
-		EngLog(S_INVALIDPARAM, m_pEngine, "Invalid trp passed to Terrain::SetDetailMap!");
+	m_Layers.push_back(new STerrainLayer(layer));
+}
 
-	m_pDetailMap = pDetailMap;
-	return S_SUCCESS;
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API STerrainLayer* Terrain::GetLayer(unsigned int index)
+{
+	if (m_Layers.size() <= index)
+		return 0;
+
+	return m_Layers.at(index);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -902,7 +940,20 @@ S_API void Terrain::Clear(void)
 	m_nLodLevels = 0;
 	m_nChunks = 0;
 	m_pColorMap = 0;
-	m_pDetailMap = 0;	
+
+
+	if (m_Layers.size() > 0)
+	{
+		for (auto itLayer = m_Layers.begin(); itLayer != m_Layers.end(); itLayer++)
+		{
+			STerrainLayer* pLayer = *itLayer;
+			if (IS_VALID_PTR(pLayer))				
+				delete pLayer;
+		}
+	}
+
+	m_Layers.clear();
+
 
 	if (IS_VALID_PTR(pResources) && IS_VALID_PTR(m_pVtxHeightMap))
 		pResources->RemoveTexture(&m_pVtxHeightMap);

@@ -31,9 +31,7 @@ private:
 	bool m_bCustomHeightmapSet;	
 
 	ITexture* m_pColorMap;
-	ITexture* m_pDetailMap;
-
-
+	std::vector<STerrainLayer*> m_Layers;
 
 	STerrainChunk* m_pChunks;
 	unsigned int m_nChunks;
@@ -65,7 +63,6 @@ public:
 	Terrain()		
 		: m_pEngine(nullptr),
 		m_pColorMap(nullptr),
-		m_pDetailMap(nullptr),
 		m_bRequireCBUpdate(true),
 		m_pLodLevels(0),
 		m_pChunks(0),		
@@ -79,7 +76,7 @@ public:
 
 	virtual bool IsInited() const
 	{
-		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && IS_VALID_PTR(m_pDetailMap));
+		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && m_Layers.size() > 0);
 	}
 	
 	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4);
@@ -126,7 +123,9 @@ public:
 
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
-	virtual SResult SetDetailMap(ITexture* pDetailMap);	
+
+	ILINE virtual void AddLayer(const STerrainLayer& layer);
+	ILINE virtual STerrainLayer* GetLayer(unsigned int index);
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 

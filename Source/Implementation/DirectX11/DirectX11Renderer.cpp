@@ -374,12 +374,12 @@ S_API void DirectX11Renderer::InitBlendStates()
 	ZeroMemory(&m_TerrainBlendDesc, sizeof(m_TerrainBlendDesc));
 	m_TerrainBlendDesc.AlphaToCoverageEnable = false;
 	m_TerrainBlendDesc.IndependentBlendEnable = false;
-	m_TerrainBlendDesc.RenderTarget[0].BlendEnable = false;
+	m_TerrainBlendDesc.RenderTarget[0].BlendEnable = true;
 	m_TerrainBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	m_TerrainBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	m_TerrainBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	m_TerrainBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	m_TerrainBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	m_TerrainBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	m_TerrainBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	m_TerrainBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
 	m_TerrainBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	m_TerrainBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
@@ -1113,7 +1113,6 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
 
 
-
 	// Render Terrain
 	if (m_TerrainRenderDesc.bRender)
 	{
@@ -1123,14 +1122,15 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		// Render Terrain directly to the backbuffer
 		BindSingleRT(m_pTargetViewport);		
 
-		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMap))) m_pEngine->LogE("Invalid detail map in Terrain render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");		
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pLayerMasks))) m_pEngine->LogE("Invalid layer masks array in Terarin Render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMaps))) m_pEngine->LogE("Invalid detail maps array in Terarin Render Desc!");
+		if (!(bTerrainRenderState = (m_TerrainRenderDesc.nLayers > 0))) m_pEngine->LogE("Invalid layer count in Terrain Render Desc!");
 
 		BindTexture(m_TerrainRenderDesc.pVtxHeightMap, 0);
 		BindTexture(m_TerrainRenderDesc.pVtxHeightMap, 0, true);
 		BindTexture(m_TerrainRenderDesc.pColorMap, 1);
-		BindTexture(m_TerrainRenderDesc.pDetailMap, 2);
 
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 0, nullptr);
 		m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);
@@ -1144,17 +1144,37 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 			m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pTerrainCB);
 			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
 			m_pBoundCB = m_pTerrainCB;
-		}
-
-		m_pD3DDeviceContext->OMSetBlendState(m_pTerrainBlendState, 0, 0xffffffff);
+		}		
 		
 		// render all chunks
 		if (IS_VALID_PTR(m_TerrainRenderDesc.pDrawCallDescs) && m_TerrainRenderDesc.nDrawCallDescs > 0)
 		{
 			for (unsigned int c = 0; c < m_TerrainRenderDesc.nDrawCallDescs; ++c)
-			{				
-				DrawTerrainSubset(m_TerrainRenderDesc.pDrawCallDescs[c]);
-			}			
+			{
+				// Draw first layer without alpha blend
+				m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
+
+				// For each layer
+				for (unsigned int iLayer = 0; iLayer < m_TerrainRenderDesc.nLayers; ++iLayer)
+				{
+					if (iLayer == 1)
+					{
+						// Draw each further layer with alpha blending
+						m_pD3DDeviceContext->OMSetBlendState(m_pTerrainBlendState, 0, 0xffffffff);
+					}
+
+					// Bind textures
+					BindTexture(m_TerrainRenderDesc.pDetailMaps[iLayer], 2);
+					BindTexture(m_TerrainRenderDesc.pLayerMasks[iLayer], 3);
+
+					// Draw the subset
+					DrawTerrainSubset(m_TerrainRenderDesc.pDrawCallDescs[c]);
+				}				
+			}
+			
+			// Unbind terrain layer textures
+			BindTexture((ITexture*)0, 2);
+			BindTexture((ITexture*)0, 3);
 		}
 			
 		m_TerrainRenderDesc.bRender = false;

@@ -136,7 +136,19 @@ struct S_API STerrainChunk
 
 // ==================================================================================================================
 
-// SpeedPoint Terrain Solid (abstract)
+struct S_API STerrainLayer
+{
+	ITexture* pAlphaMask;
+	ITexture* pDetailMap;
+
+	STerrainLayer()
+		: pAlphaMask(0), pDetailMap(0) {}
+
+	STerrainLayer(const STerrainLayer& layer)
+		: pAlphaMask(layer.pAlphaMask), pDetailMap(layer.pDetailMap) {}
+};
+
+
 struct S_API ITerrain
 {
 public:
@@ -209,7 +221,9 @@ public:
 	//virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
 
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
-	virtual SResult SetDetailMap(ITexture* pDetailMap) = 0;	
+
+	ILINE virtual void AddLayer(const STerrainLayer& layer) = 0;
+	ILINE virtual STerrainLayer* GetLayer(unsigned int index) = 0;
 	
 	// Summary:
 	//	Flags that the terrain Constant Buffer has to be updated.
