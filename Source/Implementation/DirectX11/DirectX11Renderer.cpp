@@ -79,6 +79,7 @@ m_pDXGIFactory(0),
 m_pDSV(0),
 m_nRenderTargets(0),
 m_pDepthStencilState(0),
+m_pTerrainDepthState(0),
 m_pPerSceneCB(nullptr),
 m_pIllumCB(nullptr),
 m_pHelperCB(nullptr),
@@ -299,6 +300,16 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 #endif
 
 
+	// Create Terrain Depth Stencil State	
+	ZeroMemory(&m_terrainDepthDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	m_terrainDepthDesc.DepthEnable = true;
+	m_terrainDepthDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	m_terrainDepthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	
+	m_terrainDepthDesc.StencilEnable = false;
+
+	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_terrainDepthDesc, &m_pTerrainDepthState)))
+		m_pEngine->LogE("Failed create terrain depth stencil state!");
 
 
 	// In DX11 we fist need a RSState interface	
@@ -640,6 +651,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pTerrainBlendState);
 	SP_SAFE_RELEASE(m_pDefaultSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
+	SP_SAFE_RELEASE(m_pTerrainDepthState);
 	SP_SAFE_RELEASE(m_pRSState);
 	SP_SAFE_RELEASE(m_pPerSceneCB);
 	SP_SAFE_RELEASE(m_pIllumCB);
@@ -1151,16 +1163,18 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		{
 			for (unsigned int c = 0; c < m_TerrainRenderDesc.nDrawCallDescs; ++c)
 			{
-				// Draw first layer without alpha blend
+				// Draw first layer without alpha blend and default depth state
 				m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
+				m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
 
 				// For each layer
 				for (unsigned int iLayer = 0; iLayer < m_TerrainRenderDesc.nLayers; ++iLayer)
 				{
 					if (iLayer == 1)
 					{
-						// Draw each further layer with alpha blending
+						// Draw each further layer with alpha blending and terrain depth stencil state
 						m_pD3DDeviceContext->OMSetBlendState(m_pTerrainBlendState, 0, 0xffffffff);
+						m_pD3DDeviceContext->OMSetDepthStencilState(m_pTerrainDepthState, 1);
 					}
 
 					// Bind textures

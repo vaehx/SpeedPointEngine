@@ -91,7 +91,7 @@ public:
 	}
 
 	virtual float SampleHeight(const Vec2f& texcoords, bool bilinear = false) const;
-	
+
 	virtual float GetMinHeight() const;	
 	virtual float GetMaxHeight() const;
 

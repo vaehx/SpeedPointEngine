@@ -100,6 +100,9 @@ private:
 
 	D3D11_DEPTH_STENCIL_DESC m_depthStencilDesc;
 	ID3D11DepthStencilState* m_pDepthStencilState;	
+
+	D3D11_DEPTH_STENCIL_DESC m_terrainDepthDesc;
+	ID3D11DepthStencilState* m_pTerrainDepthState;
 	
 	// Todo: Do not store CBs in Renderer, but in the objects itself
 	SIllumConstantBuffer m_IllumCB;
