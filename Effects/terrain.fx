@@ -162,13 +162,15 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float3 normal = normalize(IN.Normal);
 
     // Sample CM and DM
-    float4 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord);
-    float4 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz);    
+    float3 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord).rgb;
+    float3 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz).rgb;
 
 	// Calculate blended Diffuse Color
     float dirln = length(eyePos.xz - IN.WorldPos.xz);
-    float terrainFadeFactor = terrain_fade_factor(dirln);
-	float4 blendedDiffuse = sampleDM * terrainFadeFactor + sampleCM * (1.0f - terrainFadeFactor);
+    float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
+
+	float3 coloredDiffuse = BlendColor(sampleDM, sampleCM);
+	float4 blendedDiffuse = float4(coloredDiffuse.r, coloredDiffuse.g, coloredDiffuse.b, 0) * terrainFadeFactor + float4(sampleCM,0) * (1.0f - terrainFadeFactor);
     
 	// Sample vtx Height
     float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
@@ -177,19 +179,23 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 	// Light Dir is assumed to be INCOMING directed
     float3 lightDir = normalize(float3(0, -0.8f, 0.1f));
 
-	float monoLightIntensity = 8.0f;
+	float monoLightIntensity = 5.5f;
 	float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
 
-    float monoAmbient = 0.003f;
+    float monoAmbient = 0.9f;
 	float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
     float lambert = saturate(dot(normal, -lightDir));
 
-	OUT.Color = lambert * (blendedDiffuse / PI + ambient) * lightIntensity;
+	OUT.Color = lambert * (blendedDiffuse / PI + ambient * blendedDiffuse) * lightIntensity;
 
 	// Sample alpha value
 	float4 sampleMask = alphaMask.Sample(MapSampler, IN.TexCoord);
-	OUT.Color.a = sampleMask;
+	//OUT.Color.a = 1.0f;
+	//OUT.Color = float4(terrainFadeFactor, 0, 0, 1.0f);
+	OUT.Color.a = sampleMask.r;
+	//OUT.Color.r = sampleMask.r;
+	//OUT.Color.gb = float2(0,0);
 
 	//OUT.Color = (sampleCM * 0.5f * (sampleDM + ((1.0f - terrainFadeFactor) * (1.0f - sampleDM)))) * (lightingFactor * lightIntensity);
 
