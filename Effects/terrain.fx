@@ -148,6 +148,17 @@ float terrain_fade_factor(float radius)
     return saturate(factor);
 }
 
+
+float3 BlendOverlay(float3 a, float3 b)
+{
+    return float3(
+        (a.r < 0.5f ? 2.f * a.r * b.r : 1.f - 2.f * (1.f - a.r) * (1.f - b.r)),
+        (a.g < 0.5f ? 2.f * a.g * b.g : 1.f - 2.f * (1.f - a.g) * (1.f - b.g)),
+        (a.b < 0.5f ? 2.f * a.b * b.b : 1.f - 2.f * (1.f - a.b) * (1.f - b.b))
+    );
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -169,7 +180,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float dirln = length(eyePos.xz - IN.WorldPos.xz);
     float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
 
-	float3 coloredDiffuse = BlendColor(sampleDM, sampleCM);
+	float3 coloredDiffuse = BlendOverlay(sampleCM, sampleDM);
 	float4 blendedDiffuse = float4(coloredDiffuse.r, coloredDiffuse.g, coloredDiffuse.b, 0) * terrainFadeFactor + float4(sampleCM,0) * (1.0f - terrainFadeFactor);
     
 	// Sample vtx Height
@@ -179,10 +190,10 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 	// Light Dir is assumed to be INCOMING directed
     float3 lightDir = normalize(float3(0, -0.8f, 0.1f));
 
-	float monoLightIntensity = 5.5f;
+	float monoLightIntensity = 4.0f;
 	float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
 
-    float monoAmbient = 0.9f;
+    float monoAmbient = 0.09f;
 	float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
     float lambert = saturate(dot(normal, -lightDir));
