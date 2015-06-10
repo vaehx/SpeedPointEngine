@@ -123,6 +123,7 @@ public:
 
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
+	ILINE virtual ITexture* GetColorMap() const;
 
 	ILINE virtual unsigned int AddLayer(const STerrainLayer& layer);
 	ILINE virtual STerrainLayer* GetLayer(unsigned int index);

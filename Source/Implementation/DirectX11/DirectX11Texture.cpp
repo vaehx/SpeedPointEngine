@@ -90,7 +90,9 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	IWICImagingFactory* pImgFactory;
 	hRes = CoCreateInstance(CLSID_WICImagingFactory, 0, CLSCTX_INPROC_SERVER, IID_IWICImagingFactory, (void**)&pImgFactory);
 	if (Failure(hRes))
+	{
 		return m_pEngine->LogE("Failed Create WIC Imaging Factory!");
+	}
 
 	IWICBitmapDecoder* pImgDecoder;	
 	wchar_t* cWFilename = new wchar_t[50];
@@ -117,7 +119,9 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	// get the pixel size of this frame
 	WICPixelFormatGUID pxlFmtGUID;	
 	if (Failure(pBmpFrameDecode->GetPixelFormat(&pxlFmtGUID)))
+	{
 		return m_pEngine->LogE("Failed Get Pixel Format of desired frame!");
+	}
 
 	// some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
 	WICPixelFormatGUID pxlFmtGUIDOrig = pxlFmtGUID;
@@ -151,21 +155,26 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 		// m_pEngine->LogE << "Failed convert pixel fmt: Unknown format: " << pxlFmtGUID << "!";
 	}	
 
-
+	// ----------------------------------------------------------------------------------------------------------------------
 	// copy the pixels into a temporary buffer	
+
 	UINT nLoadedWidth, nLoadedHeight;
 	pBmpFrameDecode->GetSize(&nLoadedWidth, &nLoadedHeight);
 
 	UINT nBPP = BitsPerPixel(pxlFmtGUID, pImgFactory);
 	if (nBPP == 0)
+	{
 		return m_pEngine->LogE("Could not retrieve bits per pixel for loaded texture!");
+	}
 
 	size_t imageStride = (w * nBPP + 7) / 8;
 	size_t imageSize = imageStride * nLoadedHeight;
 
 	std::unique_ptr<uint8_t[]> temp(new uint8_t[imageSize]);
 
+	// ----------------------------------------------------------------------------------------------------------------------
 	// check whether we need to scale or convert the loaded image
+
 	if (nLoadedWidth == w && nLoadedHeight == h && memcmp(&pxlFmtGUID, &pxlFmtGUIDOrig, sizeof(GUID)) == 0)
 	{
 		hRes = pBmpFrameDecode->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp.get());
@@ -225,7 +234,9 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	}
 
 
-	// Check if autogeneration of mip levels is supported 	
+	// ----------------------------------------------------------------------------------------------------------------------
+	// Check if autogeneration of mip levels is supported
+
 	UINT fmtSupport = 0;
 	hRes = m_pDXRenderer->GetD3D11Device()->CheckFormatSupport(loadedTextureFmt, &fmtSupport);
 	bool bMipAutoGenSupported = Success(hRes) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN);
@@ -237,49 +248,79 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	m_pEngine->LogD(SString("Loaded Texture ") + cFileName + "!");
 
 
+	// ----------------------------------------------------------------------------------------------------------------------
 	// Now create the directx texture
+	
 	D3D11_TEXTURE2D_DESC& textureDesc = m_DXTextureDesc;
 	textureDesc.ArraySize = 1;
 	textureDesc.BindFlags = (bMipAutoGenSupported) ? (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) : (D3D11_BIND_SHADER_RESOURCE);
 	textureDesc.CPUAccessFlags = (m_bDynamic) ? D3D11_CPU_ACCESS_WRITE /* | D3D11_CPU_ACCESS_READ */ : 0;
 	textureDesc.Format = loadedTextureFmt;
 	textureDesc.Width = w;
-	textureDesc.Height = h;
-	textureDesc.MipLevels = (bMipAutoGenSupported) ? 0 : 1;
-	textureDesc.MiscFlags = (bMipAutoGenSupported) ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;		
+	textureDesc.Height = h;	
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0; // No MS for now!
-	textureDesc.Usage = (m_bDynamic) ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
+
+	if (!m_bDynamic)
+	{
+		textureDesc.MiscFlags = (bMipAutoGenSupported) ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0;
+		textureDesc.BindFlags = (bMipAutoGenSupported) ? (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) : (D3D11_BIND_SHADER_RESOURCE);
+		textureDesc.CPUAccessFlags = 0;
+		textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureDesc.MipLevels = (bMipAutoGenSupported) ? 0 : 1;
+	}
+	else
+	{
+		textureDesc.MiscFlags = 0;
+		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		textureDesc.Usage = D3D11_USAGE_DYNAMIC;
+		textureDesc.MipLevels = 1;
+	}	
 	
 	D3D11_SUBRESOURCE_DATA initData;
 	initData.pSysMem = temp.get();
 	initData.SysMemPitch = static_cast<UINT>(imageStride);
 	initData.SysMemSlicePitch = static_cast<UINT>(imageSize);
-
+	
 	m_pDXTexture = nullptr;
-	hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
+
+	// Create the texture
+	hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (!m_bDynamic && bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
+
 	if (Failure(hRes) || m_pDXTexture == nullptr)
+	{
 		return m_pEngine->LogE("Failed to create DirectX11 Texture!");
+	}
+	
+
+	// ----------------------------------------------------------------------------------------------------------------------
+	// Create the Shader Resource View
 	
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	memset(&srvDesc, 0, sizeof(srvDesc));
 	srvDesc.Format = loadedTextureFmt;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = (bMipAutoGenSupported) ? -1 : 1;
-	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV)))
+
+	hRes = m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV);
+
+	if (Failure(hRes))
 	{
 		m_pDXTexture->Release();
 		return m_pEngine->LogE("Failed create shader resource view for texture!");
 	}
 
-	if (bMipAutoGenSupported)
+	if (!m_bDynamic && bMipAutoGenSupported)
 	{
 		ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
 		pDXDevCon->UpdateSubresource(m_pDXTexture, 0, nullptr, temp.get(), static_cast<UINT>(imageStride), static_cast<UINT>(imageSize));
 		pDXDevCon->GenerateMips(m_pDXSRV);
 	}
 
+	// ----------------------------------------------------------------------------------------------------------------------
 	// Determine type
+	
 	switch (loadedTextureFmt)
 	{
 	case DXGI_FORMAT_R32_FLOAT: m_Type = eTEXTURE_R32_FLOAT; break;
@@ -289,7 +330,9 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 		m_Type = eTEXTURE_R8G8B8A8_UNORM; break;
 	}
 
+	// ----------------------------------------------------------------------------------------------------------------------
 	// Store staged data
+
 	if (m_bStaged)
 	{
 		if (IS_VALID_PTR(m_pStagedData))
