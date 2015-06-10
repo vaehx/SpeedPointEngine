@@ -193,7 +193,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 	float monoLightIntensity = 4.0f;
 	float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
 
-    float monoAmbient = 0.09f;
+    float monoAmbient = 0.22f;
 	float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
     float lambert = saturate(dot(normal, -lightDir));
