@@ -1154,7 +1154,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		if (m_pBoundCB != m_pTerrainCB)
 		{
 			m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pTerrainCB);
-			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
+			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);			
 			m_pBoundCB = m_pTerrainCB;
 		}		
 		

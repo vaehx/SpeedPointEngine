@@ -122,4 +122,19 @@ struct S_API IReferenceObject : public IRenderableObject
 };
 
 
+struct S_API ISkyBox : public IRenderableObject
+{
+	virtual ~ISkyBox() {}
+
+	virtual EObjectType GetType() const
+	{
+		return eGEOMOBJ_SKYBOX;
+	}
+
+	virtual SResult InitGeometry(IGameEngine* pEngine) = 0;
+	virtual void SetTexture(ITexture* pTexture) = 0;
+	virtual void Clear() = 0;
+};
+
+
 SP_NMSPACE_END

@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\CReferenceObject.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableObjects.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp" />

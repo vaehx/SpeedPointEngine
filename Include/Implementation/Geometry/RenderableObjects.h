@@ -13,6 +13,7 @@
 
 #pragma once
 #include <Abstract\Renderable.h>
+#include "StaticObject.h"
 
 SP_NMSPACE_BEG
 
@@ -73,6 +74,37 @@ public:
 			m_pBase->RecalcBoundBox();
 			m_AABB = m_pBase->GetBoundBox();
 		}
+	}
+};
+
+
+
+class S_API CSkyBox : public ISkyBox
+{
+private:
+	CStaticObjectRenderable m_Renderable;
+	IGameEngine* m_pEngine;
+
+public:
+	~CSkyBox()
+	{
+		Clear();
+	}
+
+	virtual SResult InitGeometry(IGameEngine* pEngine);
+	virtual void SetTexture(ITexture* pTexture);
+	virtual void Clear();
+
+	// IRenderableObject:
+public:
+	virtual SResult Render();
+	virtual IGeometry* GetGeometry();
+	virtual IRenderableComponent* GetRenderable();
+
+	// IObject:
+public:
+	virtual void RecalcBoundBox()
+	{
 	}
 };
 

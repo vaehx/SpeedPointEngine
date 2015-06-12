@@ -14,6 +14,7 @@ class S_API Scene : public IScene
 private:
 	IGameEngine* m_pEngine;
 	ITerrain* m_pTerrain;
+	ISkyBox* m_pSkyBox;
 	std::vector<SSceneNode> nodes;
 
 public:
@@ -23,6 +24,9 @@ public:
 	}
 
 	virtual SResult Initialize(IGameEngine* pGameEngine);
+
+	virtual void SetSkyBox(ISkyBox* pSkyBox);
+	virtual ISkyBox* GetSkyBox() const;
 
 	virtual ITerrain* GetTerrain() { return m_pTerrain; }
 	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight,

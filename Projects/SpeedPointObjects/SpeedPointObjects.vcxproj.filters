@@ -44,10 +44,10 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\CReferenceObject.cpp">
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp">
+    <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableObjects.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

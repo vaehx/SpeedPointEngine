@@ -17,6 +17,7 @@ struct S_API IGameEngine;
 struct S_API ITexture;
 struct S_API IStaticObject;
 struct IRenderableObject;
+struct S_API ISkyBox;
 
 // Scene Graph Node
 struct SSceneNode
@@ -33,6 +34,9 @@ struct S_API IScene
 	virtual ~IScene() {}
 
 	virtual SResult Initialize(IGameEngine* pGameEngine) = 0;
+
+	virtual void SetSkyBox(ISkyBox* pSkyBox) = 0;
+	virtual ISkyBox* GetSkyBox() const = 0;
 
 	virtual ITerrain* GetTerrain() = 0;
 	

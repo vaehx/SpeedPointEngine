@@ -271,4 +271,16 @@ S_API SResult Scene::CreateNormalsGeometry(IRenderableObject* object, IRenderabl
 	return S_SUCCESS;
 }
 
+// -------------------------------------------------------------------------------------------------
+void Scene::SetSkyBox(ISkyBox* pSkyBox)
+{
+	m_pSkyBox = pSkyBox;
+}
+
+// -------------------------------------------------------------------------------------------------
+ISkyBox* Scene::GetSkyBox() const
+{
+	return m_pSkyBox;
+}
+
 SP_NMSPACE_END
