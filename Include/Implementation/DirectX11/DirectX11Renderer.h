@@ -311,6 +311,8 @@ public:
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
 
+	virtual SResult Render(const SRenderDesc& renderDesc);
+
 	virtual SResult PresentTargetViewport(void);
 
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0);

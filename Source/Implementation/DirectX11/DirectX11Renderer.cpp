@@ -1098,6 +1098,69 @@ S_API SResult DirectX11Renderer::EndScene(void)
 
 
 
+
+
+
+
+
+
+S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
+{
+	// Skip render slot without subsets
+	if (renderDesc.nSubsets == 0 || !IS_VALID_PTR(renderDesc.pSubsets))
+	{
+		return;
+	}
+
+	// Set correct depth stencil state
+	EnableDepthTest(renderDesc.bDepthStencilEnable);
+
+	if (renderDesc.renderPipeline == eRENDER_FORWARD)
+	{
+		// Forward rendering: Rendering directly to backbuffer
+		if (Failure(BindSingleRT(m_pTargetViewport)))
+		{
+			return S_ERROR;
+		}
+
+		// Set the viewport matrices
+		if (renderDesc.bCustomViewProjMtx)
+		{
+			SetViewProjMatrix(renderDesc.viewProjMtx);
+		}
+		else
+		{
+			SetViewProjMatrix(m_pTargetViewport);
+		}		
+
+		const SVector3& camPos = m_pTargetViewport->GetCamera()->position;
+		SetEyePosition(Vec3f(camPos.x, camPos.y, camPos.z));
+
+		// upload constants
+		UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
+		// NOW DRAW THE SUBSETS
+		DrawForwardSubsets(renderDesc);
+	}
+	else if (renderDesc.renderPipeline == eRENDER_DEFERRED)
+	{
+		// first, render to gbuffer here. after the loop we'll then render lights and merge into backbuffer
+		// TODO
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1223,43 +1286,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		if (pSlot == 0)
 			break; // End of Schedule reached
 
-		SRenderDesc* pDesc = &pSlot->renderDesc;		
-
-		// Skip render slot without subsets
-		if (pDesc->nSubsets == 0 || !IS_VALID_PTR(pDesc->pSubsets))
-			continue;
-
-		// Set correct depth stencil state
-		EnableDepthTest(pDesc->bDepthStencilEnable);
-
-		if (pDesc->renderPipeline == eRENDER_FORWARD)
-		{			
-			// Forward rendering: Rendering directly to backbuffer
-			if (Failure(BindSingleRT(m_pTargetViewport)))
-				return S_ERROR;
-
-			
-			// Set the viewport matrices			
-			if (pDesc->bCustomViewProjMtx)
-				SetViewProjMatrix(pDesc->viewProjMtx);
-			else
-				SetViewProjMatrix(m_pTargetViewport);
-
-			const SVector3& camPos = m_pTargetViewport->GetCamera()->position;
-			SetEyePosition(Vec3f(camPos.x, camPos.y, camPos.z));
-
-			UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);		
-
-			// NOW RENDER THE SUBSETS
-			DrawForwardSubsets(*pDesc);
-
-
-		}
-		else if (pDesc->renderPipeline == eRENDER_DEFERRED)
-		{
-			// first, render to gbuffer here. after the loop we'll then render lights and merge into backbuffer
-			// TODO
-		}		
+		Render(pSlot->renderDesc);
 
 
 		// Remove RenderSlot item if it should not be kept anymore

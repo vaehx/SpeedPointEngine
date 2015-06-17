@@ -30,7 +30,6 @@ SP_NMSPACE_BEG
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API CStaticObjectRenderable::CStaticObjectRenderable()
-: m_pRenderSlot(0)
 {
 }
 
@@ -59,25 +58,28 @@ S_API EPrimitiveType CStaticObjectRenderable::GetGeometryPrimitiveType() const
 }
 
 // ----------------------------------------------------------------------------------------
-S_API void CStaticObjectRenderable::FillRenderSlot(IGameEngine* pEngine, SRenderSlot* pRenderSlot)
+S_API SRenderDesc* CStaticObjectRenderable::GetRenderDesc()
 {
-	SRenderDesc* pRenderDesc = &pRenderSlot->renderDesc;
 
-	pRenderSlot->keep = true;
-	//m_Renderable.SetRenderSlot(pRenderSlot);
+}
 
-	pRenderDesc->renderPipeline = eRENDER_FORWARD;
+// ----------------------------------------------------------------------------------------
+S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
+{
+	m_RenderDesc.renderPipeline = eRENDER_FORWARD;
 
-	pRenderDesc->bCustomViewProjMtx = m_bUseCustomViewProjMtx;
+	m_RenderDesc.bCustomViewProjMtx = m_bUseCustomViewProjMtx;
 	if (m_bUseCustomViewProjMtx)
-		pRenderDesc->viewProjMtx = m_ViewProjMtx;
+	{
+		m_RenderDesc.viewProjMtx = m_ViewProjMtx;
+	}
 
 	// copy over subsets
-	pRenderDesc->nSubsets = GetSubsetCount();
-	pRenderDesc->pSubsets = new SRenderSubset[pRenderDesc->nSubsets];
-	for (unsigned int i = 0; i < pRenderDesc->nSubsets; ++i)
+	m_RenderDesc.nSubsets = GetSubsetCount();
+	m_RenderDesc.pSubsets = new SRenderSubset[m_RenderDesc.nSubsets];
+	for (unsigned int i = 0; i < m_RenderDesc.nSubsets; ++i)
 	{
-		SRenderSubset& renderSubset = pRenderDesc->pSubsets[i];
+		SRenderSubset& renderSubset = m_RenderDesc.pSubsets[i];
 		SGeomSubset* subset = GetSubset(i);
 		if (!IS_VALID_PTR(subset))
 		{
@@ -129,6 +131,19 @@ S_API void CStaticObjectRenderable::FillRenderSlot(IGameEngine* pEngine, SRender
 			}
 		}
 	}
+}
+
+
+
+S_API SRenderDesc* CStaticObjectRenderable::GetUpdatedRenderDesc()
+{
+	// TODO: Do we need to update anything here at all??????
+
+	// set / update transformation
+	STransformationDesc& transformDesc = m_RenderDesc.transform;
+	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
+	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
+	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
 }
 
 
@@ -270,11 +285,14 @@ S_API IReferenceObject* StaticObject::CreateReferenceObject()
 
 
 
-
 // ----------------------------------------------------------------------------------------
 
 S_API SResult StaticObject::Render()
 {
+
+
+
+
 	SRenderSlot* pRenderSlot = m_Renderable.GetRenderSlot();
 	SRenderDesc* pRenderDesc = 0;
 
@@ -299,11 +317,7 @@ S_API SResult StaticObject::Render()
 		pRenderDesc = &pRenderSlot->renderDesc;
 	}
 
-	// set / update transformation
-	STransformationDesc& transformDesc = pRenderDesc->transform;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
-	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
-	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);	
+	
 
 
 

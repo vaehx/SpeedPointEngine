@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm4="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm5="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/LogicalClassDesigner"
+  dslVersion="1.0.0.0"
+  Id="6e510a47-fe80-4721-af3e-2182d0ef6397"
+  name="Renderable.h" xmlns="http://schemas.microsoft.com/dsltools/ModelStore">
+  <packagedElements>
+    <packageHasNamedElement>
+      <Interface
+        Id="6e0372bf-5b83-43f2-9e91-8f6673eec7cb"
+        name="ISkyBox"
+        isAbstract="false"
+        isLeaf="false">
+        <generalsInternal>
+          <generalization
+            Id="15b3025f-1353-477a-b594-059a846c2750"
+            isSubstitutable="false">
+            <interfaceMoniker
+              Id="a6ba9a1d-04e8-411e-88da-d19196a405d9"
+              LastKnownName="IRenderableObject"
+              LastKnownLocation="Package_1623.uml" />
+          </generalization>
+        </generalsInternal>
+      </Interface>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="12d8f900-23b4-4475-a2ff-609cf98e8bda"
+        name="IReferenceObject"
+        isAbstract="false"
+        isLeaf="false">
+        <generalsInternal>
+          <generalization
+            Id="1af7c8b9-1e95-46fc-9728-84b8f7c28e81"
+            isSubstitutable="false">
+            <interfaceMoniker
+              Id="a6ba9a1d-04e8-411e-88da-d19196a405d9"
+              LastKnownName="IRenderableObject"
+              LastKnownLocation="Package_1623.uml" />
+          </generalization>
+        </generalsInternal>
+      </Interface>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="67c92abe-454b-4542-962b-1cad2aaf24e2"
+        name="IStaticObject"
+        isAbstract="false"
+        isLeaf="false">
+        <generalsInternal>
+          <generalization
+            Id="7c17a7ed-0021-4c94-b7fa-119e01d0a932"
+            isSubstitutable="false">
+            <interfaceMoniker
+              Id="a6ba9a1d-04e8-411e-88da-d19196a405d9"
+              LastKnownName="IRenderableObject"
+              LastKnownLocation="Package_1623.uml" />
+          </generalization>
+        </generalsInternal>
+      </Interface>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="65e5a8ae-0f29-43e1-9807-fd41d1ffcd4d"
+        name="IRenderableComponent"
+        isAbstract="false"
+        isLeaf="false">
+        <ownedOperations>
+          <operation
+            Id="d82cc7f5-18d7-4e77-9c19-c67ffa38ae98"
+            name="GetUpdatedRenderDesc"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="true"
+            concurrency="Sequential"
+            isQuery="false" />
+        </ownedOperations>
+      </Interface>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="a6ba9a1d-04e8-411e-88da-d19196a405d9"
+        name="IRenderableObject"
+        isAbstract="false"
+        isLeaf="false">
+        <generalsInternal>
+          <generalization
+            Id="c31a0832-6630-4686-b895-66ef2a2f3bb7"
+            isSubstitutable="false">
+            <interfaceMoniker
+              Id="4b23c5d1-e24c-4c8f-9a45-12f9abcbd6ba"
+              LastKnownName="IObject"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </generalization>
+        </generalsInternal>
+        <targetEnds>
+          <association
+            Id="3a376604-2aa3-4479-b001-8c9dbe457943"
+            isDerived="false"
+            sourceEndRoleName=""
+            targetEndRoleName=""
+            isLeaf="false"
+            isAbstract="false">
+            <interfaceMoniker
+              Id="65e5a8ae-0f29-43e1-9807-fd41d1ffcd4d"
+              LastKnownName="IRenderableComponent"
+              LastKnownLocation="Package_1623.uml" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="dff245db-c6e6-40cb-9a23-1d903b400cc2"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="Shared"
+                  isComposite="false"
+                  isNavigableOwned="false" />
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="db31043a-014d-4e4d-a118-0ebafb11f574"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false" />
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+        </targetEnds>
+      </Interface>
+    </packageHasNamedElement>
+  </packagedElements>
+</package>

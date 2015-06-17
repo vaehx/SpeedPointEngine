@@ -15,9 +15,11 @@ private:
 	IGameEngine* m_pEngine;
 	ITerrain* m_pTerrain;
 	ISkyBox* m_pSkyBox;
-	std::vector<SSceneNode> nodes;
+	std::vector<SSceneNode>* m_pSceneNodes;
 
 public:
+	Scene();
+
 	virtual ~Scene()
 	{
 		Clear();
@@ -36,7 +38,9 @@ public:
 	
 	virtual SResult CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const;
 
-	//virtual void RegisterObject(IObject* pObject);
+	virtual std::vector<SSceneNode>* GetSceneNodes();
+
+	virtual void AddObject(IObject* pObject);
 
 	virtual void Clear();
 };

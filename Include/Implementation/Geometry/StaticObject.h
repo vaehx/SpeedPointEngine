@@ -28,7 +28,8 @@ private:
 	Geometry m_Geometry;
 	SMatrix m_ViewProjMtx;
 	bool m_bUseCustomViewProjMtx;
-	SRenderSlot* m_pRenderSlot;
+	SRenderDesc m_RenderDesc;
+	IObject* m_pObject;
 
 public:	
 	CStaticObjectRenderable();
@@ -45,10 +46,11 @@ public:
 		m_Geometry.Clear();		
 	}
 
-	virtual SRenderSlot* GetRenderSlot() { return m_pRenderSlot; }
-	virtual void SetRenderSlot(SRenderSlot* pSlot) { m_pRenderSlot = pSlot; }
+	virtual SRenderDesc* GetRenderDesc();	
+		
+	virtual SRenderDesc* Init(IGameEngine* pEngine, IObject* pObject);
 
-	virtual void FillRenderSlot(IGameEngine* pEngine, SRenderSlot* pSlot);
+	virtual SRenderDesc* GetUpdatedRenderDesc();
 
 	virtual IVertexBuffer* GetVertexBuffer();
 	virtual SGeomSubset* GetSubset(unsigned int i);
@@ -100,7 +102,7 @@ public:
 
 	//virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;	
 
-	virtual SResult Render();
+	virtual SRenderDesc* GetUpdatedRenderDesc();
 	virtual void Clear();
 
 	virtual IReferenceObject* CreateReferenceObject();
@@ -112,34 +114,7 @@ public:
 
 	// from IObject:
 public:
-	virtual void RecalcBoundBox();	
-
-
-/*	virtual SResult SetGeometryData( SVertex* pVertices, UINT nVertices, SIndex* pdwIndices, UINT nIndices );
-	virtual SP_ID GetVertexBuffer( void );
-	virtual SP_ID GetIndexBuffer( void );
-
-	virtual SResult RenderSolid( SpeedPointEngine* pEngineReplacement = 0 );
-
-	// -- Material --
-	virtual void SetMaterial( const SMaterial& mat );
-	virtual SMaterial* GetMaterial( void );
-
-	// -- BoundBox --
-	virtual SBoundBox* RecalculateBoundBox( void );
-	virtual SBoundBox* GetBoundBox( void );
-	virtual SBoundBox* SetBoundBox( const SBoundBox& bb );
-
-	// -- Octree --
-	virtual IOctree* GetOctree( void );
-
-	// -- Animations --
-	virtual void SetAnimationBundle( SP_ID iBundle );
-	virtual SP_ID GetAnimationBundle( void );
-	virtual SResult RunAnimation( SString cName );
-	virtual SResult GetCurrentAnimation( SString* dest );
-	virtual SResult TickAnimation( float fFrameDelay );
-*/
+	virtual void RecalcBoundBox();
 };
 
 

@@ -34,11 +34,14 @@ struct IRenderableComponent
 	virtual IGeometry* GetGeometry() = 0;	
 	virtual void Clear() = 0;
 	
-	virtual SRenderSlot* GetRenderSlot() = 0;
-	virtual void SetRenderSlot(SRenderSlot* pSlot) = 0;
+	virtual SRenderDesc* GetRenderDesc() = 0;
 
-	// Fills the given render slot
-	virtual void FillRenderSlot(IGameEngine* pEngine, SRenderSlot* pSlot) = 0;
+	// Fills the render Desc and returns reference to it
+	// pEngine is required to access several resources
+	// USE THIS FUNCTION TO INITIALLY FILL THE RENDER DESC OF THE OBJECT
+	virtual SRenderDesc* FillRenderDesc(IGameEngine* pEngine) = 0;	
+
+	virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
 
 	virtual IVertexBuffer* GetVertexBuffer() = 0;
 	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
@@ -54,10 +57,6 @@ struct IRenderableComponent
 
 struct S_API IRenderableObject : public IObject
 {
-	// Summary:
-	//	Renders the object the way, the implementation defines it.		
-	virtual SResult Render() = 0;
-
 	virtual bool IsRenderable() const { return true; }
 
 	virtual IRenderableComponent* GetRenderable() = 0;	

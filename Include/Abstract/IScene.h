@@ -51,6 +51,8 @@ struct S_API IScene
 
 	virtual SResult CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const = 0;
 
+	virtual std::vector<SSceneNode>* GetSceneNodes() = 0;
+
 	virtual void Clear() = 0;	
 };
 

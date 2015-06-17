@@ -464,8 +464,10 @@ public:
 	// Check if this Renderer is initialized properly
 	virtual bool IsInited( void ) = 0;	
 
-	virtual SResult BeginScene(void) = 0;		
-	virtual SResult EndScene(void) = 0;	
+	virtual SResult BeginScene(void) = 0;
+	virtual SResult EndScene(void) = 0;
+
+	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
 
 	virtual SResult PresentTargetViewport(void) = 0;
 

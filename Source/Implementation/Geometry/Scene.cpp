@@ -9,6 +9,12 @@
 SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------------------------------------
+S_API Scene::Scene()	
+{
+	m_pSceneNodes = new std::vector<SSceneNode>();
+}
+
+// -------------------------------------------------------------------------------------------------
 S_API void Scene::Clear()
 {
 	if (IS_VALID_PTR(m_pTerrain))
@@ -18,6 +24,11 @@ S_API void Scene::Clear()
 	}
 
 	m_pTerrain = nullptr;
+
+	if (!IS_VALID_PTR(m_pSceneNodes))
+		delete m_pSceneNodes;
+
+	m_pSceneNodes = 0;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -26,6 +37,30 @@ S_API SResult Scene::Initialize(IGameEngine* pGameEngine)
 	SP_ASSERTR(IS_VALID_PTR(pGameEngine), S_INVALIDPARAM);
 	m_pEngine = pGameEngine;
 	return S_SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API std::vector<SSceneNode>* Scene::GetSceneNodes()
+{
+	return m_pSceneNodes;
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API void Scene::AddObject(IObject* pObject)
+{
+	if (!IS_VALID_PTR(m_pSceneNodes))
+		m_pSceneNodes = new std::vector<SSceneNode>();
+
+	if (!IS_VALID_PTR(pObject))
+		return;
+
+	pObject->RecalcBoundBox();
+
+	SSceneNode node;
+	node.aabb = pObject->GetBoundBox();
+	node.pObject = pObject;
+
+	m_pSceneNodes->push_back(node);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -39,7 +74,9 @@ S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs
 	m_pTerrain = new Terrain();	
 
 	if (Failure(m_pTerrain->Init(m_pEngine, nSegs, nChunkSegs, fSideSz, baseHeight, fChunkStepDist, nLodLevels)))
-		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");	
+	{
+		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");
+	}
 	
 	m_pTerrain->SetColorMap(pColorMap);
 
@@ -49,8 +86,7 @@ S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs
 
 	STerrainLayer zeroLayer;
 	zeroLayer.pDetailMap = pDetailMap;
-	m_pEngine->GetResources()->AddTexture(colorMapSz[0], colorMapSz[1], "terrain_am_0",
-		eTEXTURE_R8G8B8A8_UNORM, SColor(0, 0, 0, 0), &zeroLayer.pAlphaMask);
+	m_pEngine->GetResources()->AddTexture(colorMapSz[0], colorMapSz[1], "terrain_am_0", eTEXTURE_R8G8B8A8_UNORM, SColor(0, 0, 0, 0), &zeroLayer.pAlphaMask);
 	
 	m_pTerrain->AddLayer(zeroLayer);
 

@@ -40,6 +40,52 @@ struct S_API SAxisAlignedBoundBox
 		vMin = SVector3(0, 0, 0);
 		vMax = SVector3(0, 0, 0);
 	}
+
+	// length is set to the length of the vector from ray origin to the intersection
+	bool HitsRay(const Vec3f& v, const Vec3f& p, float& length) const
+	{
+		Vec3f invDir;
+
+		invDir.x = 1.0f / v.x;
+		invDir.y = 1.0f / v.y;
+		invDir.z = 1.0f / v.z;
+
+		float t1 = (vMin.x - p.x)*invDir.x;
+		float t2 = (vMax.x - p.x)*invDir.x;
+		float t3 = (vMin.y - p.y)*invDir.y;
+		float t4 = (vMax.y - p.y)*invDir.y;
+		float t5 = (vMin.z - p.z)*invDir.z;
+		float t6 = (vMax.z - p.z)*invDir.z;
+
+		float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
+		float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
+
+		// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+		if (tmax < 0)
+		{
+			length = tmax;
+			return false;
+		}
+
+		// if tmin > tmax, ray doesn't intersect AABB
+		if (tmin > tmax)
+		{
+			length = tmax;
+			return false;
+		}
+
+		length = tmin;
+		return true;
+	}
+
+	bool Intersects(const SAxisAlignedBoundBox& aabb) const
+	{
+		if ((vMin.x > aabb.vMax.x) || (aabb.vMin.x > vMax.x)) return false;		
+		if ((vMin.y > aabb.vMax.y) || (aabb.vMin.y > vMax.y)) return false;		
+		if ((vMin.z > aabb.vMax.z) || (aabb.vMin.z > vMax.z)) return false;		
+		
+		return true;
+	}
 };
 typedef struct S_API SAxisAlignedBoundBox AABB;
 

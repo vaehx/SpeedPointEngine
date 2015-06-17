@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<modelStoreModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm4="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm5="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/LogicalClassDesigner"
+<modelStoreModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm4="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm5="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/LogicalClassDesigner"
   dslVersion="1.0.0.0"
   Id="1490c86b-ead9-4795-aaf8-21a50d062d48"
   name="SpeedPointArchitecture" xmlns="http://schemas.microsoft.com/dsltools/ModelStore">
@@ -45,9 +45,143 @@
     <packageHasNamedElement>
       <Interface
         Id="4b23c5d1-e24c-4c8f-9a45-12f9abcbd6ba"
+        name="IObject"
+        isAbstract="false"
+        isLeaf="false">
+        <ownedOperations>
+          <operation
+            Id="9863b76c-67d5-4653-98ea-cb23b674be24"
+            name="GetRenderable"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="true"
+            concurrency="Sequential"
+            isQuery="false" />
+        </ownedOperations>
+      </Interface>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="192ad303-054f-402d-ac75-ed356e9aca9b"
         name="Interface1"
         isAbstract="false"
         isLeaf="false" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <packageMoniker
+        Id="6e510a47-fe80-4721-af3e-2182d0ef6397"
+        LastKnownName="Renderable.h"
+        LastKnownLocation="Package_1623.uml" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="63beb5d1-dad3-44b5-a3ec-fa2e846996d1"
+        name="IScene"
+        isAbstract="false"
+        isLeaf="false">
+        <targetEnds>
+          <association
+            Id="795d5104-def8-44f0-a5da-1c562207dbbd"
+            isDerived="false"
+            sourceEndRoleName="Scene"
+            targetEndRoleName=""
+            isLeaf="false"
+            isAbstract="false">
+            <interfaceMoniker
+              Id="4b23c5d1-e24c-4c8f-9a45-12f9abcbd6ba"
+              LastKnownName="IObject"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="a651f285-c652-4df9-b556-ebe8f5ac3216"
+                  name="Scene"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="Shared"
+                  isComposite="false"
+                  isNavigableOwned="false" />
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="94b28db3-6621-412f-9f79-e1c43e044f97"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="a6e6b613-b3aa-4968-be9a-cea57f3e0c54"
+                      name="Lower"
+                      value="*" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="747fe867-8dcd-4988-ac55-a9fc48915c4a"
+                      name="Upper"
+                      value="*" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+        </targetEnds>
+      </Interface>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="82410e4f-b8b2-4609-91ea-e403ff7290fd"
+        name="I3DEngine"
+        isAbstract="false"
+        isLeaf="false">
+        <targetEnds>
+          <association
+            Id="fa34b1c4-b5e1-4a59-9412-270cb5c73647"
+            isDerived="false"
+            sourceEndRoleName="I3DEngine"
+            targetEndRoleName="Get"
+            isLeaf="false"
+            isAbstract="false">
+            <interfaceMoniker
+              Id="63beb5d1-dad3-44b5-a3ec-fa2e846996d1"
+              LastKnownName="IScene"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="dc6c33c6-8acc-42ff-82eb-bd3fa2e345a8"
+                  name="I3DEngine"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false"
+                  isNavigableOwned="false" />
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="2cd2f078-da28-4f2f-9876-1bfaf43e7889"
+                  name="Get"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false" />
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+        </targetEnds>
+      </Interface>
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType

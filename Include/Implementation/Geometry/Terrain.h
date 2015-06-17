@@ -25,6 +25,8 @@ private:
 	bool m_bRequireRender;			
 	bool m_bRequireCBUpdate;				
 
+	STerrainRenderDesc m_RenderDesc;
+
 	// -----
 	float m_HeightScale;
 	ITexture* m_pVtxHeightMap;	
@@ -81,8 +83,10 @@ public:
 	
 	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4);
 
-	virtual void GenLodLevelChunks(SCamera* pCamera);
-	virtual SResult Render(SCamera* pCamera);
+
+	virtual STerrainRenderDesc* GetUpdatedRenderDesc(SCamera* pCamera);
+
+	virtual void GenLodLevelChunks(SCamera* pCamera);	
 	virtual void SetHeightmap(ITexture* heightmap);
 
 	virtual ITexture* GetHeightmap() const
