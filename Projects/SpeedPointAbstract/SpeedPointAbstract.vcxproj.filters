@@ -208,5 +208,8 @@
     <ClInclude Include="..\..\Include\Abstract\I3DEngine.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IOcean.h">
+      <Filter>Headers\Data</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1106,10 +1106,17 @@ S_API SResult DirectX11Renderer::EndScene(void)
 
 S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 {
-	// Skip render slot without subsets
+	if (m_bInScene)
+	{
+		FrameDump("Cannot Render Object: Not in scene!");
+		return S_INVALIDSTAGE;
+	}
+
+
+	// Skip render desc without subsets
 	if (renderDesc.nSubsets == 0 || !IS_VALID_PTR(renderDesc.pSubsets))
 	{
-		return;
+		return S_SUCCESS;
 	}
 
 	// Set correct depth stencil state
@@ -1147,37 +1154,20 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 		// first, render to gbuffer here. after the loop we'll then render lights and merge into backbuffer
 		// TODO
 	}
+
+	return S_SUCCESS;
 }
 
 
 
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//		UNLEASH RENDER SCHEDULE
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-S_API SResult DirectX11Renderer::UnleashRenderSchedule()
+S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRenderDesc)
 {
 	if (m_bInScene)
 	{
-		FrameDump("Cannot Unleash Render SChedule: Not in scene!");
+		FrameDump("Cannot Render Terrain: Not in scene!");
 		return S_INVALIDSTAGE;
 	}
-	
+
 
 	// Update Per-Scene Constants Buffer
 	SetViewProjMatrix(m_pTargetViewport);
@@ -1192,12 +1182,12 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	if (m_TerrainRenderDesc.bRender)
 	{
 		bool bTerrainRenderState = true;	// true = success
-		FrameDump("Rendering Terrain...");		
+		FrameDump("Rendering Terrain...");
 
 		// Render Terrain directly to the backbuffer
-		BindSingleRT(m_pTargetViewport);		
+		BindSingleRT(m_pTargetViewport);
 
-		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");		
+		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pLayerMasks))) m_pEngine->LogE("Invalid layer masks array in Terarin Render Desc!");
 		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMaps))) m_pEngine->LogE("Invalid detail maps array in Terarin Render Desc!");
@@ -1217,10 +1207,10 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 		if (m_pBoundCB != m_pTerrainCB)
 		{
 			m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pTerrainCB);
-			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);			
+			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pTerrainCB);
 			m_pBoundCB = m_pTerrainCB;
-		}		
-		
+		}
+
 		// render all chunks
 		if (IS_VALID_PTR(m_TerrainRenderDesc.pDrawCallDescs) && m_TerrainRenderDesc.nDrawCallDescs > 0)
 		{
@@ -1246,20 +1236,52 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 					// Draw the subset
 					DrawTerrainSubset(m_TerrainRenderDesc.pDrawCallDescs[c]);
-				}				
+				}
 			}
-			
+
 			// Unbind terrain layer textures
 			BindTexture((ITexture*)0, 2);
 			BindTexture((ITexture*)0, 3);
 		}
-			
+
+		m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
+
 		m_TerrainRenderDesc.bRender = false;
 	}
 	else
 	{
 		FrameDump("Terrain not scheduled to be rendered this frame.");
-	}	
+	}
+
+	return S_SUCCESS;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//		UNLEASH RENDER SCHEDULE
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+S_API SResult DirectX11Renderer::UnleashRenderSchedule()
+{
+	return S_SUCCESS;
+
+
 
 
 
@@ -1273,8 +1295,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 	FrameDump("Unleashing render schedule now...");
 	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), SString("RenderScheduleSize"));
-
-	m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
+	
 
 	bool bDepthEnableBackup = m_depthStencilDesc.DepthEnable;
 

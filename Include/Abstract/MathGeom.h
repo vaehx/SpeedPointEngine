@@ -15,6 +15,7 @@
 
 #include <SPrerequisites.h>
 #include "Vector3.h"
+#include "Matrix.h"
 
 #include "Math.h"
 
@@ -204,5 +205,54 @@ ILINE bool GeomIntersects(const PlaneT<F>& plane, const RayT<F>& ray, Vec3<F>* i
 
 	return true;
 }
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//					V i e w   F r u s t u m
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum EFrustumPlane
+{
+	eFRUSTUMPLANE_LEFT = 0,
+	eFRUSTUMPLANE_RIGHT,
+	eFRUSTUMPLANE_BOTTOM,
+	eFRUSTUMPLANE_TOP,
+	eFRUSTUMPLANE_NEAR,
+	eFRUSTUMPLANE_FAR
+};
+
+struct S_API SViewFrustum
+{
+	PlaneT<float> planes[6];
+
+	SViewFrustum() {};
+	SViewFrustum(const SViewFrustum& frustum)
+	{
+		for (unsigned int i = 0; i < 6; ++i)
+			planes[i] = frustum.planes[i];
+	}
+
+	// If vp equals the combined view and projection matrices, the frustum planes will be the clipping planes in world space.	
+	ILINE SViewFrustum& BuildFromViewProjMatrix(const SMatrix4& vp)
+	{
+		planes[eFRUSTUMPLANE_LEFT  ] = PlaneT<float>(vp._14 + vp._11,	vp._24 + vp._21,	vp._34 + vp._31,	vp._44 + vp._41);
+		planes[eFRUSTUMPLANE_RIGHT ] = PlaneT<float>(vp._14 - vp._11,	vp._24 - vp._21,	vp._34 - vp._31,	vp._44 - vp._41);
+		planes[eFRUSTUMPLANE_BOTTOM] = PlaneT<float>(vp._14 + vp._12,	vp._24 + vp._22,	vp._34 + vp._32,	vp._44 + vp._42);
+		planes[eFRUSTUMPLANE_TOP   ] = PlaneT<float>(vp._14 - vp._12,	vp._24 - vp._22,	vp._34 - vp._32,	vp._44 - vp._42);
+		planes[eFRUSTUMPLANE_NEAR  ] = PlaneT<float>(vp._13,		vp._23,			vp._33,			vp._43);
+		planes[eFRUSTUMPLANE_FAR   ] = PlaneT<float>(vp._14 - vp._13,	vp._24 - vp._23,	vp._34 - vp._33,	vp._44 - vp._43);
+		
+		return *this;
+	}
+};
+
+
+
 
 SP_NMSPACE_END

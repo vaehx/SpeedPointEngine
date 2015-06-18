@@ -20,6 +20,7 @@ namespace SpeedPoint
 
 	struct S_API IFramePipeline;	
 	struct S_API IRenderer;
+	struct S_API I3DEngine;
 	struct S_API IFontRenderer;
 	//struct S_API IPhysics;
 	//struct S_API IAI;
@@ -325,6 +326,7 @@ namespace SpeedPoint
 		//		to do this on your own! Default: true
 		virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true) = 0;
 		virtual SResult InitializeFontRenderer() = 0;
+		virtual SResult Initialize3DEngine() = 0;
 //		virtual SResult InitializePhysics() = 0;
 //		virtual SResult InitializeAI() = 0;
 //		virtual SResult InitializeScriptEngine() = 0;		
@@ -344,6 +346,7 @@ namespace SpeedPoint
 
 		virtual IFramePipeline* GetFramePipeline() const = 0;
 		virtual IRenderer* GetRenderer() const = 0;	
+		virtual I3DEngine* Get3DEngine() const = 0;
 		virtual IFontRenderer* GetFontRenderer() const = 0;
 //		virtual IPhysics* GetPhysics() const = 0;
 //		virtual IAI* GetAI() const = 0;

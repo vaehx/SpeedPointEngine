@@ -766,47 +766,52 @@ S_API bool Terrain::RayHeightmapIntersection(const SRay& ray, const unsigned int
 
 
 
-S_API STerrainRenderDesc* Terrain::GetUpdatedRenderDesc(SCamera* pCamera)
+S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 {
-	m_RenderDesc.bRender = false;
-	if (!m_bRequireRender)
+	if (!IS_VALID_PTR(pTerrainRenderDesc))
 	{
-		return &m_RenderDesc;
+		return;
 	}
 
-	m_RenderDesc.pColorMap = m_pColorMap;
-	m_RenderDesc.pVtxHeightMap = m_pVtxHeightMap;
-	m_RenderDesc.bRender = true;
-	SMatrixIdentity(&m_RenderDesc.transform.scale);
+	pTerrainRenderDesc->bRender = false;	
+	if (!m_bRequireRender)
+	{
+		return;
+	}
 
-	m_RenderDesc.bUpdateCB = false;
+	pTerrainRenderDesc->pColorMap = m_pColorMap;
+	pTerrainRenderDesc->pVtxHeightMap = m_pVtxHeightMap;
+	pTerrainRenderDesc->bRender = true;
+	SMatrixIdentity(&pTerrainRenderDesc->transform.scale);
+
+	pTerrainRenderDesc->bUpdateCB = false;
 
 	if (m_bRequireCBUpdate)
 	{
-		m_RenderDesc.bUpdateCB = true;
-		m_RenderDesc.constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
-		m_RenderDesc.constants.fTerrainMaxHeight = m_HeightScale;
-		m_RenderDesc.constants.vtxHeightMapSz = m_nSegments + 1;
-		m_RenderDesc.constants.segmentSize = m_fSegSz;
+		pTerrainRenderDesc->bUpdateCB = true;
+		pTerrainRenderDesc->constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
+		pTerrainRenderDesc->constants.fTerrainMaxHeight = m_HeightScale;
+		pTerrainRenderDesc->constants.vtxHeightMapSz = m_nSegments + 1;
+		pTerrainRenderDesc->constants.segmentSize = m_fSegSz;
 		m_bRequireCBUpdate = false;
 	}
 
 
 	// Prepare layer arrays
-	if (!IS_VALID_PTR(m_RenderDesc.pDetailMaps) || (IS_VALID_PTR(m_RenderDesc.pDetailMaps) && m_RenderDesc.nLayers != m_Layers.size()))
+	if (!IS_VALID_PTR(pTerrainRenderDesc->pDetailMaps) || (IS_VALID_PTR(pTerrainRenderDesc->pDetailMaps) && pTerrainRenderDesc->nLayers != m_Layers.size()))
 	{
-		if (IS_VALID_PTR(m_RenderDesc.pDetailMaps))
-			delete[] m_RenderDesc.pDetailMaps;
+		if (IS_VALID_PTR(pTerrainRenderDesc->pDetailMaps))
+			delete[] pTerrainRenderDesc->pDetailMaps;
 
-		m_RenderDesc.pDetailMaps = new ITexture*[m_Layers.size()];
+		pTerrainRenderDesc->pDetailMaps = new ITexture*[m_Layers.size()];
 	}
 
-	if (!IS_VALID_PTR(m_RenderDesc.pLayerMasks) || (IS_VALID_PTR(m_RenderDesc.pLayerMasks) && m_RenderDesc.nLayers != m_Layers.size()))
+	if (!IS_VALID_PTR(pTerrainRenderDesc->pLayerMasks) || (IS_VALID_PTR(pTerrainRenderDesc->pLayerMasks) && pTerrainRenderDesc->nLayers != m_Layers.size()))
 	{
-		if (IS_VALID_PTR(m_RenderDesc.pLayerMasks))
-			delete[] m_RenderDesc.pLayerMasks;
+		if (IS_VALID_PTR(pTerrainRenderDesc->pLayerMasks))
+			delete[] pTerrainRenderDesc->pLayerMasks;
 
-		m_RenderDesc.pLayerMasks = new ITexture*[m_Layers.size()];
+		pTerrainRenderDesc->pLayerMasks = new ITexture*[m_Layers.size()];
 	}
 
 	// Fill layer arrays
@@ -817,32 +822,32 @@ S_API STerrainRenderDesc* Terrain::GetUpdatedRenderDesc(SCamera* pCamera)
 		if (!IS_VALID_PTR(pLayer))
 		{
 			m_pEngine->LogE("Invalid terrain layer pointer!");
-			return &m_RenderDesc;
+			return;
 		}
 
-		m_RenderDesc.pLayerMasks[iLayer] = pLayer->pAlphaMask;
-		m_RenderDesc.pDetailMaps[iLayer] = pLayer->pDetailMap;
+		pTerrainRenderDesc->pLayerMasks[iLayer] = pLayer->pAlphaMask;
+		pTerrainRenderDesc->pDetailMaps[iLayer] = pLayer->pDetailMap;
 		++iLayer;
 	}
 
-	m_RenderDesc.nLayers = iLayer;
+	pTerrainRenderDesc->nLayers = iLayer;
 
 
-	if (IS_VALID_PTR(m_RenderDesc.pDrawCallDescs) && m_RenderDesc.nDrawCallDescs < m_nLodLevels)
+	if (IS_VALID_PTR(pTerrainRenderDesc->pDrawCallDescs) && pTerrainRenderDesc->nDrawCallDescs < m_nLodLevels)
 	{
-		delete[] m_RenderDesc.pDrawCallDescs;
-		m_RenderDesc.pDrawCallDescs = 0;
+		delete[] pTerrainRenderDesc->pDrawCallDescs;
+		pTerrainRenderDesc->pDrawCallDescs = 0;
 	}
 
-	if (!IS_VALID_PTR(m_RenderDesc.pDrawCallDescs))
+	if (!IS_VALID_PTR(pTerrainRenderDesc->pDrawCallDescs))
 	{
-		m_RenderDesc.pDrawCallDescs = new STerrainDrawCallDesc[m_nLodLevels];
-		m_RenderDesc.nDrawCallDescs = m_nLodLevels;
+		pTerrainRenderDesc->pDrawCallDescs = new STerrainDrawCallDesc[m_nLodLevels];
+		pTerrainRenderDesc->nDrawCallDescs = m_nLodLevels;
 	}
 
 	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
 	{
-		STerrainDrawCallDesc* dcd = &m_RenderDesc.pDrawCallDescs[iLodLvl];
+		STerrainDrawCallDesc* dcd = &pTerrainRenderDesc->pDrawCallDescs[iLodLvl];
 		ITerrain::LodLevel* lodLvl = &m_pLodLevels[iLodLvl];
 
 		if (!IS_VALID_PTR(lodLvl->pIndices) || !IS_VALID_PTR(lodLvl->pVertices) || lodLvl->nIndices == 0 || lodLvl->nVertices == 0)
@@ -867,10 +872,6 @@ S_API STerrainRenderDesc* Terrain::GetUpdatedRenderDesc(SCamera* pCamera)
 			}
 		}
 	}
-
-
-
-	return &m_RenderDesc;
 }
 
 

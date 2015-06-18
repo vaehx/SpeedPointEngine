@@ -312,6 +312,7 @@ public:
 	virtual SResult EndScene(void);
 
 	virtual SResult Render(const SRenderDesc& renderDesc);
+	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
 
 	virtual SResult PresentTargetViewport(void);
 

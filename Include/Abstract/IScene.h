@@ -38,7 +38,7 @@ struct S_API IScene
 	virtual void SetSkyBox(ISkyBox* pSkyBox) = 0;
 	virtual ISkyBox* GetSkyBox() const = 0;
 
-	virtual ITerrain* GetTerrain() = 0;
+	virtual ITerrain* GetTerrain() const = 0;
 	
 	// Notice: Make sure to call ITerrain->GenLodLevelChunks() with your camera afterwards.	
 	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight,

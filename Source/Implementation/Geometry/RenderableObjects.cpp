@@ -16,30 +16,34 @@
 SP_NMSPACE_BEG
 
 
-S_API SResult CReferenceObject::Render()
+S_API SRenderDesc* CReferenceObject::GetUpdatedRenderDesc()
 {
 	if (!IS_VALID_PTR(m_pEngine) || !IS_VALID_PTR(m_pBase))
-		return S_NOTINIT;
+	{
+		return 0;
+	}
 
 	IRenderableComponent* pRenderable = m_pBase->GetRenderable();
 	if (!IS_VALID_PTR(pRenderable))
-		return S_NOTINIT;
-
-	if (!IS_VALID_PTR(m_pRenderSlot))
 	{
-		m_pRenderSlot = m_pEngine->GetRenderer()->GetRenderSlot();
-		if (!IS_VALID_PTR(m_pRenderSlot))
-			return S_ERROR;
-
-		pRenderable->FillRenderSlot(m_pEngine, m_pRenderSlot);		
+		return 0;
 	}
 
-	STransformationDesc& transformDesc = m_pRenderSlot->renderDesc.transform;
+	if (!pRenderable->RenderDescFilled())
+	{
+		pRenderable->FillRenderDesc(m_pEngine);
+	}
+
+
+	// update
+	SRenderDesc* pRenderDesc = pRenderable->GetUpdatedRenderDesc();
+
+	STransformationDesc& transformDesc = pRenderDesc->transform;
 	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
 	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
 	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
 
-	return S_SUCCESS;
+	return pRenderDesc;
 }
 
 
@@ -137,51 +141,30 @@ S_API void CSkyBox::Clear()
 	m_Renderable.Clear();
 }
 
-S_API SResult CSkyBox::Render()
-{
-	SRenderSlot* pRenderSlot = m_Renderable.GetRenderSlot();
-	SRenderDesc* pRenderDesc = 0;
-
-	IRenderer* pRenderer = 0;
-	if (!IS_VALID_PTR(m_pEngine) || !IS_VALID_PTR((pRenderer = m_pEngine->GetRenderer())))
-		return EngLog(S_NOTINIT, m_pEngine, "Cannot Render Static Object: Engine or Renderer not set!");
-
-	// Add RenderScheduleSlot if not there already
-	if (m_Renderable.GetRenderSlot() == 0)
+S_API SRenderDesc* CSkyBox::GetUpdatedRenderDesc(const SCamera* pCamera)
+{	
+	if (!IS_VALID_PTR(m_pEngine))
 	{
-		pRenderSlot = pRenderer->GetRenderSlot();
-		if (!IS_VALID_PTR(pRenderSlot))
-			return S_ERROR;
-
-		pRenderDesc = &pRenderSlot->renderDesc;
-
-		m_Renderable.FillRenderSlot(m_pEngine, pRenderSlot);
-		m_Renderable.SetRenderSlot(pRenderSlot);
+		EngLog(S_NOTINIT, m_pEngine, "Cannot Update Static Object REnder Desc: Engine not set!");
+		return 0;
 	}
-	else
+
+	if (!m_Renderable.RenderDescFilled())
 	{
-		pRenderDesc = &pRenderSlot->renderDesc;
+		m_Renderable.FillRenderDesc(m_pEngine);
 	}
+
+	SRenderDesc* pRenderDesc = m_Renderable.GetUpdatedRenderDesc();
 
 	// set / update transformation
 	STransformationDesc& transformDesc = pRenderDesc->transform;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
-	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
-	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
+	transformDesc.translation = SMatrix::MakeTranslationMatrix(pCamera->position);
+	
+	SMatrixIdentity(&transformDesc.rotation);	
+	SMatrixIdentity(&transformDesc.scale);
 
-	return S_SUCCESS;
+	return pRenderDesc;
 }
-
-S_API IGeometry* CSkyBox::GetGeometry()
-{
-	return m_Renderable.GetGeometry();
-}
-
-S_API IRenderableComponent* CSkyBox::GetRenderable()
-{
-	return &m_Renderable;
-}
-
 
 
 SP_NMSPACE_END

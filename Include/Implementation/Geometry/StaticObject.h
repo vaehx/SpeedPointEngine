@@ -29,13 +29,15 @@ private:
 	SMatrix m_ViewProjMtx;
 	bool m_bUseCustomViewProjMtx;
 	SRenderDesc m_RenderDesc;
-	IObject* m_pObject;
+	bool m_bRenderDescFilled;
+	IObject* m_pObject;	
 
 public:	
 	CStaticObjectRenderable();
 
 	virtual ~CStaticObjectRenderable()
 	{
+		m_bRenderDescFilled = false;
 		Clear();
 	}
 
@@ -46,10 +48,16 @@ public:
 		m_Geometry.Clear();		
 	}
 
-	virtual SRenderDesc* GetRenderDesc();	
+	virtual SRenderDesc* GetRenderDesc();
+
+	ILINE virtual bool RenderDescFilled() const
+	{
+		return m_bRenderDescFilled;
+	}
 		
 	virtual SRenderDesc* Init(IGameEngine* pEngine, IObject* pObject);
 
+	virtual SRenderDesc* FillRenderDesc(IGameEngine* pEngine);
 	virtual SRenderDesc* GetUpdatedRenderDesc();
 
 	virtual IVertexBuffer* GetVertexBuffer();

@@ -36,11 +36,14 @@ struct IRenderableComponent
 	
 	virtual SRenderDesc* GetRenderDesc() = 0;
 
+	ILINE virtual bool RenderDescFilled() const = 0;
+
 	// Fills the render Desc and returns reference to it
 	// pEngine is required to access several resources
-	// USE THIS FUNCTION TO INITIALLY FILL THE RENDER DESC OF THE OBJECT
+	// USE THIS FUNCTION TO INITIALLY FILL THE RENDER DESC OF THE OBJECT, THEN USE GetUpdatedRenderDesc()
 	virtual SRenderDesc* FillRenderDesc(IGameEngine* pEngine) = 0;	
 
+	// Should be called by RenderableObject::GetUpdatedRenderDesc()
 	virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
 
 	virtual IVertexBuffer* GetVertexBuffer() = 0;
@@ -62,6 +65,8 @@ struct S_API IRenderableObject : public IObject
 	virtual IRenderableComponent* GetRenderable() = 0;	
 
 	virtual IGeometry* GetGeometry() = 0;
+
+	virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
 
 	// Warning: References created on heap. PAY ATTENTION TO DELETE THEM PROPERLY!
 	// If the base object is destructed, the base pointer in the reference object might get
@@ -121,18 +126,16 @@ struct S_API IReferenceObject : public IRenderableObject
 };
 
 
-struct S_API ISkyBox : public IRenderableObject
+struct S_API ISkyBox
 {
-	virtual ~ISkyBox() {}
-
-	virtual EObjectType GetType() const
-	{
-		return eGEOMOBJ_SKYBOX;
-	}
+	virtual ~ISkyBox() {}	
 
 	virtual SResult InitGeometry(IGameEngine* pEngine) = 0;
 	virtual void SetTexture(ITexture* pTexture) = 0;
 	virtual void Clear() = 0;
+
+	// Updates the renderDesc at the given Cameras position
+	virtual SRenderDesc* GetUpdatedRenderDesc(const SCamera* pCamera) = 0;
 };
 
 

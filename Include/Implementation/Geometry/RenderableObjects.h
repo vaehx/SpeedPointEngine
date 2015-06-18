@@ -22,7 +22,7 @@ class S_API CReferenceObject : public IReferenceObject
 {
 private:
 	IRenderableObject* m_pBase;
-	SRenderSlot* m_pRenderSlot;
+	SRenderDesc m_RenderDesc;
 	IGameEngine* m_pEngine;
 
 	// IReferenceObject:
@@ -47,7 +47,7 @@ public:
 
 	// IRenderableObject:
 public:
-	virtual SResult Render();
+	virtual SRenderDesc* GetUpdatedRenderDesc();
 
 	virtual IGeometry* GetGeometry()
 	{
@@ -78,7 +78,7 @@ public:
 };
 
 
-
+// SpeedPoint SkyBox Implementation
 class S_API CSkyBox : public ISkyBox
 {
 private:
@@ -95,17 +95,7 @@ public:
 	virtual void SetTexture(ITexture* pTexture);
 	virtual void Clear();
 
-	// IRenderableObject:
-public:
-	virtual SResult Render();
-	virtual IGeometry* GetGeometry();
-	virtual IRenderableComponent* GetRenderable();
-
-	// IObject:
-public:
-	virtual void RecalcBoundBox()
-	{
-	}
+	virtual SRenderDesc* GetUpdatedRenderDesc(const SCamera* pCamera);
 };
 
 

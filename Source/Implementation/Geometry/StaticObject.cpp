@@ -30,6 +30,7 @@ SP_NMSPACE_BEG
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API CStaticObjectRenderable::CStaticObjectRenderable()
+	: m_bRenderDescFilled(false)
 {
 }
 
@@ -60,7 +61,7 @@ S_API EPrimitiveType CStaticObjectRenderable::GetGeometryPrimitiveType() const
 // ----------------------------------------------------------------------------------------
 S_API SRenderDesc* CStaticObjectRenderable::GetRenderDesc()
 {
-
+	return &m_RenderDesc;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -131,6 +132,10 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 			}
 		}
 	}
+
+
+	m_bRenderDescFilled = true;
+	return &m_RenderDesc;
 }
 
 
@@ -139,11 +144,7 @@ S_API SRenderDesc* CStaticObjectRenderable::GetUpdatedRenderDesc()
 {
 	// TODO: Do we need to update anything here at all??????
 
-	// set / update transformation
-	STransformationDesc& transformDesc = m_RenderDesc.transform;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
-	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
-	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
+	return &m_RenderDesc;
 }
 
 
@@ -204,15 +205,26 @@ S_API void StaticObject::Clear()
 // ----------------------------------------------------------------------------------------
 S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
 {
+	SResult res;
+
 	m_Renderable.Clear();	
 
 	m_pEngine = pEngine;
 	if (!IS_VALID_PTR(m_pEngine))
+	{
 		return CLog::Log(S_ERROR, "Tried init Static Object, but engine ptr is invalid!");
+	}
 
 
 	m_pEngine->GetMaterialManager()->CollectInitGeomMaterials(pInitialGeom);
-	return m_Renderable.GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), pInitialGeom);
+	res = m_Renderable.GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), pInitialGeom);
+	if (Failure(res))
+	{
+		return CLog::Log(S_ERROR, "Failed init static object geometry!");
+	}
+
+	m_Renderable.FillRenderDesc(pEngine);
+	return S_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -250,7 +262,7 @@ S_API SResult StaticObject::CreateNormalsGeometry(IRenderableObject** pNormalGeo
 	IStaticObject* pStaticObject = new StaticObject();
 	RETURN_ON_ERR(pStaticObject->Init(m_pEngine, m_pEngine->GetRenderer(), nullptr, &normalGeom));
 
-	*pNormalGeometryObject = pStaticObject;
+*pNormalGeometryObject = pStaticObject;
 
 	return S_ERROR;
 }
@@ -287,105 +299,21 @@ S_API IReferenceObject* StaticObject::CreateReferenceObject()
 
 // ----------------------------------------------------------------------------------------
 
-S_API SResult StaticObject::Render()
+S_API SRenderDesc* StaticObject::GetUpdatedRenderDesc()
 {
-
-
-
-
-	SRenderSlot* pRenderSlot = m_Renderable.GetRenderSlot();
-	SRenderDesc* pRenderDesc = 0;
-
-	IRenderer* pRenderer = 0;
-	if (!IS_VALID_PTR(m_pEngine) || !IS_VALID_PTR((pRenderer = m_pEngine->GetRenderer())))
-		return EngLog(S_NOTINIT, m_pEngine, "Cannot Render Static Object: Engine or Renderer not set!");
-
-	// Add RenderScheduleSlot if not there already
-	if (m_Renderable.GetRenderSlot() == 0)
+	if (!m_Renderable.RenderDescFilled())
 	{
-		pRenderSlot = pRenderer->GetRenderSlot();
-		if (!IS_VALID_PTR(pRenderSlot))
-			return S_ERROR;
-
-		pRenderDesc = &pRenderSlot->renderDesc;
-
-		m_Renderable.FillRenderSlot(m_pEngine, pRenderSlot);
-		m_Renderable.SetRenderSlot(pRenderSlot);		
-	}
-	else
-	{
-		pRenderDesc = &pRenderSlot->renderDesc;
+		m_Renderable.FillRenderDesc(m_pEngine);
 	}
 
+	SRenderDesc* pRenderDesc = m_Renderable.GetUpdatedRenderDesc();
 	
+	STransformationDesc& transformDesc = pRenderDesc->transform;
+	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
+	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
+	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
 
-
-
-
-
-	/*
-	IRenderer* pRenderer = m_Geometry.GetRenderer();
-	if (!IS_VALID_PTR(pRenderer))
-		return S_NOTINIT;
-
-	IVertexBuffer* pVB = m_Geometry.GetVertexBuffer();
-	if (!IS_VALID_PTR(pVB))
-		return S_ERROR;	
-
-	if (!pVB->IsInited())
-		return EngLog(S_ERROR, m_pEngine, "Cannot render Static Object: VB never initialized!");
-
-	SRenderDesc dsc;
-	dsc.drawCallDesc.pVertexBuffer = pVB;
-	dsc.drawCallDesc.iStartVBIndex = 0;
-	dsc.drawCallDesc.iEndVBIndex = pVB->GetVertexCount() - 1;
-	
-	dsc.pGeometry = &m_Geometry;
-	dsc.technique = eRENDER_FORWARD;
-
-	dsc.drawCallDesc.transform.translation = SMatrix::MakeTranslationMatrix(vPosition);
-	dsc.drawCallDesc.transform.rotation = SMatrix::MakeRotationMatrix(vRotation);
-	dsc.drawCallDesc.transform.scale = SMatrix::MakeScaleMatrix(vSize);
-
-	dsc.drawCallDesc.primitiveType = m_Geometry.GetPrimitiveType();
-
-	if (dsc.drawCallDesc.primitiveType == PRIMITIVE_TYPE_LINES)
-	{
-		RETURN_ON_ERR(pRenderer->RenderGeometry(dsc));
-	}
-	else
-	{
-		if (m_Geometry.GetIndexBufferCount() == 0)
-			return EngLog(S_ERROR, m_pEngine, "Cannot render Static Object: There is no IB for a triangle-object!");	
-
-		SGeometryIndexBuffer* pGeomIndexBuffers = m_Geometry.GetIndexBuffers();
-		if (!IS_VALID_PTR(pGeomIndexBuffers))
-			return S_ERROR;
-
-		for (unsigned short iIndexBuffer = 0; iIndexBuffer < m_Geometry.GetIndexBufferCount(); ++iIndexBuffer)
-		{
-			dsc.drawCallDesc.pIndexBuffer = pGeomIndexBuffers[iIndexBuffer].pIndexBuffer;
-			if (!dsc.drawCallDesc.pIndexBuffer->IsInited())
-			{
-				EngLog(S_ERROR, m_pEngine, "Could not render Static object: IB never initialized!");
-				continue;
-			}
-
-			dsc.drawCallDesc.iStartIBIndex = 0;
-			dsc.drawCallDesc.iEndIBIndex = dsc.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
-
-			// here, index buffer index has to match with material index
-			if (IS_VALID_PTR(pGeomIndexBuffers[iIndexBuffer].pMaterial))
-				dsc.material = *pGeomIndexBuffers[iIndexBuffer].pMaterial;
-			else
-				dsc.material = SMaterial();
-
-			RETURN_ON_ERR(pRenderer->RenderGeometry(dsc));
-		}
-	}
-	*/
-
-	return S_SUCCESS;
+	return pRenderDesc;
 }
 
 

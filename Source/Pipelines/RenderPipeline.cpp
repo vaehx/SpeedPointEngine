@@ -15,6 +15,7 @@
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IApplication.h>
 #include <Abstract\IRenderer.h>
+#include <Abstract\I3DEngine.h>
 
 SP_NMSPACE_BEG
 
@@ -59,12 +60,13 @@ S_API SResult RenderPipeline::Run()
 	if (!IS_VALID_PTR(m_pEngine))
 		return S_NOTINIT;
 
-	m_pEngine->GetRenderer()->BeginScene();
+	m_pEngine->GetRenderer()->BeginScene();	
 
-	IApplication* pApp = m_pEngine->GetApplication();
-	assert(pApp);	
 
-	pApp->Render();	// Render callback
+	const SCamera* pCamera = m_pEngine->GetRenderer()->GetTargetViewport()->GetCamera();
+	m_pEngine->Get3DEngine()->CollectVisibleObjects(m_pEngine->GetLoadedScene(), pCamera);
+
+	m_pEngine->Get3DEngine()->RenderCollected();
 
 	// Let the Frame Pipeline render debug info
 	if (IS_VALID_PTR(m_pFramePipeline))

@@ -18,6 +18,7 @@
 #include <fstream>
 #include <Abstract\IScene.h>
 #include <Implementation\Geometry\Material.h>
+#include <Implementation\3DEngine\C3DEngine.h>
 
 SP_NMSPACE_BEG
 
@@ -328,6 +329,20 @@ S_API SResult SpeedPointEngine::InitializeRenderer(const S_RENDERER_TYPE& type, 
 
 	LogD("Initialized Renderer.");
 
+	return S_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------------
+S_API SResult SpeedPointEngine::Initialize3DEngine()
+{	
+	if (!IS_VALID_PTR(m_pRenderer.pComponent))
+	{
+		return LogE("Failed Initialize 3DEngine: Renderer must be initialized first!");		
+	}
+
+	m_p3DEngine.SetOwn(new C3DEngine(m_pRenderer));	
+
+	LogD("Initialized 3DEngine.");
 	return S_SUCCESS;
 }
 

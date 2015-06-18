@@ -2,6 +2,8 @@
 
 #include <SPrerequisites.h>
 #include <Abstract\I3DEngine.h>
+#include <Abstract\ChunkedObjectPool.h>
+#include <Abstract\IRenderer.h>
 #include <vector>
 
 SP_NMSPACE_BEG
@@ -11,22 +13,25 @@ struct S_API IRenderableObject;
 
 class S_API C3DEngine : public I3DEngine
 {
-private:
-	IScene* m_pScene;
+private:	
 	IRenderer* m_pRenderer;
-	std::vector<IRenderableObject*>* m_pRenderObjects;	
+
+
+	// TODO: Consider storing the RenderDescs in the engine, passing a pointer to Object::UpdateRenderDesc() and thereby letting the
+	// object decide, how the Render Desc is filled (maybe by a copy in the object itself?)
+	std::vector<SRenderDesc*> m_RenderDescs;
+
+
+	STerrainRenderDesc m_TerrainRenderDesc;
 
 public:
 	C3DEngine(IRenderer* pRenderer);
 	virtual ~C3DEngine();
+	
+	ILINE virtual unsigned int CollectVisibleObjects(IScene* pScene, const SCamera* pCamera);
 
-	virtual void SetScene(IScene* pScene);
-
-	virtual void CollectRenderingObjects(const Vec3f& camPos, const Vec3f& camDir);
-	virtual void Unleash();
-	virtual void UnleashRenderObjects();
-	virtual void RenderTerrain();
-	virtual void RenderSkyBox();
+	// Render lastly collected visible objects
+	ILINE virtual void RenderCollected();
 };
 
 

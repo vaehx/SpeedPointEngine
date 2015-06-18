@@ -17,6 +17,7 @@
 #include "Abstract\IResourcePool.h"
 #include "Abstract\IRenderer.h"
 #include "Abstract\IFont.h"
+#include "Abstract\I3DEngine.h"
 #include <fstream>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +142,7 @@ private:
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
 	EngineComponent<IScene> m_pScene;
 	EngineComponent<IMaterialManager> m_pMaterialManager;
+	EngineComponent<I3DEngine> m_p3DEngine;
 	EngineFileLog m_FileLog;
 	CLogWrapper m_LogWrapper;
 
@@ -170,6 +172,7 @@ public:
 
 	virtual SResult InitializeFramePipeline(IFramePipeline* pCustomFramePipeline = 0);
 	virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true);
+	virtual SResult Initialize3DEngine();
 	virtual SResult InitializeFontRenderer();
 	virtual SResult InitializeResourcePool();
 	virtual SResult InitializeLogger(IFileLogHandler* pCustomLogHandler = 0);
@@ -209,6 +212,7 @@ public:
 	virtual IEngineSettings* GetSettings() const { return m_pSettings; }
 	virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
 	virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
+	virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
 	virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }
 	virtual IResourcePool* GetResources() const { return m_pResourcePool; }
 	virtual IFileLog* GetFileLog() { return &m_FileLog; }	

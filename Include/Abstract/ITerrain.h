@@ -21,6 +21,8 @@ struct S_API ITexture;
 
 struct S_API STerrainChunk;
 
+struct S_API STerrainRenderDesc;
+
 struct S_API STerrainDescription
 {
 	unsigned int segsX, segsZ;
@@ -198,7 +200,7 @@ public:
 	virtual ITexture* GetHeightmap() const = 0;
 	virtual float SampleHeight(const Vec2f& texcoords, bool bilinear = false) const = 0;
 	
-	virtual STerrainRenderDesc* GetUpdatedRenderDesc(SCamera* pCamera) = 0;
+	virtual void UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc) = 0;
 
 	// Does not clear the heightmap
 	virtual void Clear() = 0;
