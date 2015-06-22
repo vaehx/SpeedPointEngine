@@ -24,7 +24,10 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamer
 	m_RenderDescs.clear();
 
 	ITerrain* pTerrain = pScene->GetTerrain();
-	pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);
+	if (IS_VALID_PTR(pTerrain))
+	{
+		pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);
+	}
 
 	vector<SSceneNode>* pSceneNodes = pScene->GetSceneNodes();
 	if (!IS_VALID_PTR(pSceneNodes))
@@ -72,17 +75,15 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamer
 
 S_API void C3DEngine::RenderCollected()
 {
-	if (m_RenderDescs.empty())
-	{
-		return;
-	}
-
 	m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
-	
-	for (auto itRS = m_RenderDescs.begin(); itRS != m_RenderDescs.end(); itRS++)
+
+	if (!m_RenderDescs.empty())
 	{
-		SRenderDesc* pRS = *itRS;
-		m_pRenderer->Render(*pRS);
+		for (auto itRS = m_RenderDescs.begin(); itRS != m_RenderDescs.end(); itRS++)
+		{
+			SRenderDesc* pRS = *itRS;
+			m_pRenderer->Render(*pRS);
+		}
 	}
 }
 

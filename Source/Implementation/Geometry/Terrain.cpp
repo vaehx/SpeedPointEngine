@@ -851,7 +851,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 		ITerrain::LodLevel* lodLvl = &m_pLodLevels[iLodLvl];
 
 		if (!IS_VALID_PTR(lodLvl->pIndices) || !IS_VALID_PTR(lodLvl->pVertices) || lodLvl->nIndices == 0 || lodLvl->nVertices == 0)
-		{
+		{			
 			dcd->bRender = false;
 		}
 		else

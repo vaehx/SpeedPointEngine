@@ -10,8 +10,8 @@ struct S_API SCamera;
 // Handles order and batching of renderable objects in the scene
 struct S_API I3DEngine
 {
-	virtual ~I3DEngine() {};
-	
+	virtual ~I3DEngine() {};	
+
 	// Summary:
 	//	Collects Render Descs of visible objects (including terrain, skybox, ocean, ...)
 	// Returns:

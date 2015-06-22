@@ -10,6 +10,7 @@ SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------------------------------------
 S_API Scene::Scene()	
+	: m_pTerrain(0)
 {
 	m_pSceneNodes = new std::vector<SSceneNode>();
 }
@@ -46,10 +47,31 @@ S_API std::vector<SSceneNode>* Scene::GetSceneNodes()
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API void Scene::AddObject(IObject* pObject)
+void Scene::CheckSceneNodesArray()
 {
 	if (!IS_VALID_PTR(m_pSceneNodes))
-		m_pSceneNodes = new std::vector<SSceneNode>();
+	{
+		m_pSceneNodes = new std::vector<SSceneNode>();		
+	}
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API SResult Scene::AddSceneNode(const SSceneNode& node)
+{
+	if (!IS_VALID_PTR(node.pObject))
+	{
+		return CLog::Log(S_ERROR, "Cannot AddSceneNode: Object ptr of node is invalid!");		
+	}
+
+	CheckSceneNodesArray();
+
+	m_pSceneNodes->push_back(node);
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API void Scene::AddObject(IObject* pObject)
+{
+	CheckSceneNodesArray();
 
 	if (!IS_VALID_PTR(pObject))
 		return;
@@ -64,8 +86,7 @@ S_API void Scene::AddObject(IObject* pObject)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight,
-	float fChunkStepDist, unsigned int nLodLevels, ITexture* pColorMap, ITexture* pDetailMap)
+S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr);
 	if (IS_VALID_PTR(m_pTerrain))
@@ -77,18 +98,6 @@ S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");
 	}
-	
-	m_pTerrain->SetColorMap(pColorMap);
-
-	// Add zero layer
-	unsigned int colorMapSz[2];
-	pColorMap->GetSize(&colorMapSz[0], &colorMapSz[1]);
-
-	STerrainLayer zeroLayer;
-	zeroLayer.pDetailMap = pDetailMap;
-	m_pEngine->GetResources()->AddTexture(colorMapSz[0], colorMapSz[1], "terrain_am_0", eTEXTURE_R8G8B8A8_UNORM, SColor(0, 0, 0, 0), &zeroLayer.pAlphaMask);
-	
-	m_pTerrain->AddLayer(zeroLayer);
 
 	return m_pTerrain;
 }

@@ -61,7 +61,7 @@ struct S_API SFrameDebugInfo
 	SFrameDebugTimer renderTimer; // for the render function
 
 	unsigned long frameCounter;	// enough for 4294967296 ms (+49 days)
-	unsigned long lastFrameCounter;
+	unsigned long lastFrameCounter; // ms
 
 	double frameTimeAcc,
 		minFrameTime,

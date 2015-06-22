@@ -43,6 +43,8 @@ struct IRenderableComponent
 	// USE THIS FUNCTION TO INITIALLY FILL THE RENDER DESC OF THE OBJECT, THEN USE GetUpdatedRenderDesc()
 	virtual SRenderDesc* FillRenderDesc(IGameEngine* pEngine) = 0;	
 
+	virtual void SetVisible(bool visible) = 0;
+
 	// Should be called by RenderableObject::GetUpdatedRenderDesc()
 	virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
 
@@ -63,6 +65,11 @@ struct S_API IRenderableObject : public IObject
 	virtual bool IsRenderable() const { return true; }
 
 	virtual IRenderableComponent* GetRenderable() = 0;	
+
+	virtual void SetVisible(bool visible)
+	{
+		GetRenderable()->SetVisible(visible);
+	}
 
 	virtual IGeometry* GetGeometry() = 0;
 

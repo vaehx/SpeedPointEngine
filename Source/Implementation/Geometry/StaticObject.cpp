@@ -30,7 +30,8 @@ SP_NMSPACE_BEG
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API CStaticObjectRenderable::CStaticObjectRenderable()
-	: m_bRenderDescFilled(false)
+	: m_bRenderDescFilled(false),
+	m_bVisible(true)
 {
 }
 
@@ -65,6 +66,12 @@ S_API SRenderDesc* CStaticObjectRenderable::GetRenderDesc()
 }
 
 // ----------------------------------------------------------------------------------------
+S_API void CStaticObjectRenderable::SetVisible(bool visible)
+{
+	m_bVisible = visible;
+}
+
+// ----------------------------------------------------------------------------------------
 S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 {
 	m_RenderDesc.renderPipeline = eRENDER_FORWARD;
@@ -96,11 +103,11 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 		renderSubset.render = false;
 		if (renderSubset.drawCallDesc.primitiveType == PRIMITIVE_TYPE_LINES)
 		{
-			renderSubset.render = true;
+			renderSubset.render = m_bVisible;
 		}
 		else if (IS_VALID_PTR(renderSubset.drawCallDesc.pIndexBuffer))
 		{
-			renderSubset.render = true;
+			renderSubset.render = m_bVisible;
 			renderSubset.drawCallDesc.iStartIBIndex = 0;
 			renderSubset.drawCallDesc.iEndIBIndex = renderSubset.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
 		}
@@ -142,7 +149,20 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 
 S_API SRenderDesc* CStaticObjectRenderable::GetUpdatedRenderDesc()
 {
-	// TODO: Do we need to update anything here at all??????
+	for (unsigned int i = 0; i < m_RenderDesc.nSubsets; ++i)
+	{
+		SRenderSubset* pSubset = &m_RenderDesc.pSubsets[i];
+
+		// do not render invalid subsets
+		if (IS_VALID_PTR(pSubset->drawCallDesc.pVertexBuffer) && IS_VALID_PTR(pSubset->drawCallDesc.pIndexBuffer))
+		{
+			pSubset->render = m_bVisible;
+		}
+		else
+		{
+			pSubset->render = false;
+		}
+	}
 
 	return &m_RenderDesc;
 }

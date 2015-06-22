@@ -32,6 +32,8 @@ private:
 	bool m_bRenderDescFilled;
 	IObject* m_pObject;	
 
+	bool m_bVisible;
+
 public:	
 	CStaticObjectRenderable();
 
@@ -50,12 +52,12 @@ public:
 
 	virtual SRenderDesc* GetRenderDesc();
 
+	ILINE virtual void SetVisible(bool visible);
+
 	ILINE virtual bool RenderDescFilled() const
 	{
 		return m_bRenderDescFilled;
-	}
-		
-	virtual SRenderDesc* Init(IGameEngine* pEngine, IObject* pObject);
+	}	
 
 	virtual SRenderDesc* FillRenderDesc(IGameEngine* pEngine);
 	virtual SRenderDesc* GetUpdatedRenderDesc();

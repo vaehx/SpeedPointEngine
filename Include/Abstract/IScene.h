@@ -41,8 +41,7 @@ struct S_API IScene
 	virtual ITerrain* GetTerrain() const = 0;
 	
 	// Notice: Make sure to call ITerrain->GenLodLevelChunks() with your camera afterwards.	
-	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight,
-		float fChunkStepDist, unsigned int nLodLevels, ITexture* pColorMap, ITexture* pDetailMap) = 0;
+	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels) = 0;
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file) = 0;
 
@@ -52,6 +51,9 @@ struct S_API IScene
 	virtual SResult CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const = 0;
 
 	virtual std::vector<SSceneNode>* GetSceneNodes() = 0;
+
+	virtual void AddObject(IObject* pObject) = 0;
+	virtual SResult AddSceneNode(const SSceneNode& node) = 0;
 
 	virtual void Clear() = 0;	
 };

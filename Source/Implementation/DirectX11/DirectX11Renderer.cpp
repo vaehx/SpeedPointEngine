@@ -1053,13 +1053,6 @@ S_API SResult DirectX11Renderer::EndScene(void)
 
 	if (Success(sr))
 	{
-		sr = UnleashRenderSchedule();
-		if (Failure(sr))
-			CLog::Log(S_WARN, "Failed UnleashRenderSchedule");
-	}
-
-	if (Success(sr))
-	{
 		sr = UnleashFontRenderSchedule();
 		if (Failure(sr))
 			CLog::Log(S_WARN, "Failed UnleashFontRenderSchedule!");
@@ -1106,7 +1099,7 @@ S_API SResult DirectX11Renderer::EndScene(void)
 
 S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 {
-	if (m_bInScene)
+	if (!m_bInScene)
 	{
 		FrameDump("Cannot Render Object: Not in scene!");
 		return S_INVALIDSTAGE;
@@ -1162,7 +1155,7 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRenderDesc)
 {
-	if (m_bInScene)
+	if (!m_bInScene)
 	{
 		FrameDump("Cannot Render Terrain: Not in scene!");
 		return S_INVALIDSTAGE;
@@ -1179,7 +1172,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 
 
 	// Render Terrain
-	if (m_TerrainRenderDesc.bRender)
+	if (terrainRenderDesc.bRender)
 	{
 		bool bTerrainRenderState = true;	// true = success
 		FrameDump("Rendering Terrain...");
@@ -1187,21 +1180,21 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 		// Render Terrain directly to the backbuffer
 		BindSingleRT(m_pTargetViewport);
 
-		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pLayerMasks))) m_pEngine->LogE("Invalid layer masks array in Terarin Render Desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(m_TerrainRenderDesc.pDetailMaps))) m_pEngine->LogE("Invalid detail maps array in Terarin Render Desc!");
-		if (!(bTerrainRenderState = (m_TerrainRenderDesc.nLayers > 0))) m_pEngine->LogE("Invalid layer count in Terrain Render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pLayerMasks))) m_pEngine->LogE("Invalid layer masks array in Terarin Render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pDetailMaps))) m_pEngine->LogE("Invalid detail maps array in Terarin Render Desc!");
+		if (!(bTerrainRenderState = (terrainRenderDesc.nLayers > 0))) m_pEngine->LogE("Invalid layer count in Terrain Render Desc!");
 
-		BindTexture(m_TerrainRenderDesc.pVtxHeightMap, 0);
-		BindTexture(m_TerrainRenderDesc.pVtxHeightMap, 0, true);
-		BindTexture(m_TerrainRenderDesc.pColorMap, 1);
+		BindTexture(terrainRenderDesc.pVtxHeightMap, 0);
+		BindTexture(terrainRenderDesc.pVtxHeightMap, 0, true);
+		BindTexture(terrainRenderDesc.pColorMap, 1);
 
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 0, nullptr);
 		m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);
 
-		if (m_TerrainRenderDesc.bUpdateCB)
-			UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &m_TerrainRenderDesc.constants);
+		if (terrainRenderDesc.bUpdateCB)
+			UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &terrainRenderDesc.constants);
 
 		// bind terrain cb
 		if (m_pBoundCB != m_pTerrainCB)
@@ -1212,16 +1205,16 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 		}
 
 		// render all chunks
-		if (IS_VALID_PTR(m_TerrainRenderDesc.pDrawCallDescs) && m_TerrainRenderDesc.nDrawCallDescs > 0)
+		if (IS_VALID_PTR(terrainRenderDesc.pDrawCallDescs) && terrainRenderDesc.nDrawCallDescs > 0)
 		{
-			for (unsigned int c = 0; c < m_TerrainRenderDesc.nDrawCallDescs; ++c)
+			for (unsigned int c = 0; c < terrainRenderDesc.nDrawCallDescs; ++c)
 			{
 				// Draw first layer without alpha blend and default depth state
 				m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
 				m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
 
 				// For each layer
-				for (unsigned int iLayer = 0; iLayer < m_TerrainRenderDesc.nLayers; ++iLayer)
+				for (unsigned int iLayer = 0; iLayer < terrainRenderDesc.nLayers; ++iLayer)
 				{
 					if (iLayer == 1)
 					{
@@ -1231,11 +1224,11 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 					}
 
 					// Bind textures
-					BindTexture(m_TerrainRenderDesc.pDetailMaps[iLayer], 2);
-					BindTexture(m_TerrainRenderDesc.pLayerMasks[iLayer], 3);
+					BindTexture(terrainRenderDesc.pDetailMaps[iLayer], 2);
+					BindTexture(terrainRenderDesc.pLayerMasks[iLayer], 3);
 
 					// Draw the subset
-					DrawTerrainSubset(m_TerrainRenderDesc.pDrawCallDescs[c]);
+					DrawTerrainSubset(terrainRenderDesc.pDrawCallDescs[c]);
 				}
 			}
 
@@ -1244,9 +1237,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 			BindTexture((ITexture*)0, 3);
 		}
 
-		m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
-
-		m_TerrainRenderDesc.bRender = false;
+		m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);		
 	}
 	else
 	{

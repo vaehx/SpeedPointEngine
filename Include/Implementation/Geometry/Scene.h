@@ -17,6 +17,8 @@ private:
 	ISkyBox* m_pSkyBox;
 	std::vector<SSceneNode>* m_pSceneNodes;
 
+	void CheckSceneNodesArray();
+
 public:
 	Scene();
 
@@ -31,8 +33,7 @@ public:
 	virtual ISkyBox* GetSkyBox() const;
 
 	virtual ITerrain* GetTerrain() const { return m_pTerrain; }
-	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight,
-		float fChunkStepDist, unsigned int nLodLevels, ITexture* pColorMap, ITexture* pDetailMap);
+	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels);
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file);
 	
@@ -41,6 +42,7 @@ public:
 	virtual std::vector<SSceneNode>* GetSceneNodes();
 
 	virtual void AddObject(IObject* pObject);
+	virtual SResult AddSceneNode(const SSceneNode& node);
 
 	virtual void Clear();
 };

@@ -6,6 +6,7 @@
 
 #include <Abstract\IRenderPipeline.h>
 #include <Abstract\IRenderer.h>
+#include <Abstract\IApplication.h>
 #include <Pipelines\FramePipeline.h>
 #include <SpeedPointEngine.h>
 
@@ -180,6 +181,9 @@ S_API SResult FramePipeline::ExecuteSections(usint32 iSkippedSections)
 	///////////////////////////// Frame Start //////////////////////////////
 
 	m_FrameDebugInfo.frameTimer.Start();
+
+	// Application specific frame updates
+	m_pEngine->GetApplication()->Update((float)m_pdLastFrameDuration->count());
 
 	if (m_nUsedFramepipelineSections > 0)
 	{
