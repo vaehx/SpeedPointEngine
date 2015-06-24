@@ -81,6 +81,9 @@
     <ClInclude Include="Engines.h" />
     <ClInclude Include="Pipelines.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="QuickEngine.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
