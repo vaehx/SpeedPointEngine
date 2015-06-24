@@ -638,7 +638,7 @@ void CFramework::AddVisibleLight(CLight* pLight, const AABB& aabb)
 	SRenderEntity* pRenderEntity = 0;
 	while (pRenderEntity = m_RenderEntities.GetNextUsedObject(iterator))
 	{
-		if (pRenderEntity->nAffectingLights >= 4)
+		if (pRenderEntity->nAffectingLights >= 4 || pRenderEntity->renderDesc.)
 			continue;
 
 		pRenderEntity->affectingLights[pRenderEntity->nAffectingLights] = pLight;
