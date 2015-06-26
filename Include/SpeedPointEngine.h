@@ -223,7 +223,7 @@ public:
 
 //	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
 
-	virtual SString GetShaderPath(EShaderType shader);
+	virtual SString GetShaderPath(EShaderFileType shader);
 };
 
 

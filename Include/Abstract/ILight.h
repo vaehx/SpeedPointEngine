@@ -18,6 +18,7 @@
 
 SP_NMSPACE_BEG
 
+/*
 enum ELightType
 {
 	ELIGHT_OMNIDIRECTIONAL,
@@ -36,5 +37,6 @@ struct S_API SLight
 	{
 	}
 };
+*/
 
 SP_NMSPACE_END

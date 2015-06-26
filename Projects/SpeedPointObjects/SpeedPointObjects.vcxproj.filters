@@ -50,6 +50,9 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableObjects.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Entities.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h">
@@ -89,6 +92,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Entities.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

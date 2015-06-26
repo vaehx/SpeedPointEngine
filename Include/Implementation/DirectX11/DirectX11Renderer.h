@@ -314,6 +314,8 @@ public:
 	virtual SResult Render(const SRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
 
+	virtual SResult RenderDeferredLight(const SLightDesc& light);
+
 	virtual SResult PresentTargetViewport(void);
 
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0);

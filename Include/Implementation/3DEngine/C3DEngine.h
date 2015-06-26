@@ -11,6 +11,27 @@ SP_NMSPACE_BEG
 struct S_API IScene;
 struct S_API IRenderableObject;
 
+struct S_API SRenderLight
+{
+	SLightDesc lightDesc;
+};
+
+struct S_API SRenderObject
+{
+	SRenderDesc renderDesc;
+	AABB aabb;
+	
+	// For forward rendering:
+	SRenderLight* affectingLights[4];
+	int nAffectingLights;
+
+	SRenderObject()
+		: nAffectingLights(0)
+	{
+		memset(&affectingLights, 0, sizeof(affectingLights));
+	}
+};
+
 class S_API C3DEngine : public I3DEngine
 {
 private:	
@@ -19,10 +40,18 @@ private:
 
 	// TODO: Consider storing the RenderDescs in the engine, passing a pointer to Object::UpdateRenderDesc() and thereby letting the
 	// object decide, how the Render Desc is filled (maybe by a copy in the object itself?)
-	std::vector<SRenderDesc*> m_RenderDescs;
+	ChunkedObjectPool<SRenderObject> m_RenderObjects;
+
+	// For deferred shading only
+	ChunkedObjectPool<SRenderLight> m_RenderLights;
 
 
 	STerrainRenderDesc m_TerrainRenderDesc;
+
+	void AddVisibleStatic(IStaticObject* pStaticObject, const AABB& aabb);
+	void AddVisibleEntity(IEntity* pEntity, const AABB& aabb);
+	void AddVisibleLight(ILight* pLight, const AABB& aabb);
+
 
 public:
 	C3DEngine(IRenderer* pRenderer);

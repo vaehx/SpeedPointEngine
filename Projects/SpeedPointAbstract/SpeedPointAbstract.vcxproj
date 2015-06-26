@@ -86,7 +86,6 @@
     <ClInclude Include="..\..\Include\Abstract\ICommandBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IFont.h" />
     <ClInclude Include="..\..\Include\Abstract\IGameEngine.h" />
-    <ClInclude Include="..\..\Include\Abstract\IEntity.h" />
     <ClInclude Include="..\..\Include\Abstract\IFBO.h" />
     <ClInclude Include="..\..\Include\Abstract\IFramePipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IGeometry.h" />
@@ -103,6 +102,7 @@
     <ClInclude Include="..\..\Include\Abstract\IParticleSystem.h" />
     <ClInclude Include="..\..\Include\Abstract\IPhysicalObject.h" />
     <ClInclude Include="..\..\Include\Abstract\IPhysics.h" />
+    <ClInclude Include="..\..\Include\Abstract\IRenderAPI.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderer.h" />
     <ClInclude Include="..\..\Include\Abstract\IRendererSettings.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderPipeline.h" />
@@ -123,7 +123,6 @@
     <ClInclude Include="..\..\Include\Abstract\MathGeom.h" />
     <ClInclude Include="..\..\Include\Abstract\Matrix.h" />
     <ClInclude Include="..\..\Include\Abstract\Physical.h" />
-    <ClInclude Include="..\..\Include\Abstract\Renderable.h" />
     <ClInclude Include="..\..\Include\Abstract\SAPI.h" />
     <ClInclude Include="..\..\Include\Abstract\Transformable.h" />
     <ClInclude Include="..\..\Include\Abstract\Vector2.h" />

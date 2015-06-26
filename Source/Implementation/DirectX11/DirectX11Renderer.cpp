@@ -1153,6 +1153,10 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 
+
+
+
+
 S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRenderDesc)
 {
 	if (!m_bInScene)
@@ -1246,6 +1250,27 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 
 	return S_SUCCESS;
 }
+
+
+
+
+S_API SResult DirectX11Renderer::RenderDeferredLight(const SLightDesc& light)
+{
+
+	// TODO
+
+
+
+
+
+
+
+
+
+
+	return S_SUCCESS;
+}
+
 
 
 

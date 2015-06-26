@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Entities.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableObjects.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp" />
@@ -30,6 +31,7 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Entities.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\File3DS.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
@@ -43,7 +45,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FACEAC68-301E-41D3-AA53-EBFDE139F192}</ProjectGuid>
     <RootNamespace>SpeedPointGeometry</RootNamespace>
-    <ProjectName>SpeedPointObjects</ProjectName>
+    <ProjectName>SpeedPointScene</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

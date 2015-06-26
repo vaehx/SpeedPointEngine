@@ -34,15 +34,16 @@ namespace SpeedPoint
 	struct S_API IMaterial;
 	struct S_API IMaterialManager;
 
-
-
-	enum EShaderType
+	enum EShaderFileType
 	{
-		eSHADER_ILLUM,
-		eSHADER_HELPER,
-		eSHADER_TERRAIN,
-		eSHADER_FONT
+		eSHADERFILE_FORWAD,
+		eSHADERFILE_ZPASS,
+		eSHADERFILE_HELPER,
+		eSHADERFILE_TERRAIN,
+		eSHADERFILE_DEFERRED_SHADING,
+		eSHADERFILE_FONT,
 	};
+
 
 
 	// -------------------------------------------------------------------------
@@ -358,7 +359,7 @@ namespace SpeedPoint
 		virtual IScene* GetLoadedScene() const = 0;
 		virtual IMaterialManager* GetMaterialManager() const = 0;
 
-		virtual SString GetShaderPath(EShaderType shader) = 0;
+		virtual SString GetShaderPath(EShaderFileType shaderFile) = 0;
 
 		
 		// Summary:

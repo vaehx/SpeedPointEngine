@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\Renderable.h>
+#include <Abstract\IObject.h>
 #include <Abstract\IOctree.h>
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
@@ -34,97 +34,99 @@ private:
 
 	bool m_bVisible;
 
-public:	
-	CStaticObjectRenderable();
-
+	
+	// IRenderableComponent:
+public:
 	virtual ~CStaticObjectRenderable()
 	{
 		m_bRenderDescFilled = false;
 		Clear();
 	}
 
-	virtual IGeometry* GetGeometry() { return (IGeometry*)&m_Geometry; };
 
 	virtual void Clear()
 	{
-		m_Geometry.Clear();		
+		m_Geometry.Clear();
 	}
-
-	virtual SRenderDesc* GetRenderDesc();
 
 	ILINE virtual void SetVisible(bool visible);
 
-	ILINE virtual bool RenderDescFilled() const
-	{
-		return m_bRenderDescFilled;
-	}	
+	ILINE virtual void GetUpdatedRenderDesc(SRenderDesc* pDescDest);
 
-	virtual SRenderDesc* FillRenderDesc(IGameEngine* pEngine);
-	virtual SRenderDesc* GetUpdatedRenderDesc();
+	virtual IGeometry* GetGeometry() { return (IGeometry*)&m_Geometry; };
 
 	virtual IVertexBuffer* GetVertexBuffer();
 	virtual SGeomSubset* GetSubset(unsigned int i);
 	virtual unsigned int GetSubsetCount() const;
-	virtual EPrimitiveType GetGeometryPrimitiveType() const;
+
+	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) const;
 
 	virtual void SetViewProjMatrix(const SMatrix& mtx)
 	{
 		m_ViewProjMtx = mtx;
-		m_bUseCustomViewProjMtx = true; 
+		m_bUseCustomViewProjMtx = true;
 	}
 	virtual void UnsetViewProjMatrix()
 	{
 		m_bUseCustomViewProjMtx = false;
 	}
+
+public:	
+	CStaticObjectRenderable();
+
+	SRenderDesc* GetRenderDesc();
+
+	ILINE virtual bool RenderDescFilled() const
+	{
+		return m_bRenderDescFilled;
+	}
+
+	SRenderDesc* FillRenderDesc(IGameEngine* pEngine);	
 };
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// SpeedPoint Solid implementation
-class S_API StaticObject : public IStaticObject
+class StaticObject : public IStaticObject
 {
 private:
+	AABB m_AABB;
 	IGameEngine* m_pEngine;
 	CStaticObjectRenderable m_Renderable;
 
 	vector<IReferenceObject*> m_RefObjects;
 
-public:			
+public:
 
-	StaticObject();
-	virtual ~StaticObject();
-	
-	virtual SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr);
+	StaticObject();	
 
-	virtual EObjectType GetType() const
-	{
-		return eGEOMOBJ_STATIC;
-	}
+	SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr);
 
-	virtual IGeometry* GetGeometry()
+	IGeometry* GetGeometry()
 	{
 		return m_Renderable.GetGeometry();
 	}
-	
-	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0);
-	virtual unsigned int GetSubsetCount() const;		
 
-	//virtual SResult CreateNormalsGeometry(IRenderableObject** pNormalGeometryObject) const;	
+	IMaterial* GetSubsetMaterial(unsigned int subset = 0);
+	unsigned int GetSubsetCount() const;
 
-	virtual SRenderDesc* GetUpdatedRenderDesc();
-	virtual void Clear();
-
-	virtual IReferenceObject* CreateReferenceObject();
-
-	virtual IRenderableComponent* GetRenderable()
+	IRenderableComponent* GetRenderable()
 	{
 		return (IRenderableComponent*)&m_Renderable;
 	}
 
-	// from IObject:
+	void RecalcBoundBox();
+
+	// IStaticObject:
 public:
-	virtual void RecalcBoundBox();
+	virtual ~StaticObject();
+
+	virtual const AABB& GetBoundBox() const
+	{
+		return m_AABB;
+	}
+
+	virtual SRenderDesc* GetRenderDesc();
+	virtual void Clear();
 };
 
 

@@ -54,12 +54,6 @@ S_API unsigned int CStaticObjectRenderable::GetSubsetCount() const
 }
 
 // ----------------------------------------------------------------------------------------
-S_API EPrimitiveType CStaticObjectRenderable::GetGeometryPrimitiveType() const
-{
-	return m_Geometry.GetPrimitiveType();
-}
-
-// ----------------------------------------------------------------------------------------
 S_API SRenderDesc* CStaticObjectRenderable::GetRenderDesc()
 {
 	return &m_RenderDesc;
@@ -69,6 +63,27 @@ S_API SRenderDesc* CStaticObjectRenderable::GetRenderDesc()
 S_API void CStaticObjectRenderable::SetVisible(bool visible)
 {
 	m_bVisible = visible;
+
+	if (!IS_VALID_PTR(m_RenderDesc.pSubsets) || m_RenderDesc.nSubsets == 0)
+	{
+		return;
+	}
+
+	// Update subsets
+	for (unsigned int iSubset = 0; iSubset < m_RenderDesc.nSubsets; ++iSubset)
+	{
+		SRenderSubset* pSubset = &m_RenderDesc.pSubsets[iSubset];
+
+		// do not show invalid subsets
+		if (IS_VALID_PTR(pSubset->drawCallDesc.pVertexBuffer) && IS_VALID_PTR(pSubset->drawCallDesc.pIndexBuffer))
+		{
+			pSubset->render = m_bVisible;
+		}
+		else
+		{
+			pSubset->render = false;
+		}
+	}
 }
 
 // ----------------------------------------------------------------------------------------
@@ -95,7 +110,7 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 			continue;
 		}
 
-		renderSubset.drawCallDesc.primitiveType = GetGeometryPrimitiveType();		
+		renderSubset.drawCallDesc.primitiveType = m_Geometry.GetPrimitiveType();
 
 		renderSubset.drawCallDesc.pVertexBuffer = GetVertexBuffer();
 		renderSubset.drawCallDesc.pIndexBuffer = subset->pIndexBuffer;
@@ -147,24 +162,9 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 
 
 
-S_API SRenderDesc* CStaticObjectRenderable::GetUpdatedRenderDesc()
+S_API void CStaticObjectRenderable::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 {
-	for (unsigned int i = 0; i < m_RenderDesc.nSubsets; ++i)
-	{
-		SRenderSubset* pSubset = &m_RenderDesc.pSubsets[i];
-
-		// do not render invalid subsets
-		if (IS_VALID_PTR(pSubset->drawCallDesc.pVertexBuffer) && IS_VALID_PTR(pSubset->drawCallDesc.pIndexBuffer))
-		{
-			pSubset->render = m_bVisible;
-		}
-		else
-		{
-			pSubset->render = false;
-		}
-	}
-
-	return &m_RenderDesc;
+	// Use GetRenderDesc() instead
 }
 
 
@@ -244,6 +244,12 @@ S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pIn
 	}
 
 	m_Renderable.FillRenderDesc(pEngine);
+
+	STransformationDesc& transformDesc = m_Renderable.GetRenderDesc()->transform;
+	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
+	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
+	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
+
 	return S_SUCCESS;
 }
 
@@ -300,40 +306,11 @@ S_API void StaticObject::RecalcBoundBox()
 }
 
 
-
-// ----------------------------------------------------------------------------------------
-S_API IReferenceObject* StaticObject::CreateReferenceObject()
-{
-	IReferenceObject* pRefObject = new CReferenceObject(m_pEngine);
-	pRefObject->SetBase((IRenderableObject*)this);
-	pRefObject->vPosition = vPosition;
-	pRefObject->vRotation = vRotation;
-	pRefObject->vSize = vSize;
-
-	m_RefObjects.push_back(pRefObject);
-
-	return pRefObject;
-}
-
-
-
 // ----------------------------------------------------------------------------------------
 
-S_API SRenderDesc* StaticObject::GetUpdatedRenderDesc()
+S_API SRenderDesc* StaticObject::GetRenderDesc()
 {
-	if (!m_Renderable.RenderDescFilled())
-	{
-		m_Renderable.FillRenderDesc(m_pEngine);
-	}
-
-	SRenderDesc* pRenderDesc = m_Renderable.GetUpdatedRenderDesc();
-	
-	STransformationDesc& transformDesc = pRenderDesc->transform;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
-	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
-	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
-
-	return pRenderDesc;
+	return m_Renderable.GetRenderDesc();	
 }
 
 

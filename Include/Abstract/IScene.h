@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	SpeedPoint Engine Source File
 //
-//	(c) 2011-2014 Pascal Rosenkranz aka iSmokiieZz
+//	(c) 2011-2015 Pascal Rosenkranz aka iSmokiieZz
 //	All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,11 +19,48 @@ struct S_API IStaticObject;
 struct IRenderableObject;
 struct S_API ISkyBox;
 
+enum ESceneNodeType
+{
+	eSCENENODE_UNKNOWN = 0,
+	eSCENENODE_STATIC,
+	eSCENENODE_ENTITY,
+	eSCENENODE_LIGHT
+};
+
 // Scene Graph Node
 struct SSceneNode
 {
 	AABB aabb;
-	IObject* pObject;	
+	ESceneNodeType type;
+
+	IStaticObject* pStatic;	// only set if type == eSCENENODE_STATIC
+	IObject* pObject;			// only set if type == eSCENENODE_ENTITY
+	ILight* pLight;	// only set if type == eSCENENODE_LIGHT
+
+	SSceneNode()
+		: type(eSCENENODE_UNKNOWN),
+		pStatic(0),
+		pObject(0),
+		pLight(0)
+	{
+	}
+
+	SSceneNode(const SSceneNode& rhs)
+		: aabb(rhs.aabb),
+		type(rhs.type),
+		pStatic(rhs.pStatic),
+		pObject(rhs.pObject),
+		pLight(rhs.pLight)
+	{
+	}
+
+	~SSceneNode()
+	{
+		type = eSCENENODE_UNKNOWN;
+		pStatic = 0;
+		pObject = 0;
+		pLight = 0;
+	}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

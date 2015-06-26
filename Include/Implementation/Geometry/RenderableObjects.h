@@ -21,7 +21,7 @@ SP_NMSPACE_BEG
 class S_API CReferenceObject : public IReferenceObject
 {
 private:
-	IRenderableObject* m_pBase;
+	IObject* m_pBase;
 	SRenderDesc m_RenderDesc;
 	IGameEngine* m_pEngine;
 
@@ -34,36 +34,16 @@ public:
 	{
 	}
 
-	virtual IRenderableObject* GetBase()
+	virtual IObject* GetBase()
 	{
 		return m_pBase;
 	}
 
-	virtual SResult SetBase(IRenderableObject* base)
+	virtual SResult SetBase(IObject* base)
 	{	
 		m_pBase = base;
 		return S_SUCCESS;
 	}	
-
-	// IRenderableObject:
-public:
-	virtual SRenderDesc* GetUpdatedRenderDesc();
-
-	virtual IGeometry* GetGeometry()
-	{
-		if (!IS_VALID_PTR(m_pBase))
-			return 0;
-
-		return m_pBase->GetGeometry();
-	}
-
-	virtual IRenderableComponent* GetRenderable()
-	{
-		if (IS_VALID_PTR(m_pBase))
-			return m_pBase->GetRenderable();
-
-		return 0;
-	}
 
 	// IObject:
 public:
@@ -75,7 +55,23 @@ public:
 			m_AABB = m_pBase->GetBoundBox();
 		}
 	}
+
+	ILINE virtual EntityType GetType() const
+	{
+		if (IS_VALID_PTR(m_pBase))
+			return m_pBase->GetType();
+		else
+			return 0;
+	}
+
+	ILINE virtual IRenderableComponent* GetRenderable() const { return 0; }
+	ILINE virtual IPhysicalComponent* GetPhysical() const { return 0; }
+	ILINE virtual IAnimateableComponent* GetAnimateable() const { return 0; }
+	ILINE virtual IScriptComponent* GetScriptable() const { return 0; }
 };
+
+
+
 
 
 // SpeedPoint SkyBox Implementation

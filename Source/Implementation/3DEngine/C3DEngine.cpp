@@ -1,5 +1,5 @@
 #include <Implementation\3DEngine\C3DEngine.h>
-#include <Abstract\Renderable.h>
+#include <Abstract\IObject.h>
 #include <Abstract\IScene.h>
 #include <Abstract\ITerrain.h>
 
@@ -12,17 +12,12 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 }
 
 S_API C3DEngine::~C3DEngine()
-{
-	m_RenderDescs.clear();
+{	
+	m_RenderObjects.Clear();
 }
 
 S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamera* pCamera)
 {
-	// Checking if render Desc is already in the list is probably not faster, because
-	// Objects might change or the camera is moving eagerly. Also, CollectVisibleObjects() should only
-	// be called if the update is necessary.
-	m_RenderDescs.clear();
-
 	ITerrain* pTerrain = pScene->GetTerrain();
 	if (IS_VALID_PTR(pTerrain))
 	{
@@ -34,57 +29,103 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamer
 	{
 		return 0;
 	}
-
-	unsigned int numPushed = 0;
+	
+	unsigned int nVisibles = 0;
 	for (auto itSceneNode = pSceneNodes->begin(); itSceneNode != pSceneNodes->end(); itSceneNode++)
 	{
-		if (!IS_VALID_PTR(itSceneNode->pObject) || !itSceneNode->pObject->IsRenderable())
+		bool bSceneNodeVisible = true; // TODO
+
+		// Increase visibles counter
+		if (bSceneNodeVisible)
 		{
-			continue;
+			if (itSceneNode->type != eSCENENODE_LIGHT)		
+				nVisibles++;		
 		}
 
-
-
-		// TODO: Handle view frustum culling here.		
-		// Test intersection of itSceneNode->aabb against the camera view frustum.
-
-		bool bSceneNodeVisible = true;
-		if (!bSceneNodeVisible)
+		// Add the object
+		switch (itSceneNode->type)
 		{
-			continue;
-		}
-		
-		IRenderableObject* pRenderable = dynamic_cast<IRenderableObject*>(itSceneNode->pObject);
-		if (!IS_VALID_PTR(pRenderable))
-		{
-			continue;
-		}
-
-		SRenderDesc* pRenderDesc = pRenderable->GetUpdatedRenderDesc();
-		if (!IS_VALID_PTR(pRenderDesc))
-		{
-			continue;
-		}
-		
-		m_RenderDescs.push_back(pRenderDesc);
-		++numPushed;
+		case eSCENENODE_STATIC:
+			if (!bSceneNodeVisible)				
+				AddVisibleStatic(itSceneNode->pStatic, itSceneNode->aabb);
+			break;
+		case eSCENENODE_ENTITY:
+			if (!bSceneNodeVisible)
+				AddVisibleEntity(itSceneNode->pObject, itSceneNode->aabb);
+			break;
+		case eSCENENODE_LIGHT:
+			AddVisibleLight(itSceneNode->pLight, itSceneNode->aabb);
+			break;
+		default:
+			break;
+		}		
 	}
 
-	return numPushed;
+	return 0;
 }
+
+
+S_API void C3DEngine::AddVisibleEntity(IEntity* pEntity, const AABB& aabb)
+{
+	if (!pEntity->IsRenderable())
+	{
+		return;
+	}
+
+	IRenderableComponent* pRenderable = pEntity->GetRenderable();
+
+	SRenderObject* pRenderObject = m_RenderObjects.Get();
+
+	pRenderable->GetUpdatedRenderDesc(&pRenderObject->renderDesc);
+	pRenderObject->aabb = aabb;
+}
+
+S_API void C3DEngine::AddVisibleLight(ILight* pLight, const AABB& aabb)
+{
+	// Add light for deferred light rendering
+	SRenderLight* pRenderLight = m_RenderLights.Get();
+	pLight->GetLightDesc(&pRenderLight->lightDesc);
+
+	// Check found statics and entities if they are lit by this light - ONLY FOR FORWARD RENDERING
+	unsigned int iterator = 0;
+	SRenderObject* pRenderObject = 0;
+	while (pRenderObject = m_RenderObjects.GetNextUsedObject(iterator))
+	{
+		if (pRenderObject->renderDesc.renderPipeline != eRENDER_FORWARD || pRenderObject->nAffectingLights >= 4)
+			continue;
+
+
+		// TODO: Check if storing pointers to the lights for deferred rendering is safe here, or if we rather
+		//		should create separate RenderLights for forward rendering.
+		pRenderObject->affectingLights[pRenderObject->nAffectingLights] = pRenderLight;
+
+
+		++pRenderObject->nAffectingLights;
+	}
+}
+
+S_API void C3DEngine::AddVisibleStatic(IStaticObject* pStatic, const AABB& aabb)
+{	
+	SRenderObject* pRenderObject = m_RenderObjects.Get();
+
+	SRenderDesc* pStaticRenderDesc = pStatic->GetRenderDesc();
+	memcpy(&pRenderObject->renderDesc, &pStaticRenderDesc, sizeof(SRenderDesc));
+
+	pRenderObject->aabb = aabb;	
+}
+
+
 
 S_API void C3DEngine::RenderCollected()
 {
 	m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
-	if (!m_RenderDescs.empty())
+	unsigned int itRenderObject = 0;
+	SRenderObject* pRenderObject = 0;
+	while (pRenderObject = m_RenderObjects.GetNextUsedObject(itRenderObject))
 	{
-		for (auto itRS = m_RenderDescs.begin(); itRS != m_RenderDescs.end(); itRS++)
-		{
-			SRenderDesc* pRS = *itRS;
-			m_pRenderer->Render(*pRS);
-		}
-	}
+		m_pRenderer->Render(pRenderObject->renderDesc);
+	}	
 }
 
 SP_NMSPACE_END

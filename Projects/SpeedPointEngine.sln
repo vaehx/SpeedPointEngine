@@ -20,8 +20,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointAI", "SpeedPointA
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointEffects", "SpeedPointEffects\SpeedPointEffects.vcxproj", "{B95904EF-9EEC-40D6-9676-0288AACB6E93}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointEntities", "SpeedPointEntities\SpeedPointEntities.vcxproj", "{02AE6397-0589-4AE0-8020-1B4ACB506717}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointScripting", "SpeedPointScripting\SpeedPointScripting.vcxproj", "{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointParticles", "SpeedPointParticles\SpeedPointParticles.vcxproj", "{E4980600-3BB0-4449-832D-A29C6D1E0114}"
@@ -40,7 +38,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointPT001", "Tests\Pr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArchitectureSandbox", "ArchitectureSandbox\ArchitectureSandbox.vcxproj", "{308AF5A8-EB3B-44D0-89D7-9189146E2FE7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointObjects", "SpeedPointObjects\SpeedPointObjects.vcxproj", "{FACEAC68-301E-41D3-AA53-EBFDE139F192}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPointScene", "SpeedPointObjects\SpeedPointObjects.vcxproj", "{FACEAC68-301E-41D3-AA53-EBFDE139F192}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpeedPoint3DEngine", "SpeedPoint3DEngine\SpeedPoint3DEngine.vcxproj", "{64298E44-4CE3-47C2-9000-023FAC8F943B}"
 EndProject
@@ -144,16 +142,6 @@ Global
 		{B95904EF-9EEC-40D6-9676-0288AACB6E93}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{B95904EF-9EEC-40D6-9676-0288AACB6E93}.Release|Win32.ActiveCfg = Release|Win32
 		{B95904EF-9EEC-40D6-9676-0288AACB6E93}.Release|Win32.Build.0 = Release|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Debug|Win32.ActiveCfg = Debug|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Debug|Win32.Build.0 = Debug|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Release|Any CPU.ActiveCfg = Release|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Release|Win32.ActiveCfg = Release|Win32
-		{02AE6397-0589-4AE0-8020-1B4ACB506717}.Release|Win32.Build.0 = Release|Win32
 		{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{79FC4061-1A3D-4CAC-B3CD-143E34B19BC5}.Debug|Mixed Platforms.Build.0 = Debug|Win32

@@ -8,11 +8,11 @@
     <Filter Include="Headers\Data">
       <UniqueIdentifier>{72d954ac-c6cd-42f9-acc6-23247921047d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Objects">
-      <UniqueIdentifier>{e860929a-c3e2-453a-a907-94a6b3e595d0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headers\Math">
       <UniqueIdentifier>{909f56a6-ed94-4aee-ada3-19b2736a5660}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Entities">
+      <UniqueIdentifier>{e860929a-c3e2-453a-a907-94a6b3e595d0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -65,9 +65,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IBot.h">
-      <Filter>Headers\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IEntity.h">
       <Filter>Headers\Data</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\ICollisionShape.h">
@@ -167,13 +164,10 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\Physical.h">
-      <Filter>Headers\Objects</Filter>
+      <Filter>Headers\Entities</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\Animateable.h">
-      <Filter>Headers\Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Renderable.h">
-      <Filter>Headers\Objects</Filter>
+      <Filter>Headers\Entities</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IGraphicsAPI.h">
       <Filter>Headers</Filter>
@@ -210,6 +204,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IOcean.h">
       <Filter>Headers\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IRenderAPI.h">
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

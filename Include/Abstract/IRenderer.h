@@ -14,6 +14,7 @@
 #include "IMaterial.h"
 #include "IGameEngine.h"
 #include "IFont.h" // for FontSize
+#include "IRenderAPI.h"
 
 using std::vector;
 
@@ -110,121 +111,12 @@ struct S_API SRenderTargetCollection
 
 
 
+// !! deprecated !!
 enum S_API EConstantBufferType
 {
 	CONSTANTBUFFER_PERSCENE,
 	CONSTANTBUFFER_PEROBJECT,
 	CONSTANTBUFFER_TERRAIN
-};
-
-
-// Notice:
-// - Constant Buffers must have a size which is a multiple of 16. That means you should
-//   only use SMatrix4 or SVector4 (=float4) data types in here. Otherwise, make shure
-//   to add proper padding bytes.
-
-struct S_API SPerSceneConstantBuffer
-{
-
-	// mtxView and mtxProjection could also be in a separate CB, but we want to
-	// save memory bandwidth. Also it might be that the camera or projection changes
-	// per scene.
-
-	SMatrix4 mtxViewProj;	
-
-    // Pos used instead of Dir, to avoid struggling around with angles when calculating
-    // sun traveling due to TOD.   sun dir = normalize(-sunPosition)
-	float4 sunPosition;
-
-	float4 eyePosition;
-
-	SPerSceneConstantBuffer& operator = (const SPerSceneConstantBuffer& b)
-	{
-		mtxViewProj = b.mtxViewProj;
-		sunPosition = b.sunPosition;
-		eyePosition = b.eyePosition;
-		return *this;
-	}
-};
-
-struct S_API SHelperConstantBuffer
-{
-	SMatrix4 mtxTransform;
-	float3 color;
-
-	float struct_padding;
-};
-
-struct S_API SIllumConstantBuffer
-{
-	SMatrix4 mtxTransform;
-	float matAmbient;
-
-	float struct_padding[3];
-
-	SIllumConstantBuffer()
-		: matAmbient(0.1f)
-	{
-	}
-
-	SIllumConstantBuffer& operator = (const SIllumConstantBuffer& b)
-	{
-		mtxTransform = b.mtxTransform;
-		matAmbient = b.matAmbient;
-		return *this;
-	}
-};
-
-struct S_API STerrainConstantBuffer
-{	
-	float fTerrainDMFadeRadius;
-	float fTerrainMaxHeight;
-	unsigned int vtxHeightMapSz;
-	float segmentSize;
-
-	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
-	{		
-		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;
-		fTerrainMaxHeight = b.fTerrainMaxHeight;
-		vtxHeightMapSz = b.vtxHeightMapSz;
-		segmentSize = b.segmentSize;
-		return *this;
-	}
-};
-
-
-
-// Summary:
-//	Used in IRenderer::Draw()
-struct S_API SDrawCallDesc
-{
-	IVertexBuffer* pVertexBuffer;
-	IIndexBuffer* pIndexBuffer;
-	usint32 iStartIBIndex;
-	usint32 iEndIBIndex;
-	usint32 iStartVBIndex;
-	usint32 iEndVBIndex;	
-
-	EPrimitiveType primitiveType;	
-
-	SDrawCallDesc()
-		: pVertexBuffer(0),
-		pIndexBuffer(0),
-		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)	
-	{
-	}
-
-	SDrawCallDesc(const SDrawCallDesc& o)
-		: pVertexBuffer(o.pVertexBuffer),
-		pIndexBuffer(o.pIndexBuffer),
-		iStartIBIndex(o.iStartIBIndex),
-		iEndIBIndex(o.iEndIBIndex),
-		iStartVBIndex(o.iStartVBIndex),
-		iEndVBIndex(o.iEndVBIndex),
-		//transform(o.transform),
-		primitiveType(o.primitiveType)
-	{
-	}
 };
 
 
@@ -389,6 +281,21 @@ struct S_API SFontRenderSlot
 };
 
 
+struct S_API SLightDesc
+{	
+	SColor intensity; // spectral intensity
+
+	// Deferred Shading:
+	SRenderDesc renderDesc; // contains transformation matrix
+
+	// Forward:
+	float radius;
+	float range; // for spot lights
+	Vec3f position;
+	Vec3f direction;
+};
+
+
 ///////////////////////////////////////////////////////////////
 
 #define MAX_BOUND_RTS 8
@@ -469,6 +376,8 @@ public:
 
 	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
+
+	virtual SResult RenderDeferredLight(const SLightDesc& light) = 0;
 
 	virtual SResult PresentTargetViewport(void) = 0;
 

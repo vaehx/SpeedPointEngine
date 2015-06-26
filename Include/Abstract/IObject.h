@@ -8,6 +8,7 @@
 // Description:
 // -------------------------------------------------------------------------------
 // History:
+//	- 6/24/2015: Merge in components
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -19,7 +20,6 @@
 #endif
 
 #include <SPrerequisites.h>
-#include "ITexture.h"
 #include "Transformable.h"
 #include "BoundBox.h"
 #include <vector>
@@ -28,39 +28,16 @@ using std::vector;
 
 SP_NMSPACE_BEG
 
-struct S_API IIndexBuffer;
-struct S_API IVertexBuffer;
-struct S_API IGeometry;
-struct S_API STransformation;
-struct S_API IGameEngine;
-struct S_API IRenderer;
-struct S_API SInitialGeometryDesc;
 struct S_API IMaterial;
 struct S_API SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
-struct S_API SSceneNode;
-
-struct IRenderableComponent;
-struct IAnimateableComponent;
-struct IPhysicalComponent;
-struct IScriptableComponent;
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-enum S_API EObjectType
-{
-	eGEOMOBJ_UNKNOWN = 0,
-	eGEOMOBJ_STATIC,
-	eGEOMOBJ_RIGID, // has physics
-	eGEOMOBJ_ENTITY, // all components are optional except scripting
-	eGEOMOBJ_CHARACTER, // animateable / skinned
-	eGEOMOBJ_VEGETATION,
-	eGEOMOBJ_WATER,
-	eGEOMOBJ_TERRAIN,
-	eGEOMOBJ_SKYBOX,
-	eGEOMOBJ_REFERENCE	
-	// ...
-};
+struct S_API SLightDesc;
+struct S_API SRenderDesc;
+struct S_API IGeometry;
+struct S_API IVertexBuffer;
+struct S_API IIndexBuffer;
+struct S_API SGeomSubset;
+struct S_API SCamera;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -133,29 +110,150 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// abstract, not really interface
-class S_API IObject : public STransformable
+typedef unsigned long EntityType;
+#define SP_ENTITY_RENDERABLE 0x01
+#define SP_ENTITY_PHYSICAL 0x01 << 1
+#define SP_ENTITY_ANIMATEABLE 0x01 << 2
+#define SP_ENTITY_SCRIPTED 0x01 << 3
+
+struct S_API IRenderableComponent
+{
+	virtual ~IRenderableComponent()
+	{
+	}
+
+	virtual void Clear() = 0;
+
+	ILINE virtual void SetVisible(bool visible) = 0;
+
+	ILINE virtual void GetUpdatedRenderDesc(SRenderDesc* pDest) = 0;
+
+	virtual IGeometry* GetGeometry() = 0;
+
+	virtual IVertexBuffer* GetVertexBuffer() = 0;
+
+	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
+	virtual unsigned int GetSubsetCount() const = 0;
+
+	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) const = 0;
+
+	virtual void SetViewProjMatrix(const SMatrix& mtx) = 0;
+	virtual void UnsetViewProjMatrix() = 0;
+};
+
+
+struct S_API IPhysicalComponent
+{
+	virtual ~IPhysicalComponent()
+	{
+	}
+};
+
+struct S_API IAnimateableComponent
+{
+	virtual ~IAnimateableComponent()
+	{
+	}
+};
+
+struct S_API IScriptComponent
+{
+	virtual ~IScriptComponent()
+	{
+	}
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//			ENTITY
+//
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+// A complex object - composed of components
+class S_API IEntity : public STransformable
 {
 protected:
 	AABB m_AABB;
 
 public:
-	virtual ~IObject() {}
+	virtual ~IEntity() {}
 
-	virtual void RecalcBoundBox() = 0;
-	virtual const AABB& GetBoundBox() const { return m_AABB; }
+	ILINE virtual void RecalcBoundBox()
+	{
+	}
 
-	virtual EObjectType GetType() const = 0;
+	ILINE virtual const AABB& GetBoundBox() const { return m_AABB; }
 
-	virtual bool IsRenderable() const { return false; }
-	virtual bool IsPhysical() const { return false; }
-	virtual bool IsAnimateable() const { return false; }
-	virtual bool IsScriptable() const { return false; }
+	ILINE virtual EntityType GetType() const { return 0; };
 
-	virtual IRenderableComponent* GetRenderable() { return 0; }
-	virtual IPhysicalComponent* GetPhysical() { return 0; }
-	virtual IAnimateableComponent* GetAnimateable() { return 0; }
-	virtual IScriptableComponent* GetScriptable() { return 0; }
+	ILINE virtual bool IsRenderable() const { return GetType() & SP_ENTITY_RENDERABLE; }
+	ILINE virtual bool IsPhysical() const { return GetType() & SP_ENTITY_PHYSICAL; }
+	ILINE virtual bool IsAnimateable() const { return GetType() & SP_ENTITY_ANIMATEABLE; }
+	ILINE virtual bool IsScripted() const { return GetType() & SP_ENTITY_SCRIPTED; }
+
+	ILINE virtual IRenderableComponent* GetRenderable() const { return 0; }
+	ILINE virtual IPhysicalComponent* GetPhysical() const { return 0; }
+	ILINE virtual IAnimateableComponent* GetAnimateable() const { return 0; }
+	ILINE virtual IScriptComponent* GetScriptable() const { return 0; }
+};
+
+typedef S_API struct IEntity IObject;
+
+
+
+struct S_API IReferenceObject : public IEntity
+{
+	virtual ~IReferenceObject() {}
+
+	virtual IObject* GetBase() = 0;
+	virtual SResult SetBase(IObject* base) = 0;
+};
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// A light
+struct S_API ILight : public STransformable
+{
+public:
+	virtual ~ILight() {}
+
+	virtual void GetLightDesc(SLightDesc* pDestDesc) const = 0;
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// A static object does not dynamic, i.e. does not move or is modified in any other way per frame
+struct S_API IStaticObject : public STransformable
+{
+public:
+	virtual ~IStaticObject() {}
+
+	virtual const AABB& GetBoundBox() const = 0;
+	virtual SRenderDesc* GetRenderDesc() = 0;
+	virtual void Clear() = 0;
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct S_API ISkyBox
+{
+	virtual ~ISkyBox() {}
+
+	virtual SResult InitGeometry(IGameEngine* pEngine) = 0;
+	virtual void SetTexture(ITexture* pTexture) = 0;
+	virtual void Clear() = 0;
+
+	// Updates the renderDesc at the given Cameras position
+	virtual SRenderDesc* GetUpdatedRenderDesc(const SCamera* pCamera) = 0;
 };
 
 

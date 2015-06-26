@@ -402,22 +402,25 @@ S_API SResult SpeedPointEngine::InitializeScene(IScene* pScene)
 
 
 // ----------------------------------------------------------------------------------
-S_API SString SpeedPointEngine::GetShaderPath(EShaderType shader)
+S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
 {
 	char* relativePath;
-	switch (shader)
+	switch (shaderFile)
 	{
-	case eSHADER_ILLUM:
-		relativePath = "Effects\\illum.fx";
+	case eSHADERFILE_ZPASS:
+		relativePath = "Effects\\zpass.fx";
 		break;
-	case eSHADER_HELPER:
+	case eSHADERFILE_HELPER:
 		relativePath = "Effects\\helper.fx";
 		break;
-	case eSHADER_TERRAIN:
+	case eSHADERFILE_TERRAIN:
 		relativePath = "Effects\\terrain.fx";
 		break;
-	case eSHADER_FONT:
+	case eSHADERFILE_FONT:
 		relativePath = "Effects\\font.fx";
+		break;
+	case eSHADERFILE_DEFERRED_SHADING:
+		relativePath = "Effects\\deferred.fx";
 		break;
 	default:
 		relativePath = "Effects\\illum.fx";
