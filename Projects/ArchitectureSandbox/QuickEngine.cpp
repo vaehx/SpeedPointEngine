@@ -8,6 +8,7 @@
 // TODO:
 
 //	- Shadows: Shadow Caster?
+//	- Refactor RenderEntity -> RenderObject
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -18,6 +19,10 @@ struct Mat4f
 };
 
 struct Vec3f
+{
+};
+
+struct Color3f
 {
 };
 
@@ -124,12 +129,42 @@ struct SParticleSystemRenderDesc
 };
 
 
-struct SLightDesc
+enum ELightSourceType
 {
+	eLIGHTSOURCE_OMNIDIRECTIONAL,
+	eLIGHTSOURCE_SPOT,
+	eLIGHTSOURCE_DIRECTIONAL
+};
+
+struct SLightDesc
+{	
 	SRenderDesc renderDesc; // Contains geometry i.e. shape of light
+	Mat4f transform; // for deferred only, should not include translation
+	
 	float radius;
 	Vec3f position;
-	Vec3f intensity; // spectral intensity of the light
+	Vec3f direction;
+	Color3f intensity; // spectral intensity of the light
+};
+
+struct SRenderLight
+{
+	SLightDesc lightDesc;
+
+};
+
+struct SRenderEntity
+{
+	SRenderDesc renderDesc;
+	AABB aabb;
+	SRenderLight affectingLights[4]; // only used for forward rendering
+	int nAffectingLights;
+
+	SRenderEntity()
+		: nAffectingLights(0)
+	{
+		memset(&affectingLights, 0, sizeof(affectingLights));
+	}
 };
 
 
@@ -137,9 +172,12 @@ struct IRenderer
 {
 	virtual void BeginScene() = 0;
 	virtual void EndScene() = 0;
-	virtual void Render(SRenderDesc* pRenderDesc, const std::vector<SLightDesc*>* pLightsAffectingTheObject) = 0;
+	
+	// render lights stored in RenderEntity for forward rendering
+	virtual void Render(const SRenderEntity& pRenderDesc) = 0;
+
 	virtual void RenderTerrain(STerrainRenderDesc* pTerrainRenderDesc) = 0;
-	virtual void RenderDeferredLights(const std::vector<SLightDesc*>* pLights) = 0;
+	virtual void RenderDeferredLight(const SRenderLight& light) = 0;
 };
 
 
@@ -512,26 +550,6 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct SRenderLight
-{
-	SLightDesc lightDesc;
-
-};
-
-struct SRenderEntity
-{
-	SRenderDesc renderDesc;
-	AABB aabb;
-	SRenderLight* affectingLights[4]; // only used for forward rendering
-	int nAffectingLights;
-
-	SRenderEntity()
-		: nAffectingLights(0)
-	{
-		memset(&affectingLights, 0, sizeof(affectingLights));
-	}
-};
-
 class CFramework
 {
 private:
@@ -638,10 +656,12 @@ void CFramework::AddVisibleLight(CLight* pLight, const AABB& aabb)
 	SRenderEntity* pRenderEntity = 0;
 	while (pRenderEntity = m_RenderEntities.GetNextUsedObject(iterator))
 	{
-		if (pRenderEntity->nAffectingLights >= 4 || pRenderEntity->renderDesc.)
+		if (pRenderEntity->nAffectingLights >= 4 || pRenderEntity->renderDesc.pipeline != eRENDER_FORWARD)
 			continue;
 
-		pRenderEntity->affectingLights[pRenderEntity->nAffectingLights] = pLight;
+		SLightDesc* pLightDesc = &pRenderEntity->affectingLights[pRenderEntity->nAffectingLights].lightDesc;
+		pLight->GetLightDesc(pLightDesc);
+
 		pRenderEntity->nAffectingLights++;
 	}
 }
@@ -662,15 +682,18 @@ void CFramework::Update()
 void CFramework::Render()
 {
 	// Render visible scene nodes
-	for (auto itRenderDesc = m_VisibleRenderDescs.begin(); itRenderDesc != m_VisibleRenderDescs.end(); itRenderDesc++)
+	unsigned int itRenderEntity = 0;
+	SRenderEntity* pRenderEntity = 0;
+	while (pRenderEntity = m_RenderEntities.GetNextUsedObject(itRenderEntity))
 	{
-		SRenderDesc* pRenderDesc = *itRenderDesc;
-		if (!pRenderDesc)
-		{
-			continue;
-		}
+		m_pRenderer->Render(*pRenderEntity);
+	}
 
-		m_pRenderer->Render(pRenderDesc, );
+	unsigned int itRenderLight = 0;
+	SRenderLight* pRenderLight = 0;
+	while (pRenderLight = m_RenderLights.GetNextUsedObject(itRenderLight))
+	{
+		m_pRenderer->RenderDeferredLight(*pRenderLight);
 	}
 }
 
@@ -680,6 +703,40 @@ void CFramework::Render()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	IRenderAPI
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct IRenderAPI
+{
+	virtual void SetRenderTarget(ERenderTarget rt) = 0;
+	virtual void SetTexture(int slot, ITexture* pTexture) = 0;
+	virtual void SetVertexBuffer(IVertexBuffer* pVertexBuffer) = 0;
+	virtual void SetIndexBuffer(IIndexBuffer* pIndexBuffer) = 0;
+	virtual void SetConstantsBuffer(int slot, EConstantsBuffer cb) = 0;
+	virtual void SetActiveZPassShader(EZPassEffect zPassEffect) = 0;
+	virtual void SetActiveShader(EShader shader) = 0;
+	virtual void UpdateMaterialConstantBuffer(SMaterialConstantBuffer* pCB) = 0;
+	virtual void UpdateObjectConstantBuffer(SObjectConstantBuffer* pCB) = 0;
+	virtual void UpdateLightConstantBuffer(SLightConstantsBuffer* pCB) = 0;
+	virtual void Draw(const SDrawCallDesc& dcd) = 0;
+};
 
 
 
@@ -704,9 +761,19 @@ enum EShader
 {
 	eSHADER_ZPASS_DEFAULT,
 	eSHADER_ZPASS_VEGETATION,
-	eSHADER_ILLUM
+	eSHADER_DEFERRED_SHADING,
+	eSHADER_FORWARD
 };
 
+enum EConstantsBuffer
+{
+	eCONSTANTSBUFFER_NONE = 0,
+	eCONSTANTSBUFFER_MATERIAL,
+	eCONSTANTSBUFFER_OBJECT,
+	eCONSTANTSBUFFER_LIGHT	// for deferred lights
+};
+
+// TODO: pad
 struct SMaterialConstantBuffer
 {
 	EShadingModel shadingModel;
@@ -714,6 +781,7 @@ struct SMaterialConstantBuffer
 	float refractiveIndex; // used for cook-torrance model (fresnel effect)
 };
 
+// TODO: pad 
 struct SObjectConstantBuffer
 {
 	Mat4f worldMatrix;
@@ -721,45 +789,35 @@ struct SObjectConstantBuffer
 	Mat4f projectionMatrix;
 };
 
+// TODO: pad
+struct SLightConstantsBuffer
+{
+	Mat4f transform;	// should not include translation
+	Vec3f position;
+	Vec3f direction;
+	Color3f intensity; // spectral intensity
+};
+
 class CRenderer : public IRenderer
 {
 private:
 	SMaterialConstantBuffer m_MaterialConstants;
 	SObjectConstantBuffer m_ObjectConstants;	
+	SLightConstantsBuffer m_LightConstants;
 
-	void SetRenderTarget(ERenderTarget rt);
-	void SetTexture(int slot, ITexture* pTexture);
-	void SetVertexBuffer(IVertexBuffer* pVertexBuffer);
-	void SetIndexBuffer(IIndexBuffer* pIndexBuffer);
-	void SetActiveZPassShader(EZPassEffect zPassEffect);
-	void SetActiveShader(EShader shader);
-	void UpdateMaterialConstantBuffer(SMaterialConstantBuffer* pCB);
-	void UpdateObjectConstantBuffer(SObjectConstantBuffer* pCB);
-	void Draw(const SDrawCallDesc& dcd);
+	IRenderAPI* m_pRenderAPI;
+
 public:
 	virtual void BeginScene();
 	virtual void EndScene();
 
-	virtual void Render(SRenderDesc* pRenderDesc, const std::vector<SLight*>* pLightsAffectingTheObject);
+	virtual void Render(const SRenderEntity& entity);
 	virtual void RenderTerrain(STerrainRenderDesc* pTerrainRenderDesc);
-	virtual void RenderDeferredLights(const std::vector<SLight*>* pLights);
+	virtual void RenderDeferredLight(const SRenderLight& light);
 };
 
-void CRenderer::SetActiveZPassShader(EZPassEffect zPassEffect)
-{	
-	switch (zPassEffect)
-	{
-	case eZPASS_VEGETATION:
-		SetActiveShader(eSHADER_ZPASS_VEGETATION);
-		break;
-	case eZPASS_DEFAULT:
-	default:
-		SetActiveShader(eSHADER_ZPASS_DEFAULT);
-		break;
-	}
-}
 
-void CRenderer::Render(SRenderDesc* pRenderDesc, const std::vector<SLight*>* pLightsAffectingTheObject)
+void CRenderer::Render(const SRenderEntity& entity)
 {	
 	// Forward:
 	//	1. Set Backbuffer as active Render Target (Therefore: Render forward objects AFTER deferred shading)
@@ -774,52 +832,65 @@ void CRenderer::Render(SRenderDesc* pRenderDesc, const std::vector<SLight*>* pLi
 	// --------------------------------------------------------------------------------
 	// We'll just do deferred rendering here:
 
-	SetRenderTarget(eRT_GBUFFER);
+	const SRenderDesc* pRenderDesc = &entity.renderDesc;
 
-	SetActiveZPassShader(pRenderDesc->zpassEffect);
+	m_pRenderAPI->SetRenderTarget(eRT_GBUFFER);
 
-	SetVertexBuffer(pRenderDesc->pVB);
-	SetIndexBuffer(pRenderDesc->pIB);
+	m_pRenderAPI->SetActiveZPassShader(pRenderDesc->zpassEffect);
+
+	m_pRenderAPI->SetVertexBuffer(pRenderDesc->pVB);
+	m_pRenderAPI->SetIndexBuffer(pRenderDesc->pIB);
 
 	m_ObjectConstants.worldMatrix = pRenderDesc->worldMtx;
-	UpdateObjectConstantBuffer(&m_ObjectConstants);
+	m_pRenderAPI->UpdateObjectConstantBuffer(&m_ObjectConstants);
+	m_pRenderAPI->SetConstantsBuffer(0, eCONSTANTSBUFFER_OBJECT);
 
 	for (unsigned int i = 0; i < pRenderDesc->nSubsets; ++i)
 	{
 		SDrawCallDesc& dcd = pRenderDesc->pSubsets[i];
 
 		SShaderResources* pShaderResources = &dcd.shaderResources;
-		SetTexture(0, pShaderResources->pTextureMap);
-		SetTexture(1, pShaderResources->pNormalMap);
-		SetTexture(2, pShaderResources->pEnvironmentMap);
+		m_pRenderAPI->SetTexture(0, pShaderResources->pTextureMap);
+		m_pRenderAPI->SetTexture(1, pShaderResources->pNormalMap);
+		m_pRenderAPI->SetTexture(2, pShaderResources->pEnvironmentMap);
 
 		m_MaterialConstants.shadingModel = pShaderResources->shadingModel;
 		m_MaterialConstants.specularity = pShaderResources->specularity;
 		m_MaterialConstants.refractiveIndex = pShaderResources->refractiveIndex;
-		UpdateMaterialConstantBuffer(&m_MaterialConstants);
+		m_pRenderAPI->UpdateMaterialConstantBuffer(&m_MaterialConstants);
+		m_pRenderAPI->SetConstantsBuffer(1, eCONSTANTSBUFFER_MATERIAL);
 
-		Draw(dcd);
+		m_pRenderAPI->Draw(dcd);
 	}
 }
 
-void CRenderer::RenderDeferredLights(const std::vector<SLight*>* pLights)
+void CRenderer::RenderDeferredLight(const SRenderLight& light)
 {
-	SetActiveShader(eSHADER_ILLUM);
-
-	for (auto itLight = pLights->begin(); itLight != pLights->end(); itLight++)
+	const SRenderDesc* pLightRenderDesc = &light.lightDesc.renderDesc;
+	if (pLightRenderDesc->nSubsets == 0 || !IS_VALID_PTR(pLightRenderDesc->pSubsets))
 	{
-
-
-
-
-
-
-
-
-
-
-
-
-
+		return;
 	}
+
+	m_pRenderAPI->SetActiveShader(eSHADER_DEFERRED_SHADING);
+	m_pRenderAPI->SetRenderTarget(eRT_BACKBUFFER);
+
+	m_pRenderAPI->SetVertexBuffer(pLightRenderDesc->pVB);
+	m_pRenderAPI->SetIndexBuffer(pLightRenderDesc->pIB);
+
+	m_LightConstants.transform = light.lightDesc.transform;
+	m_LightConstants.position = light.lightDesc.position;
+	m_LightConstants.direction = light.lightDesc.direction;
+	m_LightConstants.intensity = light.lightDesc.intensity;
+	m_pRenderAPI->UpdateLightConstantBuffer(&m_LightConstants);
+
+	m_pRenderAPI->SetConstantsBuffer(0, eCONSTANTSBUFFER_LIGHT);
+	m_pRenderAPI->SetConstantsBuffer(1, eCONSTANTSBUFFER_NONE);
+
+	SDrawCallDesc& dd = pLightRenderDesc->pSubsets[0];
+	m_pRenderAPI->SetTexture(0, 0);
+	m_pRenderAPI->SetTexture(1, 0);
+	m_pRenderAPI->SetTexture(2, 0);
+
+	m_pRenderAPI->Draw(dd);
 }
