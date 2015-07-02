@@ -13,6 +13,7 @@
 #include "Geometry.h"
 #include <Abstract\Transformable.h>
 #include <Abstract\BoundBox.h>
+#include <Abstract\IRenderer.h>
 #include <vector>
 
 
@@ -50,7 +51,9 @@ public:
 	}
 
 	ILINE virtual void SetVisible(bool visible);
-
+	
+	// Note: This function simply copies the render desc, but the object is static. Make sure to use this function
+	// only once to get the render desc.
 	ILINE virtual void GetUpdatedRenderDesc(SRenderDesc* pDescDest);
 
 	virtual IGeometry* GetGeometry() { return (IGeometry*)&m_Geometry; };

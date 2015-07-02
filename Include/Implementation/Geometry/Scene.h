@@ -37,7 +37,7 @@ public:
 
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file);
 	
-	virtual SResult CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const;
+	virtual SResult CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const;
 
 	virtual std::vector<SSceneNode>* GetSceneNodes();
 

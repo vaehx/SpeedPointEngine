@@ -12,7 +12,6 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <Abstract\Renderable.h>
 #include "StaticObject.h"
 
 SP_NMSPACE_BEG
@@ -64,11 +63,12 @@ public:
 			return 0;
 	}
 
-	ILINE virtual IRenderableComponent* GetRenderable() const { return 0; }
-	ILINE virtual IPhysicalComponent* GetPhysical() const { return 0; }
-	ILINE virtual IAnimateableComponent* GetAnimateable() const { return 0; }
-	ILINE virtual IScriptComponent* GetScriptable() const { return 0; }
+	ILINE virtual IRenderableComponent* GetRenderable() const;
+	ILINE virtual IPhysicalComponent* GetPhysical() const;
+	ILINE virtual IAnimateableComponent* GetAnimateable() const;
+	ILINE virtual IScriptComponent* GetScriptable() const;
 };
+
 
 
 
@@ -80,8 +80,10 @@ class S_API CSkyBox : public ISkyBox
 private:
 	CStaticObjectRenderable m_Renderable;
 	IGameEngine* m_pEngine;
+	Vec3f m_Position;
 
 public:
+	CSkyBox();
 	~CSkyBox()
 	{
 		Clear();
@@ -91,7 +93,9 @@ public:
 	virtual void SetTexture(ITexture* pTexture);
 	virtual void Clear();
 
-	virtual SRenderDesc* GetUpdatedRenderDesc(const SCamera* pCamera);
+	virtual void SetPosition(const Vec3f& pos);
+
+	virtual void GetUpdatedRenderDesc(SRenderDesc* pDestDesc);
 };
 
 

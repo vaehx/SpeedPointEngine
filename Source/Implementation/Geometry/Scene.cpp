@@ -1,4 +1,5 @@
 
+#include <Abstract\IGeometry.h>
 #include <Implementation\Geometry\Scene.h>
 #include <Implementation\Geometry\Terrain.h>
 #include <Implementation\Geometry\File3DS.h>
@@ -277,8 +278,8 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	geom.bRequireNormalRecalc = true;
 
 	// Initialize result object
-	IStaticObject* pStaticObject = new StaticObject();
-	IStaticObject* pReturn = pStaticObject;
+	StaticObject* pStaticObject = new StaticObject();
+	IStaticObject* pReturn = pStaticObject;	
 	if (Failure(pStaticObject->Init(m_pEngine, &geom)))
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed Init Static Object to store loaded 3ds file!");
@@ -294,24 +295,18 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API SResult Scene::CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const
+S_API SResult Scene::CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const
 {
-	if (!IS_VALID_PTR(object) || !IS_VALID_PTR(pNormalGeometryObject))
+	if (!IS_VALID_PTR(renderable) || !IS_VALID_PTR(pNormalsGeometry))
 		return S_INVALIDPARAM;
 
 	if (!IS_VALID_PTR(m_pEngine))
 		return S_NOTINIT;	
-
-
-	SInitialGeometryDesc normalGeom;
-	if (Failure(object->GetGeometry()->CalculateNormalsGeometry(normalGeom, 3.0f)))
+	
+	if (Failure(renderable->GetGeometry()->CalculateNormalsGeometry(*pNormalsGeometry, 3.0f)))
+	{
 		return EngLog(S_ERROR, m_pEngine, "Failed Calculcate Normals Geometry!");
-
-
-	IStaticObject* pStaticObject = new StaticObject();
-	RETURN_ON_ERR(pStaticObject->Init(m_pEngine, &normalGeom));
-
-	*pNormalGeometryObject = pStaticObject;
+	}
 
 	return S_SUCCESS;
 }

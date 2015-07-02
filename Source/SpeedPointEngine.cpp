@@ -407,23 +407,40 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
 	char* relativePath;
 	switch (shaderFile)
 	{
-	case eSHADERFILE_ZPASS:
-		relativePath = "Effects\\zpass.fx";
+		// FORWARD:
+	case eSHADERFILE_FORWARD:
+		relativePath = "Effects\\illum.fx";	// PS_forward
 		break;
 	case eSHADERFILE_HELPER:
 		relativePath = "Effects\\helper.fx";
 		break;
-	case eSHADERFILE_TERRAIN:
-		relativePath = "Effects\\terrain.fx";
-		break;
 	case eSHADERFILE_FONT:
 		relativePath = "Effects\\font.fx";
 		break;
-	case eSHADERFILE_DEFERRED_SHADING:
-		relativePath = "Effects\\deferred.fx";
+
+		// Deferred Shading:
+	case eSHADERFILE_ZPASS:
+		relativePath = "Effects\\zpass.fx";	// PS_zpass
 		break;
+	case eSHADERFILE_DEFERRED_SHADING:
+		relativePath = "Effects\\illum.fx";	// PS_illum
+		break;
+	case eSHADERFILE_TERRAIN:
+		relativePath = "Effects\\terrain.fx";
+		break;
+
+		// Deferred lighting / Light prepass:
+	case eSHADERFILE_DL_ZPASS:
+		relativePath = "Effects\\zpass.fx";	// PS_dlzpass
+		break;
+	case eSHADERFILE_DL_LIGHT:
+		relativePath = "Effects\\illum.fx";	// PS_dllight
+		break;
+	case eSHADERFILE_DL_COMPOSITE:
+		relativePath = "Effects\composite.fx";
+
 	default:
-		relativePath = "Effects\\illum.fx";
+		return "???";
 	}
 
 #ifdef _DEBUG

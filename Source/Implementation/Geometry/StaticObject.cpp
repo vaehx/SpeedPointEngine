@@ -160,14 +160,13 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 	return &m_RenderDesc;
 }
 
-
-
 S_API void CStaticObjectRenderable::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 {
-	// Use GetRenderDesc() instead
+	if (IS_VALID_PTR(pDestDesc))
+	{
+		*pDestDesc = m_RenderDesc;
+	}
 }
-
-
 
 
 

@@ -18,6 +18,7 @@ struct S_API ITexture;
 struct S_API IStaticObject;
 struct IRenderableObject;
 struct S_API ISkyBox;
+struct S_API SInitialGeometryDesc;
 
 enum ESceneNodeType
 {
@@ -85,7 +86,7 @@ struct S_API IScene
 	//virtual void RegisterObject(IObject* pObject) = 0;
 	//virtual IObject* CreateObject(EObjectType type) = 0;
 
-	virtual SResult CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const = 0;
+	virtual SResult CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const = 0;
 
 	virtual std::vector<SSceneNode>* GetSceneNodes() = 0;
 

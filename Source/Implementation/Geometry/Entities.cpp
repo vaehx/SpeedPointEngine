@@ -135,6 +135,9 @@ S_API void CRigidBodyRenderable::InitRenderDesc(IMaterialManager* pMatMgr, STran
 // ------------------------------------------------------------------------------
 S_API void CRigidBodyRenderable::GetUpdatedRenderDesc(SRenderDesc* pDest)
 {
+	if (!IS_VALID_PTR(pDest))
+		return;
+
 	if (IS_VALID_PTR(m_pTransformable))
 	{		
 		m_RenderDesc.transform.translation = SMatrix::MakeTranslationMatrix(m_pTransformable->GetPosition());
@@ -142,7 +145,7 @@ S_API void CRigidBodyRenderable::GetUpdatedRenderDesc(SRenderDesc* pDest)
 		m_RenderDesc.transform.scale = SMatrix::MakeScaleMatrix(m_pTransformable->GetSize());
 	}
 
-	memcpy(pDest, &m_RenderDesc, sizeof(SRenderDesc));
+	*pDest = m_RenderDesc;
 }
 
 // ------------------------------------------------------------------------------
@@ -199,7 +202,7 @@ S_API void CRigidBody::RecalcBoundBox()
 	pGeom->CalculateBoundBox(m_AABB);
 }
 
-S_API SResult CRigidBody::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr)
+S_API SResult CRigidBody::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
 {
 	SResult res;
 
@@ -234,7 +237,7 @@ S_API IGeometry* CRigidBody::GetGeometry()
 	return m_Renderable.GetGeometry();
 }
 
-S_API IMaterial* CRigidBody::GetSubsetMaterial(unsigned int subset = 0)
+S_API IMaterial* CRigidBody::GetSubsetMaterial(unsigned int subset /*= 0*/)
 {
 	if (subset >= m_Renderable.GetSubsetCount())
 		return 0;

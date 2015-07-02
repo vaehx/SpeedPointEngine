@@ -104,13 +104,13 @@ private:
 	D3D11_DEPTH_STENCIL_DESC m_terrainDepthDesc;
 	ID3D11DepthStencilState* m_pTerrainDepthState;
 	
-	// Todo: Do not store CBs in Renderer, but in the objects itself
-	SIllumConstantBuffer m_IllumCB;
+	// Todo: Do not store CBs in Renderer, but in the objects itself	--> (2.7.2015) Really?
+	SMaterialConstantsBuffer m_MaterialConstants;
 	SHelperConstantBuffer m_HelperCB;
 	ID3D11Buffer* m_pIllumCB;
 	ID3D11Buffer* m_pHelperCB;
 
-	SPerSceneConstantBuffer m_PerSceneCB;
+	SObjectConstantsBuffer m_ObjectConstants;
 	ID3D11Buffer* m_pPerSceneCB;	
 	ID3D11Buffer* m_pTerrainCB;	// instance of STerrainConstantBuffer stored in Terrain Render Desc
 	//bool m_bPerObjectCBBound;
@@ -127,18 +127,24 @@ private:
 
 	// The Frame Buffer objects
 
-	DirectX11FBO m_GBufferDepth;
-	DirectX11FBO m_GBufferNormal;
+	DirectX11FBO m_GBuffer1; // (RGBA8) RGB: Normals, A: Roughness
+	DirectX11FBO m_GBuffer2; // (D24S8) D24: Depth, S: ???
 
 	DirectX11FBO m_LightAccumulation;
 
 
 	// The required shaders
 
-	DirectX11Effect m_IllumEffect;
+	DirectX11Effect m_ForwardEffect;
 	DirectX11Effect m_HelperEffect;
+
+	DirectX11Effect m_ZPassEffect;
+	DirectX11Effect m_DeferredShadingEffect;	
 	DirectX11Effect m_TerrainEffect;
 
+	DirectX11Effect m_DLZPassEffect;
+	DirectX11Effect m_DLLightEffect;
+	DirectX11Effect m_DLCompositeEffect;
 
 	bool m_bInScene;
 

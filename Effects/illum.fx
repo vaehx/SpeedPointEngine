@@ -52,7 +52,7 @@ struct VS_OUTPUT
     float2 TexCoord : TEXCOORD3;
 };
 
-VS_OUTPUT VS_illum(VS_INPUT IN)
+VS_OUTPUT VS_forward(VS_INPUT IN)
 {
     VS_OUTPUT OUT;        
 
@@ -135,7 +135,7 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
 //
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-PS_OUTPUT PS_illum(PS_INPUT IN)
+PS_OUTPUT PS_forward(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
     

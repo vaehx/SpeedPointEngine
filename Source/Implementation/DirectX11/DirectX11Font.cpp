@@ -134,7 +134,7 @@ S_API SResult DirectX11FontRenderer::Init(IRenderer* pRenderer)
 	InitBlendDesc();
 
 	IGameEngine* pGameEngine = m_pDXRenderer->GetEngine();
-	SString fontFXFile = pGameEngine->GetShaderPath(eSHADER_FONT);
+	SString fontFXFile = pGameEngine->GetShaderPath(eSHADERFILE_FONT);
 
 	m_FontShader.Initialize(pGameEngine, fontFXFile, "font");
 
