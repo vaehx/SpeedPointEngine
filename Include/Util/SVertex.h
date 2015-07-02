@@ -58,47 +58,61 @@ namespace SpeedPoint
 				float tx, ty, tz;
 			};		
 			SXYZ tangent;		
-		};											
+		};		
 
 		// texture coords									
 		TextureCoordsUV textureCoords[1];
 
+		float3 color;
+
 		// ---------------------------------------------------------------------------------		
-		
-		// constructor with single components and custom normal and tangent, 2 texturecoord pairs
-		SVertex (float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_, float tu_,float tv_, float tu2_,float tv2_)
+
+		SVertex(float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_, float tu_,float tv_, float tu2_,float tv2_, float r,float g,float b)
 			: x(x_), y(y_), z(z_),
 			nx(nx_), ny(ny_), nz(nz_),
-			tx(tx_), ty(ty_), tz(tz_)
-		{				
-			//binormal = Vec3f( nx, ny, nz ).Cross( Vec3f( tx, ty, ty ) );				
+			tx(tx_), ty(ty_), tz(tz_),
+			color(r, g, b)
+		{	
+			//binormal = Vec3f( nx, ny, nz ).Cross( Vec3f( tx, ty, ty ) );
 			textureCoords[0].u = tu_;
 			textureCoords[0].v = tv_;
 			//textureCoords[1].x = tu2_;
 			//textureCoords[1].y = tv2_;
 		}
+
+		// constructor with single components and custom normal and tangent, 2 texturecoord pairs
+		SVertex (float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_, float tu_,float tv_, float tu2_,float tv2_)
+			: SVertex(x_, y_, z_, nx_, ny_, nz_, tx_, ty_, tz_, tu_, tv_, tu2_,tv2_, 1.0f,1.0f,1.0f)
+		{
+		}
 		
 		// constructor with single components and custom normal, 1 texturecoord pair
-		SVertex (float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_, float tu_,float tv_)
-			: SVertex (x_,y_,z_, nx_,ny_,nz_, tx_,ty_,tz_, tu_,tv_, 0.0f,0.0f)			
+		SVertex (float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_, float tu_,float tv_, float r,float g,float b)
+			: SVertex (x_,y_,z_, nx_,ny_,nz_, tx_,ty_,tz_, tu_,tv_, 0.0f,0.0f, 1.0f,1.0f,1.0f)
+		{
+		}
+
+		// constructor with single components and custom normal, without texture coords
+		SVertex(float x_, float y_, float z_, float nx_, float ny_, float nz_, float tx_, float ty_, float tz_, float tu_, float tv_)
+			: SVertex(x_, y_, z_, nx_, ny_, nz_, tx_, ty_, tz_, tu_, tv_, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f)
 		{
 		}
 		
 		// constructor with single components and custom normal, without texture coords
 		SVertex (float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_)
-			: SVertex (x_,y_,z_, nx_,ny_,nz_, tx_,ty_,tz_, 0.0f,0.0f, 0.0f,0.0f)
+			: SVertex (x_,y_,z_, nx_,ny_,nz_, tx_,ty_,tz_, 0.0f,0.0f, 0.0f,0.0f, 1.0f,1.0f,1.0f)
 		{		
 		}			
 		
 		// constructor with single components with normal pointing into y-direction
 		SVertex (float x_,float y_,float z_)
-			: SVertex (x_,y_,z_, 0.0f,1.0f,0.0f, 1.0f,0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f)
+			: SVertex (x_,y_,z_, 0.0f,1.0f,0.0f, 1.0f,0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f, 1.0f,1.0f,1.0f)
 		{
 		}								
 		
 		// Vertex at origin with normal pointing into y-direction
 		SVertex ()
-			: SVertex (0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f, 1.0f,0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f)
+			: SVertex (0.0f,0.0f,0.0f, 0.0f,1.0f,0.0f, 1.0f,0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f, 1.0f,1.0f,1.0f)
 		{			
 		}
 

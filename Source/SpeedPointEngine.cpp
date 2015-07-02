@@ -408,6 +408,9 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
 	switch (shaderFile)
 	{
 		// FORWARD:
+	case eSHADERFILE_SKYBOX:
+		relativePath = "Effects\\skybox.fx";
+		break;
 	case eSHADERFILE_FORWARD:
 		relativePath = "Effects\\illum.fx";	// PS_forward
 		break;

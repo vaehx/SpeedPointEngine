@@ -16,6 +16,7 @@ cbuffer ObjectCB : register(b1)
 {
     float4x4 mtxWorld;
     float matAmbience;
+    float3 matEmissive;
 }
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
@@ -33,6 +34,8 @@ SamplerState NormalMapSampler
     AddressV = WRAP;
 };
 
+static float PI = 3.14159265358f;
+
 // ---------------------------------------------------------
 
 struct VS_INPUT
@@ -40,6 +43,7 @@ struct VS_INPUT
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float3 Tangent : TANGENT;
+    float3 Color : COLOR0;
     float2 TexCoord : TEXCOORD0;
 };
 
@@ -47,6 +51,7 @@ struct VS_OUTPUT
 {
     float4 Position : SV_Position;
     float3 WorldPos : TEXCOORD0;
+    float3 Color : COLOR0;
     float3 Normal : TEXCOORD1;
     float3 Tangent : TEXCOORD2;    
     float2 TexCoord : TEXCOORD3;
@@ -70,6 +75,7 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
     OUT.Normal = normalize(mul(mtxWorld, normalize(float4(IN.Normal,0.0f))).xyz);
     OUT.Tangent = normalize(mul(mtxWorldInv, normalize(float4(IN.Tangent,0.0f))).xyz);         
     OUT.TexCoord = IN.TexCoord;
+    OUT.Color = IN.Color;
     
     return OUT;
 }
@@ -80,6 +86,7 @@ struct PS_INPUT
 {
     float4 Position : SV_Position;
     float3 WorldPos : TEXCOORD0;
+    float3 Color : COLOR0;
     float3 Normal : TEXCOORD1;
     float3 Tangent : TEXCOORD2;    
     float2 TexCoord : TEXCOORD3;
@@ -138,12 +145,13 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
 PS_OUTPUT PS_forward(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
-    
+	//OUT.Color = textureMap.Sample(TextureMapSampler, IN.TexCoord);
+	//return OUT;
+
     
     // calc binormal. Everything in World space!
     float3 normal = IN.Normal;
     float3 tangent = IN.Tangent;    
-    
     float3 binormal = cross(normal, tangent);                 
     
     // Calculate Tangent to World Space Rotation Matrix
@@ -152,37 +160,27 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     
     // Sample normal change in tangent space from NormalMap
     float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord).rgb;
-    sampledNormal = 2.0f * sampledNormal - 1.0f;    
+    sampledNormal.rg = 2.0f * sampledNormal.rg - 1.0f;    
     float3 bumpNormal = mul(matTW, normalize(sampledNormal));    
     
     normal = bumpNormal;
     
-    //OUT.Color = float4(normalize(normal), 1.0f);
-    //return OUT;
-    
     
     
     // Get texture map color
-    float4 texColor = textureMap.Sample(TextureMapSampler, IN.TexCoord);
+    float3 albedo = textureMap.Sample(TextureMapSampler, IN.TexCoord).rgb;
     
     // Surface constants
-    float roughness = 0.8f;       
+    float matRoughness = 0.8f;       
     
     // Calculate lighting factor. Using a fixed light dir and eye pos for now    
-    float3 lightDir = normalize(float3(0.4f, -0.8f, 0.8f));        
+    float3 L = normalize(float3(0.4f, -0.8f, 0.8f));
+    float3 V = normalize(eyePos.xyz - IN.WorldPos);          
     
-    float3 dirToEye = normalize(eyePos.xyz - IN.WorldPos);
-            
-    float3 phong = calc_phong(normalize(normal), -lightDir, dirToEye, roughness, 0.7f);  
+
+    float lambertBRDF = albedo / PI;
+    float3 LOut = IN.Color * albedo;
     
-    // Global illumination "Ambient" fake
-    float ambient = matAmbience;
-    
-    // Final lighting factor
-    float3 lightingFactor = phong + float3(ambient, ambient, ambient);        
-    
-    OUT.Color = texColor * float4(lightingFactor, 1.0f);
-    //OUT.Color = lightingFactor; 
-    
+    OUT.Color = float4(LOut.x, LOut.y, LOut.z, 1.0f);
     return OUT;
 }

@@ -34,12 +34,25 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamer
 {	
 	ClearRenderObjects();
 
+
+	// TERRAIN
 	ITerrain* pTerrain = pScene->GetTerrain();
 	if (IS_VALID_PTR(pTerrain))
 	{
-		pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);
+		pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);	
 	}
 
+
+	// SKYBOX
+	ISkyBox* pSkyBox = pScene->GetSkyBox();
+	if (IS_VALID_PTR(pSkyBox))
+	{
+		pSkyBox->GetUpdatedRenderDesc(&m_SkyBoxRenderDesc);
+	}
+
+
+
+	// SCENE NODES
 	vector<SSceneNode>* pSceneNodes = pScene->GetSceneNodes();
 	if (!IS_VALID_PTR(pSceneNodes))
 	{
@@ -139,6 +152,7 @@ S_API void C3DEngine::AddVisibleStatic(IStaticObject* pStatic, const AABB& aabb)
 
 S_API void C3DEngine::RenderCollected()
 {
+	m_pRenderer->Render(m_SkyBoxRenderDesc);
 	m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
 	unsigned int itRenderObject = 0;

@@ -45,7 +45,7 @@ private:
 	// For deferred shading only
 	ChunkedObjectPool<SRenderLight> m_RenderLights;
 
-
+	SRenderDesc m_SkyBoxRenderDesc;
 	STerrainRenderDesc m_TerrainRenderDesc;
 
 	void AddVisibleStatic(IStaticObject* pStaticObject, const AABB& aabb);

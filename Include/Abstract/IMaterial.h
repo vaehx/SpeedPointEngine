@@ -26,6 +26,7 @@ struct S_API SInitialGeometryDesc;
 enum S_API EIllumModel
 {
 	eILLUM_HELPER,	// solid color
+	eILLUM_SKYBOX,
 	eILLUM_PHONG,
 	eILLUM_BLINNPHONG,
 	eILLUM_COOKTORRANCE
@@ -37,7 +38,7 @@ struct S_API SShaderResources
 	ITexture* normalMap;
 	ITexture* ambientOcclusionMap;
 	float3 diffuse;
-	float3 emissive;
+	float3 emissive;	
 
 	EIllumModel illumModel;
 

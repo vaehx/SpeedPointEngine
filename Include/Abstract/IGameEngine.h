@@ -36,6 +36,8 @@ namespace SpeedPoint
 
 	enum EShaderFileType
 	{
+		eSHADERFILE_SKYBOX,
+
 		eSHADERFILE_FORWARD,	// Standard forward effect
 		eSHADERFILE_HELPER,	// Forward helper effect
 		eSHADERFILE_FONT,	// forward font effect

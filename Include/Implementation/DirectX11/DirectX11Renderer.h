@@ -58,6 +58,12 @@ private:
 	unsigned int m_MaxMSQuality;
 };
 
+enum EDepthTestFunction
+{
+	eDEPTH_TEST_LESS,
+	eDEPTH_TEST_GREATER
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SpeedPoint DirectX 11 Renderer Implementation
 
@@ -135,6 +141,8 @@ private:
 
 	// The required shaders
 
+	DirectX11Effect m_SkyBoxEffect;
+
 	DirectX11Effect m_ForwardEffect;
 	DirectX11Effect m_HelperEffect;
 
@@ -179,6 +187,7 @@ private:
 	SResult DrawForwardSubsets(const SRenderDesc& renderDesc);
 
 	void SetEyePosition(const Vec3f& eyePos);
+	void SetDepthTestFunction(EDepthTestFunction depthTestFunc);
 
 public:	
 	void FrameDump(const SString& msg)

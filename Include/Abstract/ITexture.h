@@ -59,7 +59,9 @@ public:
 	virtual bool IsStaged() const = 0;
 
 	// Load a texture from file
-	virtual SResult LoadFromFile( int w, int h, int mipLevels, char* cFileName ) = 0;
+	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName) = 0;
+
+	virtual SResult LoadCubemapFromFile(int singleW, int singleH, char* baseName) = 0;
 
 	// Initialize an empty texture with specified size and type and fill it with clearcolor.
 	// If type is a depth map, then clearcolor.r is used to fill.

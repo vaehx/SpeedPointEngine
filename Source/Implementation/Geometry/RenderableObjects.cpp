@@ -72,7 +72,7 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 	initGeom.pVertices = new SVertex[initGeom.nVertices];
 	initGeom.pIndices = new SIndex[initGeom.nIndices];
 
-	initGeom.primitiveType = SpeedPoint::PRIMITIVE_TYPE_TRIANGLELIST;
+	initGeom.primitiveType = SpeedPoint::PRIMITIVE_TYPE_TRIANGLELIST;	
 
 	float dTheta = (float)SP_PI / (float)nRings;
 	float dPhi = (float)SP_PI * 2.0f / (float)nStripes;
@@ -108,12 +108,29 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 				indexAccum += 6;
 			}
 		}
-	}
+	}	
 
 	m_Renderable.GetGeometry()->Init(pEngine, pEngine->GetRenderer(), &initGeom);
 
 	delete[] initGeom.pVertices;
 	delete[] initGeom.pIndices;
+
+
+	// Setup material
+	SGeomSubset* pSubset = m_Renderable.GetGeometry()->GetSubset(0);
+	if (IS_VALID_PTR(pSubset))
+	{
+		pSubset->pMaterial = pEngine->GetMaterialManager()->CreateMaterial("skybox_mat");
+		if (!IS_VALID_PTR(pSubset->pMaterial))
+		{
+			return CLog::Log(S_ERROR, "Could not create skybox_mat material for skybox");			
+		}
+
+		SShaderResources& matResources = pSubset->pMaterial->GetLayer(0)->resources;
+		matResources.emissive = float3(0.5f, 0.5f, 0.5f);
+		matResources.illumModel = eILLUM_SKYBOX;
+	}
+
 
 	return S_SUCCESS;
 }
@@ -126,7 +143,10 @@ S_API void CSkyBox::SetTexture(ITexture* pTexture)
 
 	IMaterial* pMaterial = pSubset->pMaterial;
 	if (!IS_VALID_PTR(pMaterial))
+	{
+		CLog::Log(S_ERROR, "Can't set Skybox texture: Material is 0");
 		return;
+	}
 
 	SMaterialLayer* pMaterialLayer = pMaterial->GetLayer(0);
 	if (!IS_VALID_PTR(pMaterialLayer))
@@ -164,7 +184,10 @@ S_API void CSkyBox::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 		m_Renderable.FillRenderDesc(m_pEngine);
 	}	
 
-	m_Renderable.GetUpdatedRenderDesc(pDestDesc);	
+	m_Renderable.GetUpdatedRenderDesc(pDestDesc);
+
+	pDestDesc->bInverseDepthTest = false;
+	pDestDesc->bDepthStencilEnable = false;
 
 	// set / update transformation
 	STransformationDesc& transformDesc = pDestDesc->transform;

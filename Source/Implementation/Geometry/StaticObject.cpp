@@ -97,6 +97,8 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 		m_RenderDesc.viewProjMtx = m_ViewProjMtx;
 	}
 
+	m_RenderDesc.bInverseDepthTest = false;
+
 	// copy over subsets
 	m_RenderDesc.nSubsets = GetSubsetCount();
 	m_RenderDesc.pSubsets = new SRenderSubset[m_RenderDesc.nSubsets];

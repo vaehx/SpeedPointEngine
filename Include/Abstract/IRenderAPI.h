@@ -60,11 +60,11 @@ struct S_API SMaterialConstantsBuffer
 {
 	SMatrix4 mtxTransform;
 	float matAmbient;
-
-	float struct_padding[3];
+	float3 matEmissive;
 
 	SMaterialConstantsBuffer()
-		: matAmbient(0.1f)
+		: matAmbient(0.1f),
+		matEmissive(0,0,0)
 	{
 	}
 
@@ -72,6 +72,7 @@ struct S_API SMaterialConstantsBuffer
 	{
 		mtxTransform = b.mtxTransform;
 		matAmbient = b.matAmbient;
+		matEmissive = b.matEmissive;
 		return *this;
 	}
 };

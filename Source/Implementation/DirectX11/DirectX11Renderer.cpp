@@ -588,10 +588,12 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	SString forwardFXFile = m_pEngine->GetShaderPath(eSHADERFILE_FORWARD);
 	SString helperFXFile = m_pEngine->GetShaderPath(eSHADERFILE_HELPER);
 	SString terrainFXFile = m_pEngine->GetShaderPath(eSHADERFILE_TERRAIN);
+	SString skyboxFXFile = m_pEngine->GetShaderPath(eSHADERFILE_SKYBOX);
 
 	if (Failure(m_ForwardEffect.Initialize(m_pEngine, forwardFXFile, "forward"))) return S_ERROR;
 	if (Failure(m_TerrainEffect.Initialize(m_pEngine, terrainFXFile, "terrain"))) return S_ERROR;
 	if (Failure(m_HelperEffect.Initialize(m_pEngine, helperFXFile, "helper"))) return S_ERROR;
+	if (Failure(m_SkyBoxEffect.Initialize(m_pEngine, skyboxFXFile, "skybox"))) return S_ERROR;
 
 
 
@@ -655,6 +657,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	m_DLZPassEffect.Clear();
 	m_DLLightEffect.Clear();
 	m_DLCompositeEffect.Clear();
+	m_SkyBoxEffect.Clear();
 
 	m_GBuffer1.Clear();
 	m_GBuffer2.Clear();
@@ -1129,6 +1132,9 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 	// Set correct depth stencil state
 	EnableDepthTest(renderDesc.bDepthStencilEnable);
+	
+	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
+	SetDepthTestFunction(depthTestFunc);
 
 	if (renderDesc.renderPipeline == eRENDER_FORWARD)
 	{
@@ -1214,6 +1220,9 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 
 		if (terrainRenderDesc.bUpdateCB)
 			UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &terrainRenderDesc.constants);
+
+		EnableDepthTest(true);
+		SetDepthTestFunction(eDEPTH_TEST_LESS);
 
 		// bind terrain cb
 		if (m_pBoundCB != m_pTerrainCB)
@@ -1367,14 +1376,18 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			continue;		
 
 		// Enable correct shader
-		if (subset.shaderResources.illumModel == eILLUM_HELPER)
+		switch (subset.shaderResources.illumModel)
 		{
+		case eILLUM_HELPER:
 			m_HelperEffect.Enable();
-		}
-		else
-		{
+			break;
+		case eILLUM_SKYBOX:
+			m_SkyBoxEffect.Enable();
+			break;
+		default:
 			m_ForwardEffect.Enable();
-		}
+			break;
+		}	
 
 		// Set material
 		SMatrix4 worldMtx = SMatrixTranspose(renderDesc.transform.BuildTRS());
@@ -1382,6 +1395,8 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 
 		if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
 			return S_ERROR;
+
+		EnableBackfaceCulling(false);
 
 		DrawForward(subset.drawCallDesc);
 		if (subset.bOnce)
@@ -1797,6 +1812,7 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 		// Set constants
 		m_MaterialConstants.mtxTransform = worldMat;
 		m_MaterialConstants.matAmbient = 0.1f;
+		m_MaterialConstants.matEmissive = shaderResources.emissive;
 
 		pConstantsData = (void*)&m_MaterialConstants;
 		cbSize = sizeof(m_MaterialConstants);		
@@ -1917,6 +1933,28 @@ S_API void DirectX11Renderer::EnableDepthTest(bool state)
 	if (m_depthStencilDesc.DepthEnable != state)
 	{
 		m_depthStencilDesc.DepthEnable = state;
+		UpdateDepthStencilState();
+	}
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestFunc)
+{
+	D3D11_COMPARISON_FUNC d3dFunc;
+
+	switch (depthTestFunc)
+	{
+	case eDEPTH_TEST_GREATER:
+		d3dFunc = D3D11_COMPARISON_GREATER;
+		break;
+	default:
+		d3dFunc = D3D11_COMPARISON_LESS;
+		break;
+	}
+
+	if (d3dFunc != m_depthStencilDesc.DepthFunc)
+	{
+		m_depthStencilDesc.DepthFunc = d3dFunc;
 		UpdateDepthStencilState();
 	}
 }

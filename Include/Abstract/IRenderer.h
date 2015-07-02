@@ -154,10 +154,12 @@ struct S_API SRenderDesc
 	bool bCustomViewProjMtx; // if false, uses current viewport viewproj
 
 	bool bDepthStencilEnable;
+	bool bInverseDepthTest; // use GREATER function for depth test
 
 	SRenderDesc()
 		: bCustomViewProjMtx(false),
-		bDepthStencilEnable(true)
+		bDepthStencilEnable(true),
+		bInverseDepthTest(false)
 	{
 	}
 
@@ -180,6 +182,7 @@ struct S_API SRenderDesc
 		viewProjMtx = rd.viewProjMtx;
 		bCustomViewProjMtx = rd.bCustomViewProjMtx;
 		bDepthStencilEnable = rd.bDepthStencilEnable;
+		bInverseDepthTest = rd.bInverseDepthTest;
 		pSubsets = 0;
 
 		// copy subsets array

@@ -94,7 +94,8 @@ public:
 
 	virtual void* GetStagedData() { return m_pStagedData; }
 	
-	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);	
+	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);
+	virtual SResult LoadCubemapFromFile(int singleW, int singleH, char* baseName);
 	virtual SResult CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor);	
 	virtual SString GetSpecification(void);
 
