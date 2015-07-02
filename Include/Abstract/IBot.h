@@ -10,7 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include "IEntity.h"
+#include "IObject.h"
 
 namespace SpeedPoint
 {

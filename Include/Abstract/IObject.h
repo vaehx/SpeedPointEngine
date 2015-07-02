@@ -137,7 +137,7 @@ struct S_API IRenderableComponent
 	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
 	virtual unsigned int GetSubsetCount() const = 0;
 
-	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) const = 0;
+	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) = 0;
 
 	virtual void SetViewProjMatrix(const SMatrix& mtx) = 0;
 	virtual void UnsetViewProjMatrix() = 0;

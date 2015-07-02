@@ -168,6 +168,14 @@ S_API void CStaticObjectRenderable::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 	}
 }
 
+S_API IMaterial* CStaticObjectRenderable::GetSubsetMaterial(unsigned int subset /*= 0*/)
+{
+	SGeomSubset* pGeomSubset = m_Geometry.GetSubset(subset);
+	if (!IS_VALID_PTR(pGeomSubset))
+		return 0;
+
+	return pGeomSubset->pMaterial;
+}
 
 
 
