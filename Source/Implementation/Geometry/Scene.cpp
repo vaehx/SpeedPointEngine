@@ -56,6 +56,7 @@ void Scene::CheckSceneNodesArray()
 	}
 }
 
+
 // -------------------------------------------------------------------------------------------------
 S_API SResult Scene::AddSceneNode(const SSceneNode& node)
 {
@@ -70,20 +71,40 @@ S_API SResult Scene::AddSceneNode(const SSceneNode& node)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API void Scene::AddObject(IObject* pObject)
+S_API SResult Scene::AddStaticObject(IStaticObject* pStatic)
+{
+	CheckSceneNodesArray();
+
+	if (!IS_VALID_PTR(pStatic))
+		return S_INVALIDPARAM;
+
+	SSceneNode node;
+	node.aabb = pStatic->GetBoundBox();
+	node.type = eSCENENODE_STATIC;
+	node.pStatic = pStatic;
+
+	m_pSceneNodes->push_back(node);
+	return S_SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API SResult Scene::AddObject(IObject* pObject)
 {
 	CheckSceneNodesArray();
 
 	if (!IS_VALID_PTR(pObject))
-		return;
+		return S_INVALIDPARAM;
 
 	pObject->RecalcBoundBox();
 
 	SSceneNode node;
 	node.aabb = pObject->GetBoundBox();
+	node.type = eSCENENODE_ENTITY;
 	node.pObject = pObject;
 
 	m_pSceneNodes->push_back(node);
+
+	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------

@@ -41,8 +41,11 @@ public:
 
 	virtual std::vector<SSceneNode>* GetSceneNodes();
 
-	virtual void AddObject(IObject* pObject);
 	virtual SResult AddSceneNode(const SSceneNode& node);
+	virtual SResult AddStaticObject(IStaticObject* pStatic);
+
+	// Add dynamic object / entity
+	virtual SResult AddObject(IObject* pObject);
 
 	virtual void Clear();
 };

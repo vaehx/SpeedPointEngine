@@ -45,7 +45,7 @@ struct S_API IFramePipelineSection
 	}
 
 	virtual SResult Run() = 0;
-	virtual EFramePipelineSectionType GetType() const = 0;
+	ILINE virtual EFramePipelineSectionType GetType() const = 0;
 	virtual void SetFramePipeline(IFramePipeline* pipe) = 0;
 	virtual void Clear() = 0;
 };

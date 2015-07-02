@@ -16,8 +16,24 @@ S_API C3DEngine::~C3DEngine()
 	m_RenderObjects.Clear();
 }
 
-S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamera* pCamera)
+S_API void C3DEngine::ClearRenderObjects()
 {
+	// Need to deallocate subset arrays of render descs
+	unsigned int iterator = 0;
+	SRenderObject* pRenderObject = 0;
+	while (pRenderObject = m_RenderObjects.GetNextUsedObject(iterator))
+	{
+		if (IS_VALID_PTR(pRenderObject->renderDesc.pSubsets))
+			delete[] pRenderObject->renderDesc.pSubsets;
+	}
+
+	m_RenderObjects.Clear();
+}
+
+S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamera* pCamera)
+{	
+	ClearRenderObjects();
+
 	ITerrain* pTerrain = pScene->GetTerrain();
 	if (IS_VALID_PTR(pTerrain))
 	{
@@ -46,11 +62,11 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamer
 		switch (itSceneNode->type)
 		{
 		case eSCENENODE_STATIC:
-			if (!bSceneNodeVisible)				
+			if (bSceneNodeVisible)				
 				AddVisibleStatic(itSceneNode->pStatic, itSceneNode->aabb);
 			break;
 		case eSCENENODE_ENTITY:
-			if (!bSceneNodeVisible)
+			if (bSceneNodeVisible)
 				AddVisibleEntity(itSceneNode->pObject, itSceneNode->aabb);
 			break;
 		case eSCENENODE_LIGHT:
@@ -73,6 +89,11 @@ S_API void C3DEngine::AddVisibleEntity(IEntity* pEntity, const AABB& aabb)
 	}
 
 	IRenderableComponent* pRenderable = pEntity->GetRenderable();
+	if (!IS_VALID_PTR(pRenderable))
+	{
+		// todo: print error message?
+		return;
+	}
 
 	SRenderObject* pRenderObject = m_RenderObjects.Get();
 

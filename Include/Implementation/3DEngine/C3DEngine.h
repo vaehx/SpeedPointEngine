@@ -52,6 +52,8 @@ private:
 	void AddVisibleEntity(IEntity* pEntity, const AABB& aabb);
 	void AddVisibleLight(ILight* pLight, const AABB& aabb);
 
+	void ClearRenderObjects();
+
 
 public:
 	C3DEngine(IRenderer* pRenderer);

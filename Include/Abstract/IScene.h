@@ -89,9 +89,12 @@ struct S_API IScene
 	virtual SResult CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const = 0;
 
 	virtual std::vector<SSceneNode>* GetSceneNodes() = 0;
-
-	virtual void AddObject(IObject* pObject) = 0;
+	
 	virtual SResult AddSceneNode(const SSceneNode& node) = 0;
+	virtual SResult AddStaticObject(IStaticObject* pStatic) = 0;	
+	
+	// Add dynamic object / entity
+	virtual SResult AddObject(IObject* pObject) = 0;
 
 	virtual void Clear() = 0;	
 };
