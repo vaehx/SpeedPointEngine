@@ -585,25 +585,32 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 
 
 	// initialize the shaders
-	SString illumFXFile = m_pEngine->GetShaderPath(eSHADER_ILLUM);
-	SString helperFXFile = m_pEngine->GetShaderPath(eSHADER_HELPER);
-	SString terrainFXFile = m_pEngine->GetShaderPath(eSHADER_TERRAIN);
+	SString forwardFXFile = m_pEngine->GetShaderPath(eSHADERFILE_FORWARD);
+	SString helperFXFile = m_pEngine->GetShaderPath(eSHADERFILE_HELPER);
+	SString terrainFXFile = m_pEngine->GetShaderPath(eSHADERFILE_TERRAIN);
+	SString skyboxFXFile = m_pEngine->GetShaderPath(eSHADERFILE_SKYBOX);
 
-	if (Failure(m_IllumEffect.Initialize(m_pEngine, illumFXFile, "illum"))) return S_ERROR;
+	if (Failure(m_ForwardEffect.Initialize(m_pEngine, forwardFXFile, "forward"))) return S_ERROR;
 	if (Failure(m_TerrainEffect.Initialize(m_pEngine, terrainFXFile, "terrain"))) return S_ERROR;
 	if (Failure(m_HelperEffect.Initialize(m_pEngine, helperFXFile, "helper"))) return S_ERROR;
+	if (Failure(m_SkyBoxEffect.Initialize(m_pEngine, skyboxFXFile, "skybox"))) return S_ERROR;
+
+
 
 	// Create unset texture dummy
 	m_DummyTexture.Initialize(m_pEngine, "notexture", false, false);
 	if (Failure(m_DummyTexture.CreateEmpty(64, 64, 0, eTEXTURE_R8G8B8A8_UNORM, SColor(0.0f, 1.0f, 0.0f))))
-		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");	
-
+	{
+		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");
+	}
 
 
 	// Create (128,128,0) replacement normal map
 	m_DummyNormalMap.Initialize(m_pEngine, "nonormalmap", false, false);
 	if (Failure(m_DummyNormalMap.CreateEmpty(64, 64, 0, eTEXTURE_R8G8B8A8_UNORM, SColor(0.5f, 0.5f, 1.0f))))
+	{
 		m_pEngine->LogE("Could not create empty dummy normal map (nonormalmap)!");
+	}
 
 
 	InitBlendStates();
@@ -642,9 +649,20 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pDXGIFactory);
 	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);	
 
-	m_TerrainEffect.Clear();
-	m_IllumEffect.Clear();	
+	m_ForwardEffect.Clear();
 	m_HelperEffect.Clear();
+	m_ZPassEffect.Clear();
+	m_DeferredShadingEffect.Clear();
+	m_TerrainEffect.Clear();
+	m_DLZPassEffect.Clear();
+	m_DLLightEffect.Clear();
+	m_DLCompositeEffect.Clear();
+	m_SkyBoxEffect.Clear();
+
+	m_GBuffer1.Clear();
+	m_GBuffer2.Clear();
+	m_LightAccumulation.Clear();
+
 	m_Viewport.Clear();
 
 	SP_SAFE_RELEASE(m_pDefBlendState);
@@ -1114,6 +1132,9 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 	// Set correct depth stencil state
 	EnableDepthTest(renderDesc.bDepthStencilEnable);
+	
+	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
+	SetDepthTestFunction(depthTestFunc);
 
 	if (renderDesc.renderPipeline == eRENDER_FORWARD)
 	{
@@ -1199,6 +1220,9 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 
 		if (terrainRenderDesc.bUpdateCB)
 			UpdateConstantBuffer(CONSTANTBUFFER_TERRAIN, &terrainRenderDesc.constants);
+
+		EnableDepthTest(true);
+		SetDepthTestFunction(eDEPTH_TEST_LESS);
 
 		// bind terrain cb
 		if (m_pBoundCB != m_pTerrainCB)
@@ -1352,13 +1376,18 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			continue;		
 
 		// Enable correct shader
-		switch (subset.shaderResources.shaderType)
+		switch (subset.shaderResources.illumModel)
 		{
-		case eSHADER_ILLUM: m_IllumEffect.Enable(); break;
-		case eSHADER_HELPER: m_HelperEffect.Enable(); break;
+		case eILLUM_HELPER:
+			m_HelperEffect.Enable();
+			break;
+		case eILLUM_SKYBOX:
+			m_SkyBoxEffect.Enable();
+			break;
 		default:
-			continue; // invalid shader
-		}
+			m_ForwardEffect.Enable();
+			break;
+		}	
 
 		// Set material
 		SMatrix4 worldMtx = SMatrixTranspose(renderDesc.transform.BuildTRS());
@@ -1366,6 +1395,8 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 
 		if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
 			return S_ERROR;
+
+		EnableBackfaceCulling(false);
 
 		DrawForward(subset.drawCallDesc);
 		if (subset.bOnce)
@@ -1605,7 +1636,7 @@ S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 S_API SResult DirectX11Renderer::InitConstantBuffers()
 {
 	// Per-Scene CB
-	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerSceneCB, sizeof(SPerSceneConstantBuffer))))
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerSceneCB, sizeof(SObjectConstantsBuffer))))
 		return S_ERROR;
 
 	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
@@ -1614,7 +1645,7 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 
 
 
-	if (Failure(D3D11_CreateConstantsBuffer(&m_pIllumCB, sizeof(SIllumConstantBuffer))))
+	if (Failure(D3D11_CreateConstantsBuffer(&m_pIllumCB, sizeof(SMaterialConstantsBuffer))))
 		return CLog::Log(S_ERROR, "Failed create illum CB!");
 
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pHelperCB, sizeof(SHelperConstantBuffer))))
@@ -1644,12 +1675,12 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb, co
 	switch (cb)
 	{
 	case CONSTANTBUFFER_PERSCENE:
-		SPerSceneConstantBuffer* pSceneBuffer;
+		SObjectConstantsBuffer* pSceneBuffer;
 		if (Failure(D3D11_LockConstantsBuffer(m_pPerSceneCB, (void**)&pSceneBuffer)))
 			return S_ERROR;
 
 		assert(IS_VALID_PTR(pSceneBuffer));
-		memcpy((void*)pSceneBuffer, (void*)&m_PerSceneCB, sizeof(SPerSceneConstantBuffer));
+		memcpy((void*)pSceneBuffer, (void*)&m_ObjectConstants, sizeof(SObjectConstantsBuffer));
 		D3D11_UnlockConstantsBuffer(m_pPerSceneCB);
 		break;
 
@@ -1725,26 +1756,26 @@ S_API void DirectX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 	pV->RecalculateCameraViewMatrix();
 	const SMatrix4& viewMtx = pV->GetCameraViewMatrix();
 	const SMatrix4& projMtx = pV->GetProjectionMatrix();
-	m_PerSceneCB.mtxViewProj = viewMtx * projMtx;	
+	m_ObjectConstants.mtxViewProj = viewMtx * projMtx;	
 	//m_PerSceneCB.mtxViewProj = projMtx * viewMtx;
 }
 
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
-	m_PerSceneCB.mtxViewProj = mtxView * mtxProj;		
+	m_ObjectConstants.mtxViewProj = mtxView * mtxProj;		
 }
 
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
 {
-	m_PerSceneCB.mtxViewProj = mtxViewProj;	
+	m_ObjectConstants.mtxViewProj = mtxViewProj;
 }
 
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
 {
-	m_PerSceneCB.eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
+	m_ObjectConstants.eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
 }
 
 // --------------------------------------------------------------------
@@ -1754,9 +1785,19 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 	ID3D11Buffer* pCB = 0;	
 	void* pConstantsData = 0;
 	unsigned int cbSize = 0;
-	switch (shaderResources.shaderType)
+
+	if (shaderResources.illumModel == eILLUM_HELPER)
 	{
-	case eSHADER_ILLUM:
+		if (!(pCB = m_pHelperCB))
+			return false;
+
+		m_HelperCB.color = shaderResources.diffuse;
+		m_HelperCB.mtxTransform = worldMat;
+
+		pConstantsData = (void*)&m_HelperCB;
+		cbSize = sizeof(m_HelperCB);		
+	}
+	else
 	{
 		if (!(pCB = m_pIllumCB))
 			return false;
@@ -1769,30 +1810,12 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 		BindTexture(pNormalMap, 1);
 
 		// Set constants
-		m_IllumCB.mtxTransform = worldMat;
-		m_IllumCB.matAmbient = 0.1f;
+		m_MaterialConstants.mtxTransform = worldMat;
+		m_MaterialConstants.matAmbient = 0.1f;
+		m_MaterialConstants.matEmissive = shaderResources.emissive;
 
-		pConstantsData = (void*)&m_IllumCB;
-		cbSize = sizeof(m_IllumCB);
-		break;
-	}
-
-	case eSHADER_HELPER:
-	{
-		if (!(pCB = m_pHelperCB))
-			return false;
-
-		m_HelperCB.color = shaderResources.diffuse;
-		m_HelperCB.mtxTransform = worldMat;
-
-		pConstantsData = (void*)&m_HelperCB;
-		cbSize = sizeof(m_HelperCB);
-		break;
-	}
-
-	default:
-		// Invalid shader!
-		return false;
+		pConstantsData = (void*)&m_MaterialConstants;
+		cbSize = sizeof(m_MaterialConstants);		
 	}
 	
 	if (!pConstantsData)
@@ -1910,6 +1933,28 @@ S_API void DirectX11Renderer::EnableDepthTest(bool state)
 	if (m_depthStencilDesc.DepthEnable != state)
 	{
 		m_depthStencilDesc.DepthEnable = state;
+		UpdateDepthStencilState();
+	}
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestFunc)
+{
+	D3D11_COMPARISON_FUNC d3dFunc;
+
+	switch (depthTestFunc)
+	{
+	case eDEPTH_TEST_GREATER:
+		d3dFunc = D3D11_COMPARISON_GREATER;
+		break;
+	default:
+		d3dFunc = D3D11_COMPARISON_LESS;
+		break;
+	}
+
+	if (d3dFunc != m_depthStencilDesc.DepthFunc)
+	{
+		m_depthStencilDesc.DepthFunc = d3dFunc;
 		UpdateDepthStencilState();
 	}
 }

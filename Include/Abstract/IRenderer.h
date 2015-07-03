@@ -139,6 +139,7 @@ struct SRenderSubset
 	}
 };
 
+// Do not copy with memcpy or std::copy!
 struct S_API SRenderDesc
 {
 	ERenderPipeline renderPipeline;
@@ -153,11 +154,43 @@ struct S_API SRenderDesc
 	bool bCustomViewProjMtx; // if false, uses current viewport viewproj
 
 	bool bDepthStencilEnable;
+	bool bInverseDepthTest; // use GREATER function for depth test
 
 	SRenderDesc()
 		: bCustomViewProjMtx(false),
-		bDepthStencilEnable(true)
+		bDepthStencilEnable(true),
+		bInverseDepthTest(false)
 	{
+	}
+
+	SRenderDesc(const SRenderDesc& rd)
+	{
+		Copy(rd);
+	}
+
+	inline SRenderDesc& operator =(const SRenderDesc& rd)
+	{
+		Copy(rd);
+		return *this;
+	}
+
+	void Copy(const SRenderDesc& rd)
+	{
+		renderPipeline = rd.renderPipeline;
+		nSubsets = rd.nSubsets;
+		transform = rd.transform;
+		viewProjMtx = rd.viewProjMtx;
+		bCustomViewProjMtx = rd.bCustomViewProjMtx;
+		bDepthStencilEnable = rd.bDepthStencilEnable;
+		bInverseDepthTest = rd.bInverseDepthTest;
+		pSubsets = 0;
+
+		// copy subsets array
+		if (nSubsets > 0 && IS_VALID_PTR(rd.pSubsets))
+		{
+			pSubsets = new SRenderSubset[nSubsets];
+			memcpy(pSubsets, rd.pSubsets, sizeof(SRenderSubset) * nSubsets);
+		}
 	}
 };
 

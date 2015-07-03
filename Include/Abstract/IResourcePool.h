@@ -49,6 +49,8 @@ public:
 
 	// w, h is the desired size. When source image does not equal this size, a scale is performed
 	virtual SResult LoadTexture(const SString& file, UINT w, UINT h, const SString& spec, ITexture** pTex, bool bDynamic = false, bool bStaged = false) = 0;
+	
+	virtual SResult LoadCubeTexture(const SString& file, UINT w, UINT h, const SString& spec, ITexture** pTex) = 0;
 
 	// Arguments:
 	//	- clearcolor: Texture gets filled with this color. If type is depth map, clearcolor.r is used.

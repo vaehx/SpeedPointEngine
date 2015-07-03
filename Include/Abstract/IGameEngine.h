@@ -36,12 +36,19 @@ namespace SpeedPoint
 
 	enum EShaderFileType
 	{
-		eSHADERFILE_FORWAD,
-		eSHADERFILE_ZPASS,
-		eSHADERFILE_HELPER,
-		eSHADERFILE_TERRAIN,
-		eSHADERFILE_DEFERRED_SHADING,
-		eSHADERFILE_FONT,
+		eSHADERFILE_SKYBOX,
+
+		eSHADERFILE_FORWARD,	// Standard forward effect
+		eSHADERFILE_HELPER,	// Forward helper effect
+		eSHADERFILE_FONT,	// forward font effect
+
+		eSHADERFILE_ZPASS,	// ZPass for Deferred Shading
+		eSHADERFILE_DEFERRED_SHADING,	// shading pass for Deferred Shading
+		eSHADERFILE_TERRAIN,	// Deferred Shading Terrain
+
+		eSHADERFILE_DL_ZPASS, // ZPass for Deferred Lighting
+		eSHADERFILE_DL_LIGHT, // Light-Accumulation pass for Deferred Lighting
+		eSHADERFILE_DL_COMPOSITE, // Composite pass for Deferred Lighting		
 	};
 
 
@@ -345,19 +352,19 @@ namespace SpeedPoint
 		virtual void Shutdown() = 0;		
 
 
-		virtual IFramePipeline* GetFramePipeline() const = 0;
-		virtual IRenderer* GetRenderer() const = 0;	
-		virtual I3DEngine* Get3DEngine() const = 0;
-		virtual IFontRenderer* GetFontRenderer() const = 0;
-//		virtual IPhysics* GetPhysics() const = 0;
-//		virtual IAI* GetAI() const = 0;
-//		virtual IScriptEngine* GetScriptEngine() const = 0;
-		virtual IResourcePool* GetResources() const = 0;
-		virtual CLogWrapper* GetLog() = 0;	
-		virtual IFileLog* GetFileLog() = 0;
-		virtual IEngineSettings* GetSettings() const = 0;	
-		virtual IScene* GetLoadedScene() const = 0;
-		virtual IMaterialManager* GetMaterialManager() const = 0;
+		ILINE virtual IFramePipeline* GetFramePipeline() const = 0;
+		ILINE virtual IRenderer* GetRenderer() const = 0;	
+		ILINE virtual I3DEngine* Get3DEngine() const = 0;
+		ILINE virtual IFontRenderer* GetFontRenderer() const = 0;
+//		ILINE virtual IPhysics* GetPhysics() const = 0;
+//		ILINE virtual IAI* GetAI() const = 0;
+//		ILINE virtual IScriptEngine* GetScriptEngine() const = 0;
+		ILINE virtual IResourcePool* GetResources() const = 0;
+		ILINE virtual CLogWrapper* GetLog() = 0;	
+		ILINE virtual IFileLog* GetFileLog() = 0;
+		ILINE virtual IEngineSettings* GetSettings() const = 0;	
+		ILINE virtual IScene* GetLoadedScene() const = 0;
+		ILINE virtual IMaterialManager* GetMaterialManager() const = 0;
 
 		virtual SString GetShaderPath(EShaderFileType shaderFile) = 0;
 

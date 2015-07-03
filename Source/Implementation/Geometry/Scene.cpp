@@ -1,4 +1,5 @@
 
+#include <Abstract\IGeometry.h>
 #include <Implementation\Geometry\Scene.h>
 #include <Implementation\Geometry\Terrain.h>
 #include <Implementation\Geometry\File3DS.h>
@@ -55,6 +56,7 @@ void Scene::CheckSceneNodesArray()
 	}
 }
 
+
 // -------------------------------------------------------------------------------------------------
 S_API SResult Scene::AddSceneNode(const SSceneNode& node)
 {
@@ -69,20 +71,40 @@ S_API SResult Scene::AddSceneNode(const SSceneNode& node)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API void Scene::AddObject(IObject* pObject)
+S_API SResult Scene::AddStaticObject(IStaticObject* pStatic)
+{
+	CheckSceneNodesArray();
+
+	if (!IS_VALID_PTR(pStatic))
+		return S_INVALIDPARAM;
+
+	SSceneNode node;
+	node.aabb = pStatic->GetBoundBox();
+	node.type = eSCENENODE_STATIC;
+	node.pStatic = pStatic;
+
+	m_pSceneNodes->push_back(node);
+	return S_SUCCESS;
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API SResult Scene::AddObject(IObject* pObject)
 {
 	CheckSceneNodesArray();
 
 	if (!IS_VALID_PTR(pObject))
-		return;
+		return S_INVALIDPARAM;
 
 	pObject->RecalcBoundBox();
 
 	SSceneNode node;
 	node.aabb = pObject->GetBoundBox();
+	node.type = eSCENENODE_ENTITY;
 	node.pObject = pObject;
 
 	m_pSceneNodes->push_back(node);
+
+	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -277,8 +299,8 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	geom.bRequireNormalRecalc = true;
 
 	// Initialize result object
-	IStaticObject* pStaticObject = new StaticObject();
-	IStaticObject* pReturn = pStaticObject;
+	StaticObject* pStaticObject = new StaticObject();
+	IStaticObject* pReturn = pStaticObject;	
 	if (Failure(pStaticObject->Init(m_pEngine, &geom)))
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed Init Static Object to store loaded 3ds file!");
@@ -294,24 +316,18 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API SResult Scene::CreateNormalsGeometry(IRenderableObject* object, IRenderableObject** pNormalGeometryObject) const
+S_API SResult Scene::CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const
 {
-	if (!IS_VALID_PTR(object) || !IS_VALID_PTR(pNormalGeometryObject))
+	if (!IS_VALID_PTR(renderable) || !IS_VALID_PTR(pNormalsGeometry))
 		return S_INVALIDPARAM;
 
 	if (!IS_VALID_PTR(m_pEngine))
 		return S_NOTINIT;	
-
-
-	SInitialGeometryDesc normalGeom;
-	if (Failure(object->GetGeometry()->CalculateNormalsGeometry(normalGeom, 3.0f)))
+	
+	if (Failure(renderable->GetGeometry()->CalculateNormalsGeometry(*pNormalsGeometry, 3.0f)))
+	{
 		return EngLog(S_ERROR, m_pEngine, "Failed Calculcate Normals Geometry!");
-
-
-	IStaticObject* pStaticObject = new StaticObject();
-	RETURN_ON_ERR(pStaticObject->Init(m_pEngine, &normalGeom));
-
-	*pNormalGeometryObject = pStaticObject;
+	}
 
 	return S_SUCCESS;
 }

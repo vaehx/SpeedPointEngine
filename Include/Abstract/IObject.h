@@ -38,6 +38,8 @@ struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
 struct S_API SGeomSubset;
 struct S_API SCamera;
+struct S_API IGameEngine;
+struct S_API ITexture;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +137,7 @@ struct S_API IRenderableComponent
 	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
 	virtual unsigned int GetSubsetCount() const = 0;
 
-	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) const = 0;
+	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) = 0;
 
 	virtual void SetViewProjMatrix(const SMatrix& mtx) = 0;
 	virtual void UnsetViewProjMatrix() = 0;
@@ -187,10 +189,10 @@ public:
 
 	ILINE virtual EntityType GetType() const { return 0; };
 
-	ILINE virtual bool IsRenderable() const { return GetType() & SP_ENTITY_RENDERABLE; }
-	ILINE virtual bool IsPhysical() const { return GetType() & SP_ENTITY_PHYSICAL; }
-	ILINE virtual bool IsAnimateable() const { return GetType() & SP_ENTITY_ANIMATEABLE; }
-	ILINE virtual bool IsScripted() const { return GetType() & SP_ENTITY_SCRIPTED; }
+	ILINE virtual bool IsRenderable() const { return (GetType() & SP_ENTITY_RENDERABLE) != 0; }
+	ILINE virtual bool IsPhysical() const { return (GetType() & SP_ENTITY_PHYSICAL) != 0; }
+	ILINE virtual bool IsAnimateable() const { return (GetType() & SP_ENTITY_ANIMATEABLE) != 0; }
+	ILINE virtual bool IsScripted() const { return (GetType() & SP_ENTITY_SCRIPTED) != 0; }
 
 	ILINE virtual IRenderableComponent* GetRenderable() const { return 0; }
 	ILINE virtual IPhysicalComponent* GetPhysical() const { return 0; }
@@ -198,7 +200,7 @@ public:
 	ILINE virtual IScriptComponent* GetScriptable() const { return 0; }
 };
 
-typedef S_API struct IEntity IObject;
+typedef S_API class IEntity IObject;
 
 
 
@@ -252,8 +254,11 @@ struct S_API ISkyBox
 	virtual void SetTexture(ITexture* pTexture) = 0;
 	virtual void Clear() = 0;
 
+	// SkyBox always centered around camera
+	virtual void SetPosition(const Vec3f& pos) = 0;
+
 	// Updates the renderDesc at the given Cameras position
-	virtual SRenderDesc* GetUpdatedRenderDesc(const SCamera* pCamera) = 0;
+	virtual void GetUpdatedRenderDesc(SRenderDesc* pDestDesc) = 0;
 };
 
 

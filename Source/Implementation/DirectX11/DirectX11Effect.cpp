@@ -156,8 +156,8 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 
 	// 5. Create the polygon layout for the SVertex structure
 	
-	D3D11_INPUT_ELEMENT_DESC vtxDesc[4];
-	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * 4);
+	D3D11_INPUT_ELEMENT_DESC vtxDesc[5];
+	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * 5);
 
 	vtxDesc[0].AlignedByteOffset = 0;
 	vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -187,7 +187,7 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 	vtxDesc[3].SemanticIndex = 0;
 	vtxDesc[3].SemanticName = "TEXCOORD";
 
-	/*
+	/* // Second texture coordinate:
 	vtxDesc[4].AlignedByteOffset = 0;
 	vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	vtxDesc[4].InputSlot = 0;
@@ -195,8 +195,15 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 	vtxDesc[4].SemanticIndex = 1;
 	vtxDesc[4].SemanticName = "TEXCOORD";
 	*/
+
+	vtxDesc[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[4].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	vtxDesc[4].InputSlot = 0;
+	vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[4].SemanticIndex = 0;
+	vtxDesc[4].SemanticName = "COLOR";	
 	
-	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, 4, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
+	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, 5, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
 		return m_pEngine->LogE("Failed Create input layout for VS!");
 
 

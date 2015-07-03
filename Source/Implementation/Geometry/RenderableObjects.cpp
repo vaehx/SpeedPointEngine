@@ -16,37 +16,37 @@
 SP_NMSPACE_BEG
 
 
-S_API SRenderDesc* CReferenceObject::GetUpdatedRenderDesc()
+S_API IRenderableComponent* CReferenceObject::GetRenderable() const
 {
-	if (!IS_VALID_PTR(m_pEngine) || !IS_VALID_PTR(m_pBase))
-	{
-		return 0;
-	}
+	return IS_VALID_PTR(m_pBase) ? m_pBase->GetRenderable() : 0;
+}
 
-	IRenderableComponent* pRenderable = m_pBase->GetRenderable();
-	if (!IS_VALID_PTR(pRenderable))
-	{
-		return 0;
-	}
+S_API IPhysicalComponent* CReferenceObject::GetPhysical() const
+{
+	return IS_VALID_PTR(m_pBase) ? m_pBase->GetPhysical() : 0;
+}
 
-	if (!pRenderable->RenderDescFilled())
-	{
-		pRenderable->FillRenderDesc(m_pEngine);
-	}
+S_API IAnimateableComponent* CReferenceObject::GetAnimateable() const
+{
+	return IS_VALID_PTR(m_pBase) ? m_pBase->GetAnimateable() : 0;
+}
 
-
-	// update
-	SRenderDesc* pRenderDesc = pRenderable->GetUpdatedRenderDesc();
-
-	STransformationDesc& transformDesc = pRenderDesc->transform;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
-	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
-	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
-
-	return pRenderDesc;
+S_API IScriptComponent* CReferenceObject::GetScriptable() const
+{
+	return IS_VALID_PTR(m_pBase) ? m_pBase->GetScriptable() : 0;
 }
 
 
+
+
+
+
+
+S_API CSkyBox::CSkyBox()
+	: m_pEngine(0),
+	m_Position(0,0,0)
+{
+}
 
 S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 {	
@@ -72,7 +72,7 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 	initGeom.pVertices = new SVertex[initGeom.nVertices];
 	initGeom.pIndices = new SIndex[initGeom.nIndices];
 
-	initGeom.primitiveType = SpeedPoint::PRIMITIVE_TYPE_TRIANGLELIST;
+	initGeom.primitiveType = SpeedPoint::PRIMITIVE_TYPE_TRIANGLELIST;	
 
 	float dTheta = (float)SP_PI / (float)nRings;
 	float dPhi = (float)SP_PI * 2.0f / (float)nStripes;
@@ -108,12 +108,29 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 				indexAccum += 6;
 			}
 		}
-	}
+	}	
 
 	m_Renderable.GetGeometry()->Init(pEngine, pEngine->GetRenderer(), &initGeom);
 
 	delete[] initGeom.pVertices;
 	delete[] initGeom.pIndices;
+
+
+	// Setup material
+	SGeomSubset* pSubset = m_Renderable.GetGeometry()->GetSubset(0);
+	if (IS_VALID_PTR(pSubset))
+	{
+		pSubset->pMaterial = pEngine->GetMaterialManager()->CreateMaterial("skybox_mat");
+		if (!IS_VALID_PTR(pSubset->pMaterial))
+		{
+			return CLog::Log(S_ERROR, "Could not create skybox_mat material for skybox");			
+		}
+
+		SShaderResources& matResources = pSubset->pMaterial->GetLayer(0)->resources;
+		matResources.emissive = float3(0.5f, 0.5f, 0.5f);
+		matResources.illumModel = eILLUM_SKYBOX;
+	}
+
 
 	return S_SUCCESS;
 }
@@ -126,7 +143,10 @@ S_API void CSkyBox::SetTexture(ITexture* pTexture)
 
 	IMaterial* pMaterial = pSubset->pMaterial;
 	if (!IS_VALID_PTR(pMaterial))
+	{
+		CLog::Log(S_ERROR, "Can't set Skybox texture: Material is 0");
 		return;
+	}
 
 	SMaterialLayer* pMaterialLayer = pMaterial->GetLayer(0);
 	if (!IS_VALID_PTR(pMaterialLayer))
@@ -136,34 +156,45 @@ S_API void CSkyBox::SetTexture(ITexture* pTexture)
 	pShaderResources->textureMap = pTexture;
 }
 
+S_API void CSkyBox::SetPosition(const Vec3f& pos)
+{
+	m_Position = pos;
+}
+
 S_API void CSkyBox::Clear()
 {
 	m_Renderable.Clear();
 }
 
-S_API SRenderDesc* CSkyBox::GetUpdatedRenderDesc(const SCamera* pCamera)
+S_API void CSkyBox::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 {	
+	if (!IS_VALID_PTR(pDestDesc))
+	{
+		return;
+	}
+
 	if (!IS_VALID_PTR(m_pEngine))
 	{
 		EngLog(S_NOTINIT, m_pEngine, "Cannot Update Static Object REnder Desc: Engine not set!");
-		return 0;
+		return;
 	}
 
 	if (!m_Renderable.RenderDescFilled())
 	{
 		m_Renderable.FillRenderDesc(m_pEngine);
-	}
+	}	
 
-	SRenderDesc* pRenderDesc = m_Renderable.GetUpdatedRenderDesc();
+	m_Renderable.GetUpdatedRenderDesc(pDestDesc);
+
+	pDestDesc->bInverseDepthTest = false;
+	pDestDesc->bDepthStencilEnable = false;
 
 	// set / update transformation
-	STransformationDesc& transformDesc = pRenderDesc->transform;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(pCamera->position);
+	STransformationDesc& transformDesc = pDestDesc->transform;
+	transformDesc.translation = SMatrix::MakeTranslationMatrix(m_Position);
 	
-	SMatrixIdentity(&transformDesc.rotation);	
+	SMatrixIdentity(&transformDesc.rotation);
 	SMatrixIdentity(&transformDesc.scale);
-
-	return pRenderDesc;
 }
 
 

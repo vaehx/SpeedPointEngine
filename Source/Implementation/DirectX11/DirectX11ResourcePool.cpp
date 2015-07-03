@@ -159,6 +159,40 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UIN
 
 // **********************************************************************************
 
+S_API SResult DirectX11ResourcePool::LoadCubeTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTexture)
+{
+	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
+		"Cannot load Cubetexture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
+
+	if (!src.IsValidString())
+		return m_pEngine->LogE("Invalid cubemap src specified: " + src);
+
+	if (!spec.IsValidString())
+		m_pEngine->LogW("Invalid or no specification for loaded cubemap (" + src + ")!");
+
+	DirectX11Texture* pdxTexture;
+
+	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
+		return m_pEngine->LogE("Failed add cubemap (" + src + ")");
+
+	if (Failure(pdxTexture->Initialize(m_pEngine, spec, false, false)))
+	{
+		return S_ERROR;
+	}
+
+	if (Failure(pdxTexture->LoadFromFile(w, h, 5, src, true)))
+		return EngLog(S_ERROR, m_pEngine, "Failed load cubemap %s!", (char*)src);
+
+	CLog::Log(S_DEBUG, "Loaded Cubemap %s, spec='%s'", (char*)src, (char*)spec);
+
+	if (pTexture != NULL)
+		*pTexture = (ITexture*)pdxTexture;
+
+	return S_SUCCESS;
+}
+
+// **********************************************************************************
+
 S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTexture, bool bDynamic, bool bStaged)
 {
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,

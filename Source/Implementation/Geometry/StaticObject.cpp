@@ -97,6 +97,8 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 		m_RenderDesc.viewProjMtx = m_ViewProjMtx;
 	}
 
+	m_RenderDesc.bInverseDepthTest = false;
+
 	// copy over subsets
 	m_RenderDesc.nSubsets = GetSubsetCount();
 	m_RenderDesc.pSubsets = new SRenderSubset[m_RenderDesc.nSubsets];
@@ -160,15 +162,22 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 	return &m_RenderDesc;
 }
 
-
-
 S_API void CStaticObjectRenderable::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 {
-	// Use GetRenderDesc() instead
+	if (IS_VALID_PTR(pDestDesc))
+	{
+		*pDestDesc = m_RenderDesc;
+	}
 }
 
+S_API IMaterial* CStaticObjectRenderable::GetSubsetMaterial(unsigned int subset /*= 0*/)
+{
+	SGeomSubset* pGeomSubset = m_Geometry.GetSubset(subset);
+	if (!IS_VALID_PTR(pGeomSubset))
+		return 0;
 
-
+	return pGeomSubset->pMaterial;
+}
 
 
 

@@ -52,6 +52,9 @@ public:
 
 
 	virtual SResult LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTex, bool bDynamic = false, bool bStaged = false);
+	
+	virtual SResult LoadCubeTexture(const SString& file, UINT w, UINT h, const SString& spec, ITexture** pTex);
+
 	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTex, bool bDynamic = false, bool bStaged = false);
 
 	// is case sensitive

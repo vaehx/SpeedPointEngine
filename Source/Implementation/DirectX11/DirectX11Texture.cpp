@@ -79,9 +79,63 @@ S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& 
 }
 
 // -----------------------------------------------------------------------------------
+S_API SResult DirectX11Texture::LoadCubemapFromFile(int singleW, int singleH, char* baseName)
+{
+	// D3D11_SRV_DIMENSION_TEXTURECUBE
+
+	/*
+	D3D11_TEXTURE2D_DESC texDesc;
+texDesc.Width = description.width;
+texDesc.Height = description.height;
+texDesc.MipLevels = 1;
+texDesc.ArraySize = 6;
+texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+texDesc.CPUAccessFlags = 0;
+texDesc.SampleDesc.Count = 1;
+texDesc.SampleDesc.Quality = 0;
+texDesc.Usage = D3D11_USAGE_DEFAULT;
+texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+texDesc.CPUAccessFlags = 0;
+texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+D3D11_SHADER_RESOURCE_VIEW_DESC SMViewDesc;
+SMViewDesc.Format = texDesc.Format;
+SMViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+SMViewDesc.TextureCube.MipLevels =  texDesc.MipLevels;
+SMViewDesc.TextureCube.MostDetailedMip = 0;
+
+D3D11_SUBRESOURCE_DATA pData[6];
+std::vector<vector4b> d[6]; // 6 images of type vector4b = 4 * unsigned char
+
+for (int cubeMapFaceIndex = 0; cubeMapFaceIndex < 6; cubeMapFaceIndex++)
+{   
+    d[cubeMapFaceIndex].resize(description.width * description.height);
+
+    // fill with red color  
+    std::fill(
+        d[cubeMapFaceIndex].begin(), 
+        d[cubeMapFaceIndex].end(), 
+        vector4b(255,0,0,255));
+
+    pData[cubeMapFaceIndex].pSysMem = &d[cubeMapFaceIndex][0];// description.data;
+    pData[cubeMapFaceIndex].SysMemPitch = description.width * 4;
+    pData[cubeMapFaceIndex].SysMemSlicePitch = 0;
+}
+
+HRESULT hr = renderer->getDevice()->CreateTexture2D(&texDesc, 
+    description.data[0] ? &pData[0] : nullptr, &m_pCubeTexture);
+assert(hr == S_OK);
+
+hr = renderer->getDevice()->CreateShaderResourceView(
+    m_pCubeTexture, &SMViewDesc, &m_pShaderResourceView);
+assert(hr == S_OK);
+	*/
+}
+
+// -----------------------------------------------------------------------------------
 // remember that the w and h parameters will specify the output texture size to which the image will be scaled to
 S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* cFileName)
-{	
+{
 	SP_ASSERTR(m_pEngine && m_pDXRenderer, S_NOTINIT);
 
 
@@ -246,6 +300,7 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 	SP_SAFE_RELEASE(pImgFactory);
 
 	m_pEngine->LogD(SString("Loaded Texture ") + cFileName + "!");
+
 
 
 	// ----------------------------------------------------------------------------------------------------------------------
@@ -474,7 +529,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	memset(&srvDesc, 0, sizeof(srvDesc));
 	srvDesc.Format = newTextureFmt;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;	
 	srvDesc.Texture2D.MipLevels = (bMipAutoGenSupported) ? -1 : 1;
 
 	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV)))

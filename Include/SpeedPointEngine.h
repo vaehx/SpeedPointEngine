@@ -117,12 +117,12 @@ template<typename T> struct S_API EngineComponent
 		bCustom = false;
 	}
 
-	operator T*() const
+	ILINE operator T*() const
 	{
 		return pComponent;
 	}
 
-	T* operator ->() const { return pComponent; }
+	ILINE T* operator ->() const { return pComponent; }
 };
 
 // SpeedPoint Game Engine contains all parts of the default SpeedPoint Engine components (Frame, Physics, Rendering, ...)
@@ -209,17 +209,17 @@ public:
 		return m_bRunning;
 	}
 
-	virtual IEngineSettings* GetSettings() const { return m_pSettings; }
-	virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
-	virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
-	virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
-	virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }
-	virtual IResourcePool* GetResources() const { return m_pResourcePool; }
-	virtual IFileLog* GetFileLog() { return &m_FileLog; }	
-	virtual CLogWrapper* GetLog() { return &m_LogWrapper; }	
-	virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
-	virtual IScene* GetLoadedScene() const { return m_pScene; }
-	virtual IMaterialManager* GetMaterialManager() const { return m_pMaterialManager; }
+	ILINE virtual IEngineSettings* GetSettings() const { return m_pSettings; }
+	ILINE virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
+	ILINE virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
+	ILINE virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
+	ILINE virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }
+	ILINE virtual IResourcePool* GetResources() const { return m_pResourcePool; }
+	ILINE virtual IFileLog* GetFileLog() { return &m_FileLog; }	
+	ILINE virtual CLogWrapper* GetLog() { return &m_LogWrapper; }	
+	ILINE virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
+	ILINE virtual IScene* GetLoadedScene() const { return m_pScene; }
+	ILINE virtual IMaterialManager* GetMaterialManager() const { return m_pMaterialManager; }
 
 //	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
 

@@ -40,7 +40,7 @@ public:
 	virtual SGeomSubset* GetSubset(unsigned int i);
 	virtual unsigned int GetSubsetCount() const;
 
-	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) const;
+	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0);
 
 	virtual void SetViewProjMatrix(const SMatrix& mtx);
 	virtual void UnsetViewProjMatrix();
