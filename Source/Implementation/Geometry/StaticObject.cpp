@@ -31,6 +31,7 @@ SP_NMSPACE_BEG
 
 S_API CStaticObjectRenderable::CStaticObjectRenderable()
 	: m_bRenderDescFilled(false),
+	m_bUseCustomViewProjMtx(false),
 	m_bVisible(true)
 {
 }
@@ -96,6 +97,8 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 	{
 		m_RenderDesc.viewProjMtx = m_ViewProjMtx;
 	}
+
+	m_RenderDesc.textureSampling = eTEX_SAMPLE_BILINEAR;
 
 	m_RenderDesc.bInverseDepthTest = false;
 

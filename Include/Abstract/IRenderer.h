@@ -139,6 +139,12 @@ struct SRenderSubset
 	}
 };
 
+enum ETextureSampling
+{
+	eTEX_SAMPLE_BILINEAR,
+	eTEX_SAMPLE_POINT
+};
+
 // Do not copy with memcpy or std::copy!
 struct S_API SRenderDesc
 {
@@ -156,10 +162,13 @@ struct S_API SRenderDesc
 	bool bDepthStencilEnable;
 	bool bInverseDepthTest; // use GREATER function for depth test
 
+	ETextureSampling textureSampling;
+
 	SRenderDesc()
 		: bCustomViewProjMtx(false),
 		bDepthStencilEnable(true),
-		bInverseDepthTest(false)
+		bInverseDepthTest(false),
+		textureSampling(eTEX_SAMPLE_BILINEAR)
 	{
 	}
 
@@ -183,6 +192,7 @@ struct S_API SRenderDesc
 		bCustomViewProjMtx = rd.bCustomViewProjMtx;
 		bDepthStencilEnable = rd.bDepthStencilEnable;
 		bInverseDepthTest = rd.bInverseDepthTest;
+		textureSampling = rd.textureSampling;
 		pSubsets = 0;
 
 		// copy subsets array

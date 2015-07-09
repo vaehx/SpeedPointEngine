@@ -80,8 +80,11 @@ private:
 
 	D3D_FEATURE_LEVEL m_D3DFeatureLevel;
 	D3D11_RASTERIZER_DESC m_rsDesc;	
-	ID3D11RasterizerState* m_pRSState;	
+	ID3D11RasterizerState* m_pRSState;
+
+	ETextureSampling m_SetSamplerState;
 	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
+	ID3D11SamplerState* m_pPointSamplerState;
 	
 	D3D11_BLEND_DESC m_DefBlendDesc;
 	ID3D11BlendState* m_pDefBlendState;
@@ -181,6 +184,8 @@ private:
 
 	SResult UpdateRasterizerState();
 	SResult UpdateDepthStencilState();
+
+	void SetSamplerState(ETextureSampling sampling);
 
 	SResult DrawTerrainSubset(const STerrainDrawCallDesc& dcd);
 
@@ -406,7 +411,7 @@ protected:
 	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj);	
 
 	// Returns false if setting shader resources failed and the object should not be rendered.
-	virtual bool SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMat);
+	virtual bool SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMat);	
 };
 
 

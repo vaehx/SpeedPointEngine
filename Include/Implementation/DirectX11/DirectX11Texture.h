@@ -57,6 +57,18 @@ private:
 
 
 
+struct S_API SLoadedCubemapSide
+{	
+	unsigned char* pBuffer;
+	size_t imageStride;
+	size_t imageSize;
+
+	SLoadedCubemapSide()
+		: pBuffer(0), imageStride(0), imageSize(0)
+	{
+	}
+};
+
 
 class S_API DirectX11Texture : ITexture
 {
@@ -117,6 +129,10 @@ public:
 
 private:
 	static size_t BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC);
+	static void GetCubemapImageName(SString& name, ECubemapSide side);
+	static unsigned int GetDXCubemapArraySlice(ECubemapSide side);
+
+	SResult LoadTextureImage(const char* cFileName, int w, int h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedFormat);
 };
 
 SP_NMSPACE_END

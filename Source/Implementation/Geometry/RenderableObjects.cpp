@@ -62,9 +62,9 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 	initGeom.indexUsage = eGEOMUSE_STATIC;
 	initGeom.vertexUsage = eGEOMUSE_STATIC;
 		
-	float radius = 5.0f;
-	unsigned int nStripes = 8; // vertical stripes
-	unsigned int nRings = 8;
+	float radius = 15.0f;
+	unsigned int nStripes = 16; // vertical stripes
+	unsigned int nRings = 16;
 
 	initGeom.nVertices = (nStripes + 1) * (nRings + 1);
 	initGeom.nIndices = (nStripes * nRings) * 6;
@@ -181,17 +181,19 @@ S_API void CSkyBox::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 
 	if (!m_Renderable.RenderDescFilled())
 	{
-		m_Renderable.FillRenderDesc(m_pEngine);
+		m_Renderable.FillRenderDesc(m_pEngine);		
 	}	
 
 	m_Renderable.GetUpdatedRenderDesc(pDestDesc);
 
+	//pDestDesc->textureSampling = eTEX_SAMPLE_POINT;
+
 	pDestDesc->bInverseDepthTest = false;
-	pDestDesc->bDepthStencilEnable = false;
+	pDestDesc->bDepthStencilEnable = false;	
 
 	// set / update transformation
 	STransformationDesc& transformDesc = pDestDesc->transform;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(m_Position);
+	transformDesc.translation = SMatrix::MakeTranslationMatrix(m_Position);	
 	
 	SMatrixIdentity(&transformDesc.rotation);
 	SMatrixIdentity(&transformDesc.scale);

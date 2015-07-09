@@ -180,8 +180,10 @@ S_API SResult DirectX11ResourcePool::LoadCubeTexture(const SString& src, UINT w,
 		return S_ERROR;
 	}
 
-	if (Failure(pdxTexture->LoadFromFile(w, h, 5, src, true)))
+	if (Failure(pdxTexture->LoadCubemapFromFile(w, h, src)))
+	{
 		return EngLog(S_ERROR, m_pEngine, "Failed load cubemap %s!", (char*)src);
+	}
 
 	CLog::Log(S_DEBUG, "Loaded Cubemap %s, spec='%s'", (char*)src, (char*)spec);
 

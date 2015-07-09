@@ -42,6 +42,17 @@ inline unsigned int GetTextureBPP(ETextureType type)
 }
 
 
+enum S_API ECubemapSide
+{
+	eCUBEMAP_SIDE_NEGX,
+	eCUBEMAP_SIDE_NEGY,
+	eCUBEMAP_SIDE_NEGZ,
+	eCUBEMAP_SIDE_POSX,
+	eCUBEMAP_SIDE_POSY,
+	eCUBEMAP_SIDE_POSZ
+};
+
+
 // SpeedPoint Texture Resource (abstract)
 struct S_API ITexture
 {
@@ -61,6 +72,8 @@ public:
 	// Load a texture from file
 	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName) = 0;
 
+	// baseName: Path and base filename of the 6 cubemap images without File extension
+	//		("assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp");
 	virtual SResult LoadCubemapFromFile(int singleW, int singleH, char* baseName) = 0;
 
 	// Initialize an empty texture with specified size and type and fill it with clearcolor.

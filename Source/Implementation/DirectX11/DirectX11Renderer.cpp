@@ -80,6 +80,8 @@ m_pDSV(0),
 m_nRenderTargets(0),
 m_pDepthStencilState(0),
 m_pTerrainDepthState(0),
+m_pDefaultSamplerState(0),
+m_pPointSamplerState(0),
 m_pPerSceneCB(nullptr),
 m_pIllumCB(nullptr),
 m_pHelperCB(nullptr),
@@ -356,6 +358,28 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 
 	m_pD3DDeviceContext->PSSetSamplers(0, 1, &m_pDefaultSamplerState);
 	m_pD3DDeviceContext->PSSetSamplers(1, 1, &m_pDefaultSamplerState);
+
+	m_SetSamplerState = eTEX_SAMPLE_BILINEAR;
+
+
+	// Nearest-Neighbor filtering Sampler state (used for skybox e.g.)
+	D3D11_SAMPLER_DESC pointSamplerDesc;
+	pointSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	pointSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	pointSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	pointSamplerDesc.MinLOD = -FLT_MAX;
+	pointSamplerDesc.MaxLOD = FLT_MAX;
+	pointSamplerDesc.MipLODBias = 0.0f;
+	pointSamplerDesc.MaxAnisotropy = 1;
+	pointSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	pointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	pointSamplerDesc.BorderColor[0] = 0;
+	pointSamplerDesc.BorderColor[1] = 0;
+	pointSamplerDesc.BorderColor[2] = 0;
+	pointSamplerDesc.BorderColor[3] = 0;
+
+	if (Failure(m_pD3DDevice->CreateSamplerState(&pointSamplerDesc, &m_pPointSamplerState)))
+		return m_pEngine->LogE("Failed create point sampler state!");
 
 	return S_SUCCESS;
 }
@@ -668,6 +692,7 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pDefBlendState);
 	SP_SAFE_RELEASE(m_pTerrainBlendState);
 	SP_SAFE_RELEASE(m_pDefaultSamplerState);
+	SP_SAFE_RELEASE(m_pPointSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	SP_SAFE_RELEASE(m_pTerrainDepthState);
 	SP_SAFE_RELEASE(m_pRSState);
@@ -1136,6 +1161,8 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
 	SetDepthTestFunction(depthTestFunc);
 
+
+
 	if (renderDesc.renderPipeline == eRENDER_FORWARD)
 	{
 		// Forward rendering: Rendering directly to backbuffer
@@ -1147,10 +1174,12 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 		// Set the viewport matrices
 		if (renderDesc.bCustomViewProjMtx)
 		{
+			FrameDump("Setting custom viewproj mtx");
 			SetViewProjMatrix(renderDesc.viewProjMtx);
 		}
 		else
 		{
+			FrameDump("Setting target viewport viewproj mtx");			
 			SetViewProjMatrix(m_pTargetViewport);
 		}		
 
@@ -1159,6 +1188,13 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 		// upload constants
 		UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
+		// In case something else was bound to the slot before...
+		m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+		m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+
+		// Set correct samplers
+		SetSamplerState(renderDesc.textureSampling);
 
 		// NOW DRAW THE SUBSETS
 		DrawForwardSubsets(renderDesc);
@@ -1675,7 +1711,7 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb, co
 	switch (cb)
 	{
 	case CONSTANTBUFFER_PERSCENE:
-		SObjectConstantsBuffer* pSceneBuffer;
+		SObjectConstantsBuffer* pSceneBuffer;		
 		if (Failure(D3D11_LockConstantsBuffer(m_pPerSceneCB, (void**)&pSceneBuffer)))
 			return S_ERROR;
 
@@ -1756,7 +1792,8 @@ S_API void DirectX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 	pV->RecalculateCameraViewMatrix();
 	const SMatrix4& viewMtx = pV->GetCameraViewMatrix();
 	const SMatrix4& projMtx = pV->GetProjectionMatrix();
-	m_ObjectConstants.mtxViewProj = viewMtx * projMtx;	
+	m_ObjectConstants.mtxViewProj = viewMtx * projMtx;		
+
 	//m_PerSceneCB.mtxViewProj = projMtx * viewMtx;
 }
 
@@ -1776,6 +1813,7 @@ S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
 S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
 {
 	m_ObjectConstants.eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
+	FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
 }
 
 // --------------------------------------------------------------------
@@ -1792,7 +1830,7 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 			return false;
 
 		m_HelperCB.color = shaderResources.diffuse;
-		m_HelperCB.mtxTransform = worldMat;
+		m_HelperCB.mtxTransform = worldMat;		
 
 		pConstantsData = (void*)&m_HelperCB;
 		cbSize = sizeof(m_HelperCB);		
@@ -1812,7 +1850,7 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 		// Set constants
 		m_MaterialConstants.mtxTransform = worldMat;
 		m_MaterialConstants.matAmbient = 0.1f;
-		m_MaterialConstants.matEmissive = shaderResources.emissive;
+		m_MaterialConstants.matEmissive = shaderResources.emissive;		
 
 		pConstantsData = (void*)&m_MaterialConstants;
 		cbSize = sizeof(m_MaterialConstants);		
@@ -1964,6 +2002,29 @@ S_API void DirectX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestF
 S_API SResult DirectX11Renderer::UpdateSettings(const SSettingsDesc& dsc)
 {
 	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::SetSamplerState(ETextureSampling sampling)
+{
+	if (m_SetSamplerState == sampling)
+		return;
+
+	ID3D11SamplerState* pSamplerState = 0;
+	switch (sampling)		
+	{
+	case eTEX_SAMPLE_BILINEAR:
+		pSamplerState = m_pDefaultSamplerState;
+		break;
+	case eTEX_SAMPLE_POINT:
+		pSamplerState = m_pPointSamplerState;
+		break;
+	default:
+		return;
+	}
+
+	m_pD3DDeviceContext->PSSetSamplers(0, 1, &pSamplerState);
+	m_SetSamplerState = sampling;
 }
 
 
