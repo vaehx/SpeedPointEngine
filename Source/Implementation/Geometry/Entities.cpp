@@ -24,7 +24,7 @@ SP_NMSPACE_BEG
 //////////////////////////////////////////////////////////////////////////////////////////
 CRigidBodyRenderable::CRigidBodyRenderable()
 	: m_bVisible(true),
-	m_pTransformable(0)
+	m_pTransformable(0)	
 {
 }
 
@@ -192,6 +192,11 @@ S_API void CRigidBodyRenderable::UnsetViewProjMatrix()
 
 
 // ------------------------------------------------------------------------------
+CRigidBody::CRigidBody()	
+{	
+	m_Name = "RigidBody";
+}
+
 S_API void CRigidBody::RecalcBoundBox()
 {
 	IGeometry* pGeom = m_Renderable.GetGeometry();
@@ -202,7 +207,7 @@ S_API void CRigidBody::RecalcBoundBox()
 	pGeom->CalculateBoundBox(m_AABB);
 }
 
-S_API SResult CRigidBody::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
+S_API SResult CRigidBody::Init(IGameEngine* pEngine, const char* name /*="RigidBody"*/, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
 {
 	SResult res;
 
@@ -214,6 +219,8 @@ S_API SResult CRigidBody::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInit
 		return CLog::Log(S_ERROR, "Tried init Static Object, but engine ptr is invalid!");
 	}
 
+	if (IS_VALID_PTR(name))
+		m_Name = name;
 
 	m_pEngine->GetMaterialManager()->CollectInitGeomMaterials(pInitialGeom);
 	res = m_Renderable.GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), pInitialGeom);

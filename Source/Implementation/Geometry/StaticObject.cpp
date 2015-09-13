@@ -75,15 +75,16 @@ S_API void CStaticObjectRenderable::SetVisible(bool visible)
 	{
 		SRenderSubset* pSubset = &m_RenderDesc.pSubsets[iSubset];
 
-		// do not show invalid subsets
-		if (IS_VALID_PTR(pSubset->drawCallDesc.pVertexBuffer) && IS_VALID_PTR(pSubset->drawCallDesc.pIndexBuffer))
-		{
-			pSubset->render = m_bVisible;
-		}
-		else
+		// Do not show invalid subsets:
+		bool needIndexBuffer = (pSubset->drawCallDesc.primitiveType != PRIMITIVE_TYPE_LINES && pSubset->drawCallDesc.primitiveType != PRIMITIVE_TYPE_LINESTRIP);
+		
+		if ((needIndexBuffer && !IS_VALID_PTR(pSubset->drawCallDesc.pIndexBuffer)) || !IS_VALID_PTR(pSubset->drawCallDesc.pVertexBuffer))
 		{
 			pSubset->render = false;
+			continue;
 		}
+
+		pSubset->render = m_bVisible;	
 	}
 }
 
@@ -200,6 +201,7 @@ S_API IMaterial* CStaticObjectRenderable::GetSubsetMaterial(unsigned int subset 
 // ----------------------------------------------------------------------------------------
 S_API StaticObject::StaticObject()
 {
+	m_Name = "StaticObject";
 }
 
 // ----------------------------------------------------------------------------------------
@@ -235,7 +237,20 @@ S_API void StaticObject::Clear()
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
+S_API void StaticObject::SetName(const char* name)
+{
+	if (IS_VALID_PTR(name))
+		m_Name = name;
+}
+
+// ----------------------------------------------------------------------------------------
+S_API const char* StaticObject::GetName() const
+{
+	return m_Name.c_str();
+}
+
+// ----------------------------------------------------------------------------------------
+S_API SResult StaticObject::Init(IGameEngine* pEngine, const char* name /*="StaticObject"*/, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
 {
 	SResult res;
 
@@ -247,6 +262,7 @@ S_API SResult StaticObject::Init(IGameEngine* pEngine, SInitialGeometryDesc* pIn
 		return CLog::Log(S_ERROR, "Tried init Static Object, but engine ptr is invalid!");
 	}
 
+	SetName(name);
 
 	m_pEngine->GetMaterialManager()->CollectInitGeomMaterials(pInitialGeom);
 	res = m_Renderable.GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), pInitialGeom);

@@ -80,17 +80,17 @@ namespace SpeedPoint
 			//textureCoords[1].y = tv2_;
 		}
 
+		// constructor with single components and custom normal, 1 texturecoord pair
+		SVertex(float x_, float y_, float z_, float nx_, float ny_, float nz_, float tx_, float ty_, float tz_, float tu_, float tv_, float r, float g, float b)
+			: SVertex(x_, y_, z_, nx_, ny_, nz_, tx_, ty_, tz_, tu_, tv_, 0.0f, 0.0f, r, g, b)
+		{
+		}
+
 		// constructor with single components and custom normal and tangent, 2 texturecoord pairs
 		SVertex (float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_, float tu_,float tv_, float tu2_,float tv2_)
 			: SVertex(x_, y_, z_, nx_, ny_, nz_, tx_, ty_, tz_, tu_, tv_, tu2_,tv2_, 1.0f,1.0f,1.0f)
 		{
-		}
-		
-		// constructor with single components and custom normal, 1 texturecoord pair
-		SVertex (float x_,float y_,float z_, float nx_,float ny_,float nz_, float tx_,float ty_,float tz_, float tu_,float tv_, float r,float g,float b)
-			: SVertex (x_,y_,z_, nx_,ny_,nz_, tx_,ty_,tz_, tu_,tv_, 0.0f,0.0f, 1.0f,1.0f,1.0f)
-		{
-		}
+		}		
 
 		// constructor with single components and custom normal, without texture coords
 		SVertex(float x_, float y_, float z_, float nx_, float ny_, float nz_, float tx_, float ty_, float tz_, float tu_, float tv_)

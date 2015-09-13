@@ -390,10 +390,8 @@ public:
 
 	virtual IResourcePool* GetResourcePool();
 
-	virtual void DumpFrameOnce()
-	{
-		m_bDumpFrame = true;
-	}
+	ILINE virtual void DumpFrameOnce();
+	ILINE virtual bool DumpingThisFrame() const;
 
 
 	// Summary:

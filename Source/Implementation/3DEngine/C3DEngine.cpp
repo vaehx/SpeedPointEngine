@@ -8,7 +8,7 @@ SP_NMSPACE_BEG
 
 S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 	: m_pRenderer(pRenderer)
-{	
+{		
 }
 
 S_API C3DEngine::~C3DEngine()
@@ -112,6 +112,7 @@ S_API void C3DEngine::AddVisibleEntity(IEntity* pEntity, const AABB& aabb)
 
 	pRenderable->GetUpdatedRenderDesc(&pRenderObject->renderDesc);
 	pRenderObject->aabb = aabb;
+	pRenderObject->name = pEntity->GetName();
 }
 
 S_API void C3DEngine::AddVisibleLight(ILight* pLight, const AABB& aabb)
@@ -142,10 +143,12 @@ S_API void C3DEngine::AddVisibleStatic(IStaticObject* pStatic, const AABB& aabb)
 {	
 	SRenderObject* pRenderObject = m_RenderObjects.Get();
 
-	SRenderDesc* pStaticRenderDesc = pStatic->GetRenderDesc();
-	memcpy(&pRenderObject->renderDesc, &pStaticRenderDesc, sizeof(SRenderDesc));
+	const SRenderDesc* pStaticRenderDesc = pStatic->GetRenderDesc();	
 
-	pRenderObject->aabb = aabb;	
+	pRenderObject->renderDesc.Copy(*pStaticRenderDesc);
+	pRenderObject->aabb = aabb;
+
+	pRenderObject->nAffectingLights = 0;
 }
 
 
@@ -159,7 +162,14 @@ S_API void C3DEngine::RenderCollected()
 	SRenderObject* pRenderObject = 0;
 	while (pRenderObject = m_RenderObjects.GetNextUsedObject(itRenderObject))
 	{
+
+#ifdef _DEBUG		
+		if (m_pRenderer->DumpingThisFrame())
+			CLog::Log(S_DEBUG, "Rendering %s", pRenderObject->name.c_str());
+#endif
+
 		m_pRenderer->Render(pRenderObject->renderDesc);
+
 	}	
 }
 

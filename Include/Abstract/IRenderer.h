@@ -486,7 +486,8 @@ public:
 	virtual SResult UpdateSettings(const SSettingsDesc& dsc) = 0;
 
 
-	virtual void DumpFrameOnce() = 0;
+	ILINE virtual void DumpFrameOnce() = 0;
+	ILINE virtual bool DumpingThisFrame() const = 0;
 
 
 	// This function will return nullptr as IRenderer is just an interface!

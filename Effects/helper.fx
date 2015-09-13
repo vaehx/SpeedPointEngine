@@ -18,11 +18,13 @@ cbuffer ObjectCB : register(b1)
 struct a2v
 {
 	float4 Position : POSITION;
+	float3 Color : COLOR;
 };
 
 struct v2f
 {
 	float4 Position : SV_Position;
+	float3 Color : COLOR;
 };
 
 /////////////////////////// vertex shader //////////////////////////////
@@ -31,6 +33,7 @@ v2f VS_helper(a2v IN)
     v2f OUT;
     float4 wPos = mul(mtxWorld, float4(IN.Position.xyz, 1.0f));
     OUT.Position = mul(mtxViewProj, wPos);
+	OUT.Color = IN.Color;
 
     return OUT;
 }
@@ -38,7 +41,9 @@ v2f VS_helper(a2v IN)
 //////////////////////////// pixel shader ////////////////////////////////
 float4 PS_helper(v2f IN) : SV_Target0
 {
-    return float4(1.0f, 0, 0, 0);
-    return float4(diffColor.x, diffColor.y, diffColor.z, 0);
+    //return float4(1.0f, 0, 0, 0);
+	
+	float3 col = IN.Color.rgb * diffColor.rgb;
+    return float4(col.x, col.y, col.z, 0);
 }
 

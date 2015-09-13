@@ -23,8 +23,10 @@
 #include "Transformable.h"
 #include "BoundBox.h"
 #include <vector>
+#include <string>
 
 using std::vector;
+using std::string;
 
 SP_NMSPACE_BEG
 
@@ -177,8 +179,9 @@ class S_API IEntity : public STransformable
 {
 protected:
 	AABB m_AABB;
+	string m_Name;
 
-public:
+public:	
 	virtual ~IEntity() {}
 
 	ILINE virtual void RecalcBoundBox()
@@ -188,6 +191,9 @@ public:
 	ILINE virtual const AABB& GetBoundBox() const { return m_AABB; }
 
 	ILINE virtual EntityType GetType() const { return 0; };
+
+	ILINE virtual const char* GetName() const { return m_Name.c_str(); }
+	ILINE virtual void SetName(const char* name) { m_Name = name; }
 
 	ILINE virtual bool IsRenderable() const { return (GetType() & SP_ENTITY_RENDERABLE) != 0; }
 	ILINE virtual bool IsPhysical() const { return (GetType() & SP_ENTITY_PHYSICAL) != 0; }
@@ -237,6 +243,9 @@ struct S_API IStaticObject : public STransformable
 {
 public:
 	virtual ~IStaticObject() {}
+
+	virtual const char* GetName() const = 0;
+	virtual void SetName(const char* name) = 0;
 
 	virtual const AABB& GetBoundBox() const = 0;
 	virtual SRenderDesc* GetRenderDesc() = 0;

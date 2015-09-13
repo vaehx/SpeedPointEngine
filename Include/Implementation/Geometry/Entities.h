@@ -71,7 +71,9 @@ public:
 	ILINE virtual IPhysicalComponent* GetPhysical() const { return m_pPhysical; }
 
 public:
-	SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr);
+	CRigidBody();
+
+	SResult Init(IGameEngine* pEngine, const char* name = "RigidBody", SInitialGeometryDesc* pInitialGeom = nullptr);
 
 	void SetVisible(bool visible);
 

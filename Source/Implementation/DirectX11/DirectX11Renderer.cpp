@@ -98,6 +98,20 @@ S_API DirectX11Renderer::~DirectX11Renderer()
 {
 	Shutdown();
 }
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::DumpFrameOnce()
+{
+	m_bDumpFrame = true;
+}
+
+// --------------------------------------------------------------------
+S_API bool DirectX11Renderer::DumpingThisFrame() const
+{
+	return m_bDumpFrame;
+}
+
+
 // --------------------------------------------------------------------
 S_API IResourcePool* DirectX11Renderer::GetResourcePool()
 {
@@ -1152,6 +1166,7 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 	// Skip render desc without subsets
 	if (renderDesc.nSubsets == 0 || !IS_VALID_PTR(renderDesc.pSubsets))
 	{
+		FrameDump("Skipping Render: No subsets");
 		return S_SUCCESS;
 	}
 
@@ -1409,7 +1424,10 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 		SRenderSubset& subset = renderDesc.pSubsets[iSubset];
 	
 		if (!subset.render)
-			continue;		
+		{
+			FrameDump("[DX11Renderer] subset.render=false in DrawForwardSubsets()");
+			continue;
+		}
 
 		// Enable correct shader
 		switch (subset.shaderResources.illumModel)
@@ -1421,6 +1439,7 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			m_SkyBoxEffect.Enable();
 			break;
 		default:
+			FrameDump("[DX11Renderer] Warning: Invalid illum Model in shader resources!");
 			m_ForwardEffect.Enable();
 			break;
 		}	
@@ -1430,13 +1449,19 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 		SetShaderResources(subset.shaderResources, worldMtx);
 
 		if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
+		{
+			FrameDump("[DX11Renderer] Failed update per-object constants buffer");
 			return S_ERROR;
+		}
 
 		EnableBackfaceCulling(false);
 
 		DrawForward(subset.drawCallDesc);
 		if (subset.bOnce)
+		{
 			subset.render = false;
+			FrameDump("[DX11Renderer] subset.bOnce=true");
+		}
 	}
 
 	return S_SUCCESS;
@@ -1445,6 +1470,8 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
 {	
+	FrameDump("DirectX11Renderer::DrawForward()");
+
 	// bind vertex data stream
 	if (Failure(SetVBStream(desc.pVertexBuffer)))
 		return S_ERROR;	
@@ -1813,7 +1840,7 @@ S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
 S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
 {
 	m_ObjectConstants.eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
-	FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
+	//FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
 }
 
 // --------------------------------------------------------------------

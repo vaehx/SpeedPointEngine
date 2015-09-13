@@ -60,14 +60,16 @@ void Scene::CheckSceneNodesArray()
 // -------------------------------------------------------------------------------------------------
 S_API SResult Scene::AddSceneNode(const SSceneNode& node)
 {
-	if (!IS_VALID_PTR(node.pObject))
+	if (!IS_VALID_PTR(node.pObject) && !IS_VALID_PTR(node.pLight) && !IS_VALID_PTR(node.pStatic))
 	{
-		return CLog::Log(S_ERROR, "Cannot AddSceneNode: Object ptr of node is invalid!");		
+		return CLog::Log(S_ERROR, "Cannot AddSceneNode: All pointers of node invalid!");
 	}
 
 	CheckSceneNodesArray();
 
 	m_pSceneNodes->push_back(node);
+
+	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -301,7 +303,7 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	// Initialize result object
 	StaticObject* pStaticObject = new StaticObject();
 	IStaticObject* pReturn = pStaticObject;	
-	if (Failure(pStaticObject->Init(m_pEngine, &geom)))
+	if (Failure(pStaticObject->Init(m_pEngine, "3DSStaticObject", &geom)))
 	{
 		EngLog(S_ERROR, m_pEngine, "Failed Init Static Object to store loaded 3ds file!");
 		pReturn = 0;

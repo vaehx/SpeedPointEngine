@@ -6,6 +6,10 @@
 #include <Abstract\IRenderer.h>
 #include <vector>
 
+#ifdef _DEBUG
+#include <string>
+#endif
+
 SP_NMSPACE_BEG
 
 struct S_API IScene;
@@ -18,6 +22,9 @@ struct S_API SRenderLight
 
 struct S_API SRenderObject
 {
+#ifdef _DEBUG
+	std::string name;
+#endif
 	SRenderDesc renderDesc;
 	AABB aabb;
 	
@@ -35,7 +42,7 @@ struct S_API SRenderObject
 class S_API C3DEngine : public I3DEngine
 {
 private:	
-	IRenderer* m_pRenderer;
+	IRenderer* m_pRenderer;	
 
 
 	// TODO: Consider storing the RenderDescs in the engine, passing a pointer to Object::UpdateRenderDesc() and thereby letting the

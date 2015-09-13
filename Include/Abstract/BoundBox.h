@@ -42,7 +42,7 @@ struct S_API SAxisAlignedBoundBox
 	}
 
 	// length is set to the length of the vector from ray origin to the intersection
-	bool HitsRay(const Vec3f& v, const Vec3f& p, float& length) const
+	bool HitsRay(const Vec3f& v, const Vec3f& p, float* pLength = 0) const
 	{
 		Vec3f invDir;
 
@@ -63,18 +63,24 @@ struct S_API SAxisAlignedBoundBox
 		// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
 		if (tmax < 0)
 		{
-			length = tmax;
+			if (IS_VALID_PTR(pLength))
+				*pLength = tmax;
+
 			return false;
 		}
 
 		// if tmin > tmax, ray doesn't intersect AABB
 		if (tmin > tmax)
 		{
-			length = tmax;
+			if (IS_VALID_PTR(pLength))
+				*pLength = tmax;
+			
 			return false;
 		}
 
-		length = tmin;
+		if (IS_VALID_PTR(pLength))
+			*pLength = tmin;
+
 		return true;
 	}
 

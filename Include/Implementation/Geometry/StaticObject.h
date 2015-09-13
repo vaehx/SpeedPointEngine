@@ -15,11 +15,13 @@
 #include <Abstract\BoundBox.h>
 #include <Abstract\IRenderer.h>
 #include <vector>
+#include <string>
 
 
 SP_NMSPACE_BEG
 
 using std::vector;
+using std::string;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -98,11 +100,13 @@ private:
 
 	vector<IReferenceObject*> m_RefObjects;
 
+	string m_Name;
+
 public:
 
 	StaticObject();	
 
-	SResult Init(IGameEngine* pEngine, SInitialGeometryDesc* pInitialGeom = nullptr);
+	SResult Init(IGameEngine* pEngine, const char* name = "StaticObject", SInitialGeometryDesc* pInitialGeom = nullptr);
 
 	IGeometry* GetGeometry()
 	{
@@ -122,6 +126,9 @@ public:
 	// IStaticObject:
 public:
 	virtual ~StaticObject();
+
+	virtual const char* GetName() const;
+	virtual void SetName(const char* name);
 
 	virtual const AABB& GetBoundBox() const
 	{
