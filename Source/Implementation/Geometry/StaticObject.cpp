@@ -30,8 +30,7 @@ SP_NMSPACE_BEG
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API CStaticObjectRenderable::CStaticObjectRenderable()
-	: m_bRenderDescFilled(false),
-	m_bUseCustomViewProjMtx(false),
+	: m_bRenderDescFilled(false),	
 	m_bVisible(true)
 {
 }
@@ -89,18 +88,25 @@ S_API void CStaticObjectRenderable::SetVisible(bool visible)
 }
 
 // ----------------------------------------------------------------------------------------
+
+S_API void CStaticObjectRenderable::SetViewProjMatrix(const SMatrix& mtx)
+{
+	m_RenderDesc.bCustomViewProjMtx = true;
+	m_RenderDesc.viewProjMtx = mtx;
+}
+
+// ----------------------------------------------------------------------------------------
+
+S_API void CStaticObjectRenderable::UnsetViewProjMatrix()
+{
+	m_RenderDesc.bCustomViewProjMtx = false;
+}
+
+// ----------------------------------------------------------------------------------------
 S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 {
 	m_RenderDesc.renderPipeline = eRENDER_FORWARD;
-
-	m_RenderDesc.bCustomViewProjMtx = m_bUseCustomViewProjMtx;
-	if (m_bUseCustomViewProjMtx)
-	{
-		m_RenderDesc.viewProjMtx = m_ViewProjMtx;
-	}
-
 	m_RenderDesc.textureSampling = eTEX_SAMPLE_BILINEAR;
-
 	m_RenderDesc.bInverseDepthTest = false;
 
 	// copy over subsets
@@ -340,7 +346,6 @@ S_API SRenderDesc* StaticObject::GetRenderDesc()
 {
 	return m_Renderable.GetRenderDesc();	
 }
-
 
 
 

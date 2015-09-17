@@ -29,8 +29,6 @@ class S_API CStaticObjectRenderable : public IRenderableComponent
 {
 private:	
 	Geometry m_Geometry;
-	SMatrix m_ViewProjMtx;
-	bool m_bUseCustomViewProjMtx;
 	SRenderDesc m_RenderDesc;
 	bool m_bRenderDescFilled;
 	IObject* m_pObject;	
@@ -66,15 +64,8 @@ public:
 
 	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0);
 
-	virtual void SetViewProjMatrix(const SMatrix& mtx)
-	{
-		m_ViewProjMtx = mtx;
-		m_bUseCustomViewProjMtx = true;
-	}
-	virtual void UnsetViewProjMatrix()
-	{
-		m_bUseCustomViewProjMtx = false;
-	}
+	virtual void SetViewProjMatrix(const SMatrix& mtx);
+	virtual void UnsetViewProjMatrix();
 
 public:	
 	CStaticObjectRenderable();
