@@ -185,6 +185,19 @@ S_API void CRigidBodyRenderable::UnsetViewProjMatrix()
 	m_RenderDesc.bCustomViewProjMtx = false;
 }
 
+// ------------------------------------------------------------------------------
+S_API IMaterial* CRigidBodyRenderable::GetSubsetMaterial(unsigned int subset /*= 0*/)
+{
+	if (subset > GetSubsetCount())
+		return 0;
+
+	SGeomSubset* pSubset = GetSubset(subset);
+	if (!IS_VALID_PTR(pSubset))
+		return 0;
+
+	return pSubset->pMaterial;
+}
+
 
 
 
@@ -246,11 +259,7 @@ S_API IGeometry* CRigidBody::GetGeometry()
 
 S_API IMaterial* CRigidBody::GetSubsetMaterial(unsigned int subset /*= 0*/)
 {
-	if (subset >= m_Renderable.GetSubsetCount())
-		return 0;
-
-	SGeomSubset* pSubset = m_Renderable.GetSubset(subset);
-	return (IS_VALID_PTR(pSubset)) ? pSubset->pMaterial : 0;
+	return m_Renderable.GetSubsetMaterial(subset);
 }
 
 S_API unsigned int CRigidBody::GetSubsetCount() const
