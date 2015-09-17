@@ -1432,6 +1432,11 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 		// Enable correct shader
 		switch (subset.shaderResources.illumModel)
 		{
+		case eILLUM_PHONG:
+		case eILLUM_BLINNPHONG:
+		case eILLUM_COOKTORRANCE:
+			m_ForwardEffect.Enable();
+			break;
 		case eILLUM_HELPER:
 			m_HelperEffect.Enable();
 			break;
