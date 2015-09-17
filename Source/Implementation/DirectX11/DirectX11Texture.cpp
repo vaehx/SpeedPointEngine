@@ -424,8 +424,6 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(int singleW, int singleH, ch
 		m_Type = eTEXTURE_R8G8B8A8_UNORM; break;
 	}
 
-	m_pEngine->LogD("Creating new texture from file succeeded!");
-
 	for (auto itSide = cmSides.begin(); itSide != cmSides.end(); itSide++)
 		delete[] itSide->pBuffer;
 
@@ -611,9 +609,7 @@ S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* 
 
 		m_pStagedData = malloc(imageSize);
 		memcpy(m_pStagedData, pBuffer, imageSize);
-	}
-
-	m_pEngine->LogD("Creating new texture from file succeeded!");
+	}	
 
 	return S_SUCCESS;
 }
@@ -776,8 +772,6 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	}
 
 	delete[] initData.pSysMem;
-
-	m_pEngine->LogD("Creating new empty texture succeeded!");
 
 	return S_SUCCESS;
 }
