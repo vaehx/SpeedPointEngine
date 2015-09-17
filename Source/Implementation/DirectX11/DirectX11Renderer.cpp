@@ -1275,6 +1275,8 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 		EnableDepthTest(true);
 		SetDepthTestFunction(eDEPTH_TEST_LESS);
 
+		EnableBackfaceCulling(true);
+
 		// bind terrain cb
 		if (m_pBoundCB != m_pTerrainCB)
 		{
