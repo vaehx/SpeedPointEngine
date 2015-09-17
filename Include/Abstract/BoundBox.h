@@ -24,10 +24,10 @@ struct S_API SAxisAlignedBoundBox
 	}
 
 	SAxisAlignedBoundBox(const SAxisAlignedBoundBox& aabb)
-		: vMin(aabb.vMin),
-		vMax(aabb.vMax)
-	{		
-	}
+		: vMin(aabb.vMin), vMax(aabb.vMax) {}
+
+	SAxisAlignedBoundBox(const Vec3f& min, const Vec3f& max)
+		: vMin(min), vMax(max) {}
 
 	void AddPoint(const SVector3& v)
 	{
@@ -91,6 +91,12 @@ struct S_API SAxisAlignedBoundBox
 		if ((vMin.z > aabb.vMax.z) || (aabb.vMin.z > vMax.z)) return false;		
 		
 		return true;
+	}
+
+	inline void MoveRelative(const Vec3f& v)
+	{
+		vMin += v;
+		vMax += v;
 	}
 };
 typedef struct S_API SAxisAlignedBoundBox AABB;

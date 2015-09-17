@@ -218,6 +218,7 @@ S_API void CRigidBody::RecalcBoundBox()
 		return;
 
 	pGeom->CalculateBoundBox(m_AABB);
+	m_AABB.MoveRelative(GetPosition());
 }
 
 S_API SResult CRigidBody::Init(IGameEngine* pEngine, const char* name /*="RigidBody"*/, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)

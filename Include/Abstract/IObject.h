@@ -177,18 +177,11 @@ struct S_API IScriptComponent
 // A complex object - composed of components
 class S_API IEntity : public STransformable
 {
-protected:
-	AABB m_AABB;
+protected:	
 	string m_Name;
 
 public:	
-	virtual ~IEntity() {}
-
-	ILINE virtual void RecalcBoundBox()
-	{
-	}
-
-	ILINE virtual const AABB& GetBoundBox() const { return m_AABB; }
+	virtual ~IEntity() {}	
 
 	ILINE virtual EntityType GetType() const { return 0; };
 
@@ -246,8 +239,7 @@ public:
 
 	virtual const char* GetName() const = 0;
 	virtual void SetName(const char* name) = 0;
-
-	virtual const AABB& GetBoundBox() const = 0;
+	
 	virtual SRenderDesc* GetRenderDesc() = 0;
 	virtual void Clear() = 0;
 };

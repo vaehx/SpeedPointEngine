@@ -8,6 +8,7 @@
 #include <SPrerequisites.h>
 #include "Vector3.h"
 #include "Matrix.h"
+#include "BoundBox.h"
 
 
 SP_NMSPACE_BEG
@@ -15,7 +16,8 @@ SP_NMSPACE_BEG
 // SpeedPoint Transformable Object
 class S_API STransformable
 {
-private:
+protected:	
+	AABB m_AABB;
 	SMatrix4	m_WorldMatrix;
 	bool		m_WorldMatrixCalculated;	// whether the worldmtx ever has been calculated
 
@@ -27,8 +29,8 @@ public:
 	// Default constructor
 	STransformable()
 		: vSize(1.0f),
-		m_WorldMatrixCalculated(false)
-	{
+		m_WorldMatrixCalculated(false)		
+	{		
 	};
 
 	// Constructor with position
@@ -67,7 +69,7 @@ public:
 	};
 
 	// Destructor
-	~STransformable()
+	virtual ~STransformable()
 	{
 		m_WorldMatrixCalculated = false;
 	}
@@ -80,6 +82,7 @@ public:
 	// Move absolute
 	ILINE void Move(const Vec3f& pos)
 	{
+		m_AABB.MoveRelative(pos - vPosition);
 		vPosition = pos;
 		RecalculateWorldMatrix();
 	}		
@@ -87,13 +90,16 @@ public:
 	// Move absolute
 	ILINE void Move(float x, float y, float z)
 	{
-		vPosition = Vec3f(x, y, z);
+		Vec3f pos(x, y, z);
+		m_AABB.MoveRelative(pos - vPosition);
+		vPosition = pos;
 		RecalculateWorldMatrix();
 	}		
 
 	// Move relative
 	ILINE void Translate(const Vec3f& vec)
 	{
+		m_AABB.MoveRelative(vec);
 		vPosition += vec;
 		RecalculateWorldMatrix();
 	}
@@ -101,64 +107,82 @@ public:
 	// Move relative
 	ILINE void Translate(float x, float y, float z)
 	{
-		vPosition += Vec3f(x, y, z);
+		Vec3f v(x, y, z);
+		m_AABB.MoveRelative(v);
+		vPosition += v;
 		RecalculateWorldMatrix();
 	}
 	
 	// Rotate absolute
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Rotate(const Vec3f& rotation)
 	{
 		vRotation = rotation;
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}		
 
 	// Rotate absolute
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Rotate(float p, float y, float r)
 	{
 		vRotation = Vec3f(p, y, r);
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}
 
 	// Rotate relative
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Turn(const Vec3f& vec)
 	{
 		vRotation += vec;
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}
 
 	// Rotate relative
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Turn(float p, float y, float r)
 	{
 		vRotation += Vec3f(p, y, r);
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}
 	
 	// Set size absolutely
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Size(const Vec3f& size)
 	{
 		vSize = size;
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}		
 
 	// Set size absolutely
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Size(float w, float h, float d)
 	{
 		vSize = Vec3f(w, h, d);
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}		
 
 	// Scale relatively
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Scale(const Vec3f& vec)
 	{
 		vSize += vec;
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}
 	
 	// Scale relative
+	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Scale(float w, float h, float d)
 	{
 		vSize += Vec3f(w, h, d);
 		RecalculateWorldMatrix();
+		RecalcBoundBox();
 	}		
 
 	// Summary:
@@ -222,7 +246,13 @@ public:
 		m_WorldMatrixCalculated = true;
 
 		return m_WorldMatrix;
-	}					
+	}				
+
+
+
+	ILINE virtual void RecalcBoundBox()
+	{
+	}
 
 
 
@@ -233,6 +263,8 @@ public:
 	Vec3f& GetRotation() { return vRotation; }
 
 	Vec3f& GetSize() { return vSize; }
+
+	AABB& GetBoundBox() { return m_AABB; }
 };
 
 
