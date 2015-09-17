@@ -77,72 +77,84 @@ public:
 
 
 
+	// Move absolute
 	ILINE void Move(const Vec3f& pos)
 	{
 		vPosition = pos;
 		RecalculateWorldMatrix();
 	}		
 
+	// Move absolute
 	ILINE void Move(float x, float y, float z)
 	{
 		vPosition = Vec3f(x, y, z);
 		RecalculateWorldMatrix();
 	}		
 
+	// Move relative
 	ILINE void Translate(const Vec3f& vec)
 	{
 		vPosition += vec;
 		RecalculateWorldMatrix();
 	}
 
+	// Move relative
 	ILINE void Translate(float x, float y, float z)
 	{
 		vPosition += Vec3f(x, y, z);
 		RecalculateWorldMatrix();
 	}
 	
+	// Rotate absolute
 	ILINE void Rotate(const Vec3f& rotation)
 	{
 		vRotation = rotation;
 		RecalculateWorldMatrix();
 	}		
 
+	// Rotate absolute
 	ILINE void Rotate(float p, float y, float r)
 	{
 		vRotation = Vec3f(p, y, r);
 		RecalculateWorldMatrix();
 	}
 
+	// Rotate relative
 	ILINE void Turn(const Vec3f& vec)
 	{
 		vRotation += vec;
 		RecalculateWorldMatrix();
 	}
 
+	// Rotate relative
 	ILINE void Turn(float p, float y, float r)
 	{
 		vRotation += Vec3f(p, y, r);
 		RecalculateWorldMatrix();
 	}
 	
+	// Set size absolutely
 	ILINE void Size(const Vec3f& size)
 	{
 		vSize = size;
 		RecalculateWorldMatrix();
 	}		
 
+	// Set size absolutely
 	ILINE void Size(float w, float h, float d)
 	{
 		vSize = Vec3f(w, h, d);
 		RecalculateWorldMatrix();
 	}		
 
+	// Scale relatively
 	ILINE void Scale(const Vec3f& vec)
 	{
 		vSize += vec;
 		RecalculateWorldMatrix();
 	}
 	
+	// Scale relative
 	ILINE void Scale(float w, float h, float d)
 	{
 		vSize += Vec3f(w, h, d);
