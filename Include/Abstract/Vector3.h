@@ -49,6 +49,11 @@ namespace SpeedPoint
 		Vec3(F xx, F yy, F zz) : x(xx), y(yy), z(zz) {}
 		Vec3(const Vec3<F>& v) : x(v.x), y(v.y), z(v.z) {}
 
+		ILINE Vec3<F> operator -() const
+		{
+			return Vec3<F>(-x, -y, -z);
+		}
+
 		ILINE Vec3<F> operator +(const Vec3<F>& v) const { return Vec3<F>(x + v.x, y + v.y, z + v.z); }
 		ILINE Vec3<F> operator +(const F& k) const { return Vec3<F>(x + k, y + k, z + k); }
 		ILINE Vec3<F>& operator +=(const Vec3<F>& v) { x += v.x; y += v.y; z += v.z; return *this; }

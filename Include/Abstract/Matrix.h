@@ -155,6 +155,13 @@ struct S_API SMatrix
 			0,		 0,				 0,		 		1
 			);
 	}
+
+	inline void GetColumnVectors(Vec3f vectors[3]) const
+	{
+		vectors[0] = Vec3f(_11, _21, _31);
+		vectors[1] = Vec3f(_12, _22, _32);
+		vectors[2] = Vec3f(_13, _23, _33);
+	}
 };
 
 typedef struct S_API SMatrix SMatrix4;

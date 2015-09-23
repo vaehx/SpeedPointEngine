@@ -1,0 +1,339 @@
+
+
+Intersection between a Ray and a plane:
+
+
+Plane: dot(a, n) = d
+Ray: a = p + t * v
+
+(p + tv);n = d
+p;n + (t*v);n = d
+d - p;n = (t*v);n         (t*v);n = t*(v;n)
+(d - p;n) / (v;n) = t
+
+
+
+--------------------------------------------------------------------------------------
+
+p1 + s1 * v1 = p2 + s2 * v2
+
+s1 = (p2 - p1 + s2 * v2) / v1
+
+--------------------------------------
+
+	  | Point | Ray  | Plane | Sphere | Cylinder | Capsule | Box | Mesh
+==========+===================================================================
+Point	  |   x   |  x   |   x   |	  |	     |	       |     |
+------------------------------------------------------------------------------
+Ray	  |#######|   x  |   x   |	  |	     |	       |  x  |
+------------------------------------------------------------------------------
+Plane 	  |#######|######|       |	  |	     |	       |     |
+------------------------------------------------------------------------------
+Sphere	  |#######|######|#######|    x   |	     |	       |     |
+------------------------------------------------------------------------------
+Cylinder  |#######|######|#######|########|	     |	       |     |
+------------------------------------------------------------------------------
+Capsule   |#######|######|#######|########|##########|	       |     |
+------------------------------------------------------------------------------
+Box	  |#######|######|#######|########|##########|#########|     |
+------------------------------------------------------------------------------
+Mesh	  |#######|######|#######|########|##########|#########|#####|
+
+
+
+// hd = OBB half dim, c = OBB Center, p = ray point, v = ray direction
+
+
+typedef struct SPoint Vec3f;
+
+struct SRay
+{
+	Vec3f p; // point
+	Vec3f v; // direction
+
+	inline Vec3f GetPoint(float t) const
+	{
+		return p + t * v;
+	}
+};
+
+struct SSphere
+{
+	Vec3f c; // center
+	float r; // radius	
+};
+
+struct SCylinder
+{
+	Vec3f p1, p2; // Start and End-Points on the ray
+	float r; // radius
+};
+
+struct SCapsule
+{
+	Vec3f p1, p2: // Start and End-Points on the ray, centers of the cap-spheres
+	float r;
+};
+
+struct SPlane
+{
+	Vec3f n; // normal
+	float d; // dot(n, x) = d
+
+	// normal = cross(b - a, c - a)
+	static inline SPlane FromPoints(const Vec3f& a, const Vec3f& b, const Vec3f& c)
+	{
+		SPlane plane;
+		plane.n = Vec3fCross(b - a, c - a);
+		plane.d = Vec3fDot(plane.n, a);
+		return plane;
+	}
+};
+
+struct SBox
+{
+	Vec3f c; // Center
+	Vec3f hd; // Half-Dimension
+	SPlane planes[6]; // is ordered: 0-1: x-Planes; 2-3: y-Planes; 4-5: zPlanes
+
+	inline void CalculatePlanePairs() {
+		// x-Planes
+		planes[0] = Plane::FromPoints(c + Vec3f(hd.x, hd.y, hd.z), c + Vec3f(hd.x, hd.y, -hd.z), c + Vec3f(hd.x, -hd.y, hd.z));
+		planes[1] = Plane::FromPoints(c + Vec3f(-hd.x, hd.y, hd.z), c + Vec3f(-hd.x, hd.y, -hd.z), c + Vec3f(-hd.x, -hd.y, hd.z));
+
+		// y-Planes
+		planes[2] = Plane::FromPoints(c + Vec3f(hd.x, hd.y, hd.z), c + Vec3f(hd.x, hd.y, -hd.z), c + Vec3f(-hd.x, hd.y, hd.z));
+		planes[3] = Plane::FromPoints(c + Vec3f(hd.x, -hd.y, hd.z), c + Vec3f(hd.x, -hd.y, -hd.z), c + Vec3f(-hd.x, -hd.y, hd.z));
+
+		// z-Planes
+		planes[4] = Plane::FromPoints(c + Vec3f(hd.x, hd.y, hd.z), c + Vec3f(hd.x, -hd.y, hd.z), c + Vec3f(-hd.x, hd.y, hd.z));
+		planes[5] = Plane::FromPoints(c + Vec3f(hd.x, hd.y, -hd.z), c + Vec3f(hd.x, -hd.y, -hd.z), c + Vec3f(-hd.x, hd.y, -hd.z));
+	}
+};
+
+
+struct SMeshVertex
+{
+	float x, y, z;
+	float nx, ny, nz;
+};
+
+struct SMeshEdge
+{
+	unsigned long vtx1, vtx2;
+};
+
+struct SMesh
+{
+	std::vector<SMeshVertex> vertices;
+	std::vector<SMeshEdge> edges;
+};
+
+
+// -------------------------------------------------------------------------------------------
+//
+//	Point - Point
+//
+// -------------------------------------------------------------------------------------------
+inline bool IntersectPointPoint(const SPoint& a, const SPoint& b)
+{
+	return a == b;
+}
+
+// -------------------------------------------------------------------------------------------
+//
+//	Ray - OBB
+//
+// -------------------------------------------------------------------------------------------
+inline bool IntersectRayOBB(const SBox& obb, const SRay& ray, float* pMin = 0, float *pMax = 0)
+{
+	float t_min = FLT_MAX, t_max = FLT_MIN;
+	unsigned byte num_intersections = 0;
+	for (unsigned byte i = 0; i < 6; ++i)
+	{
+		if (IntersectRayPlane(obb.planes[i], ray, &lambda))
+		{
+			if (lambda < t_min) t_min = lambda;
+			if (lambda > t_max) t_max = lambda;
+			++num_intersections;
+		}
+	}
+
+	if ((num_intersections % 2) != 0)
+		return false;
+
+	if (IS_VALID_PTR(pMin)) *pMin = t_min;
+	if (IS_VALID_PTR(pMax)) *pMax = t_max;
+	return true;
+}
+
+
+// -------------------------------------------------------------------------------------------
+//
+//	Ray - Ray
+//
+// -------------------------------------------------------------------------------------------
+inline bool IntersectRayRay(const SRay& ray1, const SRay& ray2, float* pParam1 = 0, float* pParam2 = 0)
+{
+	// p + t*v = q + s*u
+	const Vec3f &p = ray1.p, &v = ray1.v, &q = ray2.p, &u = ray2.v;
+
+	// Parallel?  dot(v, u) == 0
+	if (fabs(fabs(Vec3Dot(v, u)) - 1.0f) <= FLT_EPSILON)
+	{
+		if (IntersectRayPoint(ray1, q))
+		{
+			if (IS_VALID_PTR(pParam1)) *pParam1 = 0.0f;
+			if (IS_VALID_PTR(pParam2)) *pParam2 = 0.0f;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	// t = (uy(qx - px) + ux(py - qy)) / (uy*vx - ux*vy)
+	// s = (py - qy + t * vy) / uy
+	float den = u.y * v.x - u.x * v.y;
+	if (fabs(den) < FLT_EPSILON)
+		return false;
+
+	float t = (u.y * (q.x - p.x) + u.x * (p.y - q.y)) / den;
+	float s = (p.y - q.y + t * v.y) / u.y;
+
+	if (ray1.GetPoint(t) != ray2.GetPoint(s))
+		return false;
+
+	if (IS_VALID_PTR(pParam1)) *pParam1 = t;
+	if (IS_VALID_PTR(pParam2)) *pParam2 = s;
+
+	return true;
+}
+
+
+// -------------------------------------------------------------------------------------------
+//
+//	Ray - Plane
+//
+// -------------------------------------------------------------------------------------------
+inline bool IntersectRayPlane(const SRay& ray, const SPlane& plane, float *param = 0)
+{
+	// Ray: x = p + tv
+	// Plane: dot(x, n) = d
+	const Vec3f &p = ray.p, &v = ray.v, &n = plane.n;
+	const float &d = plane.d;
+
+	// dot(p + tv, n) = d  --> t = (d - dot(p, n)) / dot(v, n)
+	float den = Vec3Dot(v, n);
+
+	// Parallel?  dot(v,n) == 0
+	if (fabs(Vec3Dot(v, n)) <= FLT_EPSILON)
+	{
+		if (IntersectPlanePoint(plane, p))
+		{
+			if (IS_VALID_PTR(param)) *param = 0.0f;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	if (IS_VALID_PTR(param))
+	{
+		*param = (d - Vec3Dot(p, n)) / den;
+	}
+
+	return true;
+}
+
+// -------------------------------------------------------------------------------------------
+//
+//	Plane - Point
+//
+// -------------------------------------------------------------------------------------------
+inline bool IntersectPlanePoint(const SPlane& plane, const SPoint& point)
+{
+	// Plane: dot(x, n) = d
+	const Vec3f &n = plane.n;
+	const float &d = d;
+
+	// D = (dot(n, x) - d) / n.Length()
+	float den = n.Length();
+	if (fabs(den) <= FLT_EPSILON)
+		return false;
+
+	float D = (Vec3Dot(n, point) - d) / den;
+	if (fabs(D) <= FLT_EPSILON)
+		return true;
+	else
+		return false;
+}
+
+// -------------------------------------------------------------------------------------------
+//
+//	Ray - Point
+//
+// -------------------------------------------------------------------------------------------
+inline bool IntersectRayPoint(const SRay& ray, const SPoint& point, float* pDist = 0)
+{
+	// Ray: x = p + s * v
+	const Vec3f &p = ray.p, &v = ray.v, &x = point;
+	
+	// 1. Project (x - p) onto v, normalize with length of v
+	Vec3f projected = v * Vec3fDot(v, x - p) / v.Length();
+	
+	// 2. Calculate distance
+	float dist = Vec3Length(x - (p + projected));
+
+	if (IS_VALID_PTR(pDist))
+		*pDist = dist;
+
+	return (dist <= FLT_EPSILON);
+}
+
+
+// -------------------------------------------------------------------------------------------
+//
+//	Sphere - Sphere
+// 
+// 	pDist might be negative, meaning that the spheres inter-penetrate
+//
+// -------------------------------------------------------------------------------------------
+inline bool IntersectSphereSphere(const SSphere& sphere1, const SSphere& sphere2, float* pDist = 0)
+{
+	if (IS_VALID_PTR(pDist))
+	{
+		*pDist = Vec3Length(sphere2.c - sphere1.c) - sphere1.r - sphere2.r;
+
+		// dist can be negative
+		return (dist <= FLT_EPSILON);
+	}
+	else
+	{
+		// Do not use a square root when the actual distance is not important.
+
+		float radSum = sphere1.r + sphere2.r;
+		if ((sphere2.c - sphere1.c).LengthSq() <= FLT_EPSILON)
+			return true;
+		else
+			return false;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
