@@ -141,7 +141,7 @@ S_API void CRigidBodyRenderable::GetUpdatedRenderDesc(SRenderDesc* pDest)
 	if (IS_VALID_PTR(m_pTransformable))
 	{		
 		m_RenderDesc.transform.translation = SMatrix::MakeTranslationMatrix(m_pTransformable->GetPosition());
-		m_RenderDesc.transform.rotation = SMatrix::MakeRotationMatrix(m_pTransformable->GetRotation());
+		m_RenderDesc.transform.rotation = m_pTransformable->GetRotation().ToRotationMatrix();
 		m_RenderDesc.transform.scale = SMatrix::MakeScaleMatrix(m_pTransformable->GetSize());
 	}
 

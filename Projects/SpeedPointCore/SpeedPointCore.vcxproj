@@ -120,6 +120,7 @@
     <ClCompile Include="..\..\Source\Pipelines\RenderPipeline.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointApplication.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine.cpp" />
+    <ClCompile Include="..\..\Source\Util\Camera.cpp" />
     <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogFile.cpp" />
     <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />

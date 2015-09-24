@@ -281,7 +281,7 @@ S_API SResult StaticObject::Init(IGameEngine* pEngine, const char* name /*="Stat
 
 	STransformationDesc& transformDesc = m_Renderable.GetRenderDesc()->transform;
 	transformDesc.translation = SMatrix::MakeTranslationMatrix(vPosition);
-	transformDesc.rotation = SMatrix::MakeRotationMatrix(vRotation);
+	transformDesc.rotation = rotation.ToRotationMatrix();
 	transformDesc.scale = SMatrix::MakeScaleMatrix(vSize);
 
 	return S_SUCCESS;

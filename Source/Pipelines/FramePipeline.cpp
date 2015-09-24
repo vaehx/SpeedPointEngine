@@ -49,9 +49,20 @@ S_API void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SF
 {
 	// CamStat
 	InitFontRenderSlot(&m_pCamStats, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 0);
-	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "Cam(%.2f %.2f %.f | %.2f %.2f %.2f)",
+	Vec3f camForward = pCamera->GetForward();
+	Quat& turnQuat = pCamera->d_turnQuat;
+	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "Cam(%.2f %.2f %.f | %.2f %.2f %.2f %.2f | %.2f %.2f %.2f)",
 		pCamera->position.x, pCamera->position.y, pCamera->position.z,
-		pCamera->rotation.x, pCamera->rotation.y, pCamera->rotation.z);
+		turnQuat.w, turnQuat.v.x, turnQuat.v.y, turnQuat.v.z,
+		pCamera->d_turn.x, pCamera->d_turn.y, pCamera->d_turn.z);
+
+	// Cam view matrix
+	SMatrix& viewMtx = pCamera->viewMatrix;
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		InitFontRenderSlot(&m_pViewMtxRows[i], true, true, SColor(1.0f, 1.0f, 1.0f), 0, 100 + i*18);
+		SPSPrintf(m_pViewMtxRows[i]->text, 200, "( %.2f %.2f %.2f %.2f )", viewMtx.m[i][0], viewMtx.m[i][1], viewMtx.m[i][2], viewMtx.m[i][3]);
+	}
 
 	// Frame Timers
 	InitFontRenderSlot(&m_pFrameTimes, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 18);

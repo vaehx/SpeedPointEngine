@@ -436,4 +436,20 @@ static inline void SPMatrixPerspectiveFovRH(SMatrix* pMtx, float fovy, float asp
 		);
 }
 
+inline void EulerAnglesFromRotationMatrix(const SMatrix& matrix, Vec3f* pEulerAngles)
+{
+	if (IS_VALID_PTR(pEulerAngles))
+	{
+		/*
+		pEulerAngles->x = atan2f(matrix._32, matrix._33);
+		pEulerAngles->y = atan2f(-matrix._31, sqrtf(matrix._32 * matrix._32 + matrix._33 * matrix._33));
+		pEulerAngles->z = atan2f(matrix._21, matrix._11);
+		*/
+
+		pEulerAngles->x = atan2f(matrix._23, matrix._33);
+		pEulerAngles->y = atan2f(-matrix._13, sqrtf(matrix._23 * matrix._23 + matrix._33 * matrix._33));
+		pEulerAngles->z = atan2f(matrix._12, matrix._11);
+	}
+}
+
 SP_NMSPACE_END

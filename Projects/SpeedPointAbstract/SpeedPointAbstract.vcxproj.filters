@@ -208,5 +208,8 @@
     <ClInclude Include="..\..\Include\Abstract\IRenderAPI.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\Quaternion.h">
+      <Filter>Headers\Math</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,7 +1,26 @@
 #include <iostream>
 #include "Primitives.h"
+#include "Quaternion.h"
 
-void main()
+std::ostream& operator <<(std::ostream& os, const Quat& q)
+{
+	os << "[w=" << q.w << " v=" << q.v << "]";
+	return os;
+}
+
+#define SAN_FLT(x) ((fabsf(x) <= FLT_EPSILON) ? 0.0f : x)
+
+std::ostream& operator <<(std::ostream& os, const SMatrix& m)
+{
+	for (unsigned i = 0; i < 4; ++i)
+	{
+		os << " ( " << SAN_FLT(m.m[i][0]) << " " << SAN_FLT(m.m[i][1]) << " " << SAN_FLT(m.m[i][2]) << " " << SAN_FLT(m.m[i][3]) << " )" << std::endl;
+	}
+
+	return os;
+}
+
+void test_intersections()
 {
 	{
 		SRay ray;
@@ -176,6 +195,72 @@ void main()
 
 		std::cout << std::endl;
 	}
+}
+
+void test_quaternion()
+{
+	{
+		Quat yaw = Quat::FromRotationY(SP_PI * 0.5f);
+		Quat pitch = Quat::FromRotationX(SP_PI * 0.5f);
+		Quat q = yaw * pitch;
+		Vec3f v = Vec3f(0, 1.0f, 1.0f).Normalized();
+
+		std::cout << "yaw = " << yaw << std::endl;
+		std::cout << "pitch = " << pitch << std::endl;
+
+		std::cout << "v=" << v << "  q=" << q << std::endl;
+		std::cout << "vyaw=" << (yaw * v) << std::endl;
+		std::cout << "vpitch=" << (pitch * v) << std::endl;
+		std::cout << "vrotated=" << (q * v) << std::endl;
+
+		std::cout << std::endl;
+	}
+	{
+		Vec3f position(20.0f, 0, 0);
+		Vec3f rotation(SP_PI * 0.5f * 0.5f, SP_PI * 0.5f, 0);
+
+		Vec3f left(1.0f, 0, 0), up(0, 1.0f, 0), forward(0, 0, 1.0f);
+		Quat yaw = Quat::FromRotationY(-rotation.y);
+		Quat pitch = Quat::FromRotationX(rotation.x);
+		Quat q = yaw * pitch;
+
+		std::cout << "fyaw = " << (yaw * forward) << std::endl;
+		std::cout << "fpitch = " << (pitch * forward) << std::endl;
+		std::cout << "pitch = " << pitch << std::endl;
+		std::cout << "q = " << q << std::endl;
+		
+		left = (q * left).Normalized();
+		up = (q * up).Normalized();
+		forward = (q * forward).Normalized();
+		SMatrix mat1(
+			left.x, up.x, forward.x, 0,
+			left.y, up.y, forward.y, 0,
+			left.z, up.z, forward.z, 0,
+			-Vec3Dot(left, position), -Vec3Dot(up, position), -Vec3Dot(forward, position), 1.0f
+			);
+
+		
+		Vec3f lookAt;
+		lookAt.x = position.x + sinf(rotation.y) * cosf(rotation.x);
+		lookAt.y = position.y + sinf(rotation.x);
+		lookAt.z = position.z + cosf(rotation.y) * cosf(rotation.x);
+
+		std::cout << "lookat = " << lookAt << std::endl;
+
+		SMatrix mat2;
+		SPMatrixLookAtRH(&mat2, position, lookAt, Vec3f(0, 1.0f, 0));
+
+
+		std::cout << "mat1 =" << std::endl << mat1;
+		std::cout << "mat2 =" << std::endl << mat2;
+	}
+}
+
+
+void main()
+{
+	//test_intersections();
+	test_quaternion();
 
 	std::cin.ignore();
 }

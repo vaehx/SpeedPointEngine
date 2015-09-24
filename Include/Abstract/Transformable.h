@@ -7,6 +7,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include "Vector3.h"
+#include "Quaternion.h"
 #include "Matrix.h"
 #include "BoundBox.h"
 
@@ -23,7 +24,7 @@ protected:
 
 public:
 	Vec3f	vPosition;
-	Vec3f	vRotation;
+	Quat	rotation;
 	Vec3f	vSize;
 
 	// Default constructor
@@ -42,18 +43,18 @@ public:
 	};
 
 	// Constructor with position and rotation
-	STransformable(const Vec3f& pos, const Vec3f& rot)
+	STransformable(const Vec3f& pos, const Quat& rot)
 		: vPosition(pos),
-		vRotation(rot),
+		rotation(rot),
 		vSize(1.0f),
 		m_WorldMatrixCalculated(false)
 	{
 	};
 
 	// Constructor with position, rotation and scale
-	STransformable(const Vec3f& pos, const Vec3f& rot, const Vec3f& scale)
+	STransformable(const Vec3f& pos, const Quat& rot, const Vec3f& scale)
 		: vPosition(pos),
-		vRotation(rot),
+		rotation(rot),
 		vSize(scale),
 		m_WorldMatrixCalculated(false)
 	{
@@ -62,7 +63,7 @@ public:
 	// Copy constructor
 	STransformable(const STransformable& other)
 		: vPosition(other.vPosition),
-		vRotation(other.vRotation),
+		rotation(other.rotation),
 		vSize(other.vSize),
 		m_WorldMatrixCalculated(false)
 	{
@@ -113,38 +114,19 @@ public:
 		RecalculateWorldMatrix();
 	}
 	
-	// Rotate absolute
-	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
-	ILINE void Rotate(const Vec3f& rotation)
+	// Rotate absolute	
+	ILINE void SetRotation(const Quat& rot)
 	{
-		vRotation = rotation;
-		RecalculateWorldMatrix();
-		RecalcBoundBox();
-	}		
-
-	// Rotate absolute
-	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
-	ILINE void Rotate(float p, float y, float r)
-	{
-		vRotation = Vec3f(p, y, r);
+		rotation = rot;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
 	}
 
 	// Rotate relative
-	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
-	ILINE void Turn(const Vec3f& vec)
+	ILINE void Turn(const Vec3f& eulerAngles)
 	{
-		vRotation += vec;
-		RecalculateWorldMatrix();
-		RecalcBoundBox();
-	}
-
-	// Rotate relative
-	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
-	ILINE void Turn(float p, float y, float r)
-	{
-		vRotation += Vec3f(p, y, r);
+		Quat turnQuat = Quat::FromEuler(eulerAngles);
+		rotation = rotation * turnQuat;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
 	}
@@ -211,6 +193,8 @@ public:
 		//
 		//mWorld = DXMatrixToDMatrix(mW);
 
+		SMatrix rotMtx = rotation.ToRotationMatrix();
+
 		m_WorldMatrix = SMatrix4(	// identity
 			SVector4(1.0f, 0, 0, 0),
 			SVector4(0, 1.0f, 0, 0),
@@ -221,22 +205,22 @@ public:
 			SVector4(0, vSize.y, 0, 0),
 			SVector4(0, 0, vSize.z, 0),
 			SVector4(0, 0, 0, 1.0f)
-			) * SMatrix4(	// Yaw
-			SVector4(cosf(vRotation.y), 0, sinf(vRotation.y), 0),
-			SVector4(0, 1.0f, 0, 0),
-			SVector4(-sinf(vRotation.y), 0, cosf(vRotation.y), 0),
+			) * rotMtx /** SMatrix4(		// Roll
+			SVector4(cosf(vRotation.z), -sinf(vRotation.z), 0, 0),
+			SVector4(sinf(vRotation.z), cosf(vRotation.z), 0, 0),
+			SVector4(0, 0, 1.0f, 0),
 			SVector4(0, 0, 0, 1.0f)
 			) * SMatrix4(		// Pitch
 			SVector4(1.0f, 0, 0, 0),
 			SVector4(0, cosf(vRotation.x), -sinf(vRotation.x), 0),
 			SVector4(0, sinf(vRotation.x), cosf(vRotation.x), 0),
 			SVector4(0, 0, 0, 1.0f)
-			) * SMatrix4(		// Roll
-			SVector4(cosf(vRotation.z), -sinf(vRotation.z), 0, 0),
-			SVector4(sinf(vRotation.z), cosf(vRotation.z), 0, 0),
-			SVector4(0, 0, 1.0f, 0),
+			) * SMatrix4(	// Yaw
+			SVector4(cosf(vRotation.y), 0, sinf(vRotation.y), 0),
+			SVector4(0, 1.0f, 0, 0),
+			SVector4(-sinf(vRotation.y), 0, cosf(vRotation.y), 0),
 			SVector4(0, 0, 0, 1.0f)
-			) * SMatrix4(	// Translation
+			)*/ * SMatrix4(	// Translation
 			SVector4(1.0f, 0, 0, vPosition.x),
 			SVector4(0, 1.0f, 0, vPosition.y),
 			SVector4(0, 0, 1.0f, vPosition.z),
@@ -260,7 +244,7 @@ public:
 public:
 	Vec3f& GetPosition() { return vPosition; }
 
-	Vec3f& GetRotation() { return vRotation; }
+	Quat& GetRotation() { return rotation; }
 
 	Vec3f& GetSize() { return vSize; }
 

@@ -19,38 +19,90 @@ SP_NMSPACE_BEG
 struct S_API SCamera
 {
 	f32 fViewRadius;		// Keep it short for performant rendering	
-	SMatrix4 viewMatrix;
-	Vec3f position;
-	Vec3f rotation;	// tait-bryan angles
+	SMatrix4 viewMatrix; // col0=left, col1=up, col2=forward
+	Vec3f position;	
+
+	Quat d_turnQuat;
+	Vec3f d_turn;
+	Vec3f d_lookAt;
 
 	// Default constructor
 	SCamera()
 		: fViewRadius(20.0f),
-		viewMatrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+		viewMatrix(1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f)
 	{
 	}
 
 	~SCamera()			
 	{		
-		viewMatrix = SMatrix4(0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
+		viewMatrix = SMatrix4(1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f);
 	}
 
 
 	// Summary:
-	//	Calculate and store rotation angles by look direction to a specified point
-	ILINE Vec3f& LookAt(const Vec3f& lookAt)
+	//	Uses the up vector (0,1,0) to calculate the rotation quaternion.
+	//	The direction from camera position to lookAt must not be the upvector or its negative
+	ILINE void LookAt(const Vec3f& lookAt)
 	{
 		Vec3f dir = Vec3Normalize(lookAt - position);
-		rotation.x = asinf(dir.y);
-		rotation.y = acosf(dir.z / sqrtf(1.0f - (dir.y * dir.y)));
-		
-		// Todo: is there a way to eliminate dynamic branching here?
-		if (dir.x < 0.0f)
-			rotation.y = (2.0f * SP_PI) - rotation.y;
-
-		rotation.z = 0.0f;
-		return rotation;
+		float cosAngle = Vec3Dot(dir, Vec3f(0, 1.0f, 0));
+		if (fabsf(cosAngle) - 1.0f > FLT_EPSILON)
+		{
+			Vec3f axis = Vec3Cross(lookAt, Vec3f(0, 1.0f, 0));
+			float angle = acosf(cosAngle);
+			Quat rotation = Quat::FromAxisAngle(axis, angle);
+					
+			Vec3f left = rotation * Vec3f(1.0f, 0, 0);
+			Vec3f up = rotation * Vec3f(0, 1.0f, 0);
+			Vec3f forward = rotation * Vec3f(0, 0, 1.0f);
+			viewMatrix = SMatrixTranspose(SMatrix(
+				left.x, up.x, forward.x, 0,
+				left.y, up.y, forward.y, 0,
+				left.z, up.z, forward.z, 0,
+				0, 0, 0, 1
+				));
+			RecalculateViewMatrix();
+		}		
 	}
+
+	// relative
+	ILINE void TurnYaw(float rad)
+	{
+		Quat rotation = Quat::FromRotationY(rad);		
+		Vec3f left = rotation * Vec3f(viewMatrix._11, viewMatrix._21, viewMatrix._31);
+		Vec3f up = rotation * Vec3f(viewMatrix._12, viewMatrix._22, viewMatrix._32);
+		Vec3f forward = rotation * Vec3f(viewMatrix._13, viewMatrix._23, viewMatrix._33);
+		viewMatrix = SMatrix(
+			left.x, up.x, forward.x, 0,
+			left.y, up.y, forward.y, 0,
+			left.z, up.z, forward.z, 0,
+			0, 0, 0, 1
+			);
+		RecalculateViewMatrix();
+	}
+
+	// relative
+	ILINE void TurnPitch(float rad)
+	{
+		Quat rotation = Quat::FromRotationX(rad);
+		Vec3f left = rotation * Vec3f(viewMatrix._11, viewMatrix._21, viewMatrix._31);
+		Vec3f up = rotation * Vec3f(viewMatrix._12, viewMatrix._22, viewMatrix._32);
+		Vec3f forward = rotation * Vec3f(viewMatrix._13, viewMatrix._23, viewMatrix._33);
+		viewMatrix = SMatrix(
+			left.x, up.x, forward.x, 0,
+			left.y, up.y, forward.y, 0,
+			left.z, up.z, forward.z, 0,
+			0, 0, 0, 1
+			);
+		RecalculateViewMatrix();
+	}
+
+	// relative
+	void Turn(float yaw, float pitch);	
+
+	Vec3f GetForward() const;
+	Vec3f GetLeft() const;
+	Vec3f GetUp() const;
 
 
 	// Summary:
@@ -60,28 +112,7 @@ struct S_API SCamera
 	//	- roll: Set to true if you also want to take roll into account (rotation.z)
 	// Return Value:
 	//	Returns new view matrix as const ref
-	ILINE SMatrix4& RecalculateViewMatrix(bool roll = false)
-	{
-		Vec3f lookAt;
-		if (!roll)
-		{
-			lookAt.x = position.x + sinf(rotation.y) * cosf(rotation.x);
-			lookAt.y = position.y + sinf(rotation.x);
-			lookAt.z = position.z + cosf(rotation.y) * cosf(rotation.x);
-		}
-		else
-		{
-			SMatrix4 mtxRot = SMatrix::MakeRotationMatrix(rotation);
-
-			// TODO
-
-
-		}
-
-		SPMatrixLookAtRH(&viewMatrix, position, lookAt, Vec3f(0,1.0f,0));
-		//SPMatrixLookAtRH(&viewMatrix, SVector3(0, 5.0f, -10.0f), SVector3(0,0,0), SVector3(0,1.0f,0));	
-		return viewMatrix;
-	}
+	SMatrix4& RecalculateViewMatrix(bool roll = false);
 };
 
 

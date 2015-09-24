@@ -196,6 +196,9 @@
     <ClCompile Include="..\..\Source\SpeedPointApplication.cpp">
       <Filter>Sources\Frontend</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Util\Camera.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

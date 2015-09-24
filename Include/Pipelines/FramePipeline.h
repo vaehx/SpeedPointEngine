@@ -74,6 +74,7 @@ class S_API CDebugInfo
 {
 public:
 	IGameEngine* m_pEngine;
+	SFontRenderSlot* m_pViewMtxRows[4];
 	SFontRenderSlot* m_pCamStats;
 	SFontRenderSlot* m_pFPS;
 	SFontRenderSlot* m_pFrameTimes;
