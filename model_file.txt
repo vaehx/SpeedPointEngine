@@ -1,0 +1,53 @@
+==========================================================================================
+		Material bank file   .smb
+==========================================================================================
+
+// c-like file:
+mat 'brick_bright' {
+	texture_map = 'brick/brick_bright_diff.bmp';
+	normal_map = 'brick/brick_bright_normal.bmp';
+	roughness_map = 'brick/brick_bright_roughness.bmp';
+
+	roughness = 0.2; // or 0.2f <-- comment
+	emissive = (0.3, 0.2, 0.9);
+}
+
+
+
+==========================================================================================
+		Model File  .smf
+==========================================================================================
+
+At beginning of file: 
+	u16 version;
+
+Each chunk: { 2 byte id, 8 byte length, ... }
+
+Chunks:
+0x1000 - Model Meta:
+	struct meta
+	{
+		string text; // read until first \0
+		unsigned short num_subsets;
+	};
+
+0x2000 - Vertices // Read num_vertices vertices
+	u64 nVertices;
+	Then per vertex:
+	struct vertex
+	{
+		float x, y, z;
+		float nx, ny, nz;
+		float u, v;
+	};
+
+0x3000 - Subset chunk
+	0x3100 - Subset-Meta:
+		struct subset_meta
+		{
+			string material_name; // specification/name of material
+		};
+
+	0x3200 - Indices // Read num_indices indices
+		u64 nIndices;
+		Single index = u64 index;

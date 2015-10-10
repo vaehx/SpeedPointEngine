@@ -1,0 +1,39 @@
+Cry-Engine:
+
+Terrain:
+	- Default: {CM: Gray, DM: raster}
+	- Grass: {CM: low-frequency green texture (256x256), DM: few color/lightly green (2048x2048)}
+	- Rock: {CM: gray?, DM: detailed rock texture/nearly no colors (2048x2048)}
+
+	- The colormap of the Layer is painted onto the terrain-color-map
+	- The colormap of the terrain is the same for all layers
+	- the detailmap at a position is specified by the layer-id, stored in a layer-id-texture
+
+SkyBox:
+	- Has no texture on start, just a little gradient from bright (on the horizon) to sky-blue at the dome top
+	- sun is a bright, smooth circle
+
+Transformation:
+	- ALWAYS the vertical mouse pointer difference is used
+	- When multiple objects are selected, a triad per-object is shown
+		- in Local-Mode:
+			- The triads are object-aligned
+			- Rotation is per-object around their specific selected axis (x, y or z)
+			- translation is done for both objects around the actual selected axis of that one objects with that axis
+		- in world-mode:
+			- Triads are axis-aligned
+			- rotation is around the axis into direction of the selected axis (some for all objects), going through
+			  the middle of both-objects-bound-box
+			- translation is trivial, as the axises are all aligned
+	- two-direction translation:
+		- perpendicular lines in the angle with 2 separate bound boxes
+	- the hovered axis is colored, instead of showing the cone.
+		- for two-direction translation, we could simply show 2 cones
+			- same for three-direction translation
+	- the actual transformation restriction mode (TRM) is activated by using it or clicking on the axis.
+		- the current transformation restriction mode (TRM) is shown in the toolbar
+	- at the origin of the triad (triad position), there is a sphere, which is a xz-movement, aligning the origin of the object
+	  to the height of the terrain at that xz-position.
+
+Selection Bound-Box:
+	- When multiple objects are selected, a boundbox for each object is drawn
