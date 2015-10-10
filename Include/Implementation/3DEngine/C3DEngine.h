@@ -27,7 +27,7 @@ struct S_API SRenderObject
 #endif
 	SRenderDesc renderDesc;
 	AABB aabb;
-	
+
 	// For forward rendering:
 	SRenderLight* affectingLights[4];
 	int nAffectingLights;
@@ -59,8 +59,6 @@ private:
 	void AddVisibleEntity(IEntity* pEntity, const AABB& aabb);
 	void AddVisibleLight(ILight* pLight, const AABB& aabb);
 
-	void ClearRenderObjects();
-
 
 public:
 	C3DEngine(IRenderer* pRenderer);
@@ -68,8 +66,14 @@ public:
 	
 	ILINE virtual unsigned int CollectVisibleObjects(IScene* pScene, const SCamera* pCamera);
 
+	// Returns the pointer to a renderObject of this frame.
+	// DO NOT USE THE POINTER AFTER RENDERING!
+	ILINE virtual SRenderObject* GetCustomRenderObject();
+
 	// Render lastly collected visible objects
 	ILINE virtual void RenderCollected();
+
+	ILINE virtual void ClearRenderObjects();
 };
 
 

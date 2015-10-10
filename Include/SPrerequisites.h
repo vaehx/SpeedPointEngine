@@ -92,6 +92,9 @@ typedef unsigned __int32 usint32; // Unsigned 32bit integer
 typedef unsigned __int64 usint64; // Unsigned 64bit integer
 typedef float f32; // 32bit precision float value
 typedef double f64; // 64bit (double-)precision float value
+typedef unsigned __int16 u16; // unsigned short
+typedef unsigned __int32 u32; // unsigned int
+typedef unsigned __int64 u64; // unsigned long
 
 // SpeedPoint unique identifier index (unsigned)
 typedef usint32 SP_UNIQUE;

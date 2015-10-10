@@ -122,11 +122,20 @@ public:
 		RecalcBoundBox();
 	}
 
-	// Rotate relative
+	// Rotate relative, around local axes
 	ILINE void Turn(const Vec3f& eulerAngles)
 	{
 		Quat turnQuat = Quat::FromEuler(eulerAngles);
 		rotation = rotation * turnQuat;
+		RecalculateWorldMatrix();
+		RecalcBoundBox();
+	}
+
+	// Rotate relative, around global axes
+	ILINE void TurnGlobal(const Vec3f& eulerAngles)
+	{
+		Quat turnQuat = Quat::FromEuler(eulerAngles);
+		rotation = turnQuat * rotation;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
 	}
