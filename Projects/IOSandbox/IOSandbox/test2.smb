@@ -1,8 +1,0 @@
-mat 'testmaterial' {
-    texture_map = 'test-texture-map';
-    normal_map = 'test-normal-map';
-    roughness_map = 'test-roughness-map';
-    emissive  (0.2,0.2,0.8);
-    illum_model = 0;
-}
-
