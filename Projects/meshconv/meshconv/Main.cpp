@@ -220,6 +220,7 @@ int main(int argc, char* argv[])
 
 	// Save materials:
 	CSMBWriter smbWriter;
+	std::cout << "Writing test.smb..." << std::endl;
 	smbWriter.Prepare("test.smb");
 	
 	for (auto itMaterial = materials.begin(); itMaterial != materials.end(); itMaterial++)
@@ -236,10 +237,11 @@ int main(int argc, char* argv[])
 	for (auto itModel = models.begin(); itModel != models.end(); itModel++)
 	{
 		string filename = itModel->name + ".spm";
-		std::cout << filename << std::endl;
+		std::cout << "Writing " << filename << "..." << std::endl;
 		spmWriter.Write(filename.c_str(), *itModel);
 	}
 
+	std::cout << "Done" << std::endl;
 
 
 	// Clean up
