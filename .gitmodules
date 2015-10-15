@@ -1,3 +1,6 @@
 [submodule "Projects/IOSandbox"]
 	path = Projects/IOSandbox
 	url = git@bitbucket.org:prosicraft/SpeedPointIOSandbox.git
+[submodule "Projects/meshconv"]
+	path = Projects/meshconv
+	url = git@bitbucket.org:prosicraft/MeshConv.git
