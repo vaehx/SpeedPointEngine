@@ -41,9 +41,6 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\Scene.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -51,6 +48,12 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\Entities.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SMBFile.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SPMFile.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -85,9 +88,6 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\File3DS.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableObjects.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -95,6 +95,12 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Entities.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SMBFile.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SPMFile.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

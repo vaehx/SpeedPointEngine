@@ -146,8 +146,6 @@ struct S_API IMaterialManager
 	virtual void RemoveMaterial(const char* name) = 0;
 	virtual void RemoveMaterial(IMaterial** pMat) = 0;
 
-	virtual void CollectInitGeomMaterials(SInitialGeometryDesc* pInitGeomDesc) = 0;
-
 	virtual IMaterial* GetDefaultMaterial() = 0;
 	virtual void LogAllMaterials() = 0;
 	virtual void Clear() = 0;

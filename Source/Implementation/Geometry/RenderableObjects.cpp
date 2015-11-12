@@ -67,10 +67,13 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 	unsigned int nRings = 16;
 
 	initGeom.nVertices = (nStripes + 1) * (nRings + 1);
-	initGeom.nIndices = (nStripes * nRings) * 6;
-
 	initGeom.pVertices = new SVertex[initGeom.nVertices];
-	initGeom.pIndices = new SIndex[initGeom.nIndices];
+
+	initGeom.nSubsets = 1;
+	initGeom.pSubsets = new SInitialSubsetGeometryDesc[1];
+
+	initGeom.pSubsets[0].nIndices = (nStripes * nRings) * 6;
+	initGeom.pSubsets[0].pIndices = new SIndex[initGeom.pSubsets[0].nIndices];
 
 	initGeom.primitiveType = SpeedPoint::PRIMITIVE_TYPE_TRIANGLELIST;	
 
@@ -99,12 +102,12 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 
 			if (ring < nRings && stripe < nStripes)
 			{
-				initGeom.pIndices[indexAccum] = ring * (nStripes + 1) + stripe;
-				initGeom.pIndices[indexAccum + 1] = initGeom.pIndices[indexAccum] + (nStripes + 1) + 1;
-				initGeom.pIndices[indexAccum + 2] = initGeom.pIndices[indexAccum] + 1;
-				initGeom.pIndices[indexAccum + 3] = initGeom.pIndices[indexAccum];
-				initGeom.pIndices[indexAccum + 4] = initGeom.pIndices[indexAccum] + (nStripes + 1);
-				initGeom.pIndices[indexAccum + 5] = initGeom.pIndices[indexAccum + 1];
+				initGeom.pSubsets[0].pIndices[indexAccum] = ring * (nStripes + 1) + stripe;
+				initGeom.pSubsets[0].pIndices[indexAccum + 1] = initGeom.pSubsets[0].pIndices[indexAccum] + (nStripes + 1) + 1;
+				initGeom.pSubsets[0].pIndices[indexAccum + 2] = initGeom.pSubsets[0].pIndices[indexAccum] + 1;
+				initGeom.pSubsets[0].pIndices[indexAccum + 3] = initGeom.pSubsets[0].pIndices[indexAccum];
+				initGeom.pSubsets[0].pIndices[indexAccum + 4] = initGeom.pSubsets[0].pIndices[indexAccum] + (nStripes + 1);
+				initGeom.pSubsets[0].pIndices[indexAccum + 5] = initGeom.pSubsets[0].pIndices[indexAccum + 1];
 				indexAccum += 6;
 			}
 		}
@@ -113,7 +116,9 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 	m_Renderable.GetGeometry()->Init(pEngine, pEngine->GetRenderer(), &initGeom);
 
 	delete[] initGeom.pVertices;
-	delete[] initGeom.pIndices;
+
+	delete[] initGeom.pSubsets[0].pIndices;
+	delete[] initGeom.pSubsets;
 
 
 	// Setup material

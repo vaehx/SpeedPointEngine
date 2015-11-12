@@ -2,8 +2,8 @@
 #include <Abstract\IGeometry.h>
 #include <Implementation\Geometry\Scene.h>
 #include <Implementation\Geometry\Terrain.h>
-#include <Implementation\Geometry\File3DS.h>
 #include <Implementation\Geometry\StaticObject.h>
+#include <Implementation\Geometry\SPMFile.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IMaterial.h>
 
@@ -131,190 +131,65 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr, "Engine not initialized!");
 
-	// assume it's a 3ds file	
-
-	std::ifstream file;
-	file.open(filename, std::ifstream::in | std::ifstream::binary);
-	if (!file.is_open())
+	// Load SPM Model
+	CSPMLoader spmLoader;
+	if (!spmLoader.Load(filename))
 	{
-		EngLog(S_ERROR, m_pEngine, "Could not load static object from file: Could not open file (not found, no permissions, ...)");
-		return nullptr;
-	}
-		
-	File3DS file3ds(file);
-	file3ds.Read();	
-	file.close();
-
-	//
-	// Disccussion: How to store multiple Named Object from the 3Ds file into single geometry?
-	//
-
-
-	// One possible solution: merge all points and faces into a single vertex / index buffer
-
-	/*
-	SInitialMaterials mats;
-	mats.nMaterials = file3ds.materials.size();
-	mats.pMaterials = new SMaterial[mats.nMaterials];
-	*/	
-
-	SInitialGeometryDesc geom;
-	geom.nMatIndexAssigns = file3ds.materials.size();
-	geom.pMatIndexAssigns = new SMaterialIndices[geom.nMatIndexAssigns];
-
-	// add all material names to mat index assigns so that we have their names already
-	unsigned int iMatIdx = 0;
-	for (auto itMat = file3ds.materials.begin(); itMat != file3ds.materials.end(); itMat++)
-	{
-		unsigned int matNameLn = sp_strlen(itMat->material_name);
-		geom.pMatIndexAssigns[iMatIdx].materialName = new char[matNameLn + 1];
-		memcpy(geom.pMatIndexAssigns[iMatIdx].materialName, itMat->material_name, matNameLn);
-		geom.pMatIndexAssigns[iMatIdx].materialName[matNameLn] = 0;
-				
-
-		// fill initial materials
-		IMaterial* mat = m_pEngine->GetMaterialManager()->CreateMaterial(itMat->material_name);
-		SShaderResources& matRes = mat->GetLayer(0)->resources;
-
-		if (IS_VALID_PTR(itMat->texturemap.name))
-			matRes.textureMap = m_pEngine->GetResources()->GetTexture(itMat->texturemap.name);
-
-		if (IS_VALID_PTR(itMat->bumpmap.name))
-			matRes.normalMap = m_pEngine->GetResources()->GetTexture(itMat->bumpmap.name);
-
-
-		iMatIdx++;
+		CLog::Log(S_ERROR, "Falied to load object file '%s'", filename);
+		return 0;
 	}
 
-	// count vertices, indices and material assigns to be able to prepare buffers
-	geom.nVertices = 0;
-	geom.nIndices = 0;
-	for (auto itObj = file3ds.objects.begin(); itObj != file3ds.objects.end(); itObj++)
+	const SModelMeta &spmModelMeta = spmLoader.GetModelMeta();
+	
+	SInitialGeometryDesc geomDesc;
+	geomDesc.bRequireNormalRecalc = true;
+	geomDesc.bRequireTangentRecalc = true;
+	geomDesc.indexUsage = eGEOMUSE_STATIC;
+	geomDesc.vertexUsage = eGEOMUSE_STATIC;
+	geomDesc.primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
+
+	geomDesc.nVertices = spmModelMeta.nVertices;
+	geomDesc.pVertices = spmModelMeta.pVertices;
+
+	geomDesc.nSubsets = spmModelMeta.nLoadedSubsets;
+	geomDesc.pSubsets = new SInitialSubsetGeometryDesc[geomDesc.nSubsets];
+	
+	for (u16 iSubset = 0; iSubset < geomDesc.nSubsets; ++iSubset)
 	{
-		geom.nVertices += itObj->nVertices;
-		geom.nIndices += itObj->nFaces * 3; // three indices per face		
+		SSubset& modelSubset = spmModelMeta.pSubsets[iSubset];
+		SInitialSubsetGeometryDesc& subset = geomDesc.pSubsets[iSubset];
 
-		for (auto itMeshMat = itObj->meshMaterials.begin(); itMeshMat != itObj->meshMaterials.end(); itMeshMat++)
-		{
-			bool bMatIndexAssignFound = false;
-			for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < geom.nMatIndexAssigns; ++iMatIndexAssign)
-			{
-				SMaterialIndices& matIndexAssign = geom.pMatIndexAssigns[iMatIndexAssign];
-				if (strcmp(itMeshMat->name, matIndexAssign.materialName) != 0)
-					continue;
+		subset.nIndices = modelSubset.nIndices;
 
-				matIndexAssign.nIdxIndices += itMeshMat->nAffectedFaces * 3; // 3 indices per face
-				bMatIndexAssignFound = true;
-				break;
-			}
+		subset.pIndices = new SIndex[subset.nIndices];
 
-			if (!bMatIndexAssignFound)
-				EngLog(S_WARN, m_pEngine, "Could not determine material to which an object should be bound.");
-		}		
-	}	
+		// TODO: Use SIndex in SPMFile, so we don't have to copy the indices here!
+		for (u32 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
+			subset.pIndices[iIndex] = modelSubset.pIndices[iIndex];
 
-	// remove all matIndexAssigns that have material, but no indices assigned
-	unsigned int* pValidMatIndexAssigns = new unsigned int[geom.nMatIndexAssigns];
-	unsigned int nValidMatIndexAssigns = 0;
-	for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < geom.nMatIndexAssigns; ++iMatIndexAssign)
-	{
-		if (geom.pMatIndexAssigns[iMatIndexAssign].nIdxIndices == 0)
-			continue;
-
-		pValidMatIndexAssigns[nValidMatIndexAssigns] = iMatIndexAssign;
-		nValidMatIndexAssigns++;
+		subset.pMaterial = m_pEngine->GetMaterialManager()->FindMaterial(modelSubset.materialName.c_str());
 	}
 
-	if (nValidMatIndexAssigns < geom.nMatIndexAssigns)
-	{
-		SMaterialIndices* pNewMatIndexAssigns = new SMaterialIndices[nValidMatIndexAssigns];
-		for (unsigned int iValidMatIndexAssign = 0; iValidMatIndexAssign < nValidMatIndexAssigns; ++iValidMatIndexAssign)
-		{
-			// use copy assignment operator
-			pNewMatIndexAssigns[iValidMatIndexAssign]
-				= geom.pMatIndexAssigns[pValidMatIndexAssigns[iValidMatIndexAssign]];
-		}
-
-		delete[] geom.pMatIndexAssigns;
-		geom.pMatIndexAssigns = pNewMatIndexAssigns;
-		geom.nMatIndexAssigns = nValidMatIndexAssigns;
-	}
-
-	delete[] pValidMatIndexAssigns;
-
-
-
-	// create merged buffers
-	geom.pVertices = new SVertex[geom.nVertices];
-	geom.pIndices = new SIndex[geom.nIndices];	
-
-	unsigned int vtxOffset = 0, idxOffset = 0;
-	for (auto itObj = file3ds.objects.begin(); itObj != file3ds.objects.end(); itObj++)
-	{
-		// add vertices
-		for (unsigned int iVtx = 0; iVtx < itObj->nVertices; ++iVtx)
-			geom.pVertices[iVtx + vtxOffset] = SVertex(itObj->pVertices[iVtx].x, itObj->pVertices[iVtx].y, itObj->pVertices[iVtx].z);
-
-		// add indices
-		for (unsigned short iIdx = 0; iIdx < itObj->nFaces * 3; iIdx += 3)
-		{
-			unsigned short iFace = (unsigned short)(iIdx / 3);
-			geom.pIndices[idxOffset + iIdx] = itObj->pFaces[iFace].v1 + vtxOffset;
-			geom.pIndices[idxOffset + iIdx + 1] = itObj->pFaces[iFace].v2 + vtxOffset;
-			geom.pIndices[idxOffset + iIdx + 2] = itObj->pFaces[iFace].v3 + vtxOffset;
-		}		
-
-		// add all mesh mat face indices to the matIndexAssigns, create them if not yet done
-		for (auto itMeshMat = itObj->meshMaterials.begin(); itMeshMat != itObj->meshMaterials.end(); itMeshMat++)
-		{
-			// find according matIndexAssign and fill
-			// Note: Error message if matIndexAssign not found already thrown above when counting required index buffer size
-			for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < geom.nMatIndexAssigns; ++iMatIndexAssign)
-			{
-				SMaterialIndices& matIndexAssign = geom.pMatIndexAssigns[iMatIndexAssign];
-				if (strcmp(itMeshMat->name, matIndexAssign.materialName) != 0)
-					continue;
-
-				if (!IS_VALID_PTR(matIndexAssign.pIdxIndices))
-					matIndexAssign.pIdxIndices = new unsigned long[matIndexAssign.nIdxIndices];
-
-				for (unsigned short iMeshMatFace = 0; iMeshMatFace < itMeshMat->nAffectedFaces; ++iMeshMatFace)
-				{
-					// find according indices
-					unsigned short iBegIndex = itMeshMat->pAffectedFaces[iMeshMatFace] * 3 + idxOffset;
-
-					matIndexAssign.pIdxIndices[matIndexAssign.nFilledIdxIndices] = (unsigned long)iBegIndex;
-					matIndexAssign.pIdxIndices[matIndexAssign.nFilledIdxIndices + 1] = (unsigned long)iBegIndex + 1;
-					matIndexAssign.pIdxIndices[matIndexAssign.nFilledIdxIndices + 2] = (unsigned long)iBegIndex + 2;
-					matIndexAssign.nFilledIdxIndices += 3;				
-				}
-
-				break; // found
-			}
-		}
-
-		vtxOffset += itObj->nVertices;
-		idxOffset += itObj->nFaces * 3;
-	}
-
-
-	geom.bRequireNormalRecalc = true;
-
-	// Initialize result object
 	StaticObject* pStaticObject = new StaticObject();
-	IStaticObject* pReturn = pStaticObject;	
-	if (Failure(pStaticObject->Init(m_pEngine, "3DSStaticObject", &geom)))
+
+	SResult res;
+	if (Failure(res = pStaticObject->Init(m_pEngine, spmModelMeta.name.c_str(), &geomDesc)))
+		CLog::Log(S_ERROR, "Failed init static object while loading file '%s'", filename);
+
+	
+	// Cleanup
+	delete[] geomDesc.pVertices;
+
+	for (u16 iSubset = 0; iSubset < geomDesc.nSubsets; ++iSubset)
 	{
-		EngLog(S_ERROR, m_pEngine, "Failed Init Static Object to store loaded 3ds file!");
-		pReturn = 0;
+		delete[] geomDesc.pSubsets[iSubset].pIndices;
+		delete[] spmModelMeta.pSubsets[iSubset].pIndices;
 	}
 
-	SP_SAFE_DELETE_ARR(geom.pVertices, 1);
-	SP_SAFE_DELETE_ARR(geom.pIndices, 1);
-	SP_SAFE_DELETE_ARR(geom.pMatIndexAssigns, 1);	
+	delete[] geomDesc.pSubsets;
+	delete[] spmModelMeta.pSubsets;
 
-
-	return pReturn;
+	return pStaticObject;
 }
 
 // -------------------------------------------------------------------------------------------------

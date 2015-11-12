@@ -236,7 +236,8 @@ S_API SResult CRigidBody::Init(IGameEngine* pEngine, const char* name /*="RigidB
 	if (IS_VALID_PTR(name))
 		m_Name = name;
 
-	m_pEngine->GetMaterialManager()->CollectInitGeomMaterials(pInitialGeom);
+	//m_pEngine->GetMaterialManager()->CollectInitGeomMaterials(pInitialGeom);
+
 	res = m_Renderable.GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), pInitialGeom);
 	if (Failure(res))
 	{

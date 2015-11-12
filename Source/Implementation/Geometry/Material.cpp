@@ -127,23 +127,6 @@ S_API IMaterial* BasicMaterialManager::FindMaterial(const char* name)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterialManager::CollectInitGeomMaterials(SInitialGeometryDesc* pInitialGeom)
-{
-	if (!IS_VALID_PTR(pInitialGeom))
-		return;
-
-	// Find matching material pointers based on given material names	
-	if (pInitialGeom->nMatIndexAssigns > 0)
-	{		
-		for (unsigned int iMatIndexAssign = 0; iMatIndexAssign < pInitialGeom->nMatIndexAssigns; ++iMatIndexAssign)
-		{
-			SMaterialIndices& matIndexAssign = pInitialGeom->pMatIndexAssigns[iMatIndexAssign];
-			matIndexAssign.pMaterial = FindMaterial(matIndexAssign.materialName);
-		}
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
 S_API IMaterial* BasicMaterialManager::CreateMaterial(const char* name)
 {
 	IMaterial* pMat = m_Materials.Get();

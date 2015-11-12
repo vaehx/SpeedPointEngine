@@ -22,6 +22,31 @@
 SP_NMSPACE_BEG
 
 // ----------------------------------------------------------------------------------------
+EVBUsage ParseVBUsage(EGeomUsage geomUsage)
+{
+	switch (geomUsage)
+	{
+	case eGEOMUSE_MODIFY_FREQUENTLY: return eVBUSAGE_DYNAMIC_FREQUENT;
+	case eGEOMUSE_MODIFY_RARELY: return eVBUSAGE_DYNAMIC_RARE;
+	default:
+		return eVBUSAGE_STATIC;
+	}
+}
+
+// ----------------------------------------------------------------------------------------
+EIBUsage ParseIBUsage(EGeomUsage geomUsage)
+{
+	switch (geomUsage)
+	{
+	case eGEOMUSE_MODIFY_FREQUENTLY: return eIBUSAGE_DYNAMIC_FREQUENT;
+	case eGEOMUSE_MODIFY_RARELY: return eIBUSAGE_DYNAMIC_RARE;
+	default:
+		return eIBUSAGE_STATIC;
+	}
+}
+
+
+// ----------------------------------------------------------------------------------------
 S_API Geometry::Geometry()
 : m_pRenderer(nullptr),
 m_pEngine(nullptr)
@@ -63,6 +88,97 @@ S_API void Geometry::Clear()
 }
 
 // ----------------------------------------------------------------------------------------
+S_API void Geometry::CalculateInitialNormalsOrTangents(SInitialGeometryDesc* pInitialGeom)
+{
+	SVertex* pVertices = pInitialGeom->pVertices;
+
+	// faces that contributed to each vertex, so that we can afterwards divide by this number
+	// in order to properly average the normal.
+	unsigned short *pVertexFaces = new unsigned short[pInitialGeom->nVertices];
+
+	// first, reset all normals (and tangents) to (0,0,0)
+	for (usint32 iVtx = 0; iVtx < pInitialGeom->nVertices; ++iVtx)
+	{
+		if (pInitialGeom->bRequireNormalRecalc)
+		{
+			pVertices[iVtx].nx = 0.0f;
+			pVertices[iVtx].ny = 0.0f;
+			pVertices[iVtx].nz = 0.0f;
+			pVertexFaces[iVtx] = 0;
+		}
+
+		if (pInitialGeom->bRequireTangentRecalc)
+		{
+			pVertices[iVtx].tx = 0.0f;
+			pVertices[iVtx].ty = 0.0f;
+			pVertices[iVtx].tz = 0.0f;
+		}
+	}
+
+	if (pInitialGeom->bRequireNormalRecalc)
+	{
+		// accumulate normals over all faces in all subsets
+		for (u32 iSubset = 0; iSubset < pInitialGeom->nSubsets; ++iSubset)
+		{
+			const SInitialSubsetGeometryDesc& subset = pInitialGeom->pSubsets[iSubset];
+			for (u32 iIndex = 0; iIndex < subset.nIndices; iIndex += 3)
+			{
+				SVertex& vtx1 = pVertices[subset.pIndices[iIndex]];
+				SVertex& vtx2 = pVertices[subset.pIndices[iIndex + 1]];
+				SVertex& vtx3 = pVertices[subset.pIndices[iIndex + 2]];
+
+				SVector3 v1(vtx1.x, vtx1.y, vtx1.z), v2(vtx2.x, vtx2.y, vtx2.z), v3(vtx3.x, vtx3.y, vtx3.z);
+
+				SVector3 normal = Vec3Normalize(Vec3Cross(v2 - v1, v3 - v1));
+
+				vtx1.nx += normal.x;
+				vtx1.ny += normal.y;
+				vtx1.nz += normal.z;
+				++pVertexFaces[subset.pIndices[iIndex]];
+
+				vtx2.nx += normal.x;
+				vtx2.ny += normal.y;
+				vtx2.nz += normal.z;
+				++pVertexFaces[subset.pIndices[iIndex + 1]];
+
+				vtx3.nx += normal.x;
+				vtx3.ny += normal.y;
+				vtx3.nz += normal.z;
+				++pVertexFaces[subset.pIndices[iIndex + 2]];
+			}
+		}
+
+		// now average all normals
+		for (usint32 iVtx = 0; iVtx < pInitialGeom->nVertices; ++iVtx)
+		{
+			float k = 1.0f / (float)pVertexFaces[iVtx];
+			pVertices[iVtx].nx *= k;
+			pVertices[iVtx].ny *= k;
+			pVertices[iVtx].nz *= k;
+		}
+	}
+
+	// recalc of tangents has to be done after normal recalc
+	if (pInitialGeom->bRequireTangentRecalc)
+	{
+		for (u32 iSubset = 0; iSubset < pInitialGeom->nSubsets; ++iSubset)
+		{
+			SInitialSubsetGeometryDesc& subset = pInitialGeom->pSubsets[iSubset];
+			for (usint32 iIndex = 0; iIndex < subset.nIndices; iIndex += 3)
+			{
+				SVertex& vtx1 = pVertices[subset.pIndices[iIndex]];
+				SVertex& vtx2 = pVertices[subset.pIndices[iIndex + 1]];
+				SVertex& vtx3 = pVertices[subset.pIndices[iIndex + 2]];
+
+				vtx1.CalcTangent(vtx2, vtx3);
+				vtx2.tx = vtx1.tx; vtx2.ty = vtx1.ty; vtx2.tz = vtx1.tz;
+				vtx3.tx = vtx1.tx; vtx3.ty = vtx1.ty; vtx3.tz = vtx1.tz;
+			}
+		}
+	}
+}
+
+// ----------------------------------------------------------------------------------------
 S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom /* = nullptr */)
 {
 	Clear();
@@ -79,166 +195,86 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 	if (IS_VALID_PTR(pInitialGeom))
 	{
 		m_PrimitiveType = pInitialGeom->primitiveType;
-		switch (pInitialGeom->vertexUsage)
-		{
-		case eGEOMUSE_MODIFY_RARELY: vbUsage = eVBUSAGE_DYNAMIC_RARE; break;
-		case eGEOMUSE_MODIFY_FREQUENTLY: vbUsage = eVBUSAGE_DYNAMIC_FREQUENT; break;
-		default:
-		case eGEOMUSE_STATIC:
-			vbUsage = eVBUSAGE_STATIC; break;
-		}
 
-		switch (pInitialGeom->indexUsage)
-		{
-		case eGEOMUSE_MODIFY_RARELY: ibUsage = eIBUSAGE_DYNAMIC_RARE; break;
-		case eGEOMUSE_MODIFY_FREQUENTLY: ibUsage = eIBUSAGE_DYNAMIC_FREQUENT; break;
-		default:
-		case eGEOMUSE_STATIC:
-			ibUsage = eIBUSAGE_STATIC; break;
-		}
+		vbUsage = ParseVBUsage(pInitialGeom->vertexUsage);
+		ibUsage = ParseIBUsage(pInitialGeom->indexUsage);
 	}
 
+	// Initialize vertices
 	RETURN_ON_ERR(pRenderer->GetResourcePool()->AddVertexBuffer(&m_pVertexBuffer));
 	RETURN_ON_ERR(m_pVertexBuffer->Initialize(pEngine, pRenderer, vbUsage));
 
-	if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pVertices))
+	if (IS_VALID_PTR(pInitialGeom))
 	{
-		SVertex* pVertices = pInitialGeom->pVertices;		
+		if (!IS_VALID_PTR(pInitialGeom->pVertices))
+			return CLog::Log(S_ERROR, "Cannot init geometry with initial geometry desc: pVertices is invalid!");
+
 		if (pInitialGeom->bRequireNormalRecalc || pInitialGeom->bRequireTangentRecalc)
-		{	
-			// faces that contributed to each vertex, so that we can afterwards divide by this number
-			// in order to properly average the normal.
-			unsigned short *pVertexFaces = new unsigned short[pInitialGeom->nVertices];
-
-			// first, reset all normals (and tangents) to (0,0,0)			
-			for (usint32 iVtx = 0; iVtx < pInitialGeom->nVertices; ++iVtx)
-			{
-				if (pInitialGeom->bRequireNormalRecalc)
-				{
-					pVertices[iVtx].nx = 0.0f;
-					pVertices[iVtx].ny = 0.0f;
-					pVertices[iVtx].nz = 0.0f;
-					pVertexFaces[iVtx] = 0;
-				}
-
-				if (pInitialGeom->bRequireTangentRecalc)
-				{
-					pVertices[iVtx].tx = 0.0f;
-					pVertices[iVtx].ty = 0.0f;
-					pVertices[iVtx].tz = 0.0f;
-				}
-			}						
-
-			if (pInitialGeom->bRequireNormalRecalc)
-			{
-				for (usint32 iIndex = 0; iIndex < pInitialGeom->nIndices; iIndex += 3)
-				{
-					SVertex& vtx1 = pVertices[pInitialGeom->pIndices[iIndex]];
-					SVertex& vtx2 = pVertices[pInitialGeom->pIndices[iIndex + 1]];
-					SVertex& vtx3 = pVertices[pInitialGeom->pIndices[iIndex + 2]];
-
-					SVector3 v1(vtx1.x, vtx1.y, vtx1.z), v2(vtx2.x, vtx2.y, vtx2.z), v3(vtx3.x, vtx3.y, vtx3.z);
-
-					SVector3 normal = Vec3Normalize(Vec3Cross(v2 - v1, v3 - v1));
-
-					vtx1.nx += normal.x;
-					vtx1.ny += normal.y;
-					vtx1.nz += normal.z;
-					++pVertexFaces[pInitialGeom->pIndices[iIndex]];
-
-					vtx2.nx += normal.x;
-					vtx2.ny += normal.y;
-					vtx2.nz += normal.z;
-					++pVertexFaces[pInitialGeom->pIndices[iIndex + 1]];
-
-					vtx3.nx += normal.x;
-					vtx3.ny += normal.y;
-					vtx3.nz += normal.z;
-					++pVertexFaces[pInitialGeom->pIndices[iIndex + 2]];
-				}
-
-				// now average all normals
-				for (usint32 iVtx = 0; iVtx < pInitialGeom->nVertices; ++iVtx)
-				{
-					float k = 1.0f / (float)pVertexFaces[iVtx];
-					pVertices[iVtx].nx *= k;
-					pVertices[iVtx].ny *= k;
-					pVertices[iVtx].nz *= k;
-				}
-			}
-
-			// recalc of tangents has to be done after normal recalc
-			if (pInitialGeom->bRequireTangentRecalc)
-			{
-				for (usint32 iIndex = 0; iIndex < pInitialGeom->nIndices; iIndex += 3)
-				{
-					SVertex& vtx1 = pVertices[pInitialGeom->pIndices[iIndex]];
-					SVertex& vtx2 = pVertices[pInitialGeom->pIndices[iIndex + 1]];
-					SVertex& vtx3 = pVertices[pInitialGeom->pIndices[iIndex + 2]];
-
-					vtx1.CalcTangent(vtx2, vtx3);
-					vtx2.tx = vtx1.tx; vtx2.ty = vtx1.ty; vtx2.tz = vtx1.tz;
-					vtx3.tx = vtx1.tx; vtx3.ty = vtx1.ty; vtx3.tz = vtx1.tz;
-				}				
-			}
+		{
+			// Do not calculate normals or tangents if there is no subset defined
+			if (IS_VALID_PTR(pInitialGeom->pSubsets) && pInitialGeom->nSubsets > 0)
+				CalculateInitialNormalsOrTangents(pInitialGeom);
 		}
 
 		RETURN_ON_ERR(m_pVertexBuffer->Fill(pInitialGeom->pVertices, pInitialGeom->nVertices));
 	}	
-	
-	bool bLines = (pInitialGeom->primitiveType == PRIMITIVE_TYPE_LINES);
 
+
+	// Initialize indices
+	bool bLines = (pInitialGeom->primitiveType == PRIMITIVE_TYPE_LINES);
 	if (!IS_VALID_PTR(pInitialGeom)
-		|| !IS_VALID_PTR(pInitialGeom->pMatIndexAssigns) || pInitialGeom->nMatIndexAssigns == 0
+		|| !IS_VALID_PTR(pInitialGeom->pSubsets) || pInitialGeom->nSubsets == 0
 		|| bLines) // Lines can only have one material and only one subset
 	{
-
 		// No material assigns given.
-		// init standard geometry with default (single) material
-		m_pSubsets = new SGeomSubset[1];			
+		// init standard geometry with single (fallback) subset
+		m_pSubsets = new SGeomSubset[1];
 		m_nSubsets = 1;
 		SGeomSubset* pDefSubset = &m_pSubsets[0];
+
+		pDefSubset->pMaterial = 0;
 
 		if (!bLines)
 		{
 			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&pDefSubset->pIndexBuffer));
 			RETURN_ON_ERR(pDefSubset->pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
 
-			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pIndices))
-				RETURN_ON_ERR(pDefSubset->pIndexBuffer->Fill(pInitialGeom->pIndices, pInitialGeom->nIndices, false));
-		}
+			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pSubsets) && pInitialGeom->nSubsets > 0)
+			{
+				SInitialSubsetGeometryDesc& subset = pInitialGeom->pSubsets[0];
+				if (IS_VALID_PTR(subset.pIndices) && subset.nIndices > 0)
+					RETURN_ON_ERR(pDefSubset->pIndexBuffer->Fill(subset.pIndices, subset.nIndices, false));
 
-		// Warning: FindMaterial() may return 0, which results in the renderer using default material
-		pDefSubset->pMaterial = m_pEngine->GetMaterialManager()->FindMaterial(pInitialGeom->singleMatName);
+				pDefSubset->pMaterial = subset.pMaterial;
+			}
+		}
 	}
 	else
 	{
 		// create and fill one subset per material
-		m_nSubsets = pInitialGeom->nMatIndexAssigns;
+		m_nSubsets = pInitialGeom->nSubsets;
 		m_pSubsets = new SGeomSubset[m_nSubsets];
 		unsigned long indexOffset = 0;
 		for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
-		{			
-			SMaterialIndices& matIndices = pInitialGeom->pMatIndexAssigns[iSubset];
-			
-			if (matIndices.nIdxIndices == 0)
-				continue;
-
+		{
 			SGeomSubset& subset = m_pSubsets[iSubset];
+			SInitialSubsetGeometryDesc& subsetGeom = pInitialGeom->pSubsets[iSubset];
 
+			// Create the index buffer for this subset
 			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&subset.pIndexBuffer));
 			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
-			subset.pMaterial = matIndices.pMaterial;
+
+			subset.pMaterial = subsetGeom.pMaterial;
 			subset.indexOffset = indexOffset;
 
 			// fill index buffer with according indices
-			SIndex* pIndices = new SIndex[matIndices.nIdxIndices];
-			indexOffset += matIndices.nIdxIndices;
+			SIndex* pIndices = new SIndex[subsetGeom.nIndices];
+			indexOffset += subsetGeom.nIndices;
 
-			for (unsigned int iIdxIndex = 0; iIdxIndex < matIndices.nIdxIndices; ++iIdxIndex)
-				pIndices[iIdxIndex] = pInitialGeom->pIndices[matIndices.pIdxIndices[iIdxIndex]];
+			for (unsigned int iIndex = 0; iIndex < subsetGeom.nIndices; ++iIndex)
+				pIndices[iIndex] = subsetGeom.pIndices[iIndex];
 
-			if (Failure(subset.pIndexBuffer->Fill(pIndices, matIndices.nIdxIndices, false)))
+			if (Failure(subset.pIndexBuffer->Fill(pIndices, subsetGeom.nIndices, false)))
 			{
 				delete[] pIndices;
 				return S_ERROR;
@@ -263,10 +299,10 @@ S_API SResult Geometry::CalculateNormalsGeometry(SInitialGeometryDesc& dsc, floa
 	dsc.primitiveType = PRIMITIVE_TYPE_LINES;
 
 	dsc.nVertices = nVertices * 2;
-	dsc.nIndices = 0; // lines are not drawn using indices	
+	dsc.nSubsets = 0;
 
 	dsc.pVertices = new SVertex[dsc.nVertices];
-	dsc.pIndices = 0;
+	dsc.pSubsets = 0;
 
 	dsc.bRequireNormalRecalc = false;
 

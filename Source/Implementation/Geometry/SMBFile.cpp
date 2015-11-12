@@ -1,4 +1,4 @@
-#include "SMBFile.h"
+#include <Implementation\Geometry\SMBFile.h>
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -21,12 +21,7 @@ SP_NMSPACE_BEG
 
 void CSMBLoader::ParseError(const char* msg) const
 {
-
-	std::cout << "[SMBLoader] Error @line " << m_LineCounter << ": " << msg << std::endl;
-
-	// TODO
-	//	- include the current line counter in the output!
-
+	CLog::Log(S_DEBUG, "[SMBLoader] Error @line %u: %s", m_LineCounter, msg);
 }
 
 bool CSMBLoader::IsEOF() const

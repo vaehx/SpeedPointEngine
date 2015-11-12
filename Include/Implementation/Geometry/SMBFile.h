@@ -1,8 +1,9 @@
 #pragma once
-#include "util.h"
 #include <string>
 #include <vector>
 #include <fstream>
+#include <SPrerequisites.h>
+#include <Abstract\Vector3.h>
 #include <Abstract\SAPI.h>
 
 
@@ -10,15 +11,6 @@ using std::string;
 using std::vector;
 using std::ifstream;
 using std::ofstream;
-
-#ifndef SP_NMSPACE_BEG
-#define SP_NMSPACE_BEG namespace SpeedPoint {
-#define SP_NMSPACE_END }
-#endif
-
-#ifndef IS_VALID_PTR
-#define IS_VALID_PTR(x) ((x))
-#endif
 
 SP_NMSPACE_BEG
 
@@ -30,7 +22,7 @@ enum S_API ESMBIllumModel
 	eSMBILLUM_HELPER = 2
 };
 
-struct SSMBMaterial
+struct S_API SSMBMaterial
 {
 	string name;
 	string textureMap;
@@ -45,7 +37,7 @@ struct SSMBMaterial
 
 };
 
-enum  ESMBReadResult
+enum S_API ESMBReadResult
 {
 	eSMBREAD_OK,
 	eSMBREAD_EOF,
@@ -59,7 +51,7 @@ enum  ESMBReadResult
 	eSMBREAD_SKIPPED
 };
 
-class  CSMBLoader
+class S_API CSMBLoader
 {
 private:
 	unsigned int m_LineCounter;
@@ -82,7 +74,7 @@ public:
 	void ReadSMBFile(const char* filename, std::vector<SSMBMaterial>& materials);
 };
 
-class  CSMBWriter
+class S_API CSMBWriter
 {
 private:
 	ofstream m_Stream;
@@ -111,12 +103,12 @@ public:
 
 
 
-enum ESMBChunkType
+enum S_API ESMBChunkType
 {
 	eSMBCHUNK_MATERIAL
 };
 
-struct  ISMBChunk
+struct S_API ISMBChunk
 {
 public:
 	inline virtual ESMBChunkType GetType() const = 0;
@@ -129,7 +121,7 @@ public:
 	virtual void ApplyHeaderParams(const vector<string>& params) = 0;
 };
 
-class  CSMBMaterialChunk : public ISMBChunk
+class S_API CSMBMaterialChunk : public ISMBChunk
 {
 private:
 	SSMBMaterial m_Material;

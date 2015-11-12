@@ -39,6 +39,9 @@ protected:
 
 	EPrimitiveType m_PrimitiveType;
 
+private:
+	inline static void CalculateInitialNormalsOrTangents(SInitialGeometryDesc* pInitialGeom);
+
 public:
 	Geometry();
 	virtual ~Geometry();	

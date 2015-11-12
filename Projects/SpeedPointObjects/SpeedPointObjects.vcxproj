@@ -13,7 +13,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\Geometry\Entities.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableObjects.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\File3DS.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
@@ -23,6 +22,8 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctree.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Scene.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SMBFile.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\SPMFile.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\StaticObject.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Terrain.cpp" />
   </ItemGroup>
@@ -32,13 +33,14 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Entities.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\File3DS.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableObjects.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SMBFile.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\SPMFile.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\StaticObject.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h" />
   </ItemGroup>
