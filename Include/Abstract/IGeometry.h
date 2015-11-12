@@ -122,6 +122,27 @@ enum S_API EGeomUsage
 };
 
 
+struct S_API SInitialSubsetGeometryDesc
+{
+	SIndex* pIndices;
+	u32 nIndices;
+	IMaterial* pMaterial;
+
+	SInitialSubsetGeometryDesc()
+		: pIndices(0),
+		nIndices(0),
+		pMaterial(0)
+	{
+	}
+
+	~SInitialSubsetGeometryDesc()
+	{
+		pIndices = 0;
+		nIndices = 0;
+		pMaterial = 0;
+	}
+};
+
 struct S_API SInitialGeometryDesc
 {
 	EGeomUsage vertexUsage;
@@ -130,13 +151,8 @@ struct S_API SInitialGeometryDesc
 	SVertex* pVertices;
 	usint32 nVertices;
 
-	SIndex* pIndices;
-	usint32 nIndices;
-
-	char* singleMatName;
-
-	SMaterialIndices* pMatIndexAssigns;
-	unsigned int nMatIndexAssigns;
+	SInitialSubsetGeometryDesc* pSubsets;
+	u16 nSubsets;
 
 	bool bRequireNormalRecalc;
 	bool bRequireTangentRecalc;
@@ -148,11 +164,8 @@ struct S_API SInitialGeometryDesc
 		indexUsage(eGEOMUSE_STATIC),
 		pVertices(nullptr),
 		nVertices(0),
-		pIndices(nullptr),
-		nIndices(0),
-		pMatIndexAssigns(0),
-		nMatIndexAssigns(0),
-		singleMatName(0),
+		pSubsets(0),
+		nSubsets(0),
 		bRequireNormalRecalc(false),
 		bRequireTangentRecalc(false),
 		primitiveType(PRIMITIVE_TYPE_TRIANGLELIST)
@@ -161,12 +174,10 @@ struct S_API SInitialGeometryDesc
 
 	~SInitialGeometryDesc()
 	{
+		pSubsets = 0;
+		nSubsets = 0;
 		pVertices = 0;
-		pIndices = 0;
 		nVertices = 0;
-		nIndices = 0;
-		nMatIndexAssigns = 0;
-		singleMatName = 0;
 		bRequireNormalRecalc = false;
 		bRequireTangentRecalc = false;
 	}
