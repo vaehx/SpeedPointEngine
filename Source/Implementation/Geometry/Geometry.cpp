@@ -220,7 +220,7 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 	}	
 
 
-	// Initialize indices
+	// Initialize indices and materials
 	bool bLines = (pInitialGeom->primitiveType == PRIMITIVE_TYPE_LINES);
 	if (!IS_VALID_PTR(pInitialGeom)
 		|| !IS_VALID_PTR(pInitialGeom->pSubsets) || pInitialGeom->nSubsets == 0
@@ -246,6 +246,13 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 					RETURN_ON_ERR(pDefSubset->pIndexBuffer->Fill(subset.pIndices, subset.nIndices, false));
 
 				pDefSubset->pMaterial = subset.pMaterial;
+			}
+		}
+		else
+		{
+			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pSubsets) && pInitialGeom->nSubsets > 0)
+			{
+				pDefSubset->pMaterial = pInitialGeom->pSubsets[0].pMaterial;
 			}
 		}
 	}
