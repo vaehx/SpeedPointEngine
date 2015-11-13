@@ -267,6 +267,12 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 			SGeomSubset& subset = m_pSubsets[iSubset];
 			SInitialSubsetGeometryDesc& subsetGeom = pInitialGeom->pSubsets[iSubset];
 
+			if (!IS_VALID_PTR(subsetGeom.pIndices))
+			{
+				CLog::Log(S_ERROR, "pIndices is NULL of subset %d. Skipping...", iSubset);
+				continue;
+			}
+
 			// Create the index buffer for this subset
 			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&subset.pIndexBuffer));
 			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
