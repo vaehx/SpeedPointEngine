@@ -337,7 +337,7 @@ S_API void StaticObject::RecalcBoundBox()
 	if (!IS_VALID_PTR(pGeom))
 		return;
 
-	pGeom->CalculateBoundBox(m_AABB);	
+	pGeom->CalculateBoundBox(m_AABB, GetWorldMatrix());	
 }
 
 

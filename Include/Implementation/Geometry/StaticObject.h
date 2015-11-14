@@ -85,7 +85,6 @@ public:
 class StaticObject : public IStaticObject
 {
 private:
-	AABB m_AABB;
 	IGameEngine* m_pEngine;
 	CStaticObjectRenderable m_Renderable;
 
@@ -112,7 +111,7 @@ public:
 		return (IRenderableComponent*)&m_Renderable;
 	}
 
-	void RecalcBoundBox();
+	ILINE virtual void RecalcBoundBox();
 
 	// IStaticObject:
 public:

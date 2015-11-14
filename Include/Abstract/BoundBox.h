@@ -37,8 +37,8 @@ struct S_API SAxisAlignedBoundBox
 
 	void Reset()
 	{
-		vMin = SVector3(0, 0, 0);
-		vMax = SVector3(0, 0, 0);
+		vMin = SVector3(FLT_MAX);
+		vMax = SVector3(-FLT_MAX);
 	}
 
 	// length is set to the length of the vector from ray origin to the intersection

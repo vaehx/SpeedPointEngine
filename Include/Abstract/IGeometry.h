@@ -283,7 +283,7 @@ struct S_API IGeometry : public IShutdownHandler
 
 	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const = 0;
 
-	virtual void CalculateBoundBox(AABB& aabb) = 0;
+	virtual void CalculateBoundBox(AABB& aabb, const SMatrix& transform) = 0;
 
 	virtual void Clear() = 0;
 };

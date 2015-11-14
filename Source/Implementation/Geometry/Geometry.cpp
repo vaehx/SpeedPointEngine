@@ -402,7 +402,7 @@ S_API unsigned long Geometry::GetIndexCount() const
 
 
 // ----------------------------------------------------------------------------------------
-S_API void Geometry::CalculateBoundBox(AABB& aabb)
+S_API void Geometry::CalculateBoundBox(AABB& aabb, const SMatrix& transform)
 {
 	if (!IS_VALID_PTR(m_pVertexBuffer) || m_pVertexBuffer->GetVertexCount() == 0)
 		return;
@@ -412,7 +412,8 @@ S_API void Geometry::CalculateBoundBox(AABB& aabb)
 	for (unsigned long iVtx = 0; iVtx < m_pVertexBuffer->GetVertexCount(); ++iVtx)
 	{
 		SVertex* pVertex = m_pVertexBuffer->GetVertex(iVtx);
-		aabb.AddPoint(SVector3(pVertex->x, pVertex->y, pVertex->z));
+		Vec4f transformed = transform * Vec4f(pVertex->x, pVertex->y, pVertex->z, 1.0f);
+		aabb.AddPoint(transformed.xyz());
 	}
 }
 

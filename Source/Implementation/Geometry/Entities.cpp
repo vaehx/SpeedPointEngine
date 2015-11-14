@@ -217,8 +217,7 @@ S_API void CRigidBody::RecalcBoundBox()
 	if (!IS_VALID_PTR(pGeom))
 		return;
 
-	pGeom->CalculateBoundBox(m_AABB);
-	m_AABB.MoveRelative(GetPosition());
+	pGeom->CalculateBoundBox(m_AABB, GetWorldMatrix());
 }
 
 S_API SResult CRigidBody::Init(IGameEngine* pEngine, const char* name /*="RigidBody"*/, SInitialGeometryDesc* pInitialGeom /*= nullptr*/)
