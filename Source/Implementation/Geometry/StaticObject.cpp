@@ -345,7 +345,12 @@ S_API void StaticObject::RecalcBoundBox()
 
 S_API SRenderDesc* StaticObject::GetRenderDesc()
 {
-	return m_Renderable.GetRenderDesc();	
+	SRenderDesc* pRenderDesc =  m_Renderable.GetRenderDesc();
+	pRenderDesc->transform.translation = SMatrix::MakeTranslationMatrix(vPosition);
+	pRenderDesc->transform.rotation = rotation.ToRotationMatrix();
+	pRenderDesc->transform.scale = SMatrix::MakeScaleMatrix(vSize);
+
+	return pRenderDesc;
 }
 
 
