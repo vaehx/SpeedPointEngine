@@ -181,6 +181,19 @@ struct S_API SInitialGeometryDesc
 		bRequireNormalRecalc = false;
 		bRequireTangentRecalc = false;
 	}
+
+	// Makes sure a 0-subset exists in this geometry desc and returns a reference to it.
+	// If the pSubsets array is not a valid ptr or nSubsets == 0, the pSubsets array is initialized with a single-element array.
+	SInitialSubsetGeometryDesc* GetZeroSubset()
+	{
+		if (!IS_VALID_PTR(pSubsets) || nSubsets == 0)
+		{
+			pSubsets = new SInitialSubsetGeometryDesc[1];
+			nSubsets = 1;
+		}
+
+		return &pSubsets[0];
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
