@@ -151,6 +151,7 @@ S_API void C3DEngine::AddVisibleStatic(IStaticObject* pStatic, const AABB& aabb)
 
 	pRenderObject->renderDesc.Copy(*pStaticRenderDesc);
 	pRenderObject->aabb = aabb;
+	pRenderObject->name = pStatic->GetName();
 
 	pRenderObject->nAffectingLights = 0;
 }
