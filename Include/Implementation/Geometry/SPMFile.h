@@ -63,6 +63,8 @@ private:
 	SModelMeta m_Model;
 	ifstream m_Stream;
 
+	bool m_bDebug;
+
 	inline void ReadUShort(u16& u);
 	inline void ReadUInt(u32& u);
 	inline void ReadULong(u64& u);
@@ -76,7 +78,7 @@ private:
 
 public:
 	// Returns success
-	bool Load(const char* filename);
+	bool Load(const char* filename, bool bDebug = false);
 
 	SModelMeta& GetModelMeta();
 };

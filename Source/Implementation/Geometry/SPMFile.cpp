@@ -59,8 +59,8 @@ void CSPMLoader::ReadModelMetaChunk(SModelMeta& modelMeta)
 	ReadUShort(modelMeta.nSubsets);
 
 #ifdef _DEBUG
-		CLog::Log(S_DEBUG, "[SPMFile] name = %s", modelMeta.name.c_str());
-		CLog::Log(S_DEBUG, "[SPMFile] nSubsets = %d", modelMeta.nSubsets);
+	if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] name = %s", modelMeta.name.c_str());
+	if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] nSubsets = %d", modelMeta.nSubsets);
 #endif
 
 	if (modelMeta.nSubsets == 0)
@@ -88,7 +88,7 @@ void CSPMLoader::ReadVertexChunk(SModelMeta& modelMeta)
 	}
 
 #ifdef _DEBUG
-		CLog::Log(S_DEBUG, "[SPMFile] Read %d vertices", modelMeta.nVertices);
+	if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Read %d vertices", modelMeta.nVertices);
 #endif
 }
 
@@ -106,12 +106,12 @@ void CSPMLoader::ReadSubsetChunk(SSubset& subset, const u64& chunkLn)
 		switch (chunkId)
 		{
 		case SPM_CHUNK_SUBSET_META:
-			CLog::Log(S_DEBUG, "[SPMFILE] Reading SPM_CHUNK_SUBSET_META...");
+			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFILE] Reading SPM_CHUNK_SUBSET_META...");
 			ReadStringUntilFirstZero(subset.materialName);
 			break;
 
 		case SPM_CHUNK_SUBSET_INDICES:
-			CLog::Log(S_DEBUG, "[SPMFILE] Reading SPM_CHUNK_SUBSET_INDICES...");
+			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFILE] Reading SPM_CHUNK_SUBSET_INDICES...");
 			ReadUInt(subset.nIndices);
 			subset.pIndices = new u32[subset.nIndices];
 
@@ -121,7 +121,7 @@ void CSPMLoader::ReadSubsetChunk(SSubset& subset, const u64& chunkLn)
 			}
 
 #ifdef _DEBUG
-			CLog::Log(S_DEBUG, "[SPMFile] Read %d indices", subset.nIndices);
+			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Read %d indices", subset.nIndices);
 #endif
 			break;
 
@@ -135,8 +135,10 @@ void CSPMLoader::ReadSubsetChunk(SSubset& subset, const u64& chunkLn)
 
 
 
-bool CSPMLoader::Load(const char* filename)
+bool CSPMLoader::Load(const char* filename, bool debug/*=false*/)
 {
+	m_bDebug = debug;
+
 	m_Stream.open(filename, ifstream::binary | ifstream::in);
 	if (!m_Stream.is_open())
 	{
@@ -153,7 +155,8 @@ bool CSPMLoader::Load(const char* filename)
 	m_Stream.seekg(0, m_Stream.end);
 	u64 fileSz = m_Stream.tellg();
 	m_Stream.seekg(0, m_Stream.beg);
-	CLog::Log(S_DEBUG, "[SPMFile] fileSz = %llu", fileSz);
+	
+	CLog::Log(S_DEBUG, "[SPMFile] Reading %s (fileSz = %llu)...", filename, fileSz);
 
 	// Read the version
 	ReadUShort(m_FileVersion);
@@ -169,17 +172,17 @@ bool CSPMLoader::Load(const char* filename)
 		switch (chunkId)
 		{
 		case SPM_CHUNK_MODEL_META:
-			CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_MODEL_META...");
+			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_MODEL_META...");
 			ReadModelMetaChunk(m_Model);
 			break;
 
 		case SPM_CHUNK_VERTICES:
-			CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_VERTICES...");
+			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_VERTICES...");
 			ReadVertexChunk(m_Model);
 			break;
 
 		case SPM_CHUNK_SUBSET:
-			CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_SUBSET...");
+			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_SUBSET...");
 			if (m_Model.nSubsets == 0 || !IS_VALID_PTR(m_Model.pSubsets))
 			{
 				CLog::Log(S_ERROR, "[SPMFile] Failed load subset chunk: nSubsets = 0 or subset array not initialized!");
