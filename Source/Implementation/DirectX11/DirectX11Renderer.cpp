@@ -1471,6 +1471,8 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 		}
 	}
 
+	FrameDump(renderDesc.nSubsets, "renderDesc.nSubsets");
+
 	return S_SUCCESS;
 }
 
