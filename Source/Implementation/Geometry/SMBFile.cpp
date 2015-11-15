@@ -412,14 +412,6 @@ ESMBReadResult CSMBLoader::ReadNextProperty(string& name, string& value)
 
 void CSMBLoader::ReadSMBFile(const char* filename, std::vector<SSMBMaterial>& materials)
 {
-#ifndef _DEBUG
-	if (!IS_VALID_PTR(pMatMgr) || !IS_VALID_PTR(pResourcePool))
-	{
-		ParseError("Invalid material manager or resource pool given");
-		return;
-	}
-#endif
-
 	// Open stream
 
 	m_Stream.open(filename, ifstream::in);

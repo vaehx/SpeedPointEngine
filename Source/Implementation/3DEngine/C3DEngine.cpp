@@ -116,7 +116,9 @@ S_API void C3DEngine::AddVisibleEntity(IEntity* pEntity, const AABB& aabb)
 
 	pRenderable->GetUpdatedRenderDesc(&pRenderObject->renderDesc);
 	pRenderObject->aabb = aabb;
+#ifdef _DEBUG
 	pRenderObject->name = pEntity->GetName();
+#endif
 }
 
 S_API void C3DEngine::AddVisibleLight(ILight* pLight, const AABB& aabb)
@@ -151,7 +153,9 @@ S_API void C3DEngine::AddVisibleStatic(IStaticObject* pStatic, const AABB& aabb)
 
 	pRenderObject->renderDesc.Copy(*pStaticRenderDesc);
 	pRenderObject->aabb = aabb;
+#ifdef _DEBUG
 	pRenderObject->name = pStatic->GetName();
+#endif
 
 	pRenderObject->nAffectingLights = 0;
 }
