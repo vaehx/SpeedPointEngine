@@ -446,11 +446,9 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
 		return "???";
 	}
 
-#ifdef _DEBUG
 	char pFXFile[500];
 	sprintf_s(pFXFile, "%s..\\%s", SOL_DIR, relativePath);
 	relativePath = pFXFile;
-#endif
 
 	return SString(relativePath);
 }
