@@ -106,7 +106,7 @@ public:
 	IMaterial* GetSubsetMaterial(unsigned int subset = 0);
 	unsigned int GetSubsetCount() const;
 
-	IRenderableComponent* GetRenderable()
+	ILINE virtual IRenderableComponent* GetRenderable()
 	{
 		return (IRenderableComponent*)&m_Renderable;
 	}

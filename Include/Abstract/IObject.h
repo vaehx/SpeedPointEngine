@@ -240,6 +240,8 @@ public:
 	virtual const char* GetName() const = 0;
 	virtual void SetName(const char* name) = 0;
 	
+	ILINE virtual IRenderableComponent* GetRenderable() = 0;
+
 	virtual SRenderDesc* GetRenderDesc() = 0;
 	virtual void Clear() = 0;
 };
