@@ -114,6 +114,8 @@ public:
 	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0);
 	virtual SResult Unlock();
 
+	virtual SResult Fill(SColor color);
+
 	// ----
 	
 	virtual ETextureType GetType(void);	

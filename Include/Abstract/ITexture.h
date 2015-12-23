@@ -88,6 +88,9 @@ public:
 
 	virtual SResult Unlock() = 0;
 
+	// Sets all pixels of this texture to the given color.
+	virtual SResult Fill(SColor color) = 0;
+
 	// Summary:
 	//	Does a simple nearest-neighbor filtering on the staged data with address wrapping.
 	//	If the texture is not staged, this function will fail.

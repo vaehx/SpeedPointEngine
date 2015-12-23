@@ -67,5 +67,17 @@ static inline S_API void SPGetColorFloatArray(float* pFloatArr, const SColor& co
 	pFloatArr[3] = color.a;
 }
 
+// --------------------------------------------------------------------------
+
+// Converts the given SColor to an unsigned int coded color
+// 0xRRGGBBAA
+static inline S_API unsigned int GetColorUINT(const SColor& color)
+{
+	return (char)(color.r * 255.0f) << 24 |
+		(char)(color.g * 255.0f) << 16 |
+		(char)(color.b * 255.0f) << 8 |
+		(char)(color.a * 255.0f);
+}
+
 
 SP_NMSPACE_END

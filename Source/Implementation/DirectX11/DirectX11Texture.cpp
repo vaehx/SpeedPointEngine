@@ -777,6 +777,22 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 }
 
 // -----------------------------------------------------------------------------------
+
+S_API SResult DirectX11Texture::Fill(SColor color)
+{
+	unsigned int *pPixels, nPixels;
+	if (Failure(Lock((void**)&pPixels, &nPixels)))
+		return CLog::Log(S_DEBUG, "Failed fill texture: Lock failed");
+
+	for (unsigned int i = 0; i < nPixels; ++i)
+	{
+		pPixels[i] = GetColorUINT(color);
+	}
+
+	return Unlock();
+}
+
+// -----------------------------------------------------------------------------------
 S_API SString DirectX11Texture::GetSpecification(void)
 {
 	return m_Specification;
