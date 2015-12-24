@@ -149,7 +149,7 @@ float terrain_fade_factor(float radius)
 }
 
 
-float3 BlendOverlay(float3 a, float3 b)
+float3 BlendOverlay(float3 b, float3 a)
 {
 	return (a > 0.5f) * (1.0f - (1.0f - 2.0f * (a - 0.5f)) * (1.0f - b))
 		+ (a <= 0.5f) * ((2.0f * a) * b);
@@ -179,11 +179,11 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float3 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz).rgb;
 
 	// Calculate blended Diffuse Color
-    float dirln = length(eyePos.xz - IN.WorldPos.xz);
+    float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
     float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
 
-	float3 coloredDiffuse = BlendOverlay(sampleDM, sampleCM);
-	float4 blendedDiffuse = float4(coloredDiffuse.r, coloredDiffuse.g, coloredDiffuse.b, 0) * terrainFadeFactor + float4(sampleCM,0) * (1.0f - terrainFadeFactor);
+	float3 coloredDiffuse = saturate(BlendOverlay(sampleDM, sampleCM));
+	float4 blendedDiffuse = lerp(float4(sampleCM, 0), float4(coloredDiffuse.rgb, 0), terrainFadeFactor);
     
 	// Sample vtx Height
     float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
@@ -195,7 +195,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 	float monoLightIntensity = 3.0f;
 	float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
 
-    float monoAmbient = 0.52f;
+    float monoAmbient = 0.30f;
 	float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
     float lambert = saturate(dot(normal, -lightDir));
@@ -205,8 +205,9 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 	// Sample alpha value
 	float4 sampleMask = alphaMask.Sample(MapSampler, IN.TexCoord);
 	//OUT.Color.a = 1.0f;
-	//OUT.Color = float4(terrainFadeFactor, 0, 0, 1.0f);
 	OUT.Color.a = sampleMask.r;
+	
+	//OUT.Color = float4(terrainFadeFactor, 0, 0, 1.0f);
 	//OUT.Color.r = sampleMask.r;
 	//OUT.Color.gb = float2(0,0);
 
@@ -214,6 +215,8 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 
     //OUT.Color = float4(IN.Normal, 0.0f);
 	//OUT.Color = vtxHeight.rrrr;
+	
+	//OUT.Color = lambert * (blendedDiffuse / PI) * lightIntensity;
                
     return OUT;
 }
