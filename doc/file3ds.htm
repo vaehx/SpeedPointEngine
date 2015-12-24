@@ -62,6 +62,10 @@ Each chunk:
                                 unsigned short nFaces;<br />
                                 struct { unsigned short v1, v2, v3; unsigned short flag; } faces[nFaces]; 
                                 </code>
+								After data, parse sub-chunks:
+								<ul>
+									<li>0x4130 - FACE_MATERIALS</li>
+								</ul>
                             </li>
                             <li>0x4130 - MESH_MATERIAL:<br />
                                 <code class="break-inline">
