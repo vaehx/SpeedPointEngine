@@ -200,16 +200,32 @@
 
 
 
+#define DEBUG_BREAK _asm { int 3 }
 
-
-#undef assert	// make sure no header already defined assert / included vc's assert.h
-#define assert SP_ASSERT
-
-
+void SPAssertTrace(const char* condition, const char* file, const char* func, unsigned int line, const char* message);
 
 #undef assert_trace
-#define assert_trace SP_ASSERTD
+#define assert_trace(cond, format, ...) \
+	do { \
+		if (!(cond)) { \
+			char* pAssertMsg = new char[256]; \
+			sprintf_s(pAssertMsg, 256, format, __VA_ARGS__); \
+			SPAssertTrace(#cond, __FILE__, __FUNCTION__, __LINE__, pAssertMsg); \
+			delete[] pAssertMsg; \
+			DEBUG_BREAK; \
+		} \
+	} while (0)
 
+#undef assert	// make sure no header already defined assert / included vc's assert.h
+#define assert(cond, ...) \
+	do { \
+		if (!(cond)) { \
+			char* pAssertMsg = new char[256]; \
+			SpeedPoint::SString::CopyCharS(pAssertMsg, 256, __VA_ARGS__); \
+			SPAssertTrace(#cond, __FILE__, __FUNCTION__, __LINE__, pAssertMsg); \
+			DEBUG_BREAK; \
+		} \
+	} while (0)
 
 
 

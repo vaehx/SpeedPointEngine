@@ -75,6 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Abstract\SAssert_Impl.h" />
     <ClInclude Include="..\..\Include\Lighting\SLight.h" />
     <ClInclude Include="..\..\Include\Lighting\SLightSystem.h" />
     <ClInclude Include="..\..\Include\Observer\SEventCallbackTable.h" />

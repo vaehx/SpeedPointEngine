@@ -146,6 +146,9 @@
     <ClInclude Include="..\..\Include\SpeedPointApplication.h">
       <Filter>Headers\Frontend</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\SAssert_Impl.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp">

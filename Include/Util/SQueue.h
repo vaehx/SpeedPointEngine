@@ -196,7 +196,7 @@ namespace SpeedPoint
 
 	template<class T> SQueue<T>::~SQueue()
 	{
-		assert(!m_bLocked, "Attempted destruction of locked SQueue!");
+		assert_trace(!m_bLocked, "Attempted destruction of locked SQueue!");
 
 		Clear();
 	}

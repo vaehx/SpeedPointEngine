@@ -20,6 +20,8 @@
 #include <Implementation\Geometry\Material.h>
 #include <Implementation\3DEngine\C3DEngine.h>
 
+#include <Abstract\SAssert_Impl.h>
+
 SP_NMSPACE_BEG
 
 CLogIntrnl g_LogIntrnl;
