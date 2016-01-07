@@ -19,8 +19,11 @@
 #include "Abstract\IFont.h"
 #include "Abstract\I3DEngine.h"
 #include <fstream>
+#include <deque>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
+
+using std::deque;
 
 SP_NMSPACE_BEG
 
@@ -32,13 +35,18 @@ struct S_API IRenderer;
 
 
 
-
 class S_API EngineFileLog : public IFileLog
 {
 private:
+	struct Line
+	{
+		string text;
+	};
+
 	ELogLevel m_LogLevel;	
 	std::ofstream m_LogFile;
 	std::vector<IFileLogHandler*> m_LogHandlers;
+	deque<Line> m_IOQueue;
 
 public:
 	~EngineFileLog() {}
@@ -49,6 +57,7 @@ public:
 	virtual SResult SetLogLevel(ELogLevel loglevel);
 	virtual ELogLevel GetLogLevel() const;
 	virtual SResult Log(SResult res, const SString& msg);
+	virtual void ReleaseIOQueue();
 };
 
 class CLogWrapper

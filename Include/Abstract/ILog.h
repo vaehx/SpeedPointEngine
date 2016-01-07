@@ -52,6 +52,9 @@ struct S_API IFileLog
 	{
 		return Log(S_DEBUG, msg);
 	}
+
+	// Writes cached lines to the disk
+	virtual void ReleaseIOQueue() = 0;
 };
 
 SP_NMSPACE_END

@@ -111,10 +111,25 @@ S_API SResult EngineFileLog::Log(SResult res, const SString& msg)
 			(*itLH)->OnLog(res, msg);
 	}
 
-	if (m_LogFile.is_open())
-		m_LogFile << msg;
+	Line line;
+	line.text = msg;
+	m_IOQueue.push_back(line);
 
 	return res;
+}
+
+void EngineFileLog::ReleaseIOQueue()
+{
+	if (m_IOQueue.size() > 0 && m_LogFile.is_open())
+	{
+		unsigned int nLines = m_IOQueue.size();
+		for (unsigned int i = 0; i < nLines; ++i)
+		{
+			const Line& line = m_IOQueue.front();
+			m_LogFile << line.text;
+			m_IOQueue.pop_front();
+		}
+	}
 }
 
 
@@ -482,7 +497,15 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 
 
 	assert(IS_VALID_PTR(m_pFramePipeline.pComponent));
-	return m_pFramePipeline->ExecuteSections(iSkippedSections);
+	if (Failure(m_pFramePipeline->ExecuteSections(iSkippedSections)))
+		return S_ERROR;
+
+	// Write queued log lines to disk
+	IFileLog* pFileLog = GetFileLog();
+	if (IS_VALID_PTR(pFileLog))
+		pFileLog->ReleaseIOQueue();
+
+	return S_SUCCESS;
 }
 
 
