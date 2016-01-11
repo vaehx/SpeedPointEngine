@@ -500,6 +500,8 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 		pD3D11FeatureLevels, nFeatureLevels, D3D11_SDK_VERSION,
 		&m_pD3DDevice, &m_D3DFeatureLevel, &m_pD3DDeviceContext);	// consider using deferred context for multithreading!
 	
+	assert(IS_VALID_PTR(m_pD3DDevice));
+
 #ifdef _DEBUG
 	const char nm[] = "SPD3D11Device";
 	m_pD3DDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(nm) - 1, nm);	
