@@ -281,7 +281,7 @@ S_API Terrain::~Terrain()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels)
+S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/)
 {
 	// Check given sizes		
 	if (!IsPowerOfTwo(segments) || (segments % chunkSegments) > 0)
@@ -302,6 +302,8 @@ S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigne
 	m_nLodLevels = nLodLevels;
 	m_pLodLevels = new ITerrain::LodLevel[m_nLodLevels];
 	printf("Ter: Allocated LodLevels buffer with %u elements\n", m_nLodLevels);
+
+	m_bCenter = center;
 
 	// Create chunk vertex array for each lod level
 	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
@@ -327,7 +329,7 @@ S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigne
 						x * lodLvl.quadSegs * m_fTexSz, z * lodLvl.quadSegs * m_fTexSz);
 			}
 		}
-	}	
+	}
 
 	// To initialize, generate a flat heightmap
 	GenerateFlatVertexHeightmap(baseHeight);
@@ -482,10 +484,19 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 			}			
 
 			// Add vertices
+			float halfSz = m_fSize * 0.5f;
 			for (unsigned long iVtx = 0; iVtx < lodLvl.nChunkVertices; ++iVtx)
 			{
 				SVertex* pVtx = &lodLvl.pVertices[chunkVtxOffset + iVtx];				
+				
 				memcpy(pVtx, &lodLvl.pChunkVertices[iVtx], sizeof(SVertex));
+
+				if (m_bCenter)
+				{
+					pVtx->x -= halfSz;
+					pVtx->z -= halfSz;
+				}
+
 				pVtx->position.x += pChunk->cx * pChunk->fSize;
 				pVtx->position.z += pChunk->cz * pChunk->fSize;
 				pVtx->textureCoords[0].u += (float)(pChunk->cx * m_chunkSegs) * m_fTexSz;
@@ -493,7 +504,7 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 			}			
 			
 			iChunk++;
-		}		
+		}
 
 		// Now create lodLevel's Hardware VB and Hardware IB
 		pResources->AddVertexBuffer(&lodLvl.pVB);

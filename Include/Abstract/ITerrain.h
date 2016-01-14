@@ -194,7 +194,7 @@ public:
 
 	virtual bool IsInited() const = 0;
 		
-	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4) = 0;
+	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true) = 0;
 	virtual void GenLodLevelChunks(SCamera* pCamera) = 0;	
 	virtual void SetHeightmap(ITexture* heightmap) = 0;
 	virtual ITexture* GetHeightmap() const = 0;

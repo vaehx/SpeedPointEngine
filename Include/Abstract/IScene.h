@@ -78,8 +78,10 @@ struct S_API IScene
 
 	virtual ITerrain* GetTerrain() const = 0;
 	
-	// Notice: Make sure to call ITerrain->GenLodLevelChunks() with your camera afterwards.	
-	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels) = 0;
+	// Notice: Make sure to call ITerrain->GenLodLevelChunks() with your camera afterwards.
+	//
+	// center - Set to true to make (0,0) the center of the terrain
+	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center = true) = 0;
 
 	// Loads SPM Model from file
 	virtual IStaticObject* LoadStaticObjectFromFile(const char* file) = 0;

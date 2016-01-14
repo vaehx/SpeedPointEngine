@@ -30,6 +30,8 @@ private:
 	ITexture* m_pVtxHeightMap;	
 	bool m_bCustomHeightmapSet;	
 
+	bool m_bCenter; // true to use (0,0) as the CENTER of the terrain
+
 	ITexture* m_pColorMap;
 	std::vector<STerrainLayer*> m_Layers;
 
@@ -79,7 +81,7 @@ public:
 		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && m_Layers.size() > 0);
 	}
 	
-	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4);
+	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true);
 
 
 	virtual void UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc);

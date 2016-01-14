@@ -110,7 +110,7 @@ S_API SResult Scene::AddObject(IObject* pObject)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels)
+S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr);
 	if (IS_VALID_PTR(m_pTerrain))
