@@ -1463,7 +1463,7 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			return S_ERROR;
 		}
 
-		EnableBackfaceCulling(true);
+		EnableBackfaceCulling(subset.shaderResources.enableBackfaceCulling);
 
 		DrawForward(subset.drawCallDesc);
 		if (subset.bOnce)

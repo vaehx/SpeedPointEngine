@@ -45,23 +45,35 @@ struct S_API SCamera
 	ILINE void LookAt(const Vec3f& lookAt)
 	{
 		Vec3f dir = Vec3Normalize(lookAt - position);
-		float cosAngle = Vec3Dot(dir, Vec3f(0, 1.0f, 0));
-		if (fabsf(cosAngle) - 1.0f > FLT_EPSILON)
+		
+		//float cosAngle = Vec3Dot(dir, Vec3f(0.0f, 0.0f, 1.0f));
+
+		// cosAngle must not be 1.0 (which means that the camera is looking up and
+		// the lookat-dir is the same as the up-vector.
+		if (/*fabsf(fabsf(cosAngle) - 1.0f) > FLT_EPSILON*/true)
 		{
-			Vec3f axis = Vec3Cross(lookAt, Vec3f(0, 1.0f, 0));
+			/*Vec3f axis = Vec3Cross(Vec3f(0, 0, 1.0f), dir).Normalized();
 			float angle = acosf(cosAngle);
 			Quat rotation = Quat::FromAxisAngle(axis, angle);
-					
-			Vec3f left = rotation * Vec3f(1.0f, 0, 0);
-			Vec3f up = rotation * Vec3f(0, 1.0f, 0);
-			Vec3f forward = rotation * Vec3f(0, 0, 1.0f);
-			viewMatrix = SMatrixTranspose(SMatrix(
+
+
+			Vec3f d_forward = rotation.GetForward();
+			float d_length = rotation.Length();
+
+			Vec3f left = (rotation * Vec3f(1.0f, 0, 0)).Normalized();
+			Vec3f up = (rotation * Vec3f(0, 1.0f, 0)).Normalized();
+			Vec3f forward = (rotation * Vec3f(0, 0, 1.0f)).Normalized();
+			viewMatrix = SMatrix(
 				left.x, up.x, forward.x, 0,
 				left.y, up.y, forward.y, 0,
 				left.z, up.z, forward.z, 0,
 				0, 0, 0, 1
-				));
-			RecalculateViewMatrix();
+				);*/
+
+			SPMatrixLookAtRH(&viewMatrix, position, lookAt, Vec3f(0, 1.0f, 0));
+
+
+			//RecalculateViewMatrix();
 		}		
 	}
 
@@ -77,7 +89,7 @@ struct S_API SCamera
 			left.y, up.y, forward.y, 0,
 			left.z, up.z, forward.z, 0,
 			0, 0, 0, 1
-			);
+			);		
 		RecalculateViewMatrix();
 	}
 

@@ -334,14 +334,14 @@ namespace SpeedPoint
 		//		to do this on your own! Default: true
 		virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true) = 0;
 		virtual SResult InitializeFontRenderer() = 0;
-		virtual SResult Initialize3DEngine() = 0;
+		virtual SResult Initialize3DEngine(I3DEngine* p3DEngine, bool bManageDealloc = true) = 0;
 //		virtual SResult InitializePhysics() = 0;
 //		virtual SResult InitializeAI() = 0;
 //		virtual SResult InitializeScriptEngine() = 0;		
 		virtual SResult InitializeLogger(IFileLogHandler* pCustomFileLogHandler = 0) = 0;
 
 		// Inits Renderer specific resource pool and the material manager
-		virtual SResult InitializeResourcePool() = 0;		
+		virtual SResult InitializeResourcePool(IMaterialManager* pMatMgr, bool bManageDealloc = true) = 0;		
 		
 		// instance is deleted by engine on shutdown
 		virtual SResult InitializeScene(IScene* pScene) = 0;

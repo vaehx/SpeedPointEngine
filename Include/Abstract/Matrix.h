@@ -6,11 +6,11 @@
 
 #pragma once
 #include "SAPI.h"
+#include "../SPrerequisites.h"
 #include "Vector3.h"
 #include "Vector4.h"
 
 SP_NMSPACE_BEG
-
 
 // SpeedPoint 4x4 Matrix
 struct S_API SMatrix
@@ -28,6 +28,7 @@ struct S_API SMatrix
 		float m[4][4];
 	};
 
+	// Default Matrix constructor = Identity Matrix
 	SMatrix() :
 		_11( 1 ), _12( 0 ), _13( 0 ), _14( 0 ),
 		_21( 0 ), _22( 1 ), _23( 0 ), _24( 0 ),

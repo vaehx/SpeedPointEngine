@@ -45,6 +45,8 @@ struct S_API SShaderResources
 	ITexture* roughnessMap;
 	float roughness;	// if the glossiness Map is set it is used instead of the global gloss factor
 
+	bool enableBackfaceCulling;
+
 	SShaderResources()
 		: textureMap(0),
 		normalMap(0),
@@ -53,7 +55,8 @@ struct S_API SShaderResources
 		emissive(0, 0, 0),		
 		roughnessMap(0),
 		roughness(1.0f),
-		illumModel(eILLUM_BLINNPHONG)
+		illumModel(eILLUM_BLINNPHONG),
+		enableBackfaceCulling(true)
 	{
 	}
 
@@ -78,6 +81,7 @@ struct S_API SShaderResources
 		illumModel = src.illumModel;
 		roughnessMap = src.roughnessMap;
 		roughness = src.roughness;
+		enableBackfaceCulling = src.enableBackfaceCulling;
 	}
 };
 

@@ -159,6 +159,7 @@ S_API void CSkyBox::SetTexture(ITexture* pTexture)
 
 	SShaderResources* pShaderResources = &pMaterialLayer->resources;
 	pShaderResources->textureMap = pTexture;
+	pShaderResources->enableBackfaceCulling = false;
 }
 
 S_API void CSkyBox::SetPosition(const Vec3f& pos)

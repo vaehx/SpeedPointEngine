@@ -18,13 +18,11 @@
 #ifndef ILINE
 #define ILINE inline
 #endif
+#include "../SPrerequisites.h"
 #include "Vector3.h"
 #include "Matrix.h"
 
 #include <cmath>
-
-#define SP_NMSPACE_BEG namespace SpeedPoint {
-#define SP_NMSPACE_END }
 
 SP_NMSPACE_BEG
 

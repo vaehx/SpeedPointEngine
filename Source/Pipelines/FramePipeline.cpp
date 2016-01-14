@@ -51,9 +51,9 @@ S_API void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SF
 	InitFontRenderSlot(&m_pCamStats, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 0);
 	Vec3f camForward = pCamera->GetForward();
 	Quat& turnQuat = pCamera->d_turnQuat;
-	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "Cam(%.2f %.2f %.f | %.2f %.2f %.2f %.2f | %.2f %.2f %.2f)",
+	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "Cam(%.2f %.2f %.f | %.2f %.2f %.2f | %.2f %.2f %.2f)",
 		pCamera->position.x, pCamera->position.y, pCamera->position.z,
-		turnQuat.w, turnQuat.v.x, turnQuat.v.y, turnQuat.v.z,
+		camForward.x, camForward.y, camForward.z,
 		pCamera->d_turn.x, pCamera->d_turn.y, pCamera->d_turn.z);
 
 	// Cam view matrix
