@@ -181,9 +181,9 @@ public:
 
 	virtual SResult InitializeFramePipeline(IFramePipeline* pCustomFramePipeline = 0);
 	virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true);
-	virtual SResult Initialize3DEngine();
+	virtual SResult Initialize3DEngine(I3DEngine* p3DEngine, bool bManageDealloc = true);
 	virtual SResult InitializeFontRenderer();
-	virtual SResult InitializeResourcePool();
+	virtual SResult InitializeResourcePool(IMaterialManager* pMatMgr, bool bManageDealloc = true);
 	virtual SResult InitializeLogger(IFileLogHandler* pCustomLogHandler = 0);
 	virtual SResult InitializeScene(IScene* pScene);
 

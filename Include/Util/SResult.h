@@ -8,7 +8,7 @@
 // ********************************************************************************************
 
 #pragma once
-#include "SAPI.h"
+#include "../Abstract/SAPI.h"
 #include "SWindowsSpecific.h"
 #include <cstdio> // for assertion
 
@@ -193,7 +193,7 @@ namespace SpeedPoint
 			else
 			{
 				printf(pOutput);
-				MessageBoxA(nullptr, pOutput, "Assertion failed", MB_ICONERROR | MB_OK);
+				//MessageBoxA(nullptr, pOutput, "Assertion failed", MB_ICONERROR | MB_OK);
 			}
 
 			delete[] pOutput;

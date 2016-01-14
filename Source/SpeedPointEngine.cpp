@@ -350,14 +350,17 @@ S_API SResult SpeedPointEngine::InitializeRenderer(const S_RENDERER_TYPE& type, 
 }
 
 // ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::Initialize3DEngine()
-{	
+S_API SResult SpeedPointEngine::Initialize3DEngine(I3DEngine* p3DEngine, bool bManageDealloc /*=true*/)
+{
 	if (!IS_VALID_PTR(m_pRenderer.pComponent))
 	{
 		return LogE("Failed Initialize 3DEngine: Renderer must be initialized first!");		
 	}
 
-	m_p3DEngine.SetOwn(new C3DEngine(m_pRenderer));	
+	if (bManageDealloc)
+		m_p3DEngine.SetOwn(p3DEngine);
+	else
+		m_p3DEngine.SetCustom(p3DEngine);
 
 	LogD("Initialized 3DEngine.");
 	return S_SUCCESS;
@@ -381,14 +384,17 @@ S_API SResult SpeedPointEngine::InitializeFontRenderer()
 }
 
 // ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::InitializeResourcePool()
+S_API SResult SpeedPointEngine::InitializeResourcePool(IMaterialManager* pMatMgr, bool bManageDealloc /*=true*/)
 {
 	assert(IS_VALID_PTR(m_pRenderer.pComponent));
 	m_pResourcePool.SetCustom(m_pRenderer->GetResourcePool());
 
 	LogD("Initialized Resource pool!");
 
-	m_pMaterialManager.SetOwn(new BasicMaterialManager());
+	if (bManageDealloc)
+		m_pMaterialManager.SetOwn(pMatMgr);
+	else
+		m_pMaterialManager.SetCustom(pMatMgr);
 
 	return S_SUCCESS;
 }
