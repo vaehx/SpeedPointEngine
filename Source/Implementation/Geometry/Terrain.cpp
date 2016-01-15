@@ -370,6 +370,11 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 	/*
 	printf("Ter: nChunks per side: %u, which makes %u overall chunks\n", nChunks, nChunks * nChunks);
 	*/
+
+	Vec3f camPos = pCamera->position;
+	if (m_bCenter)
+		camPos += Vec3f(m_fSize * 0.5f, 0, m_fSize * 0.5f);
+
 	for (unsigned int cz = 0; cz < nChunks; ++cz)
 	{
 		for (unsigned int cx = 0; cx < nChunks; ++cx)
@@ -378,9 +383,9 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 			pChunk->cx = cx;
 			pChunk->cz = cz;
 			pChunk->fSize = m_fSegSz * m_chunkSegs;
-			pChunk->curLodLevel = pChunk->DetermineLODLevelByView(pCamera, m_nLodLevels, m_fChunkStepDist);
+			pChunk->curLodLevel = pChunk->DetermineLODLevelByView(camPos, m_nLodLevels, m_fChunkStepDist);
 			pChunk->quadSegs = max(PowerOfTwo(pChunk->curLodLevel), 1);
-			pChunk->chunkSegments = m_chunkSegs;			
+			pChunk->chunkSegments = m_chunkSegs;
 			
 			float quadSize = (pChunk->fSize / pChunk->chunkSegments) * pChunk->quadSegs;
 			pChunk->chunkQuads = (pChunk->chunkSegments / pChunk->quadSegs);
@@ -738,6 +743,7 @@ S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight
 			{
 				// found intersection
 				//CLog::Log(S_DEBUG, "intersection.");
+				float halfSz = m_fSize * 0.5f;
 				intersection.x = curPos.x;
 				intersection.y = (lastSampledHeight + newSampledHeight) * 0.5f;
 				intersection.z = curPos.z;
@@ -883,6 +889,36 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 				continue;
 			}
 		}
+	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API Vec2f Terrain::GetMinXZ() const
+{
+	if (m_bCenter)
+	{
+		float halfSz = m_fSize * 0.5f;
+		return Vec2f(-halfSz, -halfSz);
+	}
+	else
+	{
+		return Vec2f(0, 0);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API Vec2f Terrain::GetMaxXZ() const
+{
+	float sz = m_nSegments * m_fSegSz;
+	if (m_bCenter)
+	{
+		float halfSz = m_fSize * 0.5f;
+		return Vec2f(sz - halfSz, sz - halfSz);
+	}
+	else
+	{
+		return Vec2f(sz, sz);
 	}
 }
 

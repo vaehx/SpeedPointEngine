@@ -101,12 +101,8 @@ public:
 
 	ILINE virtual void CalcMinMaxHeightAfterChange(Vec2f areaMin = Vec2f(0, 0), Vec2f areaMax = Vec2f(1.0f, 1.0f));
 
-	ILINE virtual Vec2f GetMinXZ() const { return Vec2f(0, 0); }
-	ILINE virtual Vec2f GetMaxXZ() const
-	{
-		float sz = m_nSegments * m_fSegSz;
-		return Vec2f(sz, sz);
-	}
+	ILINE virtual Vec2f GetMinXZ() const;
+	ILINE virtual Vec2f GetMaxXZ() const;
 
 	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const;
 

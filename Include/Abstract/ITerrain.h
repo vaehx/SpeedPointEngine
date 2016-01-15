@@ -118,14 +118,14 @@ struct S_API STerrainChunk
 	ILINE void CreateBorder(SLargeIndex* pIB, ESide side, unsigned long startVtxIdx, const STerrainChunk* neighbor, unsigned long vtxRowShift, unsigned long& idxAccum);
 	ILINE void CreateCorner(const STerrainChunkCorner& border, SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum);
 
-	ILINE unsigned int DetermineLODLevelByView(const SCamera* pCamera, unsigned int nLodLevels, float chunkStepDist)
+	ILINE unsigned int DetermineLODLevelByView(const Vec3f& camPos, unsigned int nLodLevels, float chunkStepDist)
 	{
 		// assuming fSize is the same for each chunk:
 		float fXOffs = cx * fSize;
 		float fZOffs = cz * fSize;
 		
-		SVector3 chunkCenter(fXOffs + 0.5f * fSize, pCamera->position.y, fZOffs + 0.5f * fSize);
-		float camChunkDist = (pCamera->position - chunkCenter).Length();
+		SVector3 chunkCenter(fXOffs + 0.5f * fSize, camPos.y, fZOffs + 0.5f * fSize);
+		float camChunkDist = (camPos - chunkCenter).Length();
 
 		unsigned int lodLvl = (unsigned int)floor(camChunkDist / chunkStepDist);
 		if (lodLvl >= nLodLevels)
