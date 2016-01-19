@@ -253,9 +253,7 @@ void File3DS::ReadTriangledObjectChunk(S3DSNamedObject& obj)
 	curChnk.byte_size = 0;
 
 	while (curChnk.byte_pos + curChnk.byte_size < (triChunk.byte_pos + triChunk.byte_size))
-	{
-		ofstream logStream;
-
+	{		
 		ReadChunkHeader(curChnk);
 		switch (curChnk.id)
 		{
@@ -266,10 +264,6 @@ void File3DS::ReadTriangledObjectChunk(S3DSNamedObject& obj)
 				DbgMsg("0 points to read");
 				break;
 			}
-			
-			logStream.open("vertices.log", ofstream::out | ofstream::trunc);
-			if (!logStream.is_open())
-				DbgMsg("[ERROR] Failed open vertices.log!");
 
 			obj.pVertices = new S3DSVertex[obj.nVertices];
 			for (unsigned short iVtx = 0; iVtx < obj.nVertices; ++iVtx)
@@ -277,16 +271,8 @@ void File3DS::ReadTriangledObjectChunk(S3DSNamedObject& obj)
 				ReadFloat(obj.pVertices[iVtx].x);
 				ReadFloat(obj.pVertices[iVtx].y);
 				ReadFloat(obj.pVertices[iVtx].z);
-
-				if (logStream.is_open())
-				{
-					S3DSVertex& vtx = obj.pVertices[iVtx];
-					logStream << "  Vtx (x:" << vtx.x << " y:" << vtx.y << " z:" << vtx.z << ")" << std::endl;
-				}
 			}
 			DbgMsg("CHNK3DS_POINT_ARRAY (sz=%u): Read %d vertices", curChnk.byte_size, obj.nVertices);
-
-			logStream.close();
 
 			break;
 

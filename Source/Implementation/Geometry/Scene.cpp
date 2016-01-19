@@ -3,7 +3,7 @@
 #include <Implementation\Geometry\Scene.h>
 #include <Implementation\Geometry\Terrain.h>
 #include <Implementation\Geometry\StaticObject.h>
-#include <Implementation\Geometry\SPMFile.h>
+#include <FileSPM.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IMaterial.h>
 
@@ -127,7 +127,7 @@ S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
+S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const char* objName)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr, "Engine not initialized!");
 
@@ -135,12 +135,12 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	CSPMLoader spmLoader;
 	if (!spmLoader.Load(filename))
 	{
-		CLog::Log(S_ERROR, "Falied to load object file '%s'", filename);
+		CLog::Log(S_ERROR, "Failed to load object file '%s'", filename);
 		return 0;
 	}
 
-	const SModelMeta &spmModelMeta = spmLoader.GetModelMeta();
-	
+	const std::vector<SModelMeta>& models = spmLoader.GetModels();
+
 	SInitialGeometryDesc geomDesc;
 	geomDesc.bRequireNormalRecalc = true;
 	geomDesc.bRequireTangentRecalc = true;
@@ -148,32 +148,48 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	geomDesc.vertexUsage = eGEOMUSE_STATIC;
 	geomDesc.primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
 
-	geomDesc.nVertices = spmModelMeta.nVertices;
-	geomDesc.pVertices = spmModelMeta.pVertices;
-
-	geomDesc.nSubsets = spmModelMeta.nLoadedSubsets;
-	geomDesc.pSubsets = new SInitialSubsetGeometryDesc[geomDesc.nSubsets];
-	
-	for (u16 iSubset = 0; iSubset < geomDesc.nSubsets; ++iSubset)
+	// Determine subset and vertex count
+	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
 	{
-		SSubset& modelSubset = spmModelMeta.pSubsets[iSubset];
-		SInitialSubsetGeometryDesc& subset = geomDesc.pSubsets[iSubset];
+		geomDesc.nSubsets += itModel->nLoadedSubsets;
+		geomDesc.nVertices += itModel->nVertices;
+	}
 
-		subset.nIndices = modelSubset.nIndices;
+	geomDesc.pSubsets = new SInitialSubsetGeometryDesc[geomDesc.nSubsets];
+	geomDesc.pVertices = new SVertex[geomDesc.nVertices];
 
-		subset.pIndices = new SIndex[subset.nIndices];
+	// Flatten-out the subsets in all models into a single array of subsets	
+	u32 vtxOffset = 0;
+	unsigned int iSubset = 0;
+	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
+	{
+		// Copy over vertices
+		for (u32 iVtx = 0; iVtx < itModel->nVertices; ++iVtx)
+		{
+			geomDesc.pVertices[vtxOffset + iVtx] = itModel->pVertices[iVtx];
+		}
 
-		// TODO: Use SIndex in SPMFile, so we don't have to copy the indices here!
-		for (u32 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
-			subset.pIndices[iIndex] = modelSubset.pIndices[iIndex];
+		for (u16 iModelSubset = 0; iModelSubset < itModel->nLoadedSubsets; ++iModelSubset)
+		{
+			const SSubset& modelSubset = itModel->pSubsets[iModelSubset];
+			SInitialSubsetGeometryDesc& subset = geomDesc.pSubsets[iSubset];
+			subset.nIndices = modelSubset.nIndices;
+			subset.pIndices = new SIndex[subset.nIndices];
 
-		subset.pMaterial = m_pEngine->GetMaterialManager()->FindMaterial(modelSubset.materialName.c_str());
+			// TODO: Use SIndex in SPMFile, so we don't have to copy the indices here!
+			for (u32 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
+				subset.pIndices[iIndex] = modelSubset.pIndices[iIndex] + vtxOffset;
+
+			subset.pMaterial = m_pEngine->GetMaterialManager()->FindMaterial(modelSubset.materialName.c_str());
+		}
+
+		vtxOffset += itModel->nVertices;
 	}
 
 	StaticObject* pStaticObject = new StaticObject();
 
 	SResult res;
-	if (Failure(res = pStaticObject->Init(m_pEngine, spmModelMeta.name.c_str(), &geomDesc)))
+	if (Failure(res = pStaticObject->Init(m_pEngine, objName, &geomDesc)))
 		CLog::Log(S_ERROR, "Failed init static object while loading file '%s'", filename);
 
 	
@@ -181,13 +197,18 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename)
 	delete[] geomDesc.pVertices;
 
 	for (u16 iSubset = 0; iSubset < geomDesc.nSubsets; ++iSubset)
-	{
 		delete[] geomDesc.pSubsets[iSubset].pIndices;
-		delete[] spmModelMeta.pSubsets[iSubset].pIndices;
-	}
 
 	delete[] geomDesc.pSubsets;
-	delete[] spmModelMeta.pSubsets;
+
+	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
+	{
+		for (u16 iSubset = 0; iSubset < itModel->nSubsets; ++iSubset)
+			delete[] itModel->pSubsets[iSubset].pIndices;
+
+		delete[] itModel->pSubsets;
+		delete[] itModel->pVertices;
+	}
 
 	return pStaticObject;
 }

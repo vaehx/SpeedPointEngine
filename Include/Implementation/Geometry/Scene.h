@@ -35,7 +35,7 @@ public:
 	virtual ITerrain* GetTerrain() const { return m_pTerrain; }
 	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center = true);
 
-	virtual IStaticObject* LoadStaticObjectFromFile(const char* file);
+	virtual IStaticObject* LoadStaticObjectFromFile(const char* file, const char* objName);
 	
 	virtual SResult CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const;
 

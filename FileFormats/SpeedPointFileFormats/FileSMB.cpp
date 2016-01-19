@@ -731,6 +731,36 @@ bool CSMBMaterialChunk::SetProperty(const string& name, const string& value)
 	return true;
 }
 
+bool CSMBMaterialChunk::HasProperty(const string& name) const
+{
+
+
+
+	// TODO
+
+	return false;
+
+
+
+
+
+}
+
+string CSMBMaterialChunk::GetProperty(const string& name) const
+{
+
+
+
+	// TODO
+
+
+	return "";
+
+
+
+
+}
+
 void CSMBMaterialChunk::Write(CSMBWriter* pWriter, const SSMBMaterial& material)
 {
 	if (!IS_VALID_PTR(pWriter))

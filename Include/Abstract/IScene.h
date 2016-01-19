@@ -84,7 +84,7 @@ struct S_API IScene
 	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center = true) = 0;
 
 	// Loads SPM Model from file
-	virtual IStaticObject* LoadStaticObjectFromFile(const char* file) = 0;
+	virtual IStaticObject* LoadStaticObjectFromFile(const char* file, const char* objName) = 0;
 
 	//virtual void RegisterObject(IObject* pObject) = 0;
 	//virtual IObject* CreateObject(EObjectType type) = 0;

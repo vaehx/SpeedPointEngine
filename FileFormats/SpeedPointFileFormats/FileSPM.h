@@ -4,18 +4,39 @@
 #include <SPrerequisites.h>
 #include <string>
 #include <fstream>
+#include <vector>
 
 using std::string;
 using std::ifstream;
 using std::ofstream;
+using std::vector;
 
 #define SPM_CURRENT_VERSION 0x0001
 
-#define SPM_CHUNK_MODEL_META 0x1000
-#define SPM_CHUNK_VERTICES 0x2000
-#define SPM_CHUNK_SUBSET 0x3000
-#define SPM_CHUNK_SUBSET_META 0x3100
-#define SPM_CHUNK_SUBSET_INDICES 0x3200
+/*
+
+Simply throw each object (i.e. model, attachment, particle sprayer, light, ...) into the file.
+
+SPM_CHUNK_MODEL 0x1000
+{
+	SPM_CHUNK_MODEL_META 0x1100;
+	SPM_CHUNK_VERTICES 0x1200;
+	SPM_CHUNK_SUBSET 0x1300
+	{
+		SPM_CHUNK_SUBSET_META 0x1310;
+		SPM_CHUNK_SUBSET_INDICES 0x1320;
+	}
+	...
+}
+...
+
+*/
+#define SPM_CHUNK_MODEL 0x1000
+#define SPM_CHUNK_MODEL_META 0x1100
+#define SPM_CHUNK_VERTICES 0x1200
+#define SPM_CHUNK_SUBSET 0x1300
+#define SPM_CHUNK_SUBSET_META 0x1310
+#define SPM_CHUNK_SUBSET_INDICES 0x1320
 
 SP_NMSPACE_BEG
 
@@ -79,15 +100,22 @@ private:
 	inline void WriteString(const string& s);
 
 	inline void WriteChunkHeader(u16 id, u64 length);
+	inline void WriteModelChunk(const SModelMeta& model);
 	inline void WriteModelMetaChunk(const SModelMeta& modelMeta);
 	inline void WriteVertexChunk(const SModelMeta& modelMeta);
 	inline void WriteSubsetChunk(const SSubset& subset);
 
 	inline void Log(const char* msg, ...) const;
 
+	inline static u64 DetermineModelMetaChunkLength(const SModelMeta& model);
+	inline static u64 DetermineVertexChunkLength(const SModelMeta& model);
+
+	// If pSubsetMetaSz and pIndicesSz, they will not be set. 
+	inline static u64 DetermineSubsetChunkLength(const SSubset& subset, u64* pSubsetMetaSz = 0, u64* pIndicesSz = 0);
+
 public:
 	// Returns success
-	bool Write(const char* filename, const SModelMeta& model);
+	bool Write(const char* filename, const vector<SModelMeta>& models);
 };
 
 // Loads a .spm file, which contains subset, vertex and index information of the model.
@@ -98,7 +126,7 @@ class CSPMLoader
 {
 private:
 	u16 m_FileVersion;
-	SModelMeta m_Model;
+	vector<SModelMeta> m_Models;	
 	ifstream m_Stream;
 
 	bool m_bDebug;
@@ -110,6 +138,7 @@ private:
 	inline void ReadStringUntilFirstZero(string& s);
 
 	inline void ReadChunkHeader(u16 &id, u64 &length);
+	inline void ReadModelChunk(SModelMeta& modelMeta, const u64& chunkLn);
 	inline void ReadModelMetaChunk(SModelMeta& modelMeta);
 	inline void ReadVertexChunk(SModelMeta& modelMeta);
 	inline void ReadSubsetChunk(SSubset& subset, const u64& chunkLn);
@@ -118,7 +147,7 @@ public:
 	// Returns success
 	bool Load(const char* filename, bool bDebug = false);
 
-	SModelMeta& GetModelMeta();
+	vector<SModelMeta>& GetModels();
 };
 
 SP_NMSPACE_END
