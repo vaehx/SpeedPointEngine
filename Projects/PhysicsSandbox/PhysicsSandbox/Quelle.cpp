@@ -20,7 +20,7 @@ std::ostream& operator <<(std::ostream& os, const SMatrix& m)
 	return os;
 }
 
-void test_intersections()
+void test_intersections1()
 {
 	{
 		SRay ray;
@@ -197,6 +197,24 @@ void test_intersections()
 	}
 }
 
+void test_intersections_triangle()
+{
+	{
+		SMeshVertex vtx1, vtx2, vtx3;
+		vtx1.x = 0.0f; vtx1.y = 0.0f; vtx1.z = 0.0f;
+		vtx2.x = 2.0f; vtx2.y = 0.0f; vtx2.z = 0.0f;
+		vtx3.x = 1.0f; vtx3.y = 2.0f; vtx3.z = 0.0f;
+
+		SCapsule capsule;
+		capsule.p1 = Vec3f(1.0f, 0.5f, -0.50f);
+		capsule.p2 = Vec3f(1.0f, 0.5f, -10.0f);
+		capsule.r = 0.5f;
+
+		bool intersect = IntersectTriangleCapsule(vtx1, vtx2, vtx3, capsule);
+		std::cout << "Intersect triangle-capsule: " << intersect << std::endl;
+	}
+}
+
 void test_quaternion()
 {
 	{
@@ -259,8 +277,9 @@ void test_quaternion()
 
 void main()
 {
-	//test_intersections();
-	test_quaternion();
+	//test_intersections1();
+	test_intersections_triangle();
+	//test_quaternion();
 
 	std::cin.ignore();
 }
