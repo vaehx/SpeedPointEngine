@@ -2,8 +2,69 @@
 #include <cstdarg>
 #include <Util\SVertex.h>
 #include <Abstract\BoundBox.h>
+#include <sstream>
 
 SP_NMSPACE_BEG
+
+using std::stringstream;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void PrepareLogFmt(stringstream& ss, const char* fmt, const unsigned int indent)
+{
+	ss << "[SPMFile] ";
+	for (unsigned int i = 0; i < indent; ++i)
+		ss << "  ";
+
+	ss << fmt;
+}
+
+void CSPMLogged::DebugLog(const char* fmt, ...)
+{
+	if (!m_bDebug)
+		return;
+
+	stringstream ss;
+	PrepareLogFmt(ss, fmt, m_DebugIndent);
+
+	va_list args;
+	va_start(args, fmt);
+	CLog::LogVargs(S_DEBUG, ss.str().c_str(), args);
+	va_end(args);
+}
+
+void CSPMLogged::ErrorLog(const char* fmt, ...)
+{
+	stringstream ss;
+	PrepareLogFmt(ss, fmt, m_DebugIndent);
+
+	va_list args;
+	va_start(args, fmt);
+	CLog::LogVargs(S_ERROR, ss.str().c_str(), args);
+	va_end(args);
+}
+
+void CSPMLogged::IncreaseDbgIndent()
+{
+	m_DebugIndent++;
+}
+
+void CSPMLogged::DecreaseDbgIndent()
+{
+	if (m_DebugIndent > 0)
+		m_DebugIndent--;
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 void CSPMLoader::ReadUShort(u16& u)
 {
@@ -66,35 +127,47 @@ void CSPMLoader::ReadModelChunk(SModelMeta& modelMeta, const u64& chunkLn)
 		switch (chunkId)
 		{
 		case SPM_CHUNK_MODEL_META:
-			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_MODEL_META...");
+			DebugLog("Reading SPM_CHUNK_MODEL_META (length = %llu)...", chunkLength);
+			IncreaseDbgIndent();
+
 			ReadModelMetaChunk(modelMeta);
+
+			DecreaseDbgIndent();
 			break;
 
 		case SPM_CHUNK_VERTICES:
-			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_VERTICES...");
+			DebugLog("Reading SPM_CHUNK_VERTICES (length = %llu)...", chunkLength);
+			IncreaseDbgIndent();
+
 			ReadVertexChunk(modelMeta);
+
+			DecreaseDbgIndent();
 			break;
 
 		case SPM_CHUNK_SUBSET:
-			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Reading SPM_CHUNK_SUBSET...");
+			DebugLog("Reading SPM_CHUNK_SUBSET (length = %llu)...", chunkLength);
+			IncreaseDbgIndent();
+
 			if (modelMeta.nSubsets == 0 || !IS_VALID_PTR(modelMeta.pSubsets))
 			{
-				CLog::Log(S_ERROR, "[SPMFile] Failed load subset chunk: nSubsets = 0 or subset array not initialized!");
+				ErrorLog("Failed load subset chunk: nSubsets = 0 or subset array not initialized!");
 				break;
 			}
 
 			if (modelMeta.nLoadedSubsets == modelMeta.nSubsets)
 			{
-				CLog::Log(S_ERROR, "[SPMFile] There are more subset-chunks than expected in the file!");
+				ErrorLog("There are more subset-chunks than expected in the file!");
 				break;
 			}
 
 			ReadSubsetChunk(modelMeta.pSubsets[modelMeta.nLoadedSubsets], chunkLength);
 			modelMeta.nLoadedSubsets++;
+
+			DecreaseDbgIndent();
 			break;
 
 		default:
-			CLog::Log(S_ERROR, "[SPMFile] Invalid chunk type (length=%d): 0x%04X", chunkLength, chunkId);			
+			ErrorLog("Invalid chunk type (length=%d): 0x%04X", chunkLength, chunkId);			
 			m_Stream.ignore(chunkLength);
 			break;
 		}
@@ -111,8 +184,8 @@ void CSPMLoader::ReadModelMetaChunk(SModelMeta& modelMeta)
 	ReadUShort(modelMeta.nSubsets);
 
 #ifdef _DEBUG
-	if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] name = %s", modelMeta.name.c_str());
-	if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] nSubsets = %d", modelMeta.nSubsets);
+	DebugLog("modelMeta.name = \"%s\"", modelMeta.name.c_str());
+	DebugLog("modelMeta.nSubsets = %d", modelMeta.nSubsets);
 #endif
 
 	if (modelMeta.nSubsets == 0)
@@ -140,7 +213,7 @@ void CSPMLoader::ReadVertexChunk(SModelMeta& modelMeta)
 	}
 
 #ifdef _DEBUG
-	if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Read %d vertices", modelMeta.nVertices);
+	DebugLog("Read %d vertices", modelMeta.nVertices);
 #endif
 }
 
@@ -158,13 +231,23 @@ void CSPMLoader::ReadSubsetChunk(SSubset& subset, const u64& chunkLn)
 		switch (chunkId)
 		{
 		case SPM_CHUNK_SUBSET_META:
-			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFILE] Reading SPM_CHUNK_SUBSET_META...");
+			DebugLog("Reading SPM_CHUNK_SUBSET_META (length = %llu)...", chunkLength);
+			IncreaseDbgIndent();
+
 			ReadStringUntilFirstZero(subset.materialName);
+
+			DebugLog("subset.materialName = \"%s\"", subset.materialName.c_str());
+			
+			DecreaseDbgIndent();
 			break;
 
 		case SPM_CHUNK_SUBSET_INDICES:
-			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFILE] Reading SPM_CHUNK_SUBSET_INDICES...");
+			DebugLog("Reading SPM_CHUNK_SUBSET_INDICES (length = %llu)...", chunkLength);
+			IncreaseDbgIndent();
+
 			ReadUInt(subset.nIndices);
+			DebugLog("subset.nIndices = %u", subset.nIndices);
+
 			subset.pIndices = new u32[subset.nIndices];
 
 			for (u64 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
@@ -173,12 +256,14 @@ void CSPMLoader::ReadSubsetChunk(SSubset& subset, const u64& chunkLn)
 			}
 
 #ifdef _DEBUG
-			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFile] Read %d indices", subset.nIndices);
+			DebugLog("Read %d indices", subset.nIndices);
 #endif
+
+			DecreaseDbgIndent();
 			break;
 
 		default:
-			CLog::Log(S_ERROR, "[SPMFile] Invalid chunk type (length=%d): 0x%04X", chunkLength, chunkId);
+			ErrorLog("Invalid chunk type (length = %llu): 0x%04X", chunkLength, chunkId);
 			m_Stream.ignore(chunkLength);
 			break;
 		}
@@ -194,13 +279,13 @@ bool CSPMLoader::Load(const char* filename, bool debug/*=false*/)
 	m_Stream.open(filename, ifstream::binary | ifstream::in);
 	if (!m_Stream.is_open())
 	{
-		CLog::Log(S_ERROR, "Failed load SPM file %s", filename);
+		ErrorLog("Failed load SPM file %s", filename);
 		return false;
 	}
 
 	if (m_Stream.eof())
 	{
-		CLog::Log(S_ERROR, "Empty SPM file %s", filename);
+		ErrorLog("Empty SPM file %s", filename);
 		return false;
 	}
 
@@ -208,13 +293,14 @@ bool CSPMLoader::Load(const char* filename, bool debug/*=false*/)
 	u64 fileSz = m_Stream.tellg();
 	m_Stream.seekg(0, m_Stream.beg);
 	
-	CLog::Log(S_DEBUG, "[SPMFile] Reading %s (fileSz = %llu)...", filename, fileSz);
+	DebugLog("Reading filename='%s' (fileSz = %llu)...", filename, fileSz);
 
 	// Read the version
 	ReadUShort(m_FileVersion);
+	DebugLog("Version = %u", m_FileVersion);
 
 	// Read objects
-	u64 readLength = 0;
+	u64 readLength = sizeof(m_FileVersion);
 	while (readLength < fileSz)
 	{
 		u16 chunkId;
@@ -222,19 +308,32 @@ bool CSPMLoader::Load(const char* filename, bool debug/*=false*/)
 		ReadChunkHeader(chunkId, chunkLength);
 		readLength += chunkLength;
 
+		if (readLength > fileSz)
+		{
+			ErrorLog("Incomplete chunk (0x%04X, length = %llu, only %llu bytes there)!", chunkId, chunkLength, chunkLength - (readLength - fileSz));
+			continue;
+		}
+
 		switch (chunkId)
 		{
 		case SPM_CHUNK_MODEL:
 		{
-			if (m_bDebug) CLog::Log(S_DEBUG, "[SPMFILE] Reading SPM_CHUNK_MODEL ...");
-			m_Models.push_back(SModelMeta());
+			DebugLog("Reading SPM_CHUNK_MODEL 0x%04X (length = %llu)...", SPM_CHUNK_MODEL, chunkLength);
+			IncreaseDbgIndent();
+
+			m_Models.push_back(SModelMeta());			
 			ReadModelChunk(m_Models.back(), chunkLength);
+
+			DecreaseDbgIndent();
 			break;
 		}
 		default:
-			CLog::Log(S_ERROR, "[SPMFile] Invalid main chunk type: 0x%04X", chunkId);
+			ErrorLog("Invalid main chunk type (length = %llu): 0x%04X", chunkLength, chunkId);
 			break;
 		}
+
+		DebugLog("readLength = %llu (0x%04X)", readLength, readLength);
+		DebugLog("Remaining bytes: %llu", fileSz - readLength);
 	}
 
 	m_Stream.close();
@@ -263,18 +362,6 @@ vector<SModelMeta>& CSPMLoader::GetModels()
 
 
 
-
-void CSPMWriter::Log(const char* msg, ...) const
-{
-	printf("[SPM] ");
-
-	va_list args;
-	va_start(args, msg);
-	vprintf(msg, args);
-	va_end(args);
-
-	printf("\n");
-}
 
 void CSPMWriter::WriteUShort(u16 u)
 {
@@ -314,12 +401,14 @@ void CSPMWriter::WriteString(const string& s)
 	}
 
 	m_Stream.write(cs, cnt + 1);
+	DebugLog("Writing string '%s' (ln = %u)", cs, cnt + 1);
 }
 
 void CSPMWriter::WriteChunkHeader(u16 id, u64 length)
 {
 	WriteUShort(id);
 	WriteULong(length);
+	DebugLog("Write Chunk Header (id = 0x%04X, length = %llu)", id, length);
 }
 
 u64 CSPMWriter::DetermineModelMetaChunkLength(const SModelMeta& modelMeta)
@@ -344,7 +433,7 @@ u64 CSPMWriter::DetermineSubsetChunkLength(const SSubset& subset, u64* pSubsetMe
 		*pSubsetMetaLn = subsetMetaChnkSz;
 
 	if (pIndicesLn)
-		*pIndicesLn = subsetMetaChnkSz;
+		*pIndicesLn = subsetIndicesChnkSz;
 
 	return subsetMetaChnkSz + subsetIndicesChnkSz;
 }
@@ -361,15 +450,18 @@ void CSPMWriter::WriteModelChunk(const SModelMeta& model)
 		chunkSize += DetermineSubsetChunkLength(model.pSubsets[iSubset]);
 
 	WriteChunkHeader(SPM_CHUNK_MODEL, chunkSize);
+	DebugLog("Writing model '%s'  (chunkSize=%llu)", model.name.c_str(), chunkSize);
+	IncreaseDbgIndent();
 
 	WriteModelMetaChunk(model);
 	WriteVertexChunk(model);
 
 	for (u16 iSubset = 0; iSubset < model.nLoadedSubsets; ++iSubset)
-	{
-		Log("WriteSubsetChunk...");
+	{		
 		WriteSubsetChunk(model.pSubsets[iSubset]);
 	}
+
+	DecreaseDbgIndent();
 }
 
 void CSPMWriter::WriteModelMetaChunk(const SModelMeta& modelMeta)
@@ -377,44 +469,64 @@ void CSPMWriter::WriteModelMetaChunk(const SModelMeta& modelMeta)
 	u64 chunkSize = DetermineModelMetaChunkLength(modelMeta);
 
 	WriteChunkHeader(SPM_CHUNK_MODEL_META, chunkSize);
+	DebugLog("Writing Model-Meta Chunk (SPM_CHUNK_MODEL_META)  chunkSize = %llu...", chunkSize);
+	IncreaseDbgIndent();
 
-	Log("  model.name = %s", modelMeta.name.c_str());
+	DebugLog("model.name = '%s'", modelMeta.name.c_str());
 	WriteString(modelMeta.name);
 
-	Log("  model.nLoadedSubsets = %d", modelMeta.nLoadedSubsets);
+	DebugLog("model.nLoadedSubsets = %d", modelMeta.nLoadedSubsets);
 	WriteUShort(modelMeta.nLoadedSubsets);
+
+	DecreaseDbgIndent();
 }
 
 void CSPMWriter::WriteSubsetChunk(const SSubset& subset)
 {	
 	u64 subsetMetaChnkSz, subsetIndicesChnkSz;
 	DetermineSubsetChunkLength(subset, &subsetMetaChnkSz, &subsetIndicesChnkSz);
-
-	Log("Writing CHUNK_SUBSET (chunkSize=%llu", subsetMetaChnkSz + subsetIndicesChnkSz);
+	
 	WriteChunkHeader(SPM_CHUNK_SUBSET, subsetMetaChnkSz + subsetIndicesChnkSz);
+	DebugLog("Writing CHUNK_SUBSET (chunkSize = %llu)", subsetMetaChnkSz + subsetIndicesChnkSz);
+	IncreaseDbgIndent();
 
-	// Meta:
-	Log("  Writing CHUNK_SUBSET_META (chunkSize=%llu)", subsetMetaChnkSz);
+	// Meta:	
 	WriteChunkHeader(SPM_CHUNK_SUBSET_META, subsetMetaChnkSz);
-	WriteString(subset.materialName);		
+	DebugLog("Writing CHUNK_SUBSET_META (chunkSize=%llu)", subsetMetaChnkSz);
+	IncreaseDbgIndent();
+
+	WriteString(subset.materialName);
+	DebugLog("subset.materialName = '%s'", subset.materialName.c_str());
+
+	DecreaseDbgIndent();
+
 
 	// Indices:
-	Log("  Writing CHUNK_SUBSET_INDICES (subsetIndicesChnkSz=%llu)", subsetIndicesChnkSz);
 	WriteChunkHeader(SPM_CHUNK_SUBSET_INDICES, subsetIndicesChnkSz);
-	Log("    Writing %lu indices...", subset.nIndices);
+	DebugLog("Writing CHUNK_SUBSET_INDICES (subsetIndicesChnkSz = %llu)", subsetIndicesChnkSz);
+	IncreaseDbgIndent();
+
 	WriteUInt(subset.nIndices);
+	DebugLog("subset.nIndices = %lu", subset.nIndices);
+
+	DebugLog("Writing %lu indices...", subset.nIndices);
 	for (u64 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
 	{
 		WriteUInt(subset.pIndices[iIndex]);
 	}
+
+	DecreaseDbgIndent();
+
+	DecreaseDbgIndent();
 }
 
 void CSPMWriter::WriteVertexChunk(const SModelMeta& modelMeta)
 {
 	u64 subsetVertsChnkSz = modelMeta.nVertices * (3 * sizeof(float) + 3 * sizeof(float) + 2 * sizeof(float));
-
-	Log("Writing CHUNK_VERTICES (chunkSz=%llu)", subsetVertsChnkSz);
+	
 	WriteChunkHeader(SPM_CHUNK_VERTICES, subsetVertsChnkSz);
+	DebugLog("Writing CHUNK_VERTICES (chunkSz = %llu)", subsetVertsChnkSz);
+	IncreaseDbgIndent();
 
 	AABB extents;
 
@@ -433,9 +545,11 @@ void CSPMWriter::WriteVertexChunk(const SModelMeta& modelMeta)
 		extents.AddPoint(Vec3f(modelMeta.pVertices[iVert].x, modelMeta.pVertices[iVert].y, modelMeta.pVertices[iVert].z));
 	}
 
-	Log("*** Model-extents: min=(%.2f, %.2f, %.2f) max=(%.2f, %.2f, %.2f) ***",
+	CLog::Log(S_INFO, "Vertex-extents: min=(%.2f, %.2f, %.2f) max=(%.2f, %.2f, %.2f)",
 		extents.vMin.x, extents.vMin.y, extents.vMin.z,
 		extents.vMax.x, extents.vMax.y, extents.vMax.z);
+
+	DecreaseDbgIndent();
 }
 
 
@@ -445,15 +559,18 @@ bool CSPMWriter::Write(const char* filename, const vector<SModelMeta>& models)
 	m_Stream.open(filename, ofstream::out | ofstream::trunc | ofstream::binary);
 	if (!m_Stream.is_open())
 	{
-		Log("Failed open stream for file %s", filename);
+		ErrorLog("Failed open stream for file %s", filename);
 		return false;
 	}
 
-	// Write file version
+	// Write file version	
 	WriteUShort(SPM_CURRENT_VERSION);
+	DebugLog("Version = 0x%04X", SPM_CURRENT_VERSION);
 
 	for (auto itModel = models.begin(); itModel != models.end(); itModel++)
+	{
 		WriteModelChunk(*itModel);
+	}
 
 	m_Stream.close();
 

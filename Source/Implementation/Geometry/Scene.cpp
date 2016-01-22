@@ -133,7 +133,7 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const
 
 	// Load SPM Model
 	CSPMLoader spmLoader;
-	if (!spmLoader.Load(filename))
+	if (!spmLoader.Load(filename, true))
 	{
 		CLog::Log(S_ERROR, "Failed to load object file '%s'", filename);
 		return 0;
@@ -158,6 +158,8 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const
 	geomDesc.pSubsets = new SInitialSubsetGeometryDesc[geomDesc.nSubsets];
 	geomDesc.pVertices = new SVertex[geomDesc.nVertices];
 
+	CLog::Log(S_DEBUG, "geomDesc.nSubsets = %d", geomDesc.nSubsets);
+
 	// Flatten-out the subsets in all models into a single array of subsets	
 	u32 vtxOffset = 0;
 	unsigned int iSubset = 0;
@@ -181,6 +183,8 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const
 				subset.pIndices[iIndex] = modelSubset.pIndices[iIndex] + vtxOffset;
 
 			subset.pMaterial = m_pEngine->GetMaterialManager()->FindMaterial(modelSubset.materialName.c_str());
+
+			iSubset++;
 		}
 
 		vtxOffset += itModel->nVertices;

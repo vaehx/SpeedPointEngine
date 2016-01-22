@@ -118,6 +118,7 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 		SGeomSubset* subset = GetSubset(i);
 		if (!IS_VALID_PTR(subset))
 		{
+			CLog::Log(S_ERROR, "CStaticObjectRenderable::FillRenderDesc(): Failed GetSubset(%u)! Hiding subset...", i);
 			renderSubset.render = false;
 			continue;
 		}

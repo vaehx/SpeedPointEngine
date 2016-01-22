@@ -86,7 +86,26 @@ struct SModelMeta
 	}
 };
 
-class CSPMWriter
+class CSPMLogged
+{
+protected:
+	bool m_bDebug;
+	unsigned int m_DebugIndent;
+
+	void DebugLog(const char* fmt, ...);
+	void ErrorLog(const char* fmt, ...);
+	void IncreaseDbgIndent();
+	void DecreaseDbgIndent();
+
+public:
+	void EnableDebugLog(bool enable)
+	{
+		m_bDebug = enable;
+	}
+};
+
+
+class CSPMWriter : public CSPMLogged
 {
 private:
 	ofstream m_Stream;
@@ -105,8 +124,6 @@ private:
 	inline void WriteVertexChunk(const SModelMeta& modelMeta);
 	inline void WriteSubsetChunk(const SSubset& subset);
 
-	inline void Log(const char* msg, ...) const;
-
 	inline static u64 DetermineModelMetaChunkLength(const SModelMeta& model);
 	inline static u64 DetermineVertexChunkLength(const SModelMeta& model);
 
@@ -122,14 +139,12 @@ public:
 // The materials are stored with their names in the subset info. To associate the real materials with
 // the resource pointers, you can use IMaterialManager::FindMaterial().
 // The loading pipeline is: Load Textures --> Load Materials --> Load Models --> Associate model's subsets with their material
-class CSPMLoader
+class CSPMLoader : public CSPMLogged
 {
 private:
 	u16 m_FileVersion;
 	vector<SModelMeta> m_Models;	
 	ifstream m_Stream;
-
-	bool m_bDebug;
 
 	inline void ReadUShort(u16& u);
 	inline void ReadUInt(u32& u);

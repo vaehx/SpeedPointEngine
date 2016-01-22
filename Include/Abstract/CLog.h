@@ -141,6 +141,12 @@ public:
 
 		return res;
 	}
+
+	static SResult LogVargs(SResult res, const char* fmt, va_list args)
+	{
+		g_LogIntrnl.Log(res, fmt, args);
+		return res;
+	}
 };
 
 
