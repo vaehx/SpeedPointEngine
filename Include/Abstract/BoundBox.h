@@ -93,6 +93,19 @@ struct S_API SAxisAlignedBoundBox
 		return true;
 	}
 
+	inline bool ContainsPoint(const Vec3f& p) const
+	{
+		return (p.x >= vMin.x && p.y >= vMin.y && p.z >= vMin.y)
+			&& (p.x <= vMax.x && p.y <= vMax.y && p.z <= vMax.z);
+	}
+
+	// Outsets the AABB by k in each direction
+	inline void Outset(float k)
+	{
+		vMin -= k;
+		vMax += k;
+	}
+
 	inline void MoveRelative(const Vec3f& v)
 	{
 		vMin += v;

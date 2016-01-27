@@ -1,6 +1,17 @@
 #include <iostream>
-#include "Primitives.h"
-#include "Quaternion.h"
+#include <Abstract\MathGeom.h>
+#include <Abstract\Quaternion.h>
+//#include "Primitives.h"
+//#include "Quaternion.h"
+
+using namespace SpeedPoint;
+using namespace std;
+
+std::ostream& operator <<(std::ostream& os, const Vec3f& v)
+{
+	os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+	return os;
+}
 
 std::ostream& operator <<(std::ostream& os, const Quat& q)
 {
@@ -205,10 +216,24 @@ void test_intersections_triangle()
 		vtx2.x = 2.0f; vtx2.y = 0.0f; vtx2.z = 0.0f;
 		vtx3.x = 1.0f; vtx3.y = 2.0f; vtx3.z = 0.0f;
 
+		cout << "Triangle: " << endl;
+		cout << "    vtx1: " << MESHVERTEX_TO_VEC3F(vtx1) << endl;
+		cout << "    vtx2: " << MESHVERTEX_TO_VEC3F(vtx2) << endl;
+		cout << "    vtx3: " << MESHVERTEX_TO_VEC3F(vtx3) << endl;
+
+		cout << endl;
+
 		SCapsule capsule;
-		capsule.p1 = Vec3f(1.0f, 0.5f, -0.50f);
+		capsule.p1 = Vec3f(1.0f, 0.5f, -0.5f);
 		capsule.p2 = Vec3f(1.0f, 0.5f, -10.0f);
 		capsule.r = 0.5f;
+
+		cout << "Capsule:" << endl;
+		cout << "    p1 = " << capsule.p1 << endl;
+		cout << "    p2 = " << capsule.p2 << endl;
+		cout << "    radius = " << capsule.r << endl;
+
+		cout << endl;
 
 		bool intersect = IntersectTriangleCapsule(vtx1, vtx2, vtx3, capsule);
 		std::cout << "Intersect triangle-capsule: " << intersect << std::endl;

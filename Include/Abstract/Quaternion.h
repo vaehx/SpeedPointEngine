@@ -36,6 +36,41 @@ struct S_API Quat
 	Quat(float ww, const Vec3f& vv) : v(vv), w(ww) {}
 	Quat(float q0, float q1, float q2, float q3) : v(q1, q2, q3), w(q0) {}
 
+	/*
+	emplate<typename F> void Quat_tpl<F>::SetRotationV0V1(const Vec3_tpl<F>& v0, const Vec3_tpl<F>& v1)
+	{
+		assert(v0.IsUnit(0.01f));
+		assert(v1.IsUnit(0.01f));
+		real dot = v0.x*v1.x + v0.y*v1.y + v0.z*v1.z + 1.0;
+		if (dot > real(0.0001f))
+		{
+			real vx = v0.y*v1.z - v0.z*v1.y;
+			real vy = v0.z*v1.x - v0.x*v1.z;
+			real vz = v0.x*v1.y - v0.y*v1.x;
+			real d = isqrt_tpl(dot*dot + vx*vx + vy*vy + vz*vz);
+			w = F(dot*d);	v.x = F(vx*d); v.y = F(vy*d); v.z = F(vz*d);
+			return;
+		}
+		w = 0; v = v0.GetOrthogonal().GetNormalized();
+	*/
+
+	static Quat FromVectors(const Vec3f& v1, const Vec3f& v2)
+	{		
+		float dot = Vec3Dot(v1, v2) + 1.0f;
+		if (dot > 0.0001f)
+		{					
+			Quat q;
+			q.v = Vec3Cross(v1, v2);
+			float d = sqrtf(dot * dot + Vec3Dot(q.v, q.v));
+			q.v *= d;
+			q.w = dot * d;
+			return q;
+		}
+		
+		Vec3f vn = v1.Normalized();
+		return Quat(0, Vec3Cross(Vec3f(vn.y, vn.z, vn.x), vn));
+	}
+
 	// Rotation about X-Axis
 	static Quat FromRotationX(float rad)
 	{
