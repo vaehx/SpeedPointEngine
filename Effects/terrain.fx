@@ -190,12 +190,12 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     
     // Calculate lighting factor. Using a fixed light dir.
 	// Light Dir is assumed to be INCOMING directed
-    float3 lightDir = normalize(float3(0, -0.8f, 0.1f));
+    float3 lightDir = normalize(float3(0.2f, -0.3f, 0.2f));
 
-	float monoLightIntensity = 3.0f;
+	float monoLightIntensity = 5.0f;
 	float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
 
-    float monoAmbient = 0.30f;
+    float monoAmbient = 0.12f;
 	float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
     float lambert = saturate(dot(normal, -lightDir));

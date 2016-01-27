@@ -163,7 +163,7 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     sampledNormal.rg = 2.0f * sampledNormal.rg - 1.0f;    
     float3 bumpNormal = mul(matTW, normalize(sampledNormal));    
     
-    normal = bumpNormal;
+    //normal = bumpNormal;
     
     
     
@@ -174,13 +174,16 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float matRoughness = 0.8f;       
     
     // Calculate lighting factor. Using a fixed light dir and eye pos for now    
-    float3 L = normalize(float3(0.4f, -0.8f, 0.8f));
-    float3 V = normalize(eyePos.xyz - IN.WorldPos);          
-    
+    float3 L = normalize(float3(0.2f, -0.3f, 0.2f));
+    float3 V = normalize(eyePos.xyz - IN.WorldPos);
 
-    float lambertBRDF = albedo / PI;
-    float3 LOut = IN.Color * albedo;
+    float3 irradiance = float3(1.0f, 1.0f, 1.0f) * 4.0f;
+
+    float3 ambient = float3(1.0f, 1.0f, 1.0f) * 0.2f;
+
+    float lambertBRDF = 1 / PI;
+    float3 LOut = IN.Color * saturate(albedo * (lambertBRDF * saturate(dot(normal, -L)) * irradiance + ambient));
     
-    OUT.Color = float4(LOut.x, LOut.y, LOut.z, 1.0f);
+    OUT.Color = float4(LOut.r, LOut.g, LOut.b, 1.0f);
     return OUT;
 }
