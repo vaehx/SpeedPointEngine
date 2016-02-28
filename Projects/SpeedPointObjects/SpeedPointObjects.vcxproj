@@ -26,6 +26,7 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Include\Implementation\Entity\PhysicalComponent.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationBundle.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />

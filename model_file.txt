@@ -15,39 +15,68 @@ mat 'brick_bright' {
 
 
 ==========================================================================================
-		Model File  .smf
+		Model File  .spm
 ==========================================================================================
+
+----------------------------------------------------------------------
+  u8:                         256	char
+  u16:                     65.536	unsigned short
+  u32:              4.294.967.296	unsigned int, unsigned long
+  u64: 18.446.744.073.709.551.616	unsigned long long
+----------------------------------------------------------------------
 
 At beginning of file: 
 	u16 version;
 
-Each chunk: { 2 byte id, 8 byte length, ... }
+Each chunk: { 2 byte id, 8 byte payloadLength, ...PAYLOAD... }
 
-Chunks:
-0x1000 - Model Meta:
-	struct meta
-	{
-		string text; // read until first \0
-		unsigned short num_subsets;
-	};
-
-0x2000 - Vertices // Read num_vertices vertices
-	u64 nVertices;
-	Then per vertex:
-	struct vertex
-	{
-		float x, y, z;
-		float nx, ny, nz;
-		float u, v;
-	};
-
-0x3000 - Subset chunk
-	0x3100 - Subset-Meta:
-		struct subset_meta
+0x1000 - Model (CHUNK_MODEL):
+	0x1100 - Model Meta (CHUNK_MODEL_META):
+		struct meta
 		{
-			string material_name; // specification/name of material
+			string text; // read until first \0
+			u16 num_subsets;
 		};
 
-	0x3200 - Indices // Read num_indices indices
-		u64 nIndices;
-		Single index = u64 index;
+	0x1200 - Vertices (CHUNK_VERTICES): // Read num_vertices vertices
+		u32 nVertices;
+		struct vertex
+		{
+			float x, y, z;
+			float nx, ny, nz;
+			float u, v;
+		} *pVertices;
+
+	0x1300 - Subset chunk (CHUNK_SUBSET):
+		0x1310 - Subset-Meta (CHUNK_SUBSET_META):
+			struct subset_meta
+			{
+				string material_name; // specification/name of material
+			};
+
+		0x1320 - Indices (CHUNK_SUBSET_INDICES) // Read num_indices indices
+			u32 nIndices;
+			u32* index;
+
+0x2000 - Physics Info (CHUNK_PHYSICS_INFO):
+	u16 collisionShapeType; // 0 - Sphere, 1 - Capsule, 2 - Box, 3 - Mesh
+
+	// Shape Data
+	//
+	// Sphere: 	center = v[0], radius = f
+	// Capsule: 	p1 = v[0], p2 = v[1], radius = f
+	// Box: 	center = v[0], hd = { v[1], v[2], (f, g, h) }
+	// Mesh: 	Not used
+	float3 v[3];
+	float f, g, h;
+
+	// If shapeType != Mesh, this chunk should be ignored
+	// The spm format uses indices to reduce file size. For optimal performance,
+	// the actual triangles should be decompressed to be handled properly e.g. in an octree.
+	0x2100 - Collision-Mesh data (CHUNK_SHAPE_MESH)
+		u32 nVertices;
+		u32 nIndices;
+		float3 *pVertices;
+		u32 *pIndices;
+
+

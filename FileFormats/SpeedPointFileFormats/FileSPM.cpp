@@ -106,6 +106,14 @@ void CSPMLoader::ReadStringUntilFirstZero(string& s)
 	}
 }
 
+void CSPMLoader::IgnoreBytes(u16 numBytes)
+{
+	if (!m_Stream.is_open())
+		return;
+
+	m_Stream.ignore(numBytes);
+}
+
 
 
 void CSPMLoader::ReadChunkHeader(u16 &id, u64 &length)
@@ -271,6 +279,75 @@ void CSPMLoader::ReadSubsetChunk(SSubset& subset, const u64& chunkLn)
 }
 
 
+void CSPMLoader::ReadPhysicsInfoChunk(SPhysicsInfo& physicsInfo, u64 chunkSz)
+{
+	u16 shapeType;
+	ReadUShort(shapeType);
+	chunkSz -= 2;
+	physicsInfo.shape.shapeType = (ESPMCollisionShapeType)shapeType;
+
+	DebugLog("physicsInfo.shape.shapeType = %d", shapeType);
+
+	for (int i = 0; i < 4; ++i)
+	{
+		ReadFloat(physicsInfo.shape.v[i].x);
+		ReadFloat(physicsInfo.shape.v[i].y);
+		ReadFloat(physicsInfo.shape.v[i].z);
+	}
+
+	chunkSz -= 4 * 3 * sizeof(float);
+
+	u64 readLength = 0;
+	while (readLength < chunkSz)
+	{
+		if (chunkSz - readLength < SPM_CHUNK_HEADER_SIZE)
+		{
+			IgnoreBytes(chunkSz - readLength);
+			return;
+		}
+
+		u16 chunkId;
+		u64 chunkLength;
+		ReadChunkHeader(chunkId, chunkLength);
+		readLength += chunkLength;
+
+		switch (chunkId)
+		{
+		case SPM_CHUNK_SHAPE_MESH:
+		{
+			DebugLog("Reading SPM_CHUNK_SHAPE_MESH (0x%04X, length = %llu)...", SPM_CHUNK_SHAPE_MESH, chunkLength);
+			IncreaseDbgIndent();
+
+			SSPMCollisionMesh& mesh = physicsInfo.shape.mesh;
+			ReadUInt(mesh.nVertices);
+			ReadUInt(mesh.nIndices);
+
+			mesh.pVertices = new Vec3f[mesh.nVertices];
+			for (u32 iVtx = 0; iVtx < mesh.nVertices; ++iVtx)
+			{
+				ReadFloat(mesh.pVertices[iVtx].x);
+				ReadFloat(mesh.pVertices[iVtx].y);
+				ReadFloat(mesh.pVertices[iVtx].z);
+			}
+
+			mesh.pIndices = new u32[mesh.nIndices];
+			for (u32 iIdx = 0; iIdx < mesh.nIndices; ++iIdx)
+			{
+				ReadUInt(mesh.pIndices[iIdx]);
+			}
+
+			DecreaseDbgIndent();
+			break;
+		}
+		default:
+			ErrorLog("Invalid chunk type (length = %llu): 0x%04X", chunkLength, chunkId);
+			IgnoreBytes(chunkLength);
+			break;
+		}
+	}
+}
+
+
 
 bool CSPMLoader::Load(const char* filename, bool debug/*=false*/)
 {
@@ -317,16 +394,24 @@ bool CSPMLoader::Load(const char* filename, bool debug/*=false*/)
 		switch (chunkId)
 		{
 		case SPM_CHUNK_MODEL:
-		{
 			DebugLog("Reading SPM_CHUNK_MODEL 0x%04X (length = %llu)...", SPM_CHUNK_MODEL, chunkLength);
 			IncreaseDbgIndent();
 
-			m_Models.push_back(SModelMeta());			
+			m_Models.push_back(SModelMeta());
 			ReadModelChunk(m_Models.back(), chunkLength);
 
 			DecreaseDbgIndent();
 			break;
-		}
+
+		case SPM_CHUNK_PHYSICS_INFO:
+			DebugLog("Reading CHUNK_PHYSICS_INFO 0x%04X (length = %llu)...", SPM_CHUNK_PHYSICS_INFO, chunkLength);
+			IncreaseDbgIndent();
+
+			ReadPhysicsInfoChunk(m_PhysicsInfo, chunkLength);
+
+			DecreaseDbgIndent();
+			break;
+
 		default:
 			ErrorLog("Invalid main chunk type (length = %llu): 0x%04X", chunkLength, chunkId);
 			break;
@@ -341,9 +426,14 @@ bool CSPMLoader::Load(const char* filename, bool debug/*=false*/)
 	return true;
 }
 
-vector<SModelMeta>& CSPMLoader::GetModels()
+const vector<SModelMeta>& CSPMLoader::GetModels() const
 {
 	return m_Models;
+}
+
+const SPhysicsInfo& CSPMLoader::GetPhysicsInfo() const
+{
+	return m_PhysicsInfo;
 }
 
 
@@ -426,7 +516,7 @@ u64 CSPMWriter::DetermineVertexChunkLength(const SModelMeta& modelMeta)
 
 u64 CSPMWriter::DetermineSubsetChunkLength(const SSubset& subset, u64* pSubsetMetaLn /*=0*/, u64* pIndicesLn /*=0*/)
 {
-	u64 subsetMetaChnkSz = subset.materialName.length() + 1;
+	u64 subsetMetaChnkSz = subset.materialName.length() + 1; // +1 for trailing 0
 	u64 subsetIndicesChnkSz = subset.nIndices * 4;
 
 	if (pSubsetMetaLn)
@@ -435,7 +525,7 @@ u64 CSPMWriter::DetermineSubsetChunkLength(const SSubset& subset, u64* pSubsetMe
 	if (pIndicesLn)
 		*pIndicesLn = subsetIndicesChnkSz;
 
-	return subsetMetaChnkSz + subsetIndicesChnkSz;
+	return SPM_CHUNK_HEADER_SIZE + subsetMetaChnkSz + SPM_CHUNK_HEADER_SIZE + subsetIndicesChnkSz;
 }
 
 
@@ -443,11 +533,11 @@ u64 CSPMWriter::DetermineSubsetChunkLength(const SSubset& subset, u64* pSubsetMe
 void CSPMWriter::WriteModelChunk(const SModelMeta& model)
 {
 	u64 chunkSize = 0;
-	chunkSize += DetermineModelMetaChunkLength(model);
-	chunkSize += DetermineVertexChunkLength(model);
+	chunkSize += SPM_CHUNK_HEADER_SIZE + DetermineModelMetaChunkLength(model);
+	chunkSize += SPM_CHUNK_HEADER_SIZE + DetermineVertexChunkLength(model);
 
 	for (u16 iSubset = 0; iSubset < model.nLoadedSubsets; ++iSubset)
-		chunkSize += DetermineSubsetChunkLength(model.pSubsets[iSubset]);
+		chunkSize += SPM_CHUNK_HEADER_SIZE + DetermineSubsetChunkLength(model.pSubsets[iSubset]);
 
 	WriteChunkHeader(SPM_CHUNK_MODEL, chunkSize);
 	DebugLog("Writing model '%s'  (chunkSize=%llu)", model.name.c_str(), chunkSize);
@@ -553,8 +643,65 @@ void CSPMWriter::WriteVertexChunk(const SModelMeta& modelMeta)
 }
 
 
+void CSPMWriter::WritePhysicsInfoChunk(const SPhysicsInfo& physicsInfo)
+{
+	u64 chunkSz = 2 + 4 * 3 * sizeof(float); // shapeType + 4 * Vec3f
 
-bool CSPMWriter::Write(const char* filename, const vector<SModelMeta>& models)
+	u64 meshChunkSz = 0;
+	if (physicsInfo.shape.shapeType == eCOLSHAPE_MESH)
+	{
+		meshChunkSz += 4 + 4; // nVertices + nIndices  (both u32)
+		meshChunkSz += physicsInfo.shape.mesh.nVertices * 3 * sizeof(float) // Vec3f
+			+ physicsInfo.shape.mesh.nIndices * 4; // u32
+
+		chunkSz += SPM_CHUNK_HEADER_SIZE;
+		chunkSz += meshChunkSz;
+	}
+	
+	WriteChunkHeader(SPM_CHUNK_PHYSICS_INFO, chunkSz);
+	DebugLog("Writing CHUNK_PHYSICS_INFO (chunkSz = %llu)", chunkSz);
+	IncreaseDbgIndent();
+
+	WriteUShort(physicsInfo.shape.shapeType);
+	
+	for (int i = 0; i < 4; ++i)
+	{
+		WriteFloat(physicsInfo.shape.v[i].x);
+		WriteFloat(physicsInfo.shape.v[i].y);
+		WriteFloat(physicsInfo.shape.v[i].z);
+	}
+
+	if (physicsInfo.shape.shapeType == eCOLSHAPE_MESH)
+	{
+		WriteChunkHeader(SPM_CHUNK_SHAPE_MESH, meshChunkSz);
+		DebugLog("Writing CHUNK_SHAPE_MESH (chunkSz = %llu)", meshChunkSz);
+		IncreaseDbgIndent();
+
+		const SSPMCollisionMesh& mesh = physicsInfo.shape.mesh;
+
+		WriteUInt(mesh.nVertices);
+		WriteUInt(mesh.nIndices);
+
+		for (u32 iVtx = 0; iVtx < mesh.nVertices; ++iVtx)
+		{
+			WriteFloat(mesh.pVertices[iVtx].x);
+			WriteFloat(mesh.pVertices[iVtx].y);
+			WriteFloat(mesh.pVertices[iVtx].z);
+		}
+
+		for (u32 iIdx = 0; iIdx < mesh.nIndices; ++iIdx)
+		{
+			WriteUInt(mesh.pIndices[iIdx]);
+		}
+
+		DecreaseDbgIndent();
+	}
+
+	DecreaseDbgIndent();
+}
+
+
+bool CSPMWriter::Write(const char* filename, const vector<SModelMeta>& models, const SPhysicsInfo& physicsInfo /*= SPhysicsInfo()*/)
 {
 	m_Stream.open(filename, ofstream::out | ofstream::trunc | ofstream::binary);
 	if (!m_Stream.is_open())
@@ -571,6 +718,8 @@ bool CSPMWriter::Write(const char* filename, const vector<SModelMeta>& models)
 	{
 		WriteModelChunk(*itModel);
 	}
+
+	WritePhysicsInfoChunk(physicsInfo);
 
 	m_Stream.close();
 

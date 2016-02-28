@@ -43,6 +43,8 @@ struct S_API SCamera;
 struct S_API IGameEngine;
 struct S_API ITexture;
 
+struct S_API IPhysicalComponent;
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -143,14 +145,6 @@ struct S_API IRenderableComponent
 
 	virtual void SetViewProjMatrix(const SMatrix& mtx) = 0;
 	virtual void UnsetViewProjMatrix() = 0;
-};
-
-
-struct S_API IPhysicalComponent
-{
-	virtual ~IPhysicalComponent()
-	{
-	}
 };
 
 struct S_API IAnimateableComponent

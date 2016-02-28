@@ -100,13 +100,7 @@
     <ClInclude Include="..\..\Include\Abstract\IParticleSystem.h">
       <Filter>Headers\Data</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IPhysicalObject.h">
-      <Filter>Headers\Data</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IVisible.h">
-      <Filter>Headers\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ISolidSystem.h">
       <Filter>Headers\Data</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\ISound.h">

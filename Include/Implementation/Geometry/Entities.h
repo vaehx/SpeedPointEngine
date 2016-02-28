@@ -3,6 +3,7 @@
 #include <Abstract\IObject.h>
 #include <Abstract\IRenderer.h>
 #include "Geometry.h"
+#include <Implementation\Entity\PhysicalComponent.h>
 
 SP_NMSPACE_BEG
 
@@ -55,7 +56,7 @@ class CRigidBody : public IEntity
 private:
 	IGameEngine* m_pEngine;
 	CRigidBodyRenderable m_Renderable;
-	IPhysicalComponent* m_pPhysical;
+	PhysicalComponent m_Physical;
 
 	vector<IReferenceObject*> m_RefObjects;
 
@@ -63,12 +64,15 @@ private:
 public:
 	virtual ~CRigidBody() { Clear(); }
 
-	ILINE virtual EntityType GetType() const { return SP_ENTITY_RENDERABLE | SP_ENTITY_PHYSICAL; }
+	ILINE virtual EntityType GetType() const
+	{
+		return SP_ENTITY_RENDERABLE | SP_ENTITY_PHYSICAL;
+	}
 
 	ILINE virtual void RecalcBoundBox();
 
 	ILINE virtual IRenderableComponent* GetRenderable() const { return (IRenderableComponent*)&m_Renderable; }
-	ILINE virtual IPhysicalComponent* GetPhysical() const { return m_pPhysical; }
+	ILINE virtual IPhysicalComponent* GetPhysical() const { return (IPhysicalComponent*)&m_Physical; }
 
 public:
 	CRigidBody();

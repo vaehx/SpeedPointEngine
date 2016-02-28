@@ -51,8 +51,13 @@ private:
 	
 	float m_fMaxHeight; // w/o height scale
 	float m_fMinHeight; // w/o height scale
-					
 
+	// ------
+
+	SMesh m_ProxyMesh;
+
+
+	void CalculateProxyMesh(unsigned int maxOctreeRecDepth = 4);
 
 	void CalculateMinMaxHeights();
 
@@ -81,7 +86,7 @@ public:
 		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && m_Layers.size() > 0);
 	}
 	
-	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true);
+	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true, unsigned int maxKTreeRecDepth = 4);
 
 
 	virtual void UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc);
@@ -103,6 +108,8 @@ public:
 
 	ILINE virtual Vec2f GetMinXZ() const;
 	ILINE virtual Vec2f GetMaxXZ() const;
+
+	ILINE virtual Vec2f XZToTexCoords(float x, float z) const;
 
 	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const;
 
@@ -134,6 +141,11 @@ public:
 	virtual void RequireRender() { m_bRequireRender = true; }
 	
 	virtual void Clear(void);
+
+	ILINE virtual const SMesh* GetProxyMesh() const
+	{
+		return &m_ProxyMesh;
+	}
 };
 
 SP_NMSPACE_END

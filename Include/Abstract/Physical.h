@@ -19,26 +19,9 @@
 
 SP_NMSPACE_BEG
 
+struct S_API SGeomShape;
 
-typedef Vec3d SVelocity;
-
-enum ECollisionShapeType
-{
-	eCOLLSHAPE_CAPSULE,
-	eCOLLSHAPE_SPHERE,
-	eCOLLSHAPE_BOX
-};
-
-// Summary:
-//	Used to describe the form of the collision shape around an object that
-//	is used for collision detection.
-struct SCollisionShape
-{
-	double radius;
-	double length;
-	Vec3d center;
-	ECollisionShapeType type;
-};
+typedef SGeomShape SCollisionShape;
 
 enum EPhysicalBeheaviour
 {
@@ -47,41 +30,23 @@ enum EPhysicalBeheaviour
 	ePHYSBEHAVE_LIQUID
 };
 
-
-struct IPhysicalObjectComponent
+struct SPhysicalState
 {
-	virtual SCollisionShape& GetCollisionShape() = 0;
-	virtual SVelocity& GetVelocity() = 0;
-	virtual float GetMass() const = 0;
-	virtual void SetMass(float mass) = 0;
-	virtual EPhysicalBeheaviour GetBeheaviour() const = 0;
+	Vec3f x; // x(t) - Position
+	Vec3f v; // v(t) - Linear velocity
+	// ... linear momentum, force, rotation, torque, angular velocity, angular momentum, inverse inertia tensor, ...
 };
 
-
-
-struct IPhysical : public IObject
+struct IPhysicalComponent
 {
-	virtual bool IsRenderable() const { return true; }
-	virtual bool IsPhysical() const { return true; }
+	virtual ~IPhysicalComponent()
+	{
+	}
 
-	virtual IRenderableComponent* GetRenderable() const = 0;
-	virtual IPhysicalComponent* GetPhysical() const = 0;
-
-	virtual SVelocity& GetVelocity() = 0;
-	virtual float GetMass() const = 0;
-	virtual void SetMass(float mass) = 0;
-	// ...
+	virtual void SetCollisionShape(const SGeomShape& shape) = 0;
+	virtual SGeomShape* GetCollisionShape() = 0;
 };
 
-
-
-struct S_API IWaterVolume : public IPhysical
-{
-};
-
-struct S_API IOcean
-{
-};
 
 
 SP_NMSPACE_END

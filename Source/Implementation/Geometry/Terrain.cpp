@@ -281,7 +281,7 @@ S_API Terrain::~Terrain()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/)
+S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/, unsigned int maxOctreeRecDepth /*=4*/)
 {
 	// Check given sizes		
 	if (!IsPowerOfTwo(segments) || (segments % chunkSegments) > 0)
@@ -337,6 +337,9 @@ S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigne
 	// Initialize chunk array
 	unsigned long nChunks = pow2(m_nSegments / m_chunkSegs);
 	m_pChunks = new STerrainChunk[nChunks];
+
+
+	CalculateProxyMesh(maxOctreeRecDepth);
 
 	return S_SUCCESS;
 }
@@ -688,6 +691,71 @@ S_API float Terrain::SampleHeight(const Vec2f& texcoords, bool bilinear /* = fal
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+inline Vec2f _ScaleToTexCoords(float x, float y, const Vec2f& worldExtents)
+{
+	return Vec2f(fmodf(x, worldExtents.x), fmodf(y, worldExtents.y)) / worldExtents;
+}
+
+S_API void Terrain::CalculateProxyMesh(unsigned int maxKTreeRecDepth)
+{
+	vector<SMeshFace> faces;
+	faces.reserve(m_nSegments * m_nSegments * 2);
+
+	Vec2f minXZ = GetMinXZ(), maxXZ = GetMaxXZ();
+	Vec2f worldExtents = maxXZ - minXZ;
+
+	for (unsigned long iSegX = 0; iSegX < m_nSegments; ++iSegX)
+	{
+		for (unsigned long iSegY = 0; iSegY < m_nSegments; ++iSegY)
+		{
+			// face1	face2
+			//  2     	2-----1
+			//  | \   	  \   |
+			//  |   \ 	    \ |
+			//  0-----1	      0
+
+			// Base pos (minimum index vertex)
+			Vec3f bp(iSegX * m_fSegSz, 0, iSegY * m_fSegSz);
+
+			SMeshFace face1, face2;
+			face1.vtx[0].x = bp.x;
+			face1.vtx[0].z = bp.z;
+			face1.vtx[0].y = SampleHeight(_ScaleToTexCoords(face1.vtx[0].x, face1.vtx[0].z, worldExtents));
+
+			face1.vtx[1].x = bp.x + m_fSegSz;
+			face1.vtx[1].z = bp.z;
+			face1.vtx[1].y = SampleHeight(_ScaleToTexCoords(face1.vtx[1].x, face1.vtx[1].z, worldExtents));
+
+			face1.vtx[2].x = bp.x;
+			face1.vtx[2].z = bp.z + m_fSegSz;
+			face1.vtx[2].y = SampleHeight(_ScaleToTexCoords(face1.vtx[2].x, face1.vtx[2].z, worldExtents));
+
+			face2.vtx[0] = face1.vtx[1];
+
+			face2.vtx[1].x = bp.x + m_fSegSz;
+			face2.vtx[1].z = bp.z + m_fSegSz;
+			face2.vtx[1].y = SampleHeight(_ScaleToTexCoords(face2.vtx[1].x, face2.vtx[1].z, worldExtents));
+
+			face2.vtx[2] = face1.vtx[2];
+
+			faces.push_back(face1);
+			faces.push_back(face2);
+		}
+	}
+
+	float minHeight = GetMinHeight(), maxHeight = GetMaxHeight();
+
+	float bias = 0.01f;
+
+	AABB aabb;
+	aabb.vMin = Vec3f(minXZ.x, minHeight - bias, minXZ.y);
+	aabb.vMax = Vec3f(maxXZ.x, maxHeight + bias, maxXZ.y);
+
+	m_ProxyMesh.Init(faces, aabb, eMESH_KTREE_OCTREE, maxKTreeRecDepth);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
 S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight, const SRay& ray, const unsigned int recDepth,
 	const float step, Vec3f& intersection, const unsigned int curDepth) const
 {
@@ -922,6 +990,14 @@ S_API Vec2f Terrain::GetMaxXZ() const
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API Vec2f Terrain::XZToTexCoords(float x, float z) const
+{
+	Vec2f worldSpaceExtents = GetMaxXZ() - GetMinXZ();
+	return Vec2f(
+		fmodf(x, worldSpaceExtents.x) / worldSpaceExtents.x,
+		fmodf(z, worldSpaceExtents.y) / worldSpaceExtents.y);
+}
 
 
 

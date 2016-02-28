@@ -91,5 +91,8 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Entities.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Entity\PhysicalComponent.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

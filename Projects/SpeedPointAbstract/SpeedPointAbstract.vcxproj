@@ -100,7 +100,6 @@
     <ClInclude Include="..\..\Include\Abstract\IOutputPlane.h" />
     <ClInclude Include="..\..\Include\Abstract\IParticle.h" />
     <ClInclude Include="..\..\Include\Abstract\IParticleSystem.h" />
-    <ClInclude Include="..\..\Include\Abstract\IPhysicalObject.h" />
     <ClInclude Include="..\..\Include\Abstract\IPhysics.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderAPI.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderer.h" />
@@ -111,7 +110,6 @@
     <ClInclude Include="..\..\Include\Abstract\IObject.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
     <ClInclude Include="..\..\Include\Abstract\IVisible.h" />
-    <ClInclude Include="..\..\Include\Abstract\ISolidSystem.h" />
     <ClInclude Include="..\..\Include\Abstract\ISound.h" />
     <ClInclude Include="..\..\Include\Abstract\ISoundSystem.h" />
     <ClInclude Include="..\..\Include\Abstract\ITerrain.h" />

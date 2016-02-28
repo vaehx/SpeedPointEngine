@@ -41,7 +41,8 @@ struct S_API SAxisAlignedBoundBox
 		vMax = SVector3(-FLT_MAX);
 	}
 
-	// length is set to the length of the vector from ray origin to the intersection
+	// length is set to the length of the vector from ray origin to the (first) intersection
+	// IntersectionPoint = p + v * (*pLength)
 	bool HitsRay(const Vec3f& v, const Vec3f& p, float* pLength = 0) const
 	{
 		Vec3f invDir;
@@ -50,17 +51,17 @@ struct S_API SAxisAlignedBoundBox
 		invDir.y = 1.0f / v.y;
 		invDir.z = 1.0f / v.z;
 
-		float t1 = (vMin.x - p.x)*invDir.x;
-		float t2 = (vMax.x - p.x)*invDir.x;
-		float t3 = (vMin.y - p.y)*invDir.y;
-		float t4 = (vMax.y - p.y)*invDir.y;
-		float t5 = (vMin.z - p.z)*invDir.z;
-		float t6 = (vMax.z - p.z)*invDir.z;
+		float t1 = (vMin.x - p.x) * invDir.x;
+		float t2 = (vMax.x - p.x) * invDir.x;
+		float t3 = (vMin.y - p.y) * invDir.y;
+		float t4 = (vMax.y - p.y) * invDir.y;
+		float t5 = (vMin.z - p.z) * invDir.z;
+		float t6 = (vMax.z - p.z) * invDir.z;
 
 		float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
 		float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
 
-		// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+		// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behind us
 		if (tmax < 0)
 		{
 			if (IS_VALID_PTR(pLength))
@@ -80,6 +81,20 @@ struct S_API SAxisAlignedBoundBox
 
 		if (IS_VALID_PTR(pLength))
 			*pLength = tmin;
+
+		return true;
+	}
+
+	// Returns true if the line segment intersects the AABB
+	bool HitsLineSegment(const Vec3f& p1, const Vec3f& p2) const
+	{
+		float param;
+		if (!HitsRay((p2 - p1), p1, &param))
+			return false;
+
+		// Intersection is further away from p1 than p2 is
+		if (param > 1.00001f)
+			return false;
 
 		return true;
 	}

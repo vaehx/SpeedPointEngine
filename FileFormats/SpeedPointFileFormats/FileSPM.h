@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Abstract\SAPI.h>
+#include <Abstract\MathGeom.h>
 #include <SPrerequisites.h>
 #include <string>
 #include <fstream>
@@ -12,6 +13,9 @@ using std::ofstream;
 using std::vector;
 
 #define SPM_CURRENT_VERSION 0x0001
+
+// sizeof(chunkId) + sizeof(chunkSz) = 2 + 8
+#define SPM_CHUNK_HEADER_SIZE 10
 
 /*
 
@@ -26,6 +30,11 @@ SPM_CHUNK_MODEL 0x1000
 		SPM_CHUNK_SUBSET_META 0x1310;
 		SPM_CHUNK_SUBSET_INDICES 0x1320;
 	}
+	SPM_CHUNK_COLLISION_SHAPE
+	{
+		u16 shape_type;
+		void* shape_data;
+	}
 	...
 }
 ...
@@ -37,6 +46,9 @@ SPM_CHUNK_MODEL 0x1000
 #define SPM_CHUNK_SUBSET 0x1300
 #define SPM_CHUNK_SUBSET_META 0x1310
 #define SPM_CHUNK_SUBSET_INDICES 0x1320
+
+#define SPM_CHUNK_PHYSICS_INFO 0x2000
+#define SPM_CHUNK_SHAPE_MESH 0x2110
 
 SP_NMSPACE_BEG
 
@@ -86,6 +98,36 @@ struct SModelMeta
 	}
 };
 
+struct SSPMCollisionMesh
+{
+	u32 nVertices;
+	Vec3f* pVertices;
+
+	u32 nIndices;
+	u32* pIndices;
+};
+
+enum ESPMCollisionShapeType
+{
+	eCOLSHAPE_SPHERE = 0x00,
+	eCOLSHAPE_CAPSULE = 0x01,
+	eCOLSHAPE_BOX = 0x02,
+	eCOLSHAPE_MESH = 0x03
+};
+
+struct SSPMCollisionShape
+{
+	ESPMCollisionShapeType shapeType;
+	Vec3f v[4]; // v0, v1, v2, f, g, h
+
+	SSPMCollisionMesh mesh;
+};
+
+struct SPhysicsInfo
+{
+	SSPMCollisionShape shape;
+};
+
 class CSPMLogged
 {
 protected:
@@ -123,6 +165,7 @@ private:
 	inline void WriteModelMetaChunk(const SModelMeta& modelMeta);
 	inline void WriteVertexChunk(const SModelMeta& modelMeta);
 	inline void WriteSubsetChunk(const SSubset& subset);
+	inline void WritePhysicsInfoChunk(const SPhysicsInfo& physicsInfo);
 
 	inline static u64 DetermineModelMetaChunkLength(const SModelMeta& model);
 	inline static u64 DetermineVertexChunkLength(const SModelMeta& model);
@@ -132,7 +175,7 @@ private:
 
 public:
 	// Returns success
-	bool Write(const char* filename, const vector<SModelMeta>& models);
+	bool Write(const char* filename, const vector<SModelMeta>& models, const SPhysicsInfo& physicsInfo = SPhysicsInfo());
 };
 
 // Loads a .spm file, which contains subset, vertex and index information of the model.
@@ -143,7 +186,8 @@ class CSPMLoader : public CSPMLogged
 {
 private:
 	u16 m_FileVersion;
-	vector<SModelMeta> m_Models;	
+	vector<SModelMeta> m_Models;
+	SPhysicsInfo m_PhysicsInfo;
 	ifstream m_Stream;
 
 	inline void ReadUShort(u16& u);
@@ -151,6 +195,7 @@ private:
 	inline void ReadULong(u64& u);
 	inline void ReadFloat(f32& f);
 	inline void ReadStringUntilFirstZero(string& s);
+	inline void IgnoreBytes(u16 numBytes);
 
 	inline void ReadChunkHeader(u16 &id, u64 &length);
 	inline void ReadModelChunk(SModelMeta& modelMeta, const u64& chunkLn);
@@ -158,11 +203,14 @@ private:
 	inline void ReadVertexChunk(SModelMeta& modelMeta);
 	inline void ReadSubsetChunk(SSubset& subset, const u64& chunkLn);
 
+	inline void ReadPhysicsInfoChunk(SPhysicsInfo& physicsInfo, u64 chunkSz);
+
 public:
 	// Returns success
 	bool Load(const char* filename, bool bDebug = false);
 
-	vector<SModelMeta>& GetModels();
+	const vector<SModelMeta>& GetModels() const;
+	const SPhysicsInfo& GetPhysicsInfo() const;
 };
 
 SP_NMSPACE_END

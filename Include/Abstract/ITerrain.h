@@ -193,8 +193,17 @@ public:
 	virtual ~ITerrain() {}
 
 	virtual bool IsInited() const = 0;
-		
-	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true) = 0;
+	
+	// segments - Number of total segments on one side of the terrain. Must be a multiple of chunkSegments and a power of two.
+	// chunkSegments - number of segments on one side per chunk. numChunks = segments / chunkSegments
+	// size - world-space size on one side
+	// baseHeight - base height to initialize the terrain with
+	// fChunkStepDist - 
+	// nLodLevels - Number of total Lod levels. The higher, the higher the level of detail
+	// center - if set to true, the world origin (0, 0) will be used as the center of the terrain
+	// maxKTreeDepth - maximum recursion depth for the creation of the proxy mesh
+	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true, unsigned int maxKTreeRecDepth = 4) = 0;
+
 	virtual void GenLodLevelChunks(SCamera* pCamera) = 0;	
 	virtual void SetHeightmap(ITexture* heightmap) = 0;
 	virtual ITexture* GetHeightmap() const = 0;
@@ -221,6 +230,10 @@ public:
 	ILINE virtual Vec2f GetMinXZ() const = 0;
 	ILINE virtual Vec2f GetMaxXZ() const = 0;
 
+	// Calculates heightmap-texture coordinates based on the world-space XZ-Coordinates.
+	// TC = ((x,z) mod World-Space-Extents) / World-Space-Extents
+	ILINE virtual Vec2f XZToTexCoords(float x, float z) const = 0;
+
 	//virtual SResult RecalculateNormals(unsigned int lodLevel = 0) = 0;
 
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
@@ -238,7 +251,9 @@ public:
 	//	Be careful to not call this during rendering of the terrain, as it might be reset before taking effect.
 	virtual void RequireCBUpdate() = 0;
 
-	virtual void RequireRender() = 0;	
+	virtual void RequireRender() = 0;
+
+	ILINE virtual const SMesh* GetProxyMesh() const = 0;
 };
 
 SP_NMSPACE_END
