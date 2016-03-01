@@ -199,42 +199,6 @@ struct S_API SInitialGeometryDesc
 ///////////////////////////////////////////////////////////////////////////////////
 
 
-
-///////////////////////////////////////////////////////////////////////////////////
-
-
-// Summary:
-//	Transformation description
-struct S_API STransformationDesc
-{
-	SMatrix4 scale;
-	SMatrix4 preRotation; // applied before the actual rotation. Use for e.g. pivot offset. Identity by default
-	SMatrix4 rotation;
-	SMatrix4 translation;
-
-	STransformationDesc() {}
-	STransformationDesc(const SMatrix& mtxTranslation, const SMatrix& mtxRotation, const SMatrix& mtxScale)
-		: translation(mtxTranslation), rotation(mtxRotation), scale(mtxScale)
-	{
-	}
-
-	STransformationDesc(const STransformationDesc& o)
-		: translation(o.translation), rotation(o.rotation), scale(o.scale), preRotation(o.preRotation)
-	{
-	}
-
-	SMatrix4 BuildTRS() const
-	{
-		return translation * SMatrixInvert(preRotation) * rotation * preRotation * scale;
-	}
-
-	SMatrix4 BuildSRT() const
-	{
-		return scale * preRotation * rotation * SMatrixInvert(preRotation) * translation;
-	}
-};
-
-
 ///////////////////////////////////////////////////////////////////////////////////
 
 // Subset of a geometry

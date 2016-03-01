@@ -266,7 +266,36 @@ public:
 		}
 	}
 
+	// Releases all objects in the pool.
+	// WARNING: All pointers to any object in the pool are invalidated, but still point to a correct address!
+	void ReleaseAll()
+	{		
+		for (unsigned int ic = 0; ic < num_chunks; ++ic)
+		{
+			// Repair missing chunk
+			if (!chunks[ic])
+				chunks[ic] = new Chunk();
 
+			// Reset chunk
+			Chunk& chunk = *chunks[ic];
+			chunk.num_used_objects = 0;
+			chunk.num_frees = chunk_size;
+			for (unsigned int i = 0; i < chunk_size; ++i)
+			{
+				chunk.frees[i] = i;
+				chunk.objects[i].used = false;
+			}
+
+			chunk.first_used_object = 0;
+			chunk.last_used_object = 0;
+		}
+
+		num_used_objects = 0;
+	}
+
+	// Deletes the chunk memory.
+	// All pointers are invalidated.
+	// To avoid deallocating all already allocated memory, use ReleaseAll()
 	void Clear()
 	{
 		for (unsigned int ic = 0; ic < num_chunks; ++ic)

@@ -177,6 +177,11 @@ struct S_API SRenderDesc
 		Copy(rd);
 	}
 
+	~SRenderDesc()
+	{
+		Clear();
+	}
+
 	inline SRenderDesc& operator =(const SRenderDesc& rd)
 	{
 		Copy(rd);
@@ -185,6 +190,8 @@ struct S_API SRenderDesc
 
 	void Copy(const SRenderDesc& rd)
 	{
+		Clear();
+
 		renderPipeline = rd.renderPipeline;
 		nSubsets = rd.nSubsets;
 		transform = rd.transform;
@@ -196,11 +203,22 @@ struct S_API SRenderDesc
 		pSubsets = 0;
 
 		// copy subsets array
-		if (nSubsets > 0 && IS_VALID_PTR(rd.pSubsets))
+		if (rd.nSubsets > 0 && IS_VALID_PTR(rd.pSubsets))
 		{
-			pSubsets = new SRenderSubset[nSubsets];
-			memcpy(pSubsets, rd.pSubsets, sizeof(SRenderSubset) * nSubsets);
+			pSubsets = new SRenderSubset[rd.nSubsets];
+			memcpy(pSubsets, rd.pSubsets, sizeof(SRenderSubset) * rd.nSubsets);
 		}
+	}
+
+	void Clear()
+	{
+		if (nSubsets > 0 && IS_VALID_PTR(pSubsets))
+		{
+			delete[] pSubsets;
+			pSubsets = 0;
+		}
+
+		nSubsets = 0;
 	}
 };
 
@@ -245,7 +263,7 @@ struct S_API STerrainRenderDesc
 		nDrawCallDescs(0),
 		pColorMap(nullptr),
 		bUpdateCB(true),
-		bRender(true),
+		bRender(false),
 		pVtxHeightMap(nullptr),
 		nLayers(0),
 		pLayerMasks(0),

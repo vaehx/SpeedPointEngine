@@ -12,6 +12,8 @@ SP_NMSPACE_BEG
 
 static ITerrain::LodLevel* g_pLodLevel = 0;
 
+unsigned long g_MaxIdxAccum = 0;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////                                 
 S_API void STerrainChunk::CreateCoreBasedOnItsLODLevel(SLargeIndex* pIB, unsigned long startVtxIdx, unsigned long vtxRowShift, unsigned long& idxAccum)
 {
@@ -93,6 +95,7 @@ S_API void STerrainChunk::CreateBorder(SLargeIndex* pIB, ESide side, unsigned lo
 			pIB[idxAccum + 4] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift + vtxRowShift;
 			pIB[idxAccum + 5] = startVtxIdx + borderStartIndex + i * borderQuadVtxShift + vtxRowShift + 1;
 			idxAccum += 6;
+			assert(idxAccum < g_MaxIdxAccum - 3);
 		}
 	}
 	else if (neighbor->curLodLevel > curLodLevel)
@@ -155,6 +158,7 @@ S_API void STerrainChunk::CreateBorder(SLargeIndex* pIB, ESide side, unsigned lo
 				}
 
 				idxAccum += 3;
+				assert(idxAccum < g_MaxIdxAccum - 3);
 			}
 
 			// add the center triangle
@@ -170,8 +174,11 @@ S_API void STerrainChunk::CreateBorder(SLargeIndex* pIB, ESide side, unsigned lo
 			}			
 			pIB[idxAccum + 2] = startVtxIdx + bindVtx2;
 			idxAccum += 3;
+			assert(idxAccum < g_MaxIdxAccum - 3);
 		}
 	}
+
+	assert(idxAccum < g_MaxIdxAccum - 3);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,6 +232,8 @@ S_API void STerrainChunk::CreateCorner(const STerrainChunkCorner& corner, SLarge
 	// | / | \ |
 	// o---o---o
 
+	assert(idxAccum <= g_MaxIdxAccum - 3);
+
 	// create triangles for neighbor1
 	if (IS_VALID_PTR(corner.neighbor1))
 	{
@@ -238,6 +247,8 @@ S_API void STerrainChunk::CreateCorner(const STerrainChunkCorner& corner, SLarge
 			pIB[idxAccum + 1] = (unsigned long)((long)startVtxIdx + (long)cornerVtx + (long)i * quadShift1);
 			pIB[idxAccum + 2] = (unsigned long)((long)pIB[idxAccum + 1] + quadShift1);
 			idxAccum += 3;
+
+			assert(idxAccum <= g_MaxIdxAccum);
 		}
 	}
 
@@ -245,6 +256,7 @@ S_API void STerrainChunk::CreateCorner(const STerrainChunkCorner& corner, SLarge
 	pIB[idxAccum + 1] = startVtxIdx + intVtx;
 	pIB[idxAccum + 2] = startVtxIdx + cornerVtx;
 	idxAccum += 3;	
+	assert(idxAccum <= g_MaxIdxAccum);
 
 	// create triangles for neighbor2
 	if (IS_VALID_PTR(corner.neighbor2))
@@ -259,6 +271,7 @@ S_API void STerrainChunk::CreateCorner(const STerrainChunkCorner& corner, SLarge
 			pIB[idxAccum + 1] = startVtxIdx + neighborVtx2;
 			pIB[idxAccum + 2] = (unsigned long)((long)pIB[idxAccum] + quadShift2);
 			idxAccum += 3;
+			assert(idxAccum < g_MaxIdxAccum);
 		}
 	}
 
@@ -266,6 +279,7 @@ S_API void STerrainChunk::CreateCorner(const STerrainChunkCorner& corner, SLarge
 	pIB[idxAccum + 1] = startVtxIdx + cornerVtx;
 	pIB[idxAccum + 2] = startVtxIdx + intVtx;
 	idxAccum += 3;
+	assert(idxAccum <= g_MaxIdxAccum);
 }
 
 
@@ -281,11 +295,14 @@ S_API Terrain::~Terrain()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/, unsigned int maxOctreeRecDepth /*=4*/)
+S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/)
 {
 	// Check given sizes		
 	if (!IsPowerOfTwo(segments) || (segments % chunkSegments) > 0)
 		return S_INVALIDPARAM;
+
+	if (chunkSegments < (int)PowerOfTwo(nLodLevels - 1) * 2)
+		return CLog::Log(S_INVALIDPARAM, "Terrain::Init(): Too many lod levels (%u) for %u segments per quad", nLodLevels, chunkSegments);
 
 
 	m_pEngine = pEngine;
@@ -337,9 +354,6 @@ S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigne
 	// Initialize chunk array
 	unsigned long nChunks = pow2(m_nSegments / m_chunkSegs);
 	m_pChunks = new STerrainChunk[nChunks];
-
-
-	CalculateProxyMesh(maxOctreeRecDepth);
 
 	return S_SUCCESS;
 }
@@ -428,6 +442,8 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 		lodLvl.nIndices = lodLevelQuads * 6;		
 		lodLvl.nVertices = lodLvl.chunks.size() * lodLvl.nChunkVertices;
 
+g_MaxIdxAccum = lodLvl.nIndices;
+
 		if (lodLvl.nIndices > 0 && lodLvl.nVertices > 0)
 		{
 			lodLvl.pIndices = new SLargeIndex[lodLvl.nIndices];						
@@ -455,6 +471,7 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 
 			// Create the core
 			pChunk->CreateCoreBasedOnItsLODLevel(lodLvl.pIndices, chunkVtxOffset, lodLvlVtxRowShift, idxAccum);
+			assert(idxAccum < lodLvl.nIndices - 3);
 
 			// Determine neighbors
 			// 0 - top, 1 - right, 2 - bottom, 3 - left
@@ -476,8 +493,8 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 			for (unsigned int iBorder = 0; iBorder < 4; ++iBorder)
 			{
 				STerrainChunkBorder& border = borders[iBorder];				
-				unsigned long oldIdxAccum = idxAccum;
 				pChunk->CreateBorder(lodLvl.pIndices, border.side, chunkVtxOffset, border.neighbor, lodLvlVtxRowShift, idxAccum);				
+				assert(idxAccum < lodLvl.nIndices - 3);
 
 				unsigned int iNextBorder = (iBorder + 1) % 4;
 
@@ -487,8 +504,8 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 				corner.side1 = border.side;			
 				g_pLodLevel = &m_pLodLevels[iLodLvl];
 				
-				oldIdxAccum = idxAccum;
 				pChunk->CreateCorner(corner, lodLvl.pIndices, chunkVtxOffset, lodLvlVtxRowShift, idxAccum);
+				assert(idxAccum <= lodLvl.nIndices);
 			}			
 
 			// Add vertices
@@ -698,60 +715,93 @@ inline Vec2f _ScaleToTexCoords(float x, float y, const Vec2f& worldExtents)
 
 S_API void Terrain::CalculateProxyMesh(unsigned int maxKTreeRecDepth)
 {
+	CLog::Log(S_DEBUG, "Terrain::CalculateProxyMesh(maxKTreeRecDepth=%u):", maxKTreeRecDepth);	
+
 	vector<SMeshFace> faces;
 	faces.reserve(m_nSegments * m_nSegments * 2);
 
+	CLog::Log(S_DEBUG, "  max faces = %u", m_nSegments * m_nSegments * 2);
+
 	Vec2f minXZ = GetMinXZ(), maxXZ = GetMaxXZ();
 	Vec2f worldExtents = maxXZ - minXZ;
+
+	CLog::Log(S_DEBUG, "  minXZ = (%.2f, %.2f)   maxXZ = (%.2f, %.2f)    worldExtents = (%.2f, %.2f)", minXZ.x, minXZ.y, maxXZ.x, maxXZ.y, worldExtents.x, worldExtents.y);
+
+	float avgSampleHeight = 0.0f;
+	unsigned long samples = 0;
+
+	AABB testAABB;
+	testAABB.Reset();
 
 	for (unsigned long iSegX = 0; iSegX < m_nSegments; ++iSegX)
 	{
 		for (unsigned long iSegY = 0; iSegY < m_nSegments; ++iSegY)
 		{
 			// face1	face2
-			//  2     	2-----1
+			//  1     	1-----2
 			//  | \   	  \   |
 			//  |   \ 	    \ |
-			//  0-----1	      0
+			//  0-----2	      0
 
 			// Base pos (minimum index vertex)
-			Vec3f bp(iSegX * m_fSegSz, 0, iSegY * m_fSegSz);
+			Vec3f bp(minXZ.x + iSegX * m_fSegSz, 0, minXZ.y + iSegY * m_fSegSz);
 
 			SMeshFace face1, face2;
 			face1.vtx[0].x = bp.x;
 			face1.vtx[0].z = bp.z;
-			face1.vtx[0].y = SampleHeight(_ScaleToTexCoords(face1.vtx[0].x, face1.vtx[0].z, worldExtents));
+			face1.vtx[0].y = SampleHeight(_ScaleToTexCoords(face1.vtx[0].x, face1.vtx[0].z, worldExtents));			
 
-			face1.vtx[1].x = bp.x + m_fSegSz;
-			face1.vtx[1].z = bp.z;
+			face1.vtx[2].x = bp.x + m_fSegSz;
+			face1.vtx[2].z = bp.z;
+			face1.vtx[2].y = SampleHeight(_ScaleToTexCoords(face1.vtx[2].x, face1.vtx[2].z, worldExtents));		
+
+			face1.vtx[1].x = bp.x;
+			face1.vtx[1].z = bp.z + m_fSegSz;
 			face1.vtx[1].y = SampleHeight(_ScaleToTexCoords(face1.vtx[1].x, face1.vtx[1].z, worldExtents));
 
-			face1.vtx[2].x = bp.x;
-			face1.vtx[2].z = bp.z + m_fSegSz;
-			face1.vtx[2].y = SampleHeight(_ScaleToTexCoords(face1.vtx[2].x, face1.vtx[2].z, worldExtents));
+			face2.vtx[0] = face1.vtx[2];
 
-			face2.vtx[0] = face1.vtx[1];
+			face2.vtx[2].x = bp.x + m_fSegSz;
+			face2.vtx[2].z = bp.z + m_fSegSz;
+			face2.vtx[2].y = SampleHeight(_ScaleToTexCoords(face2.vtx[2].x, face2.vtx[2].z, worldExtents));
 
-			face2.vtx[1].x = bp.x + m_fSegSz;
-			face2.vtx[1].z = bp.z + m_fSegSz;
-			face2.vtx[1].y = SampleHeight(_ScaleToTexCoords(face2.vtx[1].x, face2.vtx[1].z, worldExtents));
-
-			face2.vtx[2] = face1.vtx[2];
+			face2.vtx[1] = face1.vtx[1];
 
 			faces.push_back(face1);
 			faces.push_back(face2);
+
+			for (int i = 0; i < 3; ++i)
+			{
+				testAABB.AddPoint(Vec3f(face1.vtx[i].x, face1.vtx[i].y, face1.vtx[i].z));
+				testAABB.AddPoint(Vec3f(face2.vtx[i].x, face2.vtx[i].y, face2.vtx[i].z));
+			}
+
+			avgSampleHeight += face1.vtx[0].y;
+			avgSampleHeight += face1.vtx[1].y;
+			avgSampleHeight += face1.vtx[2].y;
+			avgSampleHeight += face2.vtx[1].y;
+			samples += 4;
 		}
 	}
 
-	float minHeight = GetMinHeight(), maxHeight = GetMaxHeight();
+	avgSampleHeight /= (float)samples;
+	CLog::Log(S_DEBUG, "  avgSampleHeight = %.2f  (%u samples)", avgSampleHeight, samples);
 
-	float bias = 0.01f;
+	CLog::Log(S_DEBUG, "  faces.size() = %ul   (= %.2f MB)", faces.size(), faces.size() * sizeof(SMeshFace) / 1000.f / 1000.f);
+
+	CLog::Log(S_DEBUG, "  testAABB:   min = (%.2f, %.2f, %.2f)    max = (%.2f, %.2f, %.2f)", testAABB.vMin.x, testAABB.vMin.y, testAABB.vMin.z, testAABB.vMax.x, testAABB.vMax.y, testAABB.vMax.z);
+
+	float minHeight = GetMinHeight(), maxHeight = GetMaxHeight();
+	CLog::Log(S_DEBUG, "  minHeight = %.2f     maxHeight = %.2f", minHeight, maxHeight);
+
+	float bias = 1.0f;
+	CLog::Log(S_DEBUG, "  bias = %.2f", bias);
 
 	AABB aabb;
 	aabb.vMin = Vec3f(minXZ.x, minHeight - bias, minXZ.y);
 	aabb.vMax = Vec3f(maxXZ.x, maxHeight + bias, maxXZ.y);
 
-	m_ProxyMesh.Init(faces, aabb, eMESH_KTREE_OCTREE, maxKTreeRecDepth);
+	m_ProxyMesh.Init(faces, aabb, eMESH_KTREE_QUADTREE, maxKTreeRecDepth);
 }
 
 
@@ -982,7 +1032,7 @@ S_API Vec2f Terrain::GetMaxXZ() const
 	if (m_bCenter)
 	{
 		float halfSz = m_fSize * 0.5f;
-		return Vec2f(sz - halfSz, sz - halfSz);
+		return Vec2f(halfSz, halfSz);
 	}
 	else
 	{

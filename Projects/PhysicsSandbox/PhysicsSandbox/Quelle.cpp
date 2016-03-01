@@ -299,12 +299,203 @@ void test_quaternion()
 	}
 }
 
+template<typename T>
+void logvar(const char* varname, T v)
+{
+	cout << "		- " << varname << " = " << v << endl;
+}
+
+bool HitsRay(const AABB& aabb, const Vec3f& p, const Vec3f& v, float* pLength, float* pTMin, float* pTMax)
+{
+	logvar("p", p);
+	logvar("v", v);
+
+	Vec3f invDir;
+
+	invDir.x = 1.0f / v.x;
+	invDir.y = 1.0f / v.y;
+	invDir.z = 1.0f / v.z;
+
+	logvar("invDir", invDir);
+
+	float t1 = (aabb.vMin.x - p.x) * invDir.x;
+	float t2 = (aabb.vMax.x - p.x) * invDir.x;
+	float t3 = (aabb.vMin.y - p.y) * invDir.y;
+	float t4 = (aabb.vMax.y - p.y) * invDir.y;
+	float t5 = (aabb.vMin.z - p.z) * invDir.z;
+	float t6 = (aabb.vMax.z - p.z) * invDir.z;
+
+	cout << "		- t1 = " << t1 << "       R(t1) = " << (p + v * t1) << endl;	
+	cout << "		- t2 = " << t2 << "       R(t2) = " << (p + v * t2) << endl;
+	cout << "		- t3 = " << t3 << "       R(t3) = " << (p + v * t3) << endl;
+	cout << "		- t4 = " << t4 << "       R(t4) = " << (p + v * t4) << endl;
+	cout << "		- t5 = " << t5 << "       R(t5) = " << (p + v * t5) << endl;
+	cout << "		- t6 = " << t6 << "       R(t6) = " << (p + v * t6) << endl;
+
+	float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
+	float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
+
+	logvar("tmin", tmin);
+	logvar("tmax", tmax);
+
+	if (IS_VALID_PTR(pTMin))
+		*pTMin = tmin;
+	if (IS_VALID_PTR(pTMax))
+		*pTMax = tmax;
+
+	// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behind us
+	if (tmax < 0)
+	{
+		logvar("t", tmax);
+		if (IS_VALID_PTR(pLength))
+			*pLength = tmax;
+
+		logvar("intersection", false);
+		return false;
+	}
+
+	// if tmin > tmax, ray doesn't intersect AABB
+	if (tmin > tmax)
+	{
+		logvar("t", tmax);
+		if (IS_VALID_PTR(pLength))
+			*pLength = tmax;
+
+		logvar("intersection", false);
+		return false;
+	}
+
+	// Standard intersection
+	if (IS_VALID_PTR(pLength))
+		*pLength = tmin;
+
+	logvar("t", tmin);
+	logvar("intersection", true);
+	return true;
+}
+
+void test_intersection_aabb_single(const AABB& aabb, const Vec3f& p, const Vec3f& v)
+{
+	float lambda, tmin, tmax;
+	bool intersection = HitsRay(aabb, p, v, &lambda, &tmin, &tmax);
+	cout << "==> AABB-Intersection (p=" << p << ", v=" << v << "): " << (intersection ? "YES" : "NO") << "   lambda = " << lambda << "   tmin = " << tmin << "   tmax = " << tmax << endl;
+	cout << "		- Int = " << (p + v * lambda) << endl;
+	cout << "		- Int(tmin) = " << (p + v * tmin) << endl;
+	cout << "		- Int(tmax) = " << (p + v * tmax) << endl;
+	cout << endl << endl;
+}
+
+void test_intersection_aabb()
+{
+	AABB aabb;
+	aabb.vMin = Vec3f(0, 0, 0);
+	aabb.vMax = Vec3f(10.f, 10.f, 10.f);
+
+	cout << "AABB:  min = " << aabb.vMin << "    max = " << aabb.vMax << endl;
+
+	test_intersection_aabb_single(aabb, Vec3f(15.f, 5.f, -5.f), Vec3f(-1.0f, 0, 0));
+	test_intersection_aabb_single(aabb, Vec3f(-15.f, 5.f, -5.f), Vec3f(1.0f, 0, 0));
+	cout << "Testing Ray start inside aabb..." << endl;
+	test_intersection_aabb_single(aabb, Vec3f(5.f, 5.f, 5.f), Vec3f(0, 1.0f, 0));
+}
+
+void test_terrain_mesh_creation()
+{
+	cout << "Testing terrain mesh creation..." << endl;
+
+	unsigned long m_nSegments = 8;
+	float m_fSegSz = 1.0f;
+
+	float SAMPLE_HEIGHT = 10.0f;
+
+	cout << "   m_nSegments = " << m_nSegments << endl;
+	cout << "   m_fSegSz = " << m_fSegSz << endl;
+	cout << "   SAMPLE_HEIGHT = " << SAMPLE_HEIGHT << endl;
+
+	vector<SMeshFace> faces;
+
+	for (unsigned long iSegX = 0; iSegX < m_nSegments; ++iSegX)
+	{
+		for (unsigned long iSegY = 0; iSegY < m_nSegments; ++iSegY)
+		{
+			// face1	face2
+			//  2     	2-----1
+			//  | \   	  \   |
+			//  |   \ 	    \ |
+			//  0-----1	      0
+
+			// Base pos (minimum index vertex)
+			Vec3f bp(iSegX * m_fSegSz, 0, iSegY * m_fSegSz);
+
+			SMeshFace face1, face2;
+			face1.vtx[0].x = bp.x;
+			face1.vtx[0].z = bp.z;
+			face1.vtx[0].y = SAMPLE_HEIGHT;
+
+			face1.vtx[1].x = bp.x + m_fSegSz;
+			face1.vtx[1].z = bp.z;
+			face1.vtx[1].y = SAMPLE_HEIGHT;
+
+			face1.vtx[2].x = bp.x;
+			face1.vtx[2].z = bp.z + m_fSegSz;
+			face1.vtx[2].y = SAMPLE_HEIGHT;
+
+			face2.vtx[0] = face1.vtx[1];
+
+			face2.vtx[1].x = bp.x + m_fSegSz;
+			face2.vtx[1].z = bp.z + m_fSegSz;
+			face2.vtx[1].y = SAMPLE_HEIGHT;
+
+			face2.vtx[2] = face1.vtx[2];
+
+			faces.push_back(face1);
+			faces.push_back(face2);
+		}
+	}
+
+	float bias = 0.02f;
+
+	AABB aabb;
+	aabb.vMin = Vec3f(0, SAMPLE_HEIGHT - bias, 0);
+	aabb.vMax = Vec3f((m_nSegments + 1) * m_fSegSz, SAMPLE_HEIGHT + bias, (m_nSegments + 1) * m_fSegSz);
+
+	cout << "    aabb:   min = " << aabb.vMin << "    max = " << aabb.vMax << endl;
+
+	SMesh mesh;
+	mesh.Init(faces, aabb, eMESH_KTREE_QUADTREE, 2);
+}
+
+
+void test_aabb_linesegment_intersection(AABB& aabb, const Vec3f& p1, const Vec3f& p2)
+{
+	bool intersect = aabb.HitsLineSegment(p1, p2);
+
+	cout << "AABB-Linesegment: p1 = " << p1 << ", p2 = " << p2 << "     --> " << (intersect ? "YES" : "no") << endl;
+}
+
+void test_aabb_linesegment_intersections()
+{
+	AABB aabb;
+	aabb.vMin = Vec3f(0, 0, 0);
+	aabb.vMax = Vec3f(10.f, 10.f, 10.f);
+
+	test_aabb_linesegment_intersection(aabb, Vec3f(15.f, 5.f, 5.f), Vec3f(5.f, 5.f, 5.f));
+	test_aabb_linesegment_intersection(aabb, Vec3f(15.f, 5.f, 5.f), Vec3f(25.f, 5.f, 5.f));
+	test_aabb_linesegment_intersection(aabb, Vec3f(25.f, 5.f, 5.f), Vec3f(20.f, 5.f, 5.f));
+}
+
 
 void main()
 {
 	//test_intersections1();
-	test_intersections_triangle();
+	//test_intersections_triangle();
 	//test_quaternion();
+
+	//test_intersection_aabb();
+
+	//test_terrain_mesh_creation();
+
+	test_aabb_linesegment_intersections();
 
 	std::cin.ignore();
 }

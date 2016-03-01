@@ -55,9 +55,7 @@ private:
 	// ------
 
 	SMesh m_ProxyMesh;
-
-
-	void CalculateProxyMesh(unsigned int maxOctreeRecDepth = 4);
+	
 
 	void CalculateMinMaxHeights();
 
@@ -86,8 +84,9 @@ public:
 		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && m_Layers.size() > 0);
 	}
 	
-	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true, unsigned int maxKTreeRecDepth = 4);
+	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true);
 
+	virtual void CalculateProxyMesh(unsigned int maxKTreeRecDepth = 4);
 
 	virtual void UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc);
 

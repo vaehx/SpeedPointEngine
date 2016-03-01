@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the SpeedPointEngine
-// Copyright (c) 2011-2015, iSmokiieZz
+// Copyright (c) 2011-2016, iSmokiieZz
 // ------------------------------------------------------------------------------
 // Filename:	MathGeom.h
 // Created:	11/18/2014 by iSmokiieZz
@@ -17,6 +17,7 @@
 #include <SPrerequisites.h>
 #include "Vector3.h"
 #include "Matrix.h"
+#include "Quaternion.h"
 #include "BoundBox.h"
 
 #include "Math.h"
@@ -79,6 +80,24 @@ enum EGeomShapeType
 	eGEOMSHAPE_BOX = 0x08
 };
 
+inline const char* GetGeomShapeTypeName(EGeomShapeType type)
+{
+	switch (type)
+	{	
+	case eGEOMSHAPE_RAY: return "GEOMSHAPE_RAY";
+	case eGEOMSHAPE_LINE_SEGMENT: return "GEOMSHAPE_LINE_SEGMENT";
+	case eGEOMSHAPE_CAPSULE: return "GEOMSHAPE_CAPSULE";
+	case eGEOMSHAPE_CYLINDER: return "GEOMSHAPE_CYLINDER";
+	case eGEOMSHAPE_SPHERE: return "GEOMSHAPE_SPHERE";
+	case eGEOMSHAPE_MESH: return "GEOMSHAPE_MESH";
+	case eGEOMSHAPE_PLANE: return "GEOMSHAPE_PLANE";
+	case eGEOMSHAPE_BOX: return "GEOMSHAPE_BOX";
+	case eGEOMSHAPE_UNKNOWN:
+	default:
+		return "GEOMSHAPE_UNKNOWN";
+	}
+}
+
 // Generalisation of a geometrical shape.
 // This allows to pack all kinds of shapes into one structure.
 // To access, you can use the conversion constructors of the actual shape classes.
@@ -140,6 +159,8 @@ struct SGeomShape
 		pMesh = shape.pMesh;
 		type = shape.type;
 	}
+
+	inline SGeomShape& Translate(const Vec3f& v);
 };
 
 
@@ -483,6 +504,27 @@ struct SMeshVertex
 {
 	float x, y, z;
 	float nx, ny, nz;
+
+	SMeshVertex()
+	{
+	}
+
+	SMeshVertex(const SMeshVertex& v)
+		: x(v.x), y(v.y), z(v.z),
+		nx(v.nx), ny(v.ny), nz(v.nz)
+	{
+	}
+
+	inline SMeshVertex& operator =(const SMeshVertex& v)
+	{
+		x = v.x;
+		y = v.y;
+		z = v.z;
+		nx = v.nx;
+		ny = v.ny;
+		nz = v.nz;
+		return *this;
+	}
 };
 
 #define MESHVERTEX_TO_VEC3F(vtx) Vec3f(vtx.x, vtx.y, vtx.z)
@@ -572,13 +614,13 @@ struct SMeshKTree
 		faces.clear();
 		aabb = _aabb;
 
-		type = _type;
+		type = _type;				
 
 		if (maxDepth > 0)
 		{
 			Vec3f vMin = aabb.vMin;
 			Vec3f vMax = aabb.vMax;
-			Vec3f vCenter = vMin + (vMax - vMin) * 0.5f;
+			Vec3f vCenter = vMin + (vMax - vMin) * 0.5f;			
 
 			unsigned int k = MESH_KTREE_CHILDS_COUNT(type);
 
@@ -608,7 +650,7 @@ struct SMeshKTree
 				pChildAABBs[6] = AABB(Vec3f(vCenter.x, vCenter.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
 				pChildAABBs[7] = AABB(Vec3f(vCenter.x, vCenter.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
 				break;
-			}
+			}			
 
 			// Determine faces per child first. This way, we only create those childs with any face in it.
 
@@ -618,6 +660,8 @@ struct SMeshKTree
 			//
 			//
 			vector<u16> pChildFaces[MESH_KTREE_MAX_CHILDS];
+
+			unsigned long numIntersections = 0;
 
 			int numFilledChilds = 0;
 			for (auto itFaceIndex = faceIndices.begin(); itFaceIndex != faceIndices.end(); ++itFaceIndex)
@@ -633,6 +677,8 @@ struct SMeshKTree
 
 					if (pChildAABBs[i].HitsLineSegment(v0, v1) || pChildAABBs[i].HitsLineSegment(v1, v2) || pChildAABBs[i].HitsLineSegment(v2, v0))
 					{
+						numIntersections++;
+
 						// This is the first face we found, that intersects with this child. So we have another child to create.
 						if (pChildFaces[i].size() == 0)
 							++numFilledChilds;
@@ -640,7 +686,7 @@ struct SMeshKTree
 						pChildFaces[i].push_back(*itFaceIndex);
 					}
 				}
-			}
+			}			
 
 			if (numFilledChilds > 0)
 			{
@@ -663,7 +709,7 @@ struct SMeshKTree
 		}
 		else
 		{
-			faces.reserve(faceIndices.size());
+			faces.reserve(faceIndices.size());			
 
 			// Insert faces
 			for (auto itFaceIndex = faceIndices.begin(); itFaceIndex != faceIndices.end(); itFaceIndex++)
@@ -747,6 +793,35 @@ struct SMeshKTree
 	{
 		return !IS_VALID_PTR(pChilds) || nChilds == 0;
 	}
+
+	// Multiplies each vertex with this matrix
+	inline void TransformVertices(const SMatrix& matrix)
+	{
+		if (IsLeaf())
+		{
+			for (auto itFace = faces.begin(); itFace != faces.end(); ++itFace)
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					Vec4f vec(itFace->vtx[i].x, itFace->vtx[i].y, itFace->vtx[i].z, 1.f);
+					vec = matrix * vec;
+					itFace->vtx[i].x = vec.x;
+					itFace->vtx[i].y = vec.y;
+					itFace->vtx[i].z = vec.z;
+				}
+			}
+		}
+		else
+		{
+			if (!IS_VALID_PTR(pChilds))
+				return;
+
+			for (unsigned int iChild = 0; iChild < nChilds; ++iChild)
+			{
+				pChilds[iChild].TransformVertices(matrix);
+			}
+		}
+	}
 };
 
 // Provides a structure to store a general-purpose mesh.
@@ -754,22 +829,52 @@ struct SMeshKTree
 struct SMesh
 {
 	SMeshKTree kTree;
+	vector<SMeshFace> faces;
 
 	// maxDepth - 0 means that the root kTree is a single leaf
 	void Init(const vector<SMeshFace>& faces, const AABB& aabb, EMeshKTreeType kTreeType = eMESH_KTREE_OCTREE, unsigned int maxDepth = 3)
 	{
+		// Save all faces for later access
+		// TODO: Remove this again - this was just for debugging purposes
+		this->faces.insert(this->faces.end(), faces.begin(), faces.end());
+
+
 		vector<u16> faceIndices;
-		faceIndices.reserve(faces.size());
+		faceIndices.resize(faces.size());
 		for (u16 i = 0; i < (u16)faces.size(); ++i)
 			faceIndices[i] = i;
 
+		CLog::Log(S_DEBUG, "Initializing kTree with %u faces,  maxDepth = %u", faces.size(), maxDepth);
 		kTree.Init(faces, aabb, faceIndices, kTreeType, maxDepth);
+
+		CLog::Log(S_DEBUG, "Done. kTree.nChilds = %u    kTree.faces.size() = %u", kTree.nChilds, kTree.faces.size());
 	}
 
 	// Fills the intersecting array with faces that intersect with the given AABB
 	void GetIntersectingFaces(const AABB& operand, vector<SMeshFace>& intersecting, const SMatrix4& transform = SMatrix()) const
 	{
 		kTree.GetIntersectingFaces(operand, intersecting);
+	}
+
+	// relative
+	inline SMesh& Translate(const Vec3f& v)
+	{
+		kTree.TransformVertices(SMatrix::MakeTranslationMatrix(v));
+		return *this;
+	}
+
+	// relative
+	inline SMesh& Rotate(const Quat& q)
+	{
+		kTree.TransformVertices(q.ToRotationMatrix());
+		return *this;
+	}
+
+	// relative
+	inline SMesh& Scale(const Vec3f& factor)
+	{
+		kTree.TransformVertices(SMatrix::MakeScaleMatrix(factor));
+		return *this;
 	}
 };
 
@@ -806,6 +911,31 @@ struct SCylinder
 	{
 		return (p2 - p1);
 	}
+
+	// relative
+	inline SCylinder& Translate(const Vec3f& v)
+	{
+		p1 += v;
+		p2 += v;
+		return *this;
+	}
+
+	// relative
+	inline SCylinder& Rotate(const Quat& q)
+	{
+		p1 = q * p1;
+		p2 = q * p2;
+		return *this;
+	}
+
+	// relative
+	inline SCylinder& Scale(const Vec3f& factor)
+	{
+		Vec3f mid = (p1 + p2) * 0.5f;
+		p1 = (p1 - mid) * factor + mid;
+		p2 = (p2 - mid) * factor + mid;
+		return *this;
+	}
 };
 
 
@@ -838,9 +968,57 @@ struct SCapsule
 	{
 		return SGeomShape(p1, p2, 0, r, 0, 0, eGEOMSHAPE_CAPSULE);
 	}
+	
+	// relative
+	inline SCapsule& Translate(const Vec3f& v)
+	{
+		p1 += v;
+		p2 += v;
+		return *this;
+	}
+
+	// relative
+	inline SCapsule& Rotate(const Quat& q)
+	{
+		p1 = q * p1;
+		p2 = q * p2;
+		return *this;
+	}
+
+	// relative
+	inline SCapsule& Scale(const Vec3f& factor)
+	{
+		Vec3f mid = (p1 + p2) * 0.5f;
+		p1 = (p1 - mid) * factor + mid;
+		p2 = (p2 - mid) * factor + mid;
+		return *this;
+	}
 };
 
 
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+inline SGeomShape& SGeomShape::Translate(const Vec3f& v)
+{
+	switch (type)
+	{
+	case eGEOMSHAPE_CAPSULE:
+		*this = (SGeomShape)SCapsule(*this).Translate(v);
+		break;
+	default:
+		break;
+	}
+
+	return *this;
+}
 
 
 
@@ -1965,10 +2143,11 @@ inline bool IntersectLineSphere(const SRay& ray, const float maxLambda, const SS
 //	Mesh - Capsule
 //
 // -------------------------------------------------------------------------------------------
-inline bool IntersectMeshCapsule(const SMesh& mesh, const SMatrix4& meshTransform, const SCapsule& capsule, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.001f)
+inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.001f)
 {
 	// First, determine AABB of the capsule
 	AABB capsuleAABB;
+	capsuleAABB.Reset();
 	capsuleAABB.AddPoint(capsule.p1);
 	capsuleAABB.AddPoint(capsule.p2);
 	capsuleAABB.Outset(capsule.r);
@@ -2019,16 +2198,18 @@ inline bool IntersectMeshCapsule(const SMesh& mesh, const SMatrix4& meshTransfor
 //
 //	Shape - Shape
 //
+//	- transform1/2 :  Matrix describing the transformation to transform the shape1/2 before testing intersections
+//
 //
 // ----------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------
-bool IntersectShapes(const SGeomShape& shape1, const STransformationDesc& transform1, const SGeomShape& shape2, const STransformationDesc& tranform2, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.00001f)
+inline bool IntersectShapes(const SGeomShape& shape1, const SGeomShape& shape2, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.00001f)
 {
 	// Capsule - Mesh
 	if (shape1.type == eGEOMSHAPE_CAPSULE && shape2.type == eGEOMSHAPE_MESH)
 		return IntersectMeshCapsule(*shape2.pMesh, SCapsule(shape1), contacts, interpenetrationTolerance);
-	else if (shape1.type == eGEOMSHAPE_MESH && shape1.type == eGEOMSHAPE_CAPSULE)
+	else if (shape1.type == eGEOMSHAPE_MESH && shape2.type == eGEOMSHAPE_CAPSULE)
 		return IntersectMeshCapsule(*shape1.pMesh, SCapsule(shape2), contacts, interpenetrationTolerance);
 
 	// Capsule - Capsule
@@ -2041,7 +2222,8 @@ bool IntersectShapes(const SGeomShape& shape1, const STransformationDesc& transf
 
 
 
-	CLog::Log(S_WARN, "Unhandled intersection test: Unknown shape combination!");
+	CLog::Log(S_WARN, "Unhandled intersection test: Unknown shape combination: %s <-> %s!",
+		GetGeomShapeTypeName(shape1.type), GetGeomShapeTypeName(shape2.type));
 
 	return false;
 }

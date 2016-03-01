@@ -25,11 +25,10 @@ S_API void C3DEngine::ClearRenderObjects()
 	SRenderObject* pRenderObject = 0;
 	while (pRenderObject = m_RenderObjects.GetNextUsedObject(iterator))
 	{
-		if (IS_VALID_PTR(pRenderObject->renderDesc.pSubsets))
-			delete[] pRenderObject->renderDesc.pSubsets;
+		pRenderObject->renderDesc.Clear();
 	}
 
-	m_RenderObjects.Clear();
+	m_RenderObjects.ReleaseAll();
 }
 
 

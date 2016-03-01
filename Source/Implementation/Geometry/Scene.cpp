@@ -11,7 +11,9 @@ SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------------------------------------
 S_API Scene::Scene()	
-	: m_pTerrain(0)
+	: m_pTerrain(0),
+	m_pEngine(0),
+	m_pSkyBox(0)
 {
 	m_pSceneNodes = new std::vector<SSceneNode>();
 }
@@ -118,8 +120,11 @@ S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs
 
 	m_pTerrain = new Terrain();	
 
-	if (Failure(m_pTerrain->Init(m_pEngine, nSegs, nChunkSegs, fSideSz, baseHeight, fChunkStepDist, nLodLevels)))
+	if (Failure(m_pTerrain->Init(m_pEngine, nSegs, nChunkSegs, fSideSz, baseHeight, fChunkStepDist, nLodLevels, center)))
 	{
+		delete m_pTerrain;
+		m_pTerrain = 0;
+
 		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");
 	}
 
