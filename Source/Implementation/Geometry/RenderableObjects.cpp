@@ -172,17 +172,12 @@ S_API void CSkyBox::Clear()
 	m_Renderable.Clear();
 }
 
-S_API void CSkyBox::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
-{	
-	if (!IS_VALID_PTR(pDestDesc))
-	{
-		return;
-	}
-
+S_API SRenderDesc* CSkyBox::GetUpdatedRenderDesc()
+{
 	if (!IS_VALID_PTR(m_pEngine))
 	{
 		EngLog(S_NOTINIT, m_pEngine, "Cannot Update Static Object REnder Desc: Engine not set!");
-		return;
+		return 0;
 	}
 
 	if (!m_Renderable.RenderDescFilled())
@@ -190,7 +185,7 @@ S_API void CSkyBox::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 		m_Renderable.FillRenderDesc(m_pEngine);		
 	}	
 
-	m_Renderable.GetUpdatedRenderDesc(pDestDesc);
+	SRenderDesc* pDestDesc = m_Renderable.GetUpdatedRenderDesc();
 
 	//pDestDesc->textureSampling = eTEX_SAMPLE_POINT;
 
@@ -201,8 +196,10 @@ S_API void CSkyBox::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
 	STransformationDesc& transformDesc = pDestDesc->transform;
 	transformDesc.translation = SMatrix::MakeTranslationMatrix(m_Position);	
 	
-	SMatrixIdentity(&transformDesc.rotation);
-	SMatrixIdentity(&transformDesc.scale);
+	SMatrixIdentity(transformDesc.rotation);
+	SMatrixIdentity(transformDesc.scale);
+
+	return pDestDesc;
 }
 
 

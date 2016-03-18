@@ -25,7 +25,9 @@ struct S_API SRenderObject
 #ifdef _DEBUG
 	std::string name;
 #endif
-	SRenderDesc renderDesc;
+	//SRenderDesc renderDesc;
+	SRenderDesc* pRenderDesc;
+	bool deallocateRenderDesc;
 	AABB aabb;
 
 	// For forward rendering:
@@ -33,7 +35,9 @@ struct S_API SRenderObject
 	int nAffectingLights;
 
 	SRenderObject()
-		: nAffectingLights(0)
+		: nAffectingLights(0),
+		pRenderDesc(0),
+		deallocateRenderDesc(false)
 	{
 		memset(&affectingLights, 0, sizeof(affectingLights));
 	}
@@ -43,16 +47,17 @@ class S_API C3DEngine : public I3DEngine
 {
 private:	
 	IRenderer* m_pRenderer;	
+	IGameEngine* m_pEngine;
 
 
 	// TODO: Consider storing the RenderDescs in the engine, passing a pointer to Object::UpdateRenderDesc() and thereby letting the
 	// object decide, how the Render Desc is filled (maybe by a copy in the object itself?)
-	ChunkedObjectPool<SRenderObject> m_RenderObjects;
+	ChunkedObjectPool<SRenderObject, 40> m_RenderObjects;
 
 	// For deferred shading only
 	ChunkedObjectPool<SRenderLight> m_RenderLights;
 
-	SRenderDesc m_SkyBoxRenderDesc;
+	SRenderDesc* m_pSkyBoxRenderDesc;
 	STerrainRenderDesc m_TerrainRenderDesc;
 
 	void AddVisibleStatic(IStaticObject* pStaticObject, const AABB& aabb);
@@ -61,7 +66,7 @@ private:
 
 
 public:
-	C3DEngine(IRenderer* pRenderer);
+	C3DEngine(IRenderer* pRenderer, IGameEngine* pEngine);
 	virtual ~C3DEngine();
 	
 	ILINE virtual unsigned int CollectVisibleObjects(IScene* pScene, const SCamera* pCamera);

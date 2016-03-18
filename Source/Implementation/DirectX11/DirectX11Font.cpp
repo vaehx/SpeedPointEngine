@@ -152,15 +152,15 @@ S_API SResult DirectX11FontRenderer::InitD2DScreenTexture()
 
 	SVertex pVertices[] = 
 	{
-		SVertex(1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 1.0f),
-		SVertex(1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 0.0f),
-		SVertex(-1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0.0f, 0.0f),
-		SVertex(-1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0.0f, 1.0f)
+		SVertex(1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 1.0f),	// right bottom
+		SVertex(1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 0.0f),		// right top
+		SVertex(-1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0.0f, 0.0f),	// left top
+		SVertex(-1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0.0f, 1.0f)	// left bottom
 	};
 
 	SIndex pIndices[] =
 	{
-		3, 2, 0,
+		0, 2, 3,
 		0, 1, 2
 	};
 	

@@ -15,8 +15,12 @@ SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 
-
-
+// The type of Vertex structure to use as input for a shader/effect
+enum S_API EShaderVertexType
+{
+	eSHADERVERTEX_DEFAULT = 0,	// SVertex
+	eSHADERVERTEX_SIMPLE	// SSimpleVertex
+};
 
 
 // SpeedPoint HLSL Shader Effect (abstract)
@@ -32,7 +36,7 @@ class S_API IShader
 public:
 	// Loads the shader from the file and compiles it
 	// It will also select the first available technique as the default
-	virtual SResult Initialize( IGameEngine* pEngine, const char* cFilename, const char* cEntry ) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry, EShaderVertexType vertexType = eSHADERVERTEX_DEFAULT) = 0;
 
 	// Check if the shader is initialized
 	virtual bool IsInitialized() = 0;

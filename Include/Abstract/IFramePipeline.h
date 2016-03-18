@@ -67,6 +67,16 @@ struct S_API IFramePipeline
 	virtual IFramePipelineSection* GetCurrentSection() const = 0;
 	virtual SResult RegisterSection(IFramePipelineSection* pSection) = 0;
 	virtual SResult ExecuteSections(usint32 iSkippedSections = DEFAULT_SKIPPED_SECTIONS) = 0;
+	
+	// Returns the id of the timer that can be used to stop the timer.
+	// If the frame ends and the timer was not stopped manually, it will be stopped at the end of the frame.
+	ILINE virtual unsigned int StartBudgetTimer(const char* name) = 0;
+
+	ILINE virtual void ResumeBudgetTimer(unsigned int timerId) = 0;
+
+	// timerId - The id that StartBudgetTimer() returned
+	ILINE virtual void StopBudgetTimer(unsigned int timerId) = 0;
+	
 	virtual void RenderDebugInfo() = 0;
 };
 

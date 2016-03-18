@@ -165,6 +165,14 @@ namespace SpeedPoint
 
 
 
+	template<typename F>
+	static inline void Vec3Mul(const Vec3<F>& a, const Vec3<F>& b, Vec3<F>& r)
+	{
+		r.x = a.x * b.x;
+		r.y = a.y * b.y;
+		r.z = a.z * b.z;
+	}	
+
 
 
 

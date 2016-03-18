@@ -95,7 +95,7 @@ public:
 
 	virtual void SetPosition(const Vec3f& pos);
 
-	virtual void GetUpdatedRenderDesc(SRenderDesc* pDestDesc);
+	virtual SRenderDesc* GetUpdatedRenderDesc();
 };
 
 

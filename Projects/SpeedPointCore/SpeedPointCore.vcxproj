@@ -41,19 +41,21 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\..\Dependencies\DirectX\Include;$(SolutionDir)\..\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\..\Dependencies\DirectX\Include;$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
     <TargetExt>.lib</TargetExt>
-    <LibraryPath>$(SolutionDir)\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)\..\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
+    <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\..\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)\..\..\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SOL_DIR=R"($(SolutionDir))";SP_UNITTEST</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJ_DIR=R"($(ProjectDir))";SP_UNITTEST</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -66,7 +68,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SOL_DIR=R"($(SolutionDir))";SP_UNITTEST;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PROJ_DIR=R"($(ProjectDir))";SP_UNITTEST;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

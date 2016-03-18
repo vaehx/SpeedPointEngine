@@ -32,7 +32,7 @@ public:
 
 	virtual void SetVisible(bool visible);	
 
-	ILINE virtual void GetUpdatedRenderDesc(SRenderDesc* pDest);
+	ILINE virtual SRenderDesc* GetUpdatedRenderDesc();
 
 	virtual IGeometry* GetGeometry();
 

@@ -192,6 +192,12 @@ public:
 	virtual SResult FinishInitialization();
 	virtual SResult ExecuteFramePipeline(usint32 iSkippedSections = DEFAULT_SKIPPED_SECTIONS);	
 
+	// Budgeting System
+public:
+	virtual unsigned int StartBudgetTimer(const char* name);
+	virtual void ResumeBudgetTimer(unsigned int id);
+	virtual void StopBudgetTimer(unsigned int id);
+
 // Logging methods
 public:	
 	virtual SResult LogReport(const SResult& res, const SString& msg);

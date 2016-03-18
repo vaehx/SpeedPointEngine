@@ -78,23 +78,32 @@ public:
 
 
 
+protected:
+	// relative
+	ILINE virtual void OnTransform(const Vec3f& translation, const Quat& _rotation, const Vec3f& scale)
+	{
+	}
 
-
+public:
 	// Move absolute
 	ILINE void Move(const Vec3f& pos)
 	{
-		m_AABB.MoveRelative(pos - vPosition);
+		Vec3f diff = pos - vPosition;
+		m_AABB.MoveRelative(diff);
 		vPosition = pos;
 		RecalculateWorldMatrix();
+		OnTransform(diff, Quat(), Vec3f());
 	}		
 
 	// Move absolute
 	ILINE void Move(float x, float y, float z)
 	{
 		Vec3f pos(x, y, z);
-		m_AABB.MoveRelative(pos - vPosition);
+		Vec3f diff = pos - vPosition;
+		m_AABB.MoveRelative(diff);
 		vPosition = pos;
 		RecalculateWorldMatrix();
+		OnTransform(diff, Quat(), Vec3f());
 	}		
 
 	// Move relative
@@ -103,6 +112,7 @@ public:
 		m_AABB.MoveRelative(vec);
 		vPosition += vec;
 		RecalculateWorldMatrix();
+		OnTransform(vec, Quat(), Vec3f());
 	}
 
 	// Move relative
@@ -112,6 +122,7 @@ public:
 		m_AABB.MoveRelative(v);
 		vPosition += v;
 		RecalculateWorldMatrix();
+		OnTransform(v, Quat(), Vec3f());
 	}
 	
 	// Rotate absolute	
@@ -120,6 +131,7 @@ public:
 		rotation = rot;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
+		// TODO: OnTransform() --> absolute??
 	}
 
 	// Rotate relative, around local axes
@@ -129,6 +141,7 @@ public:
 		rotation = rotation * turnQuat;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
+		// TODO: OnTransform() ?
 	}
 
 	// Rotate relative, around global axes
@@ -138,24 +151,30 @@ public:
 		rotation = turnQuat * rotation;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
+		// TODO: OnTransform() ?
 	}
 	
 	// Set size absolutely
 	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Size(const Vec3f& size)
 	{
+		Vec3f diff = size - vSize;
 		vSize = size;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
+		OnTransform(Vec3f(), Quat(), diff);
 	}		
 
 	// Set size absolutely
 	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Size(float w, float h, float d)
 	{
-		vSize = Vec3f(w, h, d);
+		Vec3f sz(w, h, d);
+		Vec3f diff = sz - vSize;
+		vSize = sz;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
+		OnTransform(Vec3f(), Quat(), diff);
 	}		
 
 	// Scale relatively
@@ -165,15 +184,18 @@ public:
 		vSize += vec;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
+		OnTransform(Vec3f(), Quat(), vec);
 	}
 	
 	// Scale relative
 	// Does not update BoundBox. Do this by overriding this function and RecalcBoundBox()
 	ILINE void Scale(float w, float h, float d)
 	{
-		vSize += Vec3f(w, h, d);
+		Vec3f v(w, h, d);
+		vSize += v;
 		RecalculateWorldMatrix();
 		RecalcBoundBox();
+		OnTransform(Vec3f(), Quat(), v);
 	}		
 
 	// Summary:

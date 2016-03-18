@@ -9,6 +9,9 @@
 #include <Abstract\IApplication.h>
 #include <Pipelines\FramePipeline.h>
 #include <SpeedPointEngine.h>
+#include <sstream>
+
+using std::stringstream;
 
 SP_NMSPACE_BEG
 
@@ -78,6 +81,17 @@ S_API void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SF
 	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 65);
 	SpeedPoint::STerrainRenderDesc* pTerrainRenderDesc = m_pEngine->GetRenderer()->GetTerrainRenderDesc();
 	SpeedPoint::SPSPrintf(m_pTerrain->text, 200, "Terrain: %u DCs", pTerrainRenderDesc->nDrawCallDescs);
+
+
+	// Budget timers
+	unsigned int i = 0;
+	const vector<SFrameDebugTimer>& stagedBudgetTimers = fdi.GetStagedBudgetTimers();
+	for (auto itBudgetTimer = stagedBudgetTimers.begin(); itBudgetTimer != stagedBudgetTimers.end(); ++itBudgetTimer, ++i)
+	{
+		SFontRenderSlot* pFRS = 0;
+		InitFontRenderSlot(&pFRS, false, false, SColor(1.f, 1.f, 1.f), 10, 0 + i * 13);
+		SpeedPoint::SPSPrintf(pFRS->text, 200, "%.2f\t%s", itBudgetTimer->GetDuration() * 1000.0, itBudgetTimer->name.c_str());
+	}
 }
 
 // -----------------------------------------------------------------------------
@@ -87,7 +101,7 @@ S_API void CDebugInfo::Clear()
 	m_pEngine = 0;
 	m_pFPS = 0;
 	m_pFrameTimes = 0;
-	m_pTerrain = 0;
+	m_pTerrain = 0;	
 }
 
 
@@ -196,6 +210,9 @@ S_API SResult FramePipeline::ExecuteSections(usint32 iSkippedSections)
 	// Application specific frame updates
 	m_pEngine->GetApplication()->Update((float)m_pdLastFrameDuration->count());
 
+	m_FrameDebugInfo.budgetTimerIndent = 0;
+	unsigned int frameBudgetTimer = StartBudgetTimer("FramePipeline::ExecuteSections()");
+
 	if (m_nUsedFramepipelineSections > 0)
 	{
 		for (unsigned int iSection = 0; iSection < m_nUsedFramepipelineSections; ++iSection)		
@@ -219,8 +236,14 @@ S_API SResult FramePipeline::ExecuteSections(usint32 iSkippedSections)
 		}
 	}
 
+	StopBudgetTimer(frameBudgetTimer);
 	m_FrameDebugInfo.frameTimer.Stop();
+	m_FrameDebugInfo.lastFrameDuration = m_FrameDebugInfo.frameTimer.GetDuration();
 
+	
+	// Swap budget timer arrays	
+	m_FrameDebugInfo.stagedBudgetTimers = (m_FrameDebugInfo.stagedBudgetTimers + 1) % 2;	
+	m_FrameDebugInfo.GetUnstagedBudgetTimers().clear();
 
 	///////////////////////////// Frame End //////////////////////////////	
 
@@ -229,11 +252,60 @@ S_API SResult FramePipeline::ExecuteSections(usint32 iSkippedSections)
 }
 
 // -------------------------------------------------------------------------------------
+S_API unsigned int FramePipeline::StartBudgetTimer(const char* name)
+{
+	vector<SFrameDebugTimer>& unstagedTimers = m_FrameDebugInfo.GetUnstagedBudgetTimers();
+	
+	unstagedTimers.push_back(SFrameDebugTimer());	
+	
+	SFrameDebugTimer& timer = unstagedTimers.back();
+	timer.id = unstagedTimers.size() - 1; // using actual IDs, becoming invalid next frame
+	
+	stringstream timerName;
+	for (unsigned int i = 0; i < m_FrameDebugInfo.budgetTimerIndent; ++i)
+		timerName << "  ";
+
+	timerName << name;
+
+	timer.name = timerName.str();
+	timer.Start();
+	
+	m_FrameDebugInfo.budgetTimerIndent++;
+
+	return timer.id;
+}
+
+// -------------------------------------------------------------------------------------
+S_API void FramePipeline::ResumeBudgetTimer(unsigned int timerId)
+{	
+	vector<SFrameDebugTimer>& unstagedTimers = m_FrameDebugInfo.GetUnstagedBudgetTimers();
+
+	if (timerId >= unstagedTimers.size())
+		return;
+
+	unstagedTimers[timerId].Resume();
+	m_FrameDebugInfo.budgetTimerIndent++;			
+
+	// cannot resume - not found
+}
+
+// -------------------------------------------------------------------------------------
+S_API void FramePipeline::StopBudgetTimer(unsigned int timerId)
+{
+	vector<SFrameDebugTimer>& unstagedTimers = m_FrameDebugInfo.GetUnstagedBudgetTimers();
+
+	if (timerId >= unstagedTimers.size())
+		return;
+
+	unstagedTimers[timerId].Stop();
+	m_FrameDebugInfo.budgetTimerIndent--;	
+}
+
+// -------------------------------------------------------------------------------------
 S_API void FramePipeline::RenderDebugInfo()
 {
-	// Update DebugInfo Font Render Slots
-	double lastFrameTime = m_FrameDebugInfo.frameTimer.GetDuration();
-	m_FrameDebugInfo.frameTimeAcc += lastFrameTime;
+	// Only update shown values when certain time elapsed, so it can be read better.
+	m_FrameDebugInfo.frameTimeAcc += m_FrameDebugInfo.lastFrameDuration;
 	if (m_FrameDebugInfo.frameTimeAcc >= 1.0)
 	{
 		m_FrameDebugInfo.lastFrameCounter = m_FrameDebugInfo.frameCounter;
@@ -247,11 +319,11 @@ S_API void FramePipeline::RenderDebugInfo()
 
 	m_FrameDebugInfo.frameCounter++;
 
-	if (lastFrameTime < m_FrameDebugInfo.minFrameTime)
-		m_FrameDebugInfo.minFrameTime = lastFrameTime;
+	if (m_FrameDebugInfo.lastFrameDuration < m_FrameDebugInfo.minFrameTime)
+		m_FrameDebugInfo.minFrameTime = m_FrameDebugInfo.lastFrameDuration;
 
-	if (lastFrameTime > m_FrameDebugInfo.maxFrameTime)
-		m_FrameDebugInfo.maxFrameTime = lastFrameTime;
+	if (m_FrameDebugInfo.lastFrameDuration > m_FrameDebugInfo.maxFrameTime)
+		m_FrameDebugInfo.maxFrameTime = m_FrameDebugInfo.lastFrameDuration;
 
 	IRenderer* pRenderer = m_pEngine->GetRenderer();
 	if (IS_VALID_PTR(pRenderer))
@@ -261,7 +333,7 @@ S_API void FramePipeline::RenderDebugInfo()
 		{
 			SCamera* pCamera = pTargetVp->GetCamera();
 			if (IS_VALID_PTR(pCamera))
-				m_DebugInfo.Update(pCamera, 1.0 / m_FrameDebugInfo.frameTimer.GetDuration(), m_FrameDebugInfo);
+				m_DebugInfo.Update(pCamera, 1.0 / m_FrameDebugInfo.lastFrameDuration, m_FrameDebugInfo);
 		}
 	}
 }

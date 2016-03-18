@@ -79,6 +79,27 @@ public:
 	unsigned int GetUsedObjectCount() const { return num_used_objects; }
 	unsigned int GetFreeCount() const { return num_chunks * chunk_size - num_used_objects; }
 
+	// objindex is set to the index of the first object
+	// Returns:
+	//	0 if no object is in the pool, pointer to the instance of the first used object otherwise
+	T* GetFirstUsedObject(unsigned int& objindex)
+	{
+		if (!chunks || num_chunks == 0 || num_used_objects == 0)
+			return 0;
+
+		for (unsigned int ic = 0; ic < num_chunks; ++ic)
+		{
+			Chunk& chunk = *chunks[ic];
+			if (chunk.num_used_objects == 0)
+				continue;
+
+			objindex = ic * chunk_size + chunk.first_used_object;
+			return &chunk.objects[chunk.first_used_object].instance;
+		}
+
+		return 0;
+	}
+
 	// Summary:
 	//	Returns a used object with object index > objindex. 0 if no more used object
 	T* GetNextUsedObject(unsigned int& objindex)
@@ -88,6 +109,8 @@ public:
 
 		if (objindex >= num_chunks * chunk_size - 1)
 			return 0; // end of pool
+
+		++objindex;
 
 		unsigned int chunkobjindex = objindex % chunk_size; // objindex relative to chunk start
 		unsigned int ic = (unsigned int)((objindex - chunkobjindex) / chunk_size);
@@ -102,10 +125,10 @@ public:
 			}
 
 			Chunk& chunk = *chunks[ic];
-			if (chunk.num_used_objects == 0 || chunkobjindex >= chunk.last_used_object)
+			if (chunk.num_used_objects == 0 || chunkobjindex > chunk.last_used_object)
 			{
 				chunkobjindex = 0;
-				continue;
+				continue; // go to next chunk
 			}
 
 			// skip free objects at chunk start
@@ -116,7 +139,7 @@ public:
 				return &chunk.objects[chunkobjindex].instance;
 			}
 
-			for (unsigned int i = chunkobjindex + 1; i <= chunk.last_used_object; ++i)
+			for (unsigned int i = chunkobjindex; i <= chunk.last_used_object; ++i)
 			{
 				if (!chunk.objects[i].used)
 					continue;
@@ -151,7 +174,7 @@ public:
 			newChunk->frees = new unsigned int[chunk_size];
 			newChunk->num_frees = chunk_size;
 			for (unsigned int i = 0; i < chunk_size; ++i)
-				newChunk->frees[i] = i;
+				newChunk->frees[i] = (chunk_size - 1 - i);
 
 			newChunk->first_used_object = 0;
 			newChunk->last_used_object = 0;
@@ -161,6 +184,7 @@ public:
 			chunks[num_chunks - 1] = newChunk;
 			if (oldChunks)
 			{
+				// Copy array of chunk-pointers
 				memcpy(chunks, oldChunks, sizeof(Chunk*) * (num_chunks - 1));
 				delete[] oldChunks;
 			}

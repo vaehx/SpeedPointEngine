@@ -55,9 +55,6 @@ private:
 	// ------
 
 	SMesh m_ProxyMesh;
-	
-
-	void CalculateMinMaxHeights();
 
 	SResult GenerateFlatVertexHeightmap(float baseHeight);
 
@@ -102,8 +99,8 @@ public:
 
 	virtual float GetMinHeight() const;	
 	virtual float GetMaxHeight() const;
-
-	ILINE virtual void CalcMinMaxHeightAfterChange(Vec2f areaMin = Vec2f(0, 0), Vec2f areaMax = Vec2f(1.0f, 1.0f));
+	
+	ILINE virtual void MarkDirtyArea(Vec2f areaMin = Vec2f(0, 0), Vec2f areaMax = Vec2f(1.0f, 1.0f));
 
 	ILINE virtual Vec2f GetMinXZ() const;
 	ILINE virtual Vec2f GetMaxXZ() const;

@@ -110,15 +110,17 @@ S_API IMaterial* BasicMaterialManager::FindMaterial(const char* name)
 	if (m_Materials.GetUsedObjectCount() == 0)
 		return 0;
 
-	unsigned int iterator = 0;
-	BasicMaterial* pMat;
-	while (pMat = m_Materials.GetNextUsedObject(iterator))
+	unsigned int iterator;
+	BasicMaterial* pMat = m_Materials.GetFirstUsedObject(iterator);
+	while (pMat)
 	{	
 		if (!IS_VALID_PTR(pMat))
 			break;
 
 		if (_stricmp(pMat->GetName(), name) == 0)
 			return pMat;
+
+		pMat = m_Materials.GetNextUsedObject(iterator);
 	}
 
 	CLog::Log(S_ERROR, "Could not find material '%s'.", name);
@@ -159,14 +161,16 @@ S_API void BasicMaterialManager::LogAllMaterials()
 	}
 	else
 	{
-		unsigned int iterator = 0;
-		BasicMaterial* pMat;
-		while ((pMat = m_Materials.GetNextUsedObject(iterator)))
+		unsigned int iterator;
+		BasicMaterial* pMat = m_Materials.GetFirstUsedObject(iterator);
+		while (pMat)
 		{
 			if (!IS_VALID_PTR(pMat))
 				break;
 
 			CLog::Log(S_DEBUG, "Mat '%s': index=%u", pMat->GetName(), iterator);
+
+			pMat = m_Materials.GetNextUsedObject(iterator);
 		}
 	}
 }

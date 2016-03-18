@@ -89,7 +89,10 @@ m_pTerrainCB(nullptr),
 m_pBoundCB(nullptr),
 m_bInScene(false),
 m_bDumpFrame(false),
-m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
+m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN),
+m_pObjectConstants(0),
+m_pHelperConstants(0),
+m_pMaterialConstants(0)
 {
 };
 
@@ -109,6 +112,40 @@ S_API void DirectX11Renderer::DumpFrameOnce()
 S_API bool DirectX11Renderer::DumpingThisFrame() const
 {
 	return m_bDumpFrame;
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::StartOrResumeBudgetTimer(unsigned int timer, const char* name)
+{
+	if (timer >= NUM_DIRECTX11_BUDGET_TIMERS)
+		return;
+
+	SRenderBudgetTimer& renderBudgetTimer = m_BudgetTimers[timer];
+	if (renderBudgetTimer.numUsed == 0)
+		renderBudgetTimer.timerId = m_pEngine->StartBudgetTimer(name);
+	else
+		m_pEngine->ResumeBudgetTimer(renderBudgetTimer.timerId);
+
+	renderBudgetTimer.numUsed++;
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::StopBudgetTimer(unsigned int timer)
+{
+	if (timer >= NUM_DIRECTX11_BUDGET_TIMERS)
+		return;
+
+	m_pEngine->StopBudgetTimer(m_BudgetTimers[timer].timerId);
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::ResetBudgetTimerStats()
+{
+	memset(m_BudgetTimers, 0, NUM_DIRECTX11_BUDGET_TIMERS * sizeof(SRenderBudgetTimer));
+	/*for (unsigned int i = 0; i < NUM_DIRECTX11_BUDGET_TIMERS; ++i)
+	{
+		m_BudgetTimers[i].numUsed = 0;		
+	}*/
 }
 
 
@@ -598,7 +635,10 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	}		
 
 
-
+	// Initialize the matrix Constants buffer
+	// Has to be done as immediate as possible, as other initialization methods might want to setup the constants.
+	if (Failure(InitConstantBuffers()))
+		return S_ERROR;
 
 
 	// initialize the render target collections
@@ -614,11 +654,6 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 
 	// Set the base primitive topology
 	m_pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
-	// Initialize the matrix Constants buffer
-	if (Failure(InitConstantBuffers()))
-		return S_ERROR;	
 	
 	// Do not render terrain immediately
 	m_TerrainRenderDesc.bRender = false;
@@ -635,7 +670,12 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	if (Failure(m_HelperEffect.Initialize(m_pEngine, helperFXFile, "helper"))) return S_ERROR;
 	if (Failure(m_SkyBoxEffect.Initialize(m_pEngine, skyboxFXFile, "skybox"))) return S_ERROR;
 
-
+	// Set initially enabled effect
+	m_EnabledIllumModel = eILLUM_PHONG;
+	if (Failure(m_ForwardEffect.Enable()))
+	{
+		CLog::Log(S_ERROR, "Failed enable forward effect as default!");
+	}	
 
 	// Create unset texture dummy
 	m_DummyTexture.Initialize(m_pEngine, "notexture", false, false);
@@ -655,6 +695,9 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 
 	InitBlendStates();
 
+	// Reset bound-resources cache
+	memset(m_BoundVSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
+	memset(m_BoundPSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 
 	return S_SUCCESS;
 }
@@ -717,8 +760,26 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pHelperCB);	
 	SP_SAFE_RELEASE(m_pTerrainCB);
 
+	if (IS_VALID_PTR(m_pObjectConstants))
+		_aligned_free((void*)m_pObjectConstants);
+
+	if (IS_VALID_PTR(m_pMaterialConstants))
+		_aligned_free((void*)m_pMaterialConstants);
+
+	if (IS_VALID_PTR(m_pHelperConstants))
+		_aligned_free((void*)m_pHelperConstants);
+
+	m_pObjectConstants = 0;
+	m_pMaterialConstants = 0;
+	m_pHelperConstants = 0;
+
+
 	m_DummyTexture.Clear();
 	m_DummyNormalMap.Clear();
+
+	// Reset bound-resources cache
+	memset(m_BoundVSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
+	memset(m_BoundPSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 
 	if (IS_VALID_PTR(m_pD3DDeviceContext))
 	{		
@@ -933,16 +994,31 @@ S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/, bool vs /*=false*/)
+S_API SResult DirectX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl /*= 0*/)
+{
+	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
+
+	if (pSRV != m_BoundVSResources[lvl])
+	{
+		m_pD3DDeviceContext->VSSetShaderResources(lvl, 1, &pSRV);
+		m_BoundVSResources[lvl] = pSRV;
+	}
+
+	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
-	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;	
+	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
 
-	if (vs)
-		m_pD3DDeviceContext->VSSetShaderResources(lvl, 1, &pSRV);
-	else
+	if (pSRV != m_BoundPSResources[lvl])
+	{
 		m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
+		m_BoundPSResources[lvl] = pSRV;
+	}
 
 	return S_SUCCESS;
 }
@@ -962,7 +1038,11 @@ S_API SResult DirectX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 		SP_ASSERTR(pSRV, S_ERROR);
 	}
 
-	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
+	if (pSRV != m_BoundPSResources[lvl])
+	{
+		m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
+		m_BoundPSResources[lvl] = pSRV;
+	}
 
 	return S_SUCCESS;
 }
@@ -1018,6 +1098,8 @@ S_API SResult DirectX11Renderer::BeginScene(void)
 {
 	if (m_bInScene)
 		return S_ERROR;
+
+	ResetBudgetTimerStats();
 
 	if (m_bDumpFrame)
 		m_pEngine->LogD("Beginning rendering of scene... (Begin Frame)");	
@@ -1265,7 +1347,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 		if (!(bTerrainRenderState = (terrainRenderDesc.nLayers > 0))) m_pEngine->LogE("Invalid layer count in Terrain Render Desc!");
 
 		BindTexture(terrainRenderDesc.pVtxHeightMap, 0);
-		BindTexture(terrainRenderDesc.pVtxHeightMap, 0, true);
+		BindVertexShaderTexture(terrainRenderDesc.pVtxHeightMap, 0);
 		BindTexture(terrainRenderDesc.pColorMap, 1);
 
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 0, nullptr);
@@ -1318,6 +1400,9 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 			// Unbind terrain layer textures
 			BindTexture((ITexture*)0, 2);
 			BindTexture((ITexture*)0, 3);
+
+			// Unbind Vertex Shader texture
+			BindVertexShaderTexture((ITexture*)0, 0);
 		}
 
 		m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);		
@@ -1394,24 +1479,20 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 	bool bDepthEnableBackup = m_depthStencilDesc.DepthEnable;
 
-	unsigned int iRSIterator = 0;
-	for (unsigned int iSlot = 0; iSlot < m_RenderSchedule.GetUsedObjectCount(); ++iSlot)
+	unsigned int iRSIterator;
+	SRenderSlot* pSlot = m_RenderSchedule.GetFirstUsedObject(iRSIterator);
+	while (pSlot)
 	{
-		SRenderSlot* pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);		
-		
-		if (pSlot == 0)
-			break; // End of Schedule reached
-
 		Render(pSlot->renderDesc);
 
 
 		// Remove RenderSlot item if it should not be kept anymore
 		if (!pSlot->keep)
 		{
-			m_RenderSchedule.Release(&pSlot);
-			iRSIterator--;
+			m_RenderSchedule.Release(&pSlot);			
 		}
 
+		pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
 	}
 
 	// Restore backed up depth stencil state
@@ -1422,7 +1503,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDesc)
-{
+{	
 	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
 	{
 		SRenderSubset& subset = renderDesc.pSubsets[iSubset];
@@ -1433,37 +1514,45 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			continue;
 		}
 
-		// Enable correct shader
-		switch (subset.shaderResources.illumModel)
+		// Enable correct shader		
+		if (subset.shaderResources.illumModel != m_EnabledIllumModel)
 		{
-		case eILLUM_PHONG:
-		case eILLUM_BLINNPHONG:
-		case eILLUM_COOKTORRANCE:
-			m_ForwardEffect.Enable();
-			break;
-		case eILLUM_HELPER:
-			m_HelperEffect.Enable();
-			break;
-		case eILLUM_SKYBOX:
-			m_SkyBoxEffect.Enable();
-			break;
-		default:
-			FrameDump("[DX11Renderer] Warning: Invalid illum Model in shader resources!");
-			m_ForwardEffect.Enable();
-			break;
-		}	
+			switch (subset.shaderResources.illumModel)
+			{
+			case eILLUM_PHONG:
+			case eILLUM_BLINNPHONG:
+			case eILLUM_COOKTORRANCE:
+				m_ForwardEffect.Enable();
+				break;
+			case eILLUM_HELPER:
+				m_HelperEffect.Enable();
+				break;
+			case eILLUM_SKYBOX:
+				m_SkyBoxEffect.Enable();
+				break;
+			default:
+				FrameDump("[DX11Renderer] Warning: Invalid illum Model in shader resources!");
+				m_ForwardEffect.Enable();
+				break;
+			}
 
-		// Set material
+			m_EnabledIllumModel = subset.shaderResources.illumModel;
+		}		
+
+		// Set material		
 		SMatrix4 worldMtx = SMatrixTranspose(renderDesc.transform.BuildTRS());
-		SetShaderResources(subset.shaderResources, worldMtx);
+		SetShaderResources(subset.shaderResources, worldMtx);		
 
+		// Update Object Constant Buffer		
 		if (Failure(UpdateConstantBuffer(CONSTANTBUFFER_PEROBJECT)))
 		{
-			FrameDump("[DX11Renderer] Failed update per-object constants buffer");
+			FrameDump("[DX11Renderer] Failed update per-object constants buffer");			
 			return S_ERROR;
-		}
+		}		
 
-		EnableBackfaceCulling(subset.shaderResources.enableBackfaceCulling);
+		// Toggle Backface Culling		
+		EnableBackfaceCulling(subset.shaderResources.enableBackfaceCulling);		
+
 
 		DrawForward(subset.drawCallDesc);
 		if (subset.bOnce)
@@ -1473,19 +1562,21 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 		}
 	}
 
-	FrameDump(renderDesc.nSubsets, "renderDesc.nSubsets");
-
+	FrameDump(renderDesc.nSubsets, "renderDesc.nSubsets");	
 	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
-{	
-	FrameDump("DirectX11Renderer::DrawForward()");
+{		
+	FrameDump("DirectX11Renderer::DrawForward()");	
 
 	// bind vertex data stream
 	if (Failure(SetVBStream(desc.pVertexBuffer)))
-		return S_ERROR;	
+	{
+		StopBudgetTimer(eDX11_BUDGET_DRAW_FORWARD);
+		return S_ERROR;
+	}
 
 	bool bLines = (desc.primitiveType == PRIMITIVE_TYPE_LINES || desc.primitiveType == PRIMITIVE_TYPE_LINESTRIP);
 
@@ -1570,7 +1661,7 @@ S_API SResult DirectX11Renderer::MergeDeferred()
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
-{
+{	
 	if (m_FontRenderSchedule.GetUsedObjectCount() == 0)
 		return S_SUCCESS;
 
@@ -1581,17 +1672,16 @@ S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
 	if (!IS_VALID_PTR(pFontRenderer))
 		return S_NOTINIT;
 
+	StartOrResumeBudgetTimer(eDX11_BUDGET_UNLEASH_FONT_SCHEDULE, "DirectX11Renderer::UnleashFontRenderSchedule()");
+
 	BindSingleRT(m_pTargetViewport);
 
 	pFontRenderer->BeginRender();
 	
-	unsigned int iFRSIterator = 0;
-	for (unsigned int iSlot = 0; iSlot < m_FontRenderSchedule.GetUsedObjectCount(); ++iSlot)
+	unsigned int iFRSIterator;
+	SFontRenderSlot* pFRS = m_FontRenderSchedule.GetFirstUsedObject(iFRSIterator);
+	while (pFRS)
 	{
-		SFontRenderSlot* pFRS = m_FontRenderSchedule.GetNextUsedObject(iFRSIterator);
-		if (pFRS == 0)
-			break; // end of schedule		
-
 		SPixelPosition pp;
 		pp.x = pFRS->screenPos[0];
 		pp.y = pFRS->screenPos[1];
@@ -1599,12 +1689,20 @@ S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
 
 		if (!pFRS->keep)
 		{
-			m_FontRenderSchedule.Release(&pFRS);
-			iFRSIterator--;
+			if (IS_VALID_PTR(pFRS->text))
+				delete[] pFRS->text;
+
+			pFRS->text = 0;
+
+			m_FontRenderSchedule.Release(&pFRS);			
 		}
+
+		pFRS = m_FontRenderSchedule.GetNextUsedObject(iFRSIterator);
 	}
 
 	pFontRenderer->EndRender();
+
+	StopBudgetTimer(eDX11_BUDGET_UNLEASH_FONT_SCHEDULE);
 
 	return S_SUCCESS;
 }
@@ -1710,6 +1808,8 @@ S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 S_API SResult DirectX11Renderer::InitConstantBuffers()
 {
 	// Per-Scene CB
+	m_pObjectConstants = (SObjectConstantsBuffer*)_aligned_malloc(sizeof(SObjectConstantsBuffer), 16);
+
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerSceneCB, sizeof(SObjectConstantsBuffer))))
 		return S_ERROR;
 
@@ -1718,9 +1818,14 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 
 
 
+	// Material constants:
+	m_pMaterialConstants = (SMaterialConstantsBuffer*)_aligned_malloc(sizeof(SMaterialConstantsBuffer), 16);
 
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pIllumCB, sizeof(SMaterialConstantsBuffer))))
 		return CLog::Log(S_ERROR, "Failed create illum CB!");
+
+	// Helper constants:
+	m_pHelperConstants = (SHelperConstantBuffer*)_aligned_malloc(sizeof(SHelperConstantBuffer), 16);
 
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pHelperCB, sizeof(SHelperConstantBuffer))))
 		return CLog::Log(S_ERROR, "Failed create helper CB!");
@@ -1734,7 +1839,7 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 
 
 
-	// Terrain CB
+	// Terrain CB	
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pTerrainCB, sizeof(STerrainConstantBuffer))))
 		return m_pEngine->LogE("Failed create terrain CB");
 
@@ -1754,7 +1859,7 @@ S_API SResult DirectX11Renderer::UpdateConstantBuffer(EConstantBufferType cb, co
 			return S_ERROR;
 
 		assert(IS_VALID_PTR(pSceneBuffer));
-		memcpy((void*)pSceneBuffer, (void*)&m_ObjectConstants, sizeof(SObjectConstantsBuffer));
+		memcpy((void*)pSceneBuffer, (void*)m_pObjectConstants, sizeof(SObjectConstantsBuffer));
 		D3D11_UnlockConstantsBuffer(m_pPerSceneCB);
 		break;
 
@@ -1830,7 +1935,7 @@ S_API void DirectX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 	pV->RecalculateCameraViewMatrix();
 	const SMatrix4& viewMtx = pV->GetCameraViewMatrix();
 	const SMatrix4& projMtx = pV->GetProjectionMatrix();
-	m_ObjectConstants.mtxViewProj = viewMtx * projMtx;		
+	m_pObjectConstants->mtxViewProj = viewMtx * projMtx;		
 
 	//m_PerSceneCB.mtxViewProj = projMtx * viewMtx;
 }
@@ -1838,19 +1943,19 @@ S_API void DirectX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
-	m_ObjectConstants.mtxViewProj = mtxView * mtxProj;		
+	m_pObjectConstants->mtxViewProj = mtxView * mtxProj;		
 }
 
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
 {
-	m_ObjectConstants.mtxViewProj = mtxViewProj;
+	m_pObjectConstants->mtxViewProj = mtxViewProj;
 }
 
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
 {
-	m_ObjectConstants.eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
+	m_pObjectConstants->eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
 	//FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
 }
 
@@ -1867,11 +1972,14 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 		if (!(pCB = m_pHelperCB))
 			return false;
 
-		m_HelperCB.color = shaderResources.diffuse;
-		m_HelperCB.mtxTransform = worldMat;		
+		BindTexture((ITexture*)0, 0);
+		BindTexture((ITexture*)0, 1);
 
-		pConstantsData = (void*)&m_HelperCB;
-		cbSize = sizeof(m_HelperCB);		
+		m_pHelperConstants->color = shaderResources.diffuse;
+		m_pHelperConstants->mtxTransform = worldMat;		
+
+		pConstantsData = (void*)m_pHelperConstants;
+		cbSize = sizeof(SHelperConstantBuffer);
 	}
 	else
 	{
@@ -1886,12 +1994,12 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 		BindTexture(pNormalMap, 1);
 
 		// Set constants
-		m_MaterialConstants.mtxTransform = worldMat;
-		m_MaterialConstants.matAmbient = 0.1f;
-		m_MaterialConstants.matEmissive = shaderResources.emissive;		
+		m_pMaterialConstants->mtxTransform = worldMat;
+		m_pMaterialConstants->matAmbient = 0.1f;
+		m_pMaterialConstants->matEmissive = shaderResources.emissive;		
 
-		pConstantsData = (void*)&m_MaterialConstants;
-		cbSize = sizeof(m_MaterialConstants);		
+		pConstantsData = (void*)m_pMaterialConstants;
+		cbSize = sizeof(SMaterialConstantsBuffer);		
 	}
 	
 	if (!pConstantsData)
@@ -1899,7 +2007,7 @@ S_API bool DirectX11Renderer::SetShaderResources(const SShaderResources& shaderR
 
 	void* pLockedData = 0;
 	D3D11_LockConstantsBuffer(pCB, &pLockedData);	
-	memcpy(pLockedData, pConstantsData, cbSize);
+	memcpy(pLockedData, pConstantsData, cbSize);	
 	D3D11_UnlockConstantsBuffer(pCB);
 	
 	if (m_pBoundCB != pCB)
@@ -1953,8 +2061,8 @@ S_API SResult DirectX11Renderer::UpdateCullMode(EFrontFace ff)
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::EnableBackfaceCulling(bool state)
-{
-	SP_ASSERTR(IsInited(), S_NOTINIT);
+{	
+	assert(IsInited());
 
 	if ((m_rsDesc.CullMode == D3D11_CULL_NONE && !state) ||
 		(m_rsDesc.CullMode != D3D11_CULL_NONE && state))

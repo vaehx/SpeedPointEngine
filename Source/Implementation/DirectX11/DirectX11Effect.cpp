@@ -36,7 +36,7 @@ DirectX11Effect::~DirectX11Effect()
 }
 
 // -------------------------------------------------------------------------
-S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry)
+S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry, EShaderVertexType vertexType /*= eSHADERVERTEX_DEFAULT*/)
 {
 	SP_ASSERTR((m_pEngine = pEngine) && cFilename, S_INVALIDPARAM);
 
@@ -156,55 +156,78 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 
 	// 5. Create the polygon layout for the SVertex structure
 	
-	D3D11_INPUT_ELEMENT_DESC vtxDesc[5];
-	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * 5);
+	if (vertexType == eSHADERVERTEX_SIMPLE)
+	{
+		const unsigned int NUM_ELEMENTS = 2;
 
-	vtxDesc[0].AlignedByteOffset = 0;
-	vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	vtxDesc[0].InputSlot = 0;
-	vtxDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	vtxDesc[0].SemanticIndex = 0;
-	vtxDesc[0].SemanticName = "POSITION";	
+		D3D11_INPUT_ELEMENT_DESC vtxDesc[NUM_ELEMENTS];
+		memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * NUM_ELEMENTS);
 
-	vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	vtxDesc[1].InputSlot = 0;
-	vtxDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	vtxDesc[1].SemanticIndex = 0;
-	vtxDesc[1].SemanticName = "NORMAL";
+		vtxDesc[0].AlignedByteOffset = 0;
+		vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vtxDesc[0].SemanticName = "POSITION";
 
-	vtxDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	vtxDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	vtxDesc[2].InputSlot = 0;
-	vtxDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	vtxDesc[2].SemanticIndex = 0;
-	vtxDesc[2].SemanticName = "TANGENT";
+		vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vtxDesc[1].SemanticName = "NORMAL";
 
-	vtxDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	vtxDesc[3].Format = DXGI_FORMAT_R32G32_FLOAT;
-	vtxDesc[3].InputSlot = 0;
-	vtxDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	vtxDesc[3].SemanticIndex = 0;
-	vtxDesc[3].SemanticName = "TEXCOORD";
+		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, NUM_ELEMENTS, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
+			return CLog::Log(S_ERROR, "Failed Create (Simple-Vertex) input layout for VS!");
+	}
+	else
+	{
+		const unsigned int NUM_ELEMENTS = 5;
 
-	/* // Second texture coordinate:
-	vtxDesc[4].AlignedByteOffset = 0;
-	vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	vtxDesc[4].InputSlot = 0;
-	vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	vtxDesc[4].SemanticIndex = 1;
-	vtxDesc[4].SemanticName = "TEXCOORD";
-	*/
+		D3D11_INPUT_ELEMENT_DESC vtxDesc[NUM_ELEMENTS];
+		memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * NUM_ELEMENTS);
 
-	vtxDesc[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	vtxDesc[4].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	vtxDesc[4].InputSlot = 0;
-	vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	vtxDesc[4].SemanticIndex = 0;
-	vtxDesc[4].SemanticName = "COLOR";	
-	
-	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, 5, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
-		return m_pEngine->LogE("Failed Create input layout for VS!");
+		vtxDesc[0].AlignedByteOffset = 0;
+		vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vtxDesc[0].InputSlot = 0;
+		vtxDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		vtxDesc[0].SemanticIndex = 0;
+		vtxDesc[0].SemanticName = "POSITION";
+
+		vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vtxDesc[1].InputSlot = 0;
+		vtxDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		vtxDesc[1].SemanticIndex = 0;
+		vtxDesc[1].SemanticName = "NORMAL";
+
+		vtxDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		vtxDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vtxDesc[2].InputSlot = 0;
+		vtxDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		vtxDesc[2].SemanticIndex = 0;
+		vtxDesc[2].SemanticName = "TANGENT";
+
+		vtxDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		vtxDesc[3].Format = DXGI_FORMAT_R32G32_FLOAT;
+		vtxDesc[3].InputSlot = 0;
+		vtxDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		vtxDesc[3].SemanticIndex = 0;
+		vtxDesc[3].SemanticName = "TEXCOORD";
+
+		/* // Second texture coordinate:
+		vtxDesc[4].AlignedByteOffset = 0;
+		vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vtxDesc[4].InputSlot = 0;
+		vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		vtxDesc[4].SemanticIndex = 1;
+		vtxDesc[4].SemanticName = "TEXCOORD";
+		*/
+
+		vtxDesc[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		vtxDesc[4].InputSlot = 0;
+		vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		vtxDesc[4].SemanticIndex = 0;
+		vtxDesc[4].SemanticName = "COLOR";
+
+		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, NUM_ELEMENTS, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
+			return m_pEngine->LogE("Failed Create input layout for VS!");
+	}
 
 
 

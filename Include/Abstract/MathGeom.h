@@ -23,6 +23,10 @@
 #include "Math.h"
 #define FLOAT_TOLERANCE FLT_EPSILON
 
+#ifdef _DEBUG
+#include <string>
+#endif
+
 using std::vector;
 
 SP_NMSPACE_BEG
@@ -629,7 +633,7 @@ struct SMeshKTree
 			// TODO: Check if stack overflow is possible !!!!! - Stack is much faster though!
 			//
 			//
-			AABB pChildAABBs[MESH_KTREE_MAX_CHILDS];
+			AABB *pChildAABBs = new AABB[MESH_KTREE_MAX_CHILDS];
 
 			switch (type)
 			{
@@ -704,7 +708,7 @@ struct SMeshKTree
 				}
 			}
 
-			//delete[] pChildAABBs;
+			delete[] pChildAABBs;
 			//delete[] pChildFaces;
 		}
 		else
@@ -743,20 +747,25 @@ struct SMeshKTree
 	// and any other collision shape.
 	//
 	// Warning: This function assumes that the id's of the faces are set correctly and are unique!
-	inline void GetIntersectingFaces(const AABB& operand, vector<SMeshFace>& intersecting, const SMatrix& transform = SMatrix()) const
+	inline void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const SMatrix& transform = SMatrix(), vector<u16>& foundIntersecting = vector<u16>()) const
 	{
 		if (!aabb.Intersects(operand))
 			return;
 
 		if (IsLeaf())
 		{
+			// Assuming 1/4th is intersecting
+			foundIntersecting.reserve(foundIntersecting.size() + (unsigned int)((float)faces.size() * 0.25f));
+
 			// Add all new faces to the intersecting array
-			for (auto itFace = faces.begin(); itFace != faces.end(); itFace++)
+			vector<SMeshFace>::const_iterator faceEnd = faces.end();
+			for (auto& itFace = faces.begin(); itFace != faceEnd; itFace++)
 			{
 				bool alreadyFound = false;
-				for (auto itIntersecting = intersecting.begin(); itIntersecting != intersecting.end(); itIntersecting++)
+				vector<u16>::iterator foundEnd = foundIntersecting.end();
+				for (auto& itFound = foundIntersecting.begin(); itFound != foundEnd; ++itFound)
 				{
-					if (itIntersecting->id == itFace->id)
+					if (*itFound == itFace->id)
 					{
 						alreadyFound = true;
 						break;
@@ -776,7 +785,8 @@ struct SMeshKTree
 
 
 
-					intersecting.push_back(*itFace);
+					intersecting.push_back(&(*itFace));
+					foundIntersecting.push_back(itFace->id);
 				}
 			}
 		}
@@ -784,14 +794,14 @@ struct SMeshKTree
 		{
 			for (unsigned int i = 0; i < nChilds; ++i)
 			{
-				pChilds[i].GetIntersectingFaces(operand, intersecting, transform);
+				pChilds[i].GetIntersectingFaces(operand, intersecting, transform, foundIntersecting);
 			}
 		}
 	}
 
 	inline bool IsLeaf() const
 	{
-		return !IS_VALID_PTR(pChilds) || nChilds == 0;
+		return nChilds == 0 || !IS_VALID_PTR(pChilds);
 	}
 
 	// Multiplies each vertex with this matrix
@@ -819,6 +829,21 @@ struct SMeshKTree
 			for (unsigned int iChild = 0; iChild < nChilds; ++iChild)
 			{
 				pChilds[iChild].TransformVertices(matrix);
+			}
+		}
+	}
+
+	// Sets the given minY and maxY as the min/max values for ALL aabb's in the kTree
+	inline void UpdateAABBHeights(float minY, float maxY)
+	{
+		aabb.vMin.y = minY;
+		aabb.vMax.y = maxY;
+
+		if (!IsLeaf())
+		{
+			for (unsigned int iChild = 0; iChild < nChilds; ++iChild)
+			{
+				pChilds[iChild].UpdateAABBHeights(minY, maxY);
 			}
 		}
 	}
@@ -851,7 +876,7 @@ struct SMesh
 	}
 
 	// Fills the intersecting array with faces that intersect with the given AABB
-	void GetIntersectingFaces(const AABB& operand, vector<SMeshFace>& intersecting, const SMatrix4& transform = SMatrix()) const
+	void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const SMatrix4& transform = SMatrix()) const
 	{
 		kTree.GetIntersectingFaces(operand, intersecting);
 	}
@@ -1132,9 +1157,11 @@ inline Vec3f GetFootOnPlane(const SPlane& plane, const SPoint& point)
 // pX1, pX2 -  closest points to each other on line1 / line2 respectively
 inline float GetMinLineSegmentDistanceSq(const SLineSegment& l1, const SLineSegment& l2, Vec3f* pX1 = 0, Vec3f* pX2 = 0)
 {
+	// Calculate lengths of line segments
 	float length1 = (l1.v2 - l1.v1).Length();
 	float length2 = (l2.v2 - l2.v1).Length();
 
+	// Define the rays
 	SRay ray1, ray2;
 	ray1.p = l1.v1;
 	ray1.v = (l1.v2 - l1.v1) / length1;
@@ -1142,10 +1169,8 @@ inline float GetMinLineSegmentDistanceSq(const SLineSegment& l1, const SLineSegm
 	ray2.p = l2.v1;
 	ray2.v = (l2.v2 - l2.v1) / length2;
 
-	float t1, t2;
-	float distance;
-	if (IntersectRayRay(ray1, ray2, &t1, &t2, &distance))
-		return 0.0f;
+	float t1, t2;	
+	IntersectRayRay(ray1, ray2, &t1, &t2);
 
 	Vec3f x1, x2;
 	if (t1 < 0.0f)
@@ -1161,6 +1186,9 @@ inline float GetMinLineSegmentDistanceSq(const SLineSegment& l1, const SLineSegm
 		x2 = l2.v2;
 	else
 		x2 = ray2.GetPoint(t2);
+
+	if (IS_VALID_PTR(pX1)) *pX1 = x1;
+	if (IS_VALID_PTR(pX2)) *pX2 = x2;
 
 	return (x2 - x1).LengthSq();
 }
@@ -1326,7 +1354,7 @@ inline bool IntersectRayRay(const SRay& ray1, const SRay& ray2, float* pParam1/*
 	const Vec3f &p = ray1.p, &v = ray1.v, &q = ray2.p, &u = ray2.v;
 
 	// Both start points are near enough together?
-	if ((p - q).LengthSq() <= (FLOAT_TOLERANCE * FLOAT_TOLERANCE))
+	if ((p - q).LengthSq() <= FLOAT_TOLERANCE)
 	{
 		if (IS_VALID_PTR(pParam1)) *pParam1 = 0.0f;
 		if (IS_VALID_PTR(pParam2)) *pParam2 = 0.0f;
@@ -1958,8 +1986,12 @@ struct SContactInfo
 	Vec3f contactPoint;	// point of contact
 	Vec3f contactNormal;	// normal of the surface of the vertex/face contact
 
-	Vec3f edge1;	// normalized direction of edge 1
+	Vec3f edge1;	// normalized direction of edge 1	
 	Vec3f edge2;	// normalized direction of edge 2
+
+
+	SLineSegment closestEdge; //? DEBUGGING
+	std::string desc; //? DEBUGGING: Description text
 };
 
 
@@ -1991,14 +2023,20 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 	if (IntersectLineTriangle(line, vtx1, vtx2, vtx3, &planeIntersection, &contact.contactNormal))
 	{
 		contact.contactPoint = planeIntersection;
+		contact.contactNormal = Vec3Cross(v2 - v1, v3 - v1).Normalized();
 		contact.intersection = true;
 		contact.interpenetration = true;
+		contact.vertexFace = true;
+		contact.desc = "lineSeg-Tri";
 		return true;
-	}
+	}	
 
 	// Case 2: Intersection of (at least one of the) capsule caps and triangle
-	float minRadiusSq = capsule.r * capsule.r - tolerance * tolerance;
-	float maxRadiusSq = capsule.r * capsule.r + tolerance * tolerance;	
+	float minRadius = capsule.r - tolerance;
+	float maxRadius = capsule.r + tolerance;
+	
+	float minRadiusSq = minRadius * minRadius;
+	float maxRadiusSq = maxRadius * maxRadius;
 
 	SPlane plane = SPlane::FromPoints(v1, v2, v3);	
 	
@@ -2016,10 +2054,12 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 		contact.contactPoint = foot1;
 		contact.contactNormal = plane.n.Normalized();
 
+		contact.desc = "cap1-tri";
+
 		// Here, it might well be that the first cap does contact without interpenetration, but the second does
-		if (!contact.interpenetration)
+		if (contact.interpenetration)
 			return true;
-	}
+	}	
 
 	Vec3f foot2 = GetFootOnPlane(plane, SPoint(capsule.p2));
 	bool capInt2 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot2);
@@ -2034,17 +2074,20 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 		contact.vertexFace = true;
 		contact.contactPoint = foot2;
 		contact.contactNormal = plane.n.Normalized();
+		
+		contact.desc = "cap2-tri";
 	}
 
-	if (capInt1 || capInt2)
+	if (capInt1 || capInt2)	
 		return true;
 
 
-	// Case 3: Capsule collides with at least one triangle edge
+	// Case 3: Capsule collides with at least one triangle edge (using dist. between line segments)
 	const SLineSegment edges[] = {
 		SLineSegment(v1, v2), SLineSegment(v2, v3), SLineSegment(v3, v1)
 	};
 
+	// Find the closest capsule-linesegment <-> edge pair
 	int minEdge = -1;
 	float minDistSq = 0.f;
 	Vec3f p1, p2; // closest points on the line segments
@@ -2052,7 +2095,7 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 	{
 		Vec3f pp1, pp2;
 		float distSq = GetMinLineSegmentDistanceSq(edges[i], line, &pp1, &pp2);
-		if (minEdge < 0 || distSq < minDistSq)
+		if (i == 0 || distSq < minDistSq)
 		{
 			minEdge = i;
 			minDistSq = distSq;
@@ -2073,7 +2116,13 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 		
 		// We can actually set the contact point and normal, although this is an edge/edge contact
 		contact.contactPoint = p1;
-		contact.contactNormal = (p2 - p1).Normalized();
+		//contact.contactNormal = Vec3Cross(contact.edge1, contact.edge2).Normalized();
+		contact.contactNormal = plane.n.Normalized();
+
+		contact.desc = "seg-seg";
+
+		contact.closestEdge = edges[minEdge]; //? DEBUG
+
 
 		return true;
 	}
@@ -2143,7 +2192,7 @@ inline bool IntersectLineSphere(const SRay& ray, const float maxLambda, const SS
 //	Mesh - Capsule
 //
 // -------------------------------------------------------------------------------------------
-inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.001f)
+inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.001f, vector<SMeshFace>* pPossibleFaces = 0)
 {
 	// First, determine AABB of the capsule
 	AABB capsuleAABB;
@@ -2153,18 +2202,26 @@ inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vec
 	capsuleAABB.Outset(capsule.r);
 
 	// Determine all possible faces that intersect with the capsule AABB
-	vector<SMeshFace> possibleFaces;
+	vector<const SMeshFace*> possibleFaces;
 	mesh.GetIntersectingFaces(capsuleAABB, possibleFaces);
 
 	if (possibleFaces.size() == 0)
 		return false;
 
+	if (IS_VALID_PTR(pPossibleFaces))
+		pPossibleFaces->reserve(possibleFaces.size());
+
 	// We have to go through all possibly intersecting faces to find all contact points
 	bool intersection = false;
 	for (auto itFace = possibleFaces.begin(); itFace != possibleFaces.end(); ++itFace)
 	{
+		const SMeshFace* pMeshFace = *itFace;
+
+		if (IS_VALID_PTR(pPossibleFaces))
+			pPossibleFaces->push_back(**itFace);
+
 		SContactInfo tmpContact;
-		if (IntersectTriangleCapsuleEx(itFace->vtx[0], itFace->vtx[1], itFace->vtx[2], capsule, tmpContact, interpenetrationTolerance))
+		if (IntersectTriangleCapsuleEx(pMeshFace->vtx[0], pMeshFace->vtx[1], pMeshFace->vtx[2], capsule, tmpContact, interpenetrationTolerance))
 		{
 			contacts.push_back(tmpContact);
 			intersection = true;

@@ -17,14 +17,14 @@ cbuffer ObjectCB : register(b1)
 
 struct a2v
 {
-	float4 Position : POSITION;
-	float3 Color : COLOR;
+	float3 Position : POSITION;
+	float3 Color : COLOR0;
 };
 
 struct v2f
 {
 	float4 Position : SV_Position;
-	float3 Color : COLOR;
+	float3 Color : COLOR0;
 };
 
 /////////////////////////// vertex shader //////////////////////////////
@@ -41,9 +41,7 @@ v2f VS_helper(a2v IN)
 //////////////////////////// pixel shader ////////////////////////////////
 float4 PS_helper(v2f IN) : SV_Target0
 {
-    //return float4(1.0f, 0, 0, 0);
-	
-	float3 col = IN.Color.rgb * diffColor.rgb;
-    return float4(col.x, col.y, col.z, 0);
+	float3 col = IN.Color * diffColor.rgb;
+	return float4(col.x, col.y, col.z, 0);
 }
 

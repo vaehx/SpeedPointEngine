@@ -31,9 +31,12 @@ struct S_API Quat
 	Vec3f v;
 	float w;
 
-	Quat() : w(1.0f) {}
+	Quat() : w(1.0f) {} // Identity = (0, 0, 0, w=1.0)
+
 	Quat(const Quat& q) : v(q.v), w(q.w) {}
 	Quat(float ww, const Vec3f& vv) : v(vv), w(ww) {}
+	
+	// w = q0, v = (q1, q2, q3)
 	Quat(float q0, float q1, float q2, float q3) : v(q1, q2, q3), w(q0) {}
 
 	/*
@@ -165,12 +168,12 @@ inline float Quat::Length() const
 inline Quat Quat::Normalized() const
 {
 	float invln = 1.0f / sqrtf(w*w + v.x*v.x + v.y*v.y + v.z*v.z);
-	return Quat(w * invln, v * invln);
+	return Quat(w * invln, v.x * invln, v.y * invln, v.z * invln);
 }
 
 inline Quat Quat::operator !() const
 {
-	return Quat(w, -v);
+	return Quat(w, -v.x, -v.y, -v.z);
 }
 inline Quat Quat::Inverted() const
 {

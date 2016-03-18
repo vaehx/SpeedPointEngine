@@ -10,6 +10,13 @@
 
 SP_NMSPACE_BEG
 
+inline Vec2f _ScaleToTexCoords(float x, float y, const Vec2f& worldExtents)
+{
+	return Vec2f(fmodf(x, worldExtents.x), fmodf(y, worldExtents.y)) / worldExtents;
+}
+
+
+
 static ITerrain::LodLevel* g_pLodLevel = 0;
 
 unsigned long g_MaxIdxAccum = 0;
@@ -567,7 +574,7 @@ S_API void Terrain::SetHeightmap(ITexture* heightmap)
 	m_pVtxHeightMap = heightmap;
 	m_bCustomHeightmapSet = true;			
 
-	CalculateMinMaxHeights();
+	MarkDirtyArea(Vec2f(0, 0), Vec2f(1.0f, 1.0f));
 
 	//UpdateCollisionMesh();
 }
@@ -586,11 +593,11 @@ S_API float Terrain::GetMaxHeight() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API void Terrain::CalcMinMaxHeightAfterChange(Vec2f areaMin /*= Vec2f(0, 0)*/, Vec2f areaMax /*= Vec2f(1.0f, 1.0f)*/)
+S_API void Terrain::MarkDirtyArea(Vec2f areaMin /*= Vec2f(0, 0)*/, Vec2f areaMax /*= Vec2f(1.0f, 1.0f)*/)
 {
 	if (!IS_VALID_PTR(m_pVtxHeightMap))
 	{
-		CLog::Log(S_ERROR, "Failed compute terrain min max heights: Heightmap not set!");
+		CLog::Log(S_ERROR, "Failed mark terrain dirty area: Heightmap not set!");
 		return;
 	}
 
@@ -617,27 +624,59 @@ S_API void Terrain::CalcMinMaxHeightAfterChange(Vec2f areaMin /*= Vec2f(0, 0)*/,
 		(unsigned int)(areaMax.x * (float)heightmapSz[0]),
 		(unsigned int)(areaMax.y * (float)heightmapSz[1])
 	};
-
-	m_fMaxHeight = FLT_MIN;
+	
+	// We have to research the whole heightmap here, because we don't know if the specified area
+	// overrides the current min/max heights or not.	
+	m_fMaxHeight = -FLT_MAX;
 	m_fMinHeight = FLT_MAX;
-	for (unsigned int y = area[1]; y < area[3]; ++y)
+	for (unsigned int y = 0; y < heightmapSz[1]; ++y)
 	{
-		for (unsigned int x = area[0]; x < area[2]; ++x)
+		for (unsigned int x = 0; x < heightmapSz[0]; ++x)
 		{
-			const float& h = pStagedData[y * heightmapSz[1] + x];
+			const float& h = pStagedData[y * heightmapSz[0] + x];
 			if (h < m_fMinHeight)
 				m_fMinHeight = h;
 
 			if (h > m_fMaxHeight)
 				m_fMaxHeight = h;
 		}
-	}	
-}
+	}
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-S_API void Terrain::CalculateMinMaxHeights()
-{
-	CalcMinMaxHeightAfterChange();
+
+	// Update proxy mesh
+	Vec2f extents = GetMaxXZ() - GetMinXZ();
+	Vec2f invExtents(1.0f / extents.x, 1.0f / extents.y);
+
+	Vec2f aabbMin = GetMinXZ() + extents * areaMin;
+	Vec2f aabbMax = GetMinXZ() + extents * areaMax;
+
+	vector<SMeshKTree*> affectedLeafs;
+	m_ProxyMesh.kTree.GetIntersectingLeafs(AABB(Vec3f(aabbMin.x, GetMinHeight(), aabbMin.y), Vec3f(aabbMax.x, GetMaxHeight(), aabbMax.y)), affectedLeafs);
+
+	//CLog::Log(S_DEBUG, "%.2f %.2f %.2f  -  %.2f %.2f %.2f", aabbMin.x, GetMinHeight(), aabbMin.y, aabbMax.x, GetMaxHeight(), aabbMax.y);
+	//CLog::Log(S_DEBUG, "MarkDirtyArea(): %u affected leafs", affectedLeafs.size());
+
+	for (auto itLeaf = affectedLeafs.begin(); itLeaf != affectedLeafs.end(); ++itLeaf)
+	{
+		SMeshKTree* pLeaf = *itLeaf;		
+		for (auto& itMeshFace = pLeaf->faces.begin(); itMeshFace != pLeaf->faces.end(); ++itMeshFace)
+		{			
+			for (int i = 0; i < 3; ++i)
+			{
+				//itMeshFace->vtx[i].y = SampleHeight(_ScaleToTexCoords(itMeshFace->vtx[i].x - GetMinXZ().x, itMeshFace->vtx[i].z - GetMinXZ().y, extents));
+				Vec2f texCoords = (Vec2f(itMeshFace->vtx[i].x, itMeshFace->vtx[i].z) - GetMinXZ()) * invExtents;
+
+				// Assuming random rounding should be fine
+				unsigned int x = (unsigned int)(texCoords.x * (float)heightmapSz[0]);
+				unsigned int y = (unsigned int)(texCoords.y * (float)heightmapSz[1]);
+
+				itMeshFace->vtx[i].y = pStagedData[y * heightmapSz[0] + x] * m_HeightScale;
+			}
+		}
+	}
+
+	float bias = 0.5f;
+	m_ProxyMesh.kTree.UpdateAABBHeights(GetMinHeight() - bias, GetMaxHeight() + bias);
 }
 
 
@@ -686,7 +725,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 		EngLog(S_ERROR, m_pEngine, "Failed lock vtx height map for terrain!");
 	}
 
-	CalculateMinMaxHeights();
+	MarkDirtyArea(Vec2f(0, 0), Vec2f(1.0f, 1.0f));
 
 	return S_SUCCESS;
 }
@@ -708,10 +747,6 @@ S_API float Terrain::SampleHeight(const Vec2f& texcoords, bool bilinear /* = fal
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-inline Vec2f _ScaleToTexCoords(float x, float y, const Vec2f& worldExtents)
-{
-	return Vec2f(fmodf(x, worldExtents.x), fmodf(y, worldExtents.y)) / worldExtents;
-}
 
 S_API void Terrain::CalculateProxyMesh(unsigned int maxKTreeRecDepth)
 {
@@ -791,7 +826,8 @@ S_API void Terrain::CalculateProxyMesh(unsigned int maxKTreeRecDepth)
 
 	CLog::Log(S_DEBUG, "  testAABB:   min = (%.2f, %.2f, %.2f)    max = (%.2f, %.2f, %.2f)", testAABB.vMin.x, testAABB.vMin.y, testAABB.vMin.z, testAABB.vMax.x, testAABB.vMax.y, testAABB.vMax.z);
 
-	float minHeight = GetMinHeight(), maxHeight = GetMaxHeight();
+	float minHeight = GetMinHeight(),
+		  maxHeight = GetMaxHeight();
 	CLog::Log(S_DEBUG, "  minHeight = %.2f     maxHeight = %.2f", minHeight, maxHeight);
 
 	float bias = 1.0f;
@@ -835,20 +871,22 @@ S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight
 	Vec2f terrainDimensions = GetMaxXZ() - GetMinXZ();
 
 	// Loop through steps from max height to min height
-	float lastSampledHeight = SampleHeight(Vec2f(maxPlaneInt.x, maxPlaneInt.z) / terrainDimensions, true);
+	float lastSampledHeight = SampleHeight((Vec2f(maxPlaneInt.x, maxPlaneInt.z) - GetMinXZ()) / terrainDimensions, true);
 	float lastHeight = maxHeight;
 	//CLog::Log(S_DEBUG, "lh=%.2f lsh=%.2f", lastHeight, lastSampledHeight);
 	unsigned int iStep = 0;
 	bool bGoFurther = true;
+	bool mightHaveIntersected = false;
 	for (Vec3f curPos = maxPlaneInt + stepVec; bGoFurther; curPos += stepVec)
 	{
-		float newSampledHeight = SampleHeight(Vec2f(curPos.x, curPos.z) / terrainDimensions, true);
+		float newSampledHeight = SampleHeight((Vec2f(curPos.x, curPos.z) - GetMinXZ()) / terrainDimensions, true);
 		//CLog::Log(S_DEBUG, "Step %u. nsh=%.4f nh=%.4f lsh=%.4f lh=%.4f", iStep, newSampledHeight, curPos.y, lastSampledHeight, lastHeight);
 		++iStep;		
 
 		if ((lastSampledHeight <= lastHeight && newSampledHeight >= curPos.y)
 			|| (lastSampledHeight >= lastHeight && newSampledHeight <= curPos.y))
 		{
+			mightHaveIntersected = true;
 			//CLog::Log(S_DEBUG, "intersects. cd=%u rd=%u", curDepth, recDepth);
 			
 			// if not reached max recursive depth, use a smaller step, otherwise we found the intersection						
@@ -884,8 +922,11 @@ S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight
 	}
 
 	// found nothing
-	//CLog::Log(S_DEBUG, "Found no intersection. min=%.2f max=%.2f; minpi(%.1f,%.1f,%.1f) maxpi(%.1f,%.1f,%.1f)",
-	//	minHeight, maxHeight, minPlaneInt.x, minPlaneInt.y, minPlaneInt.z, maxPlaneInt.x, maxPlaneInt.y, maxPlaneInt.z);	
+	CLog::Log(S_DEBUG, "Found no intersection. min=%.2f max=%.2f; minpi(%.1f,%.1f,%.1f) maxpi(%.1f,%.1f,%.1f)",
+		minHeight, maxHeight, minPlaneInt.x, minPlaneInt.y, minPlaneInt.z, maxPlaneInt.x, maxPlaneInt.y, maxPlaneInt.z);	
+	if (mightHaveIntersected)
+		CLog::Log(S_DEBUG, "Might have intersected though...");
+
 	return false;
 }
 
@@ -918,7 +959,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 	pTerrainRenderDesc->pColorMap = m_pColorMap;
 	pTerrainRenderDesc->pVtxHeightMap = m_pVtxHeightMap;
 	pTerrainRenderDesc->bRender = true;
-	SMatrixIdentity(&pTerrainRenderDesc->transform.scale);
+	SMatrixIdentity(pTerrainRenderDesc->transform.scale);
 
 	pTerrainRenderDesc->bUpdateCB = false;
 

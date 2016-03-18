@@ -373,6 +373,21 @@ namespace SpeedPoint
 		//	Will start the framepipeline and call the Update() and Render() callback functions of IApplication impl
 		virtual SResult ExecuteFramePipeline(usint32 iSkippedSections = DEFAULT_SKIPPED_SECTIONS) = 0;
 
+		// --------------------------------------
+		// Budgeting System:
+		// Todo - put this into a separate interface
+
+		virtual unsigned int StartBudgetTimer(const char* name) = 0;
+
+		// Re-Starts the given timer, adding time to the current timer duration
+		// If the timer does not exist, this function does nothing.
+		virtual void ResumeBudgetTimer(unsigned int timerId) = 0;
+		
+		// timerId - id returned by StartBudgetTimer()
+		virtual void StopBudgetTimer(unsigned int timerId) = 0;		
+
+		// --------------------------------------
+
 		virtual SResult FinishInitialization() = 0;
 		virtual SResult Start() { return FinishInitialization(); }
 

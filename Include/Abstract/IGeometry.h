@@ -253,5 +253,7 @@ struct S_API IGeometry : public IShutdownHandler
 	virtual void Clear() = 0;
 };
 
+///////////////////////////////////////////////////////////////////////////////////
+
 SP_NMSPACE_END
 #endif

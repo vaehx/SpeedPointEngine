@@ -40,6 +40,16 @@ struct S_API ISolid;
 struct S_API IResourcePool;
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+enum EDirectX11RenderBudgetTimer
+{
+	eDX11_BUDGET_DRAW_FORWARD_SUBSETS = 0,
+	eDX11_BUDGET_UNLEASH_FONT_SCHEDULE,
+	eDX11_BUDGET_DRAW_FORWARD
+};
+
+#define NUM_DIRECTX11_BUDGET_TIMERS 3
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // DirectX11 implementation of the device capabilities interface
@@ -114,12 +124,12 @@ private:
 	ID3D11DepthStencilState* m_pTerrainDepthState;
 	
 	// Todo: Do not store CBs in Renderer, but in the objects itself	--> (2.7.2015) Really?
-	SMaterialConstantsBuffer m_MaterialConstants;
-	SHelperConstantBuffer m_HelperCB;
+	SMaterialConstantsBuffer* m_pMaterialConstants;
+	SHelperConstantBuffer* m_pHelperConstants;
 	ID3D11Buffer* m_pIllumCB;
 	ID3D11Buffer* m_pHelperCB;
 
-	SObjectConstantsBuffer m_ObjectConstants;
+	SObjectConstantsBuffer* m_pObjectConstants;
 	ID3D11Buffer* m_pPerSceneCB;	
 	ID3D11Buffer* m_pTerrainCB;	// instance of STerrainConstantBuffer stored in Terrain Render Desc
 	//bool m_bPerObjectCBBound;
@@ -129,7 +139,12 @@ private:
 
 	// States:	
 	EPrimitiveType m_SetPrimitiveType;
+	
+	EIllumModel m_EnabledIllumModel;
 
+	// TODO: Eliminate the static 8 there
+	ID3D11ShaderResourceView* m_BoundVSResources[8];
+	ID3D11ShaderResourceView* m_BoundPSResources[8];
 
 	DirectX11Texture m_DummyTexture;
 	DirectX11Texture m_DummyNormalMap;	// contains pure (128,128,0) color.
@@ -170,6 +185,9 @@ private:
 	ChunkedObjectPool<SFontRenderSlot, 20> m_FontRenderSchedule;
 
 
+	// Budgeting:
+	SRenderBudgetTimer m_BudgetTimers[NUM_DIRECTX11_BUDGET_TIMERS]; // enumerated by EDirectX11RenderBudgetTimer	
+
 
 
 	// TODO: Do this framedump stuff way better (e.g. by using a macro)
@@ -193,6 +211,11 @@ private:
 
 	void SetEyePosition(const Vec3f& eyePos);
 	void SetDepthTestFunction(EDepthTestFunction depthTestFunc);
+
+	// timer - enumerated by EDirectX11RenderBudgetTimer
+	void StartOrResumeBudgetTimer(unsigned int timer, const char* name);
+	void StopBudgetTimer(unsigned int timer);
+	void ResetBudgetTimerStats();
 
 public:	
 	void FrameDump(const SString& msg)
@@ -320,8 +343,8 @@ public:
 	}	
 
 
-
-	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0, bool vs = false);
+	virtual SResult BindVertexShaderTexture(ITexture* pTex, usint32 lvl = 0);
+	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0);
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
 
 	// Description:

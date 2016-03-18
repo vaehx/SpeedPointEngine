@@ -31,13 +31,13 @@ struct S_API SObjectConstantsBuffer
 	// save memory bandwidth. Also it might be that the camera or projection changes
 	// per scene.
 
-	SMatrix4 mtxViewProj;
+	SMatrix4 mtxViewProj;	// 16 * 4 Byte
 
 	// Pos used instead of Dir, to avoid struggling around with angles when calculating
 	// sun traveling due to TOD.   sun dir = normalize(-sunPosition)
-	float4 sunPosition;
+	float4 sunPosition;		// 4 * 4 Byte
 
-	float4 eyePosition;
+	float4 eyePosition;		// 4 * 4 Byte
 
 	SObjectConstantsBuffer& operator = (const SObjectConstantsBuffer& b)
 	{
@@ -50,17 +50,17 @@ struct S_API SObjectConstantsBuffer
 
 struct S_API SHelperConstantBuffer
 {
-	SMatrix4 mtxTransform;
-	float3 color;
+	SMatrix4 mtxTransform;	// 16 * 4 Byte
+	float3 color;			// 3 * 4 Byte
 
-	float struct_padding;
+	float struct_padding;	// 4 Byte
 };
 
 struct S_API SMaterialConstantsBuffer
 {
-	SMatrix4 mtxTransform;
-	float matAmbient;
-	float3 matEmissive;
+	SMatrix4 mtxTransform;	// 4*4 *4 = 4 * 16 Byte
+	float matAmbient;		// 4 Byte
+	float3 matEmissive;		// 3 * 4 = 12 Byte
 
 	SMaterialConstantsBuffer()
 		: matAmbient(0.1f),
@@ -79,10 +79,10 @@ struct S_API SMaterialConstantsBuffer
 
 struct S_API STerrainConstantBuffer
 {
-	float fTerrainDMFadeRadius;
-	float fTerrainMaxHeight;
-	unsigned int vtxHeightMapSz;
-	float segmentSize;
+	float fTerrainDMFadeRadius;		// 4 Byte
+	float fTerrainMaxHeight;		// 4 Byte
+	unsigned int vtxHeightMapSz;	// 4 Byte
+	float segmentSize;				// 4 Byte
 
 	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
 	{

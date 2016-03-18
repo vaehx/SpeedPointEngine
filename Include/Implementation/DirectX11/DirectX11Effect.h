@@ -38,7 +38,7 @@ public:
 	DirectX11Effect();
 	~DirectX11Effect();
 
-	virtual SResult Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry);	
+	virtual SResult Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry, EShaderVertexType vertexType = eSHADERVERTEX_DEFAULT);
 	virtual bool IsInitialized();
 	virtual SResult Clear(void);
 

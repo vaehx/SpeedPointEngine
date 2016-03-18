@@ -32,11 +32,6 @@ CRigidBodyRenderable::CRigidBodyRenderable()
 S_API void CRigidBodyRenderable::Clear()
 {
 	m_Geometry.Clear();
-	
-	if (IS_VALID_PTR(m_RenderDesc.pSubsets) && m_RenderDesc.nSubsets > 0)
-	{
-		delete[] m_RenderDesc.pSubsets;
-	}
 }
 
 // ------------------------------------------------------------------------------
@@ -133,11 +128,9 @@ S_API void CRigidBodyRenderable::InitRenderDesc(IMaterialManager* pMatMgr, STran
 }
 
 // ------------------------------------------------------------------------------
-S_API void CRigidBodyRenderable::GetUpdatedRenderDesc(SRenderDesc* pDest)
+S_API SRenderDesc* CRigidBodyRenderable::GetUpdatedRenderDesc()
 {
-	if (!IS_VALID_PTR(pDest))
-		return;
-
+	// Update transformation
 	if (IS_VALID_PTR(m_pTransformable))
 	{		
 		m_RenderDesc.transform.translation = SMatrix::MakeTranslationMatrix(m_pTransformable->GetPosition());
@@ -145,7 +138,7 @@ S_API void CRigidBodyRenderable::GetUpdatedRenderDesc(SRenderDesc* pDest)
 		m_RenderDesc.transform.scale = SMatrix::MakeScaleMatrix(m_pTransformable->GetSize());
 	}
 
-	*pDest = m_RenderDesc;
+	return &m_RenderDesc;
 }
 
 // ------------------------------------------------------------------------------

@@ -9,26 +9,31 @@
 #include <cmath>
 #include "Vector3.h"
 
+#include <xmmintrin.h>
+
 namespace SpeedPoint
 {
 
 	// SpeedPoint 4 Dimensional Vector
 	template<typename F>
 	struct S_API Vec4
-	{
-		F x, y, z, w;
+	{		
+		struct
+		{
+			F x, y, z, w;
+		};			
 
 		// ---
 
-		Vec4<F>() : x(0), y(0), z(0), w(0) {};
+		Vec4<F>() : x(0), y(0), z(0), w(0) {}
 
 		Vec4<F>(const Vec3<F>& v, F ww) : x(v.x), y(v.y), z(v.z), w(ww) {}
 
-		Vec4<F>(F aa) : x(aa), y(aa), z(aa), w(aa) {};
+		Vec4<F>(F aa) : x(aa), y(aa), z(aa), w(aa) {}
 
-		Vec4<F>(F xx, F yy, F zz) : x(xx), y(yy), z(zz), w(0) {};
+		Vec4<F>(F xx, F yy, F zz) : x(xx), y(yy), z(zz), w(0) {}
 
-		Vec4<F>(F xx, F yy, F zz, F ww) : x(xx), y(yy), z(zz), w(ww) {};
+		Vec4<F>(F xx, F yy, F zz, F ww) : x(xx), y(yy), z(zz), w(ww) {}
 
 		// ---
 
@@ -69,7 +74,12 @@ namespace SpeedPoint
 	template<typename F> inline Vec4<F> operator + (const Vec4<F>& va, const Vec4<F>& vb) { return Vec4<F>(va.x + vb.x, va.y + vb.y, va.z + vb.z, va.w + vb.w); }
 	template<typename F> inline Vec4<F> operator + (const Vec4<F>& va, const F& f) { return Vec4<F>(va.x + f, va.y + f, va.z + f, va.w + f); }
 	template<typename F> inline Vec4<F> operator + (const F& f, const Vec4<F>& va) { return Vec4<F>(va.x + f, va.y + f, va.z + f, va.w + f); }
-	template<typename F> inline Vec4<F> operator * (const Vec4<F>& va, const Vec4<F>& vb) { return Vec4<F>(va.x * vb.x, va.y * vb.y, va.z * vb.z, va.w * vb.w); }
+	template<typename F> inline Vec4<F> operator * (const Vec4<F>& va, const Vec4<F>& vb)
+	{
+		_mm_load_ps()
+		return Vec4<F>(va.x * vb.x, va.y * vb.y, va.z * vb.z, va.w * vb.w);
+	}
+
 	template<typename F> inline Vec4<F> operator * (const Vec4<F>& va, const F& f) { return Vec4<F>(va.x * f, va.y * f, va.z * f, va.w * f); }
 	template<typename F> inline Vec4<F> operator * (const F& f, const Vec4<F>& va) { return Vec4<F>(va.x * f, va.y * f, va.z * f, va.w * f); }
 	template<typename F> inline Vec4<F> operator / (const Vec4<F>& va, const Vec4<F>& vb) { return Vec4<F>(va.x / vb.x, va.y / vb.y, va.z / vb.z, va.w / vb.w); }

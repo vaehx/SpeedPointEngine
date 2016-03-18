@@ -173,12 +173,11 @@ S_API SRenderDesc* CStaticObjectRenderable::FillRenderDesc(IGameEngine* pEngine)
 	return &m_RenderDesc;
 }
 
-S_API void CStaticObjectRenderable::GetUpdatedRenderDesc(SRenderDesc* pDestDesc)
+S_API SRenderDesc* CStaticObjectRenderable::GetUpdatedRenderDesc()
 {
-	if (IS_VALID_PTR(pDestDesc))
-	{
-		*pDestDesc = m_RenderDesc;
-	}
+	// Update nothing
+
+	return &m_RenderDesc;
 }
 
 S_API IMaterial* CStaticObjectRenderable::GetSubsetMaterial(unsigned int subset /*= 0*/)

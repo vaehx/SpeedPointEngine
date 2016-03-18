@@ -144,4 +144,43 @@ namespace SpeedPoint
 			Vec3f(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z),
 			Vec3f(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z)));
 	}
+
+
+
+
+	// Simplified vertex, providing only position, normal and color
+	struct S_API SSimpleVertex
+	{
+		union
+		{
+			struct
+			{
+				float x, y, z;
+			};
+			SXYZ position;
+		};
+
+		union
+		{
+			struct
+			{
+				float nx, ny, nz;
+			};
+			SXYZ normal;
+		};
+
+		float3 color;
+
+		SSimpleVertex(float _x, float _y, float _z, float _nx, float _ny, float _nz, const float& _color) : x(_x), y(_y), z(_z), nx(_nx), ny(_ny), nz(_nz), color(_color) {}
+
+		SSimpleVertex(float _x, float _y, float _z, float _nx, float _ny, float _nz) : x(_x), y(_y), z(_z), nx(_nx), ny(_ny), nz(_nz) {}
+		
+		SSimpleVertex(float _x, float _y, float _z, const float3& _color) : x(_x), y(_y), z(_z), color(_color) {}
+
+		SSimpleVertex(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
+
+		SSimpleVertex() : x(0), y(0), z(0), nx(0), ny(0), nz(0), color(1.0f) {}
+
+		SSimpleVertex(const SSimpleVertex& v) : x(v.x), y(v.y), z(v.z), nx(v.nx), ny(v.ny), nz(v.nz), color(v.color) {}
+	};
 }

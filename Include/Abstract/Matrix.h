@@ -10,6 +10,8 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
+#include <xmmintrin.h>
+
 SP_NMSPACE_BEG
 
 // SpeedPoint 4x4 Matrix
@@ -25,7 +27,7 @@ struct S_API SMatrix
 			float _41, _42, _43, _44;
 		};
 
-		float m[4][4];
+		float m[4][4];		
 	};
 
 	// Default Matrix constructor = Identity Matrix
@@ -70,29 +72,6 @@ struct S_API SMatrix
 		return *this;
 	}
 
-	SMatrix operator * (const SMatrix& b) const
-	{
-		SMatrix a = *this;
-		return SMatrix(
-			SVector4(a._11*b._11 + a._12*b._21 + a._13*b._31 + a._14*b._41,
-				a._11*b._12 + a._12*b._22 + a._13*b._32 + a._14*b._42,
-				a._11*b._13 + a._12*b._23 + a._13*b._33 + a._14*b._43,
-				a._11*b._14 + a._12*b._24 + a._13*b._34 + a._14*b._44),
-			SVector4(a._21*b._11 + a._22*b._21 + a._23*b._31 + a._24*b._41,
-				a._21*b._12 + a._22*b._22 + a._23*b._32 + a._24*b._42,
-				a._21*b._13 + a._22*b._23 + a._23*b._33 + a._24*b._43,
-				a._21*b._14 + a._22*b._24 + a._23*b._34 + a._24*b._44),
-			SVector4(a._31*b._11 + a._32*b._21 + a._33*b._31 + a._34*b._41,
-				a._31*b._12 + a._32*b._22 + a._33*b._32 + a._34*b._42,
-				a._31*b._13 + a._32*b._23 + a._33*b._33 + a._34*b._43,
-				a._31*b._14 + a._32*b._24 + a._33*b._34 + a._34*b._44),
-			SVector4(a._41*b._11 + a._42*b._21 + a._43*b._31 + a._44*b._41,
-				a._41*b._12 + a._42*b._22 + a._43*b._32 + a._44*b._42,
-				a._41*b._13 + a._42*b._23 + a._43*b._33 + a._44*b._43,
-				a._41*b._14 + a._42*b._24 + a._43*b._34 + a._44*b._44)
-			);
-	}
-
 	SVector4 operator * (const SVector4& v) const
 	{
 		return SVector4(
@@ -102,18 +81,6 @@ struct S_API SMatrix
 			m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3] * v.w
 			);
 	}
-
-	/*
-	operator D3DXMATRIX() const
-	{
-		D3DXMATRIX mtxOut;
-		mtxOut._11 = _11; mtxOut._12 = _12; mtxOut._13 = _13; mtxOut._14 = _14;
-		mtxOut._21 = _12; mtxOut._22 = _22; mtxOut._23 = _23; mtxOut._24 = _24;
-		mtxOut._31 = _13; mtxOut._32 = _32; mtxOut._33 = _33; mtxOut._34 = _34;
-		mtxOut._41 = _14; mtxOut._42 = _42; mtxOut._43 = _43; mtxOut._44 = _44;
-		return mtxOut;
-	}
-	*/
 
 
 	static SMatrix MakeTranslationMatrix(const SVector3& translation)
@@ -167,15 +134,39 @@ struct S_API SMatrix
 
 typedef struct S_API SMatrix SMatrix4;
 
-static void SMatrixIdentity( SMatrix* pMtx )
+static inline SMatrix operator * (const SMatrix& a, const SMatrix& b)
 {
-	if( pMtx != 0 )
-	{
-		pMtx->_11 = 1; pMtx->_12 = 0; pMtx->_13 = 0; pMtx->_14 = 0;
-		pMtx->_21 = 0; pMtx->_22 = 1; pMtx->_23 = 0; pMtx->_24 = 0;
-		pMtx->_31 = 0; pMtx->_32 = 0; pMtx->_33 = 1; pMtx->_34 = 0;
-		pMtx->_41 = 0; pMtx->_42 = 0; pMtx->_43 = 0; pMtx->_44 = 1;
-	}
+	SMatrix out;
+	out._11 = a._11*b._11 + a._12*b._21 + a._13*b._31 + a._14*b._41;
+	out._12 = a._11*b._12 + a._12*b._22 + a._13*b._32 + a._14*b._42;
+	out._13 = a._11*b._13 + a._12*b._23 + a._13*b._33 + a._14*b._43;
+	out._14 = a._11*b._14 + a._12*b._24 + a._13*b._34 + a._14*b._44;
+
+	out._21 = a._21*b._11 + a._22*b._21 + a._23*b._31 + a._24*b._41;
+	out._22 = a._21*b._12 + a._22*b._22 + a._23*b._32 + a._24*b._42;
+	out._23 = a._21*b._13 + a._22*b._23 + a._23*b._33 + a._24*b._43;
+	out._24 = a._21*b._14 + a._22*b._24 + a._23*b._34 + a._24*b._44;
+
+	out._31 = a._31*b._11 + a._32*b._21 + a._33*b._31 + a._34*b._41;
+	out._32 = a._31*b._12 + a._32*b._22 + a._33*b._32 + a._34*b._42;
+	out._33 = a._31*b._13 + a._32*b._23 + a._33*b._33 + a._34*b._43;
+	out._34 = a._31*b._14 + a._32*b._24 + a._33*b._34 + a._34*b._44;
+
+	out._41 = a._41*b._11 + a._42*b._21 + a._43*b._31 + a._44*b._41;
+	out._42 = a._41*b._12 + a._42*b._22 + a._43*b._32 + a._44*b._42;
+	out._43 = a._41*b._13 + a._42*b._23 + a._43*b._33 + a._44*b._43;
+	out._44 = a._41*b._14 + a._42*b._24 + a._43*b._34 + a._44*b._44;
+	
+	return out;
+}
+
+
+static inline void SMatrixIdentity(SMatrix& pMtx)
+{	
+	pMtx._11 = 1; pMtx._12 = 0; pMtx._13 = 0; pMtx._14 = 0;
+	pMtx._21 = 0; pMtx._22 = 1; pMtx._23 = 0; pMtx._24 = 0;
+	pMtx._31 = 0; pMtx._32 = 0; pMtx._33 = 1; pMtx._34 = 0;
+	pMtx._41 = 0; pMtx._42 = 0; pMtx._43 = 0; pMtx._44 = 1;
 }
 
 static void SSwapFloat(float& f1, float& f2)
@@ -185,16 +176,25 @@ static void SSwapFloat(float& f1, float& f2)
 	f2 = t;
 }
 
+#define __SMatrixTranspose_SwapFloat(f1, f2) t = f1; f1 = f2; f2 = t
+
 static void SMatrixTranspose( SMatrix* pMtx )
 {
-	if( pMtx != 0)
+	if (pMtx != 0)
 	{
-		SSwapFloat(pMtx->_21, pMtx->_12);
+		float t;
+		__SMatrixTranspose_SwapFloat(pMtx->_21, pMtx->_12);
+		__SMatrixTranspose_SwapFloat(pMtx->_31, pMtx->_13);
+		__SMatrixTranspose_SwapFloat(pMtx->_41, pMtx->_14);
+		__SMatrixTranspose_SwapFloat(pMtx->_42, pMtx->_24);
+		__SMatrixTranspose_SwapFloat(pMtx->_43, pMtx->_34);
+		__SMatrixTranspose_SwapFloat(pMtx->_32, pMtx->_23);
+		/*SSwapFloat(pMtx->_21, pMtx->_12);
 		SSwapFloat(pMtx->_31, pMtx->_13);
 		SSwapFloat(pMtx->_41, pMtx->_14);
 		SSwapFloat(pMtx->_42, pMtx->_24);
 		SSwapFloat(pMtx->_43, pMtx->_34);
-		SSwapFloat(pMtx->_32, pMtx->_23);
+		SSwapFloat(pMtx->_32, pMtx->_23);*/
 	}
 }
 

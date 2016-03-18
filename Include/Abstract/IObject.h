@@ -132,7 +132,7 @@ struct S_API IRenderableComponent
 
 	ILINE virtual void SetVisible(bool visible) = 0;
 
-	ILINE virtual void GetUpdatedRenderDesc(SRenderDesc* pDest) = 0;
+	ILINE virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
 
 	virtual IGeometry* GetGeometry() = 0;
 
@@ -255,7 +255,7 @@ struct S_API ISkyBox
 	virtual void SetPosition(const Vec3f& pos) = 0;
 
 	// Updates the renderDesc at the given Cameras position
-	virtual void GetUpdatedRenderDesc(SRenderDesc* pDestDesc) = 0;
+	virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
 };
 
 

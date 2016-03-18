@@ -168,7 +168,8 @@ struct S_API SRenderDesc
 		: bCustomViewProjMtx(false),
 		bDepthStencilEnable(true),
 		bInverseDepthTest(false),
-		textureSampling(eTEX_SAMPLE_BILINEAR)
+		textureSampling(eTEX_SAMPLE_BILINEAR),
+		pSubsets(0)
 	{
 	}
 
@@ -212,12 +213,10 @@ struct S_API SRenderDesc
 
 	void Clear()
 	{
-		if (nSubsets > 0 && IS_VALID_PTR(pSubsets))
-		{
-			delete[] pSubsets;
-			pSubsets = 0;
-		}
+		if (IS_VALID_PTR(pSubsets))
+			delete[] pSubsets;	
 
+		pSubsets = 0;
 		nSubsets = 0;
 	}
 };
@@ -359,6 +358,19 @@ struct S_API SLightDesc
 
 ///////////////////////////////////////////////////////////////
 
+struct S_API SRenderBudgetTimer
+{
+	unsigned int timerId;
+	unsigned int numUsed;
+
+	SRenderBudgetTimer()
+		: numUsed(0)
+	{
+	}
+};
+
+///////////////////////////////////////////////////////////////
+
 #define MAX_BOUND_RTS 8
 
 // SpeedPoint Renderer
@@ -422,7 +434,8 @@ public:
 
 	// Arguments:
 	//	Pass nullptr as pTex to empty this texture level
-	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0, bool vs = false) = 0;
+	virtual SResult BindVertexShaderTexture(ITexture* pTex, usint32 lvl = 0) = 0;
+	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0) = 0;
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;		
 	
 

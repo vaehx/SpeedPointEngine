@@ -470,7 +470,7 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
 	}
 
 	char pFXFile[500];
-	sprintf_s(pFXFile, "%s..\\%s", SOL_DIR, relativePath);
+	sprintf_s(pFXFile, "%s..\\..\\%s", PROJ_DIR, relativePath);
 	relativePath = pFXFile;
 
 	return SString(relativePath);
@@ -506,10 +506,17 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 	if (Failure(m_pFramePipeline->ExecuteSections(iSkippedSections)))
 		return S_ERROR;
 
-	// Write queued log lines to disk
+	// Write queued log lines to disk	
+	//! TODO:  Dont do this after EACH frame.
+
+	unsigned int ioReleaseTimer = StartBudgetTimer("SpeedPointEngine::ExecuteFramePipeline() - Release log io queue");
+	
 	IFileLog* pFileLog = GetFileLog();
 	if (IS_VALID_PTR(pFileLog))
 		pFileLog->ReleaseIOQueue();
+
+	StopBudgetTimer(ioReleaseTimer);
+
 
 	return S_SUCCESS;
 }
@@ -517,6 +524,32 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 
 
 
+
+
+
+
+// ----------------------------------------------------------------------------------
+S_API unsigned int SpeedPointEngine::StartBudgetTimer(const char* name)
+{
+	if (IS_VALID_PTR((IFramePipeline*)m_pFramePipeline))
+		return m_pFramePipeline->StartBudgetTimer(name);
+
+	return 0;
+}
+
+// ----------------------------------------------------------------------------------
+S_API void SpeedPointEngine::ResumeBudgetTimer(unsigned int id)
+{
+	if (IS_VALID_PTR((IFramePipeline*)m_pFramePipeline))
+		m_pFramePipeline->ResumeBudgetTimer(id);
+}
+
+// ----------------------------------------------------------------------------------
+S_API void SpeedPointEngine::StopBudgetTimer(unsigned int id)
+{
+	if (IS_VALID_PTR((IFramePipeline*)m_pFramePipeline))
+		m_pFramePipeline->StopBudgetTimer(id);
+}
 
 
 
