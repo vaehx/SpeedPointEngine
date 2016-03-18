@@ -2192,7 +2192,7 @@ inline bool IntersectLineSphere(const SRay& ray, const float maxLambda, const SS
 //	Mesh - Capsule
 //
 // -------------------------------------------------------------------------------------------
-inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.001f, vector<SMeshFace>* pPossibleFaces = 0)
+inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.001f, bool* pInterpenetration = 0, vector<SMeshFace>* pPossibleFaces = 0)
 {
 	// First, determine AABB of the capsule
 	AABB capsuleAABB;
@@ -2213,6 +2213,7 @@ inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vec
 
 	// We have to go through all possibly intersecting faces to find all contact points
 	bool intersection = false;
+	bool interpenetration = false;
 	for (auto itFace = possibleFaces.begin(); itFace != possibleFaces.end(); ++itFace)
 	{
 		const SMeshFace* pMeshFace = *itFace;
@@ -2225,8 +2226,14 @@ inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vec
 		{
 			contacts.push_back(tmpContact);
 			intersection = true;
+			
+			if (tmpContact.interpenetration)
+				interpenetration = true;
 		}
 	}
+
+	if (IS_VALID_PTR(pInterpenetration))
+		*pInterpenetration = interpenetration;
 
 	return intersection;
 }

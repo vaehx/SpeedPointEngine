@@ -143,7 +143,8 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 
 
 	// Instanciate the camera
-	m_pCamera = new SCamera();
+	//m_pCamera = new SCamera();
+	m_pCamera = &m_OwnCamera;
 
 
 
