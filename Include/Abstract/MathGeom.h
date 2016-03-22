@@ -23,6 +23,8 @@
 #include "Math.h"
 #define FLOAT_TOLERANCE FLT_EPSILON
 
+#include <xmmintrin.h>
+
 #ifdef _DEBUG
 #include <string>
 #endif
@@ -329,11 +331,21 @@ struct S_API SPlane
 		return *this;
 	}
 
-	// normal = cross(b - a, c - a)
+	// normal = normalized(cross(b - a, c - a))
 	ILINE static SPlane FromPoints(const Vec3f& a, const Vec3f& b, const Vec3f& c)
 	{
 		SPlane plane;
 		plane.n = Vec3Cross(b - a, c - a).Normalized();
+		plane.d = Vec3Dot(plane.n, a);
+		return plane;
+	}
+
+	// Does not normalize the plane normal
+	// normal = cross(b - a, c - a)
+	ILINE static SPlane FromPointsNoNormalize(const Vec3f& a, const Vec3f& b, const Vec3f& c)
+	{
+		SPlane plane;
+		plane.n = Vec3Cross(b - a, c - a);
 		plane.d = Vec3Dot(plane.n, a);
 		return plane;
 	}
@@ -509,15 +521,10 @@ struct SMeshVertex
 	float x, y, z;
 	float nx, ny, nz;
 
-	SMeshVertex()
-	{
-	}
-
-	SMeshVertex(const SMeshVertex& v)
-		: x(v.x), y(v.y), z(v.z),
-		nx(v.nx), ny(v.ny), nz(v.nz)
-	{
-	}
+	SMeshVertex() {}
+	SMeshVertex(const SMeshVertex& v) : x(v.x), y(v.y), z(v.z), nx(v.nx), ny(v.ny), nz(v.nz) {}
+	SMeshVertex(float _x, float _y, float _z, float _nx, float _ny, float _nz) : x(_x), y(_y), z(_z), nx(_nx), ny(_ny), nz(_nz) {}
+	SMeshVertex(const Vec3f& p, const Vec3f& n) : x(p.x), y(p.y), z(p.z), nx(n.x), ny(n.y), nz(n.z) {}
 
 	inline SMeshVertex& operator =(const SMeshVertex& v)
 	{
@@ -1115,7 +1122,8 @@ inline bool IntersectSphereSphere(const SSphere& sphere1, const SSphere& sphere2
 inline bool IntersectSpherePoint(const SSphere& sphere, const SPoint& point, float *pDist = 0);
 
 // pDistance is the distance of the point to the plane that corresponds to the triangle
-inline bool IntersectTrianglePoint(const SMeshVertex& vtx1, const SMeshVertex& vtx2, const SMeshVertex& vtx3, const SPoint& point, bool* bOutside = 0, float* pDistance = 0);
+// pPlane - if already precalculated, pass it to the function to avoid recalculation
+inline bool IntersectTrianglePoint(const SMeshVertex& vtx1, const SMeshVertex& vtx2, const SMeshVertex& vtx3, const SPoint& point, bool* bOutside = 0, float* pDistance = 0, SPlane* pPlane = 0);
 
 inline bool IntersectTriangleSphere(const SMeshVertex& vtx1, const SMeshVertex& vtx2, const SMeshVertex& vtx3, const SSphere& sphere, bool* bOutside = 0);
 
@@ -1144,30 +1152,28 @@ inline bool IntersectLineTriangle(const SLineSegment& line, const SMeshVertex& v
 //
 // -------------------------------------------------------------------------------------------
 
+// plane.n is assumed to be normalized, i.e. Vec3Length(plane) == 1.0f
 inline Vec3f GetFootOnPlane(const SPlane& plane, const SPoint& point)
-{
-	float nLength = plane.n.Length();
-	if (fabsf(nLength) <= FLOAT_TOLERANCE)
-		return Vec3f();
+{	
+	float dist = (Vec3Dot(plane.n, point) - plane.d);
 
-	const Vec3f P(point.x, point.y, point.z);
-	return (Vec3Dot(plane.n, P) - plane.d) / nLength;
+	return point - plane.n * dist;
 }
 
 // pX1, pX2 -  closest points to each other on line1 / line2 respectively
 inline float GetMinLineSegmentDistanceSq(const SLineSegment& l1, const SLineSegment& l2, Vec3f* pX1 = 0, Vec3f* pX2 = 0)
 {
 	// Calculate lengths of line segments
-	float length1 = (l1.v2 - l1.v1).Length();
-	float length2 = (l2.v2 - l2.v1).Length();
+	//float length1 = (l1.v2 - l1.v1).Length();
+	//float length2 = (l2.v2 - l2.v1).Length();
 
 	// Define the rays
 	SRay ray1, ray2;
 	ray1.p = l1.v1;
-	ray1.v = (l1.v2 - l1.v1) / length1;
+	ray1.v = (l1.v2 - l1.v1);
 
 	ray2.p = l2.v1;
-	ray2.v = (l2.v2 - l2.v1) / length2;
+	ray2.v = (l2.v2 - l2.v1);
 
 	float t1, t2;	
 	IntersectRayRay(ray1, ray2, &t1, &t2);
@@ -1175,14 +1181,14 @@ inline float GetMinLineSegmentDistanceSq(const SLineSegment& l1, const SLineSegm
 	Vec3f x1, x2;
 	if (t1 < 0.0f)
 		x1 = l1.v1;
-	else if (t1 > length1)
+	else if (t1 > 1.0f)
 		x1 = l1.v2;
 	else
 		x1 = ray1.GetPoint(t1);
 
 	if (t2 < 0.0f)
 		x2 = l2.v1;
-	else if (t2 > length2)
+	else if (t2 > 1.0f)
 		x2 = l2.v2;
 	else
 		x2 = ray2.GetPoint(t2);
@@ -1415,7 +1421,7 @@ inline bool IntersectRayPlane(const SRay& ray, const SPlane& plane, float *param
 	// dot(p + tv, n) = d  --> t = (d - dot(p, n)) / dot(v, n)
 	float den = Vec3Dot(v, n);
 
-	// Parallel?  dot(v,n) == 0
+	// Perpendicular?  dot(v,n) == 0
 	if (fabs(den) <= FLOAT_TOLERANCE)
 	{
 		if (IntersectPlanePoint(plane, p))
@@ -1711,18 +1717,39 @@ inline bool IntersectSphereSphere(const SSphere& sphere1, const SSphere& sphere2
 //	Point - Capsule
 //
 // -------------------------------------------------------------------------------------------
-inline bool IntersectCapsulePoint(const SCapsule& capsule, const SPoint& point, float* pDist/*=0*/)
+inline static const float min_sse(const float& a, const float& b)
 {
-	// Capsule: p1, p2, r
-	const Vec3f &p1 = capsule.p1, &p2 = capsule.p2;
-	const Vec3f v = p2 - p1;
-	const float vlength = v.Length();
-	const float &r = capsule.r;
+	float retVal;
+	_mm_store_ss(&retVal, _mm_min_ss(_mm_set_ss(a), _mm_set_ss(b)));
+	return retVal;
+}
+
+inline static const float max_sse(const float& a, const float& b)
+{
+	float retVal;
+	_mm_store_ss(&retVal, _mm_max_ss(_mm_set_ss(a), _mm_set_ss(b)));
+	return retVal;
+}
+
+inline bool IntersectCapsulePoint(const SCapsule& capsule, const SPoint& point, float* pDist/*=0*/)
+{	
+	// Direction of capsule
+	Vec3f v = capsule.p2 - capsule.p1;
 
 	// Calculate position of the perpendicular foot of that point on the line by projecting (point - p1) onto v	
-	const Vec3f vnorm = v / vlength;
-	const float projectedLength = Vec3Dot(point - p1, vnorm);
-	const Vec3f perpFoot = p1 + projectedLength * vnorm;
+	// And clamp it into range [0;1]
+	float projectedLength = min_sse(max_sse(Vec3Dot(point - capsule.p1, v), 0), 1.0f);	
+
+	// Point on the line segment between cap centers closest to the point
+	Vec3f foot = capsule.p1 + projectedLength * v;
+
+	float distSq = (point - foot).LengthSq();
+	if (IS_VALID_PTR(pDist))
+		*pDist = sqrtf(distSq);	
+
+	return distSq < (capsule.r * capsule.r);
+
+	/*
 
 	// If the distance is greater than the radius, the point definetly lies not inside the capsule
 	const float distSq = (perpFoot - point).LengthSq();
@@ -1777,7 +1804,7 @@ inline bool IntersectCapsulePoint(const SCapsule& capsule, const SPoint& point, 
 	}
 
 	// pDist is already set above
-	return false;
+	return false;*/
 }
 
 
@@ -1831,13 +1858,21 @@ inline bool IntersectPlaneCapsule(const SPlane& plane, const SCapsule& capsule)
 //
 //	Triangle - Point
 //
+//	pPlane - If already precalculated, set this to the plane of the triangle!
+//
 // -------------------------------------------------------------------------------------------
-inline bool IntersectTrianglePoint(const SMeshVertex& vtx1, const SMeshVertex& vtx2, const SMeshVertex& vtx3, const SPoint& point, bool* bOutside /*=0*/, float* pDistance /*=0*/)
+inline bool IntersectTrianglePoint(const SMeshVertex& vtx1, const SMeshVertex& vtx2, const SMeshVertex& vtx3, const SPoint& point, bool* bOutside /*=0*/, float* pDistance /*=0*/, SPlane* pPlane /*= 0*/)
 {
 	const Vec3f A(vtx1.x, vtx1.y, vtx1.z), B(vtx2.x, vtx2.y, vtx2.z), C(vtx3.x, vtx3.y, vtx3.z);
 
+	SPlane plane;
+	if (IS_VALID_PTR(pPlane))
+		plane = *pPlane;
+	else
+		plane = SPlane::FromPoints(A, B, C);
+
 	// Make sure the point is on the plane
-	if (!IntersectPlanePoint(SPlane::FromPoints(A, B, C), point, bOutside, pDistance))
+	if (!IntersectPlanePoint(plane, point, bOutside, pDistance))
 	{
 		return false;
 	}
@@ -1956,23 +1991,27 @@ inline bool IntersectTriangleCapsule(const SMeshVertex& vtx1, const SMeshVertex&
 // -------------------------------------------------------------------------------------------
 inline bool IntersectLineTriangle(const SLineSegment& line, const SMeshVertex& vtx1, const SMeshVertex& vtx2, const SMeshVertex& vtx3, Vec3f* pIntersection /*=0*/, Vec3f* pNormal /*=0*/)
 {
-	SRay ray = SRay::FromPoints(line.v1, line.v2);
+	//SRay ray = SRay::FromPoints(line.v1, line.v2);
+	Vec3f v = line.v2 - line.v1;	
+	SPlane plane = SPlane::FromPoints(MESHVERTEX_TO_VEC3F(vtx1), MESHVERTEX_TO_VEC3F(vtx2), MESHVERTEX_TO_VEC3F(vtx3));
+	
+	// t = (d - dot(p, n)) / dot(v, n)
+	float dot = Vec3Dot(v, plane.n);
+	if (fabsf(dot) < FLT_EPSILON)
+		return false; // parallel
 
-	float param;
-	bool planeInt = IntersectRayPlane(ray, SPlane::FromPoints(Vec3f(vtx1.x, vtx1.y, vtx1.z), Vec3f(vtx2.x, vtx2.y, vtx2.z), Vec3f(vtx3.x, vtx3.y, vtx3.z)), &param, pNormal);
-	if (!planeInt)
-		return false;
+	float param = (plane.d - Vec3Dot(line.v1, plane.n)) / dot;
 	
 	// Out of line segment
-	if (param < 0 || param * param > ray.p.LengthSq())
+	if (param < 0 || param > 1.0f)
 		return false;
 
 	// Check if in triangle using barycentric coordinates
-	Vec3f intersection = ray.GetPoint(param);
+	Vec3f intersection = line.v1 + param * v;
 	if (IS_VALID_PTR(pIntersection))
 		*pIntersection = intersection;
 
-	bool triangleInt = IntersectTrianglePoint(vtx1, vtx2, vtx3, SPoint(intersection));
+	bool triangleInt = IntersectTrianglePoint(vtx1, vtx2, vtx3, SPoint(intersection), 0, 0, &plane);
 	return triangleInt;
 }
 
@@ -2038,10 +2077,11 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 	float minRadiusSq = minRadius * minRadius;
 	float maxRadiusSq = maxRadius * maxRadius;
 
+	// FromPoints() normalizes the normal!
 	SPlane plane = SPlane::FromPoints(v1, v2, v3);	
 	
 	Vec3f foot1 = GetFootOnPlane(plane, SPoint(capsule.p1));
-	bool capInt1 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot1);	
+	bool capInt1 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot1, 0, 0, &plane);	
 	float distSq1 = (foot1 - capsule.p1).LengthSq();
 	capInt1 = capInt1 && (distSq1 < maxRadiusSq);
 	if (capInt1)
@@ -2052,7 +2092,7 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 
 		contact.vertexFace = true;
 		contact.contactPoint = foot1;
-		contact.contactNormal = plane.n.Normalized();
+		contact.contactNormal = plane.n;
 
 		contact.desc = "cap1-tri";
 
@@ -2062,7 +2102,7 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 	}	
 
 	Vec3f foot2 = GetFootOnPlane(plane, SPoint(capsule.p2));
-	bool capInt2 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot2);
+	bool capInt2 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot2, 0, 0, &plane);
 	float distSq2 = (foot2 - capsule.p2).LengthSq();
 	capInt2 = (distSq2 < maxRadiusSq);
 	if (capInt2 && !(capInt1 && distSq2 < distSq1))
@@ -2073,7 +2113,7 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 
 		contact.vertexFace = true;
 		contact.contactPoint = foot2;
-		contact.contactNormal = plane.n.Normalized();
+		contact.contactNormal = plane.n;
 		
 		contact.desc = "cap2-tri";
 	}

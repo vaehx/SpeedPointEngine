@@ -485,6 +485,295 @@ void test_aabb_linesegment_intersections()
 }
 
 
+
+
+
+
+
+
+// Assuming plane.n is normalized!
+inline Vec3f GetFootOnPlaneTEST(const SPlane& plane, const SPoint& point)
+{
+	float dist = (Vec3Dot(plane.n, point) - plane.d);
+	return point - plane.n.Normalized() * dist;
+}
+
+inline bool IntersectTriangleCapsuleExTEST(const SMeshVertex& vtx1, const SMeshVertex& vtx2, const SMeshVertex& vtx3, const SCapsule& capsule, SContactInfo& contact, float tolerance)
+{
+	const Vec3f v1(vtx1.x, vtx1.y, vtx1.z), v2(vtx2.x, vtx2.y, vtx2.z), v3(vtx3.x, vtx3.y, vtx3.z);
+
+	// Case 1: Intersection of capsule line segment and triangle
+	const SLineSegment line(capsule.p1, capsule.p2);
+	Vec3f planeIntersection;
+	if (IntersectLineTriangle(line, vtx1, vtx2, vtx3, &planeIntersection, &contact.contactNormal))
+	{
+		contact.contactPoint = planeIntersection;
+		contact.contactNormal = Vec3Cross(v2 - v1, v3 - v1).Normalized();
+		contact.intersection = true;
+		contact.interpenetration = true;
+		contact.vertexFace = true;
+		contact.desc = "lineSeg-Tri";
+		return true;
+	}
+
+	// Case 2: Intersection of (at least one of the) capsule caps and triangle
+	float minRadius = capsule.r - tolerance;
+	float maxRadius = capsule.r + tolerance;
+
+	float minRadiusSq = minRadius * minRadius;
+	float maxRadiusSq = maxRadius * maxRadius;
+
+	SPlane plane = SPlane::FromPoints(v1, v2, v3);
+
+	Vec3f foot1 = GetFootOnPlaneTEST(plane, SPoint(capsule.p1));
+	bool capInt1 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot1, 0, 0, &plane);
+	float distSq1 = (foot1 - capsule.p1).LengthSq();
+	capInt1 = capInt1 && (distSq1 < maxRadiusSq);
+	if (capInt1)
+	{
+		contact.intersection = true;
+
+		contact.interpenetration = (distSq1 < minRadiusSq);
+
+		contact.vertexFace = true;
+		contact.contactPoint = foot1;
+		contact.contactNormal = plane.n.Normalized();
+
+		contact.desc = "cap1-tri";
+
+		// Here, it might well be that the first cap does contact without interpenetration, but the second does
+		if (contact.interpenetration)
+			return true;
+	}
+
+	Vec3f foot2 = GetFootOnPlaneTEST(plane, SPoint(capsule.p2));
+	bool capInt2 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot2, 0, 0, &plane);
+	float distSq2 = (foot2 - capsule.p2).LengthSq();
+	capInt2 = (distSq2 < maxRadiusSq);
+	if (capInt2 && !(capInt1 && distSq2 < distSq1))
+	{
+		contact.intersection = true;
+
+		contact.interpenetration = (distSq2 < minRadiusSq);
+
+		contact.vertexFace = true;
+		contact.contactPoint = foot2;
+		contact.contactNormal = plane.n.Normalized();
+
+		contact.desc = "cap2-tri";
+	}
+
+	if (capInt1 || capInt2)
+		return true;
+
+
+	// Case 3: Capsule collides with at least one triangle edge (using dist. between line segments)
+	const SLineSegment edges[] = {
+		SLineSegment(v1, v2), SLineSegment(v2, v3), SLineSegment(v3, v1)
+	};
+
+	// Find the closest capsule-linesegment <-> edge pair
+	int minEdge = -1;
+	float minDistSq = 0.f;
+	Vec3f p1, p2; // closest points on the line segments
+	for (int i = 0; i < 3; ++i)
+	{
+		Vec3f pp1, pp2;
+		float distSq = GetMinLineSegmentDistanceSq(edges[i], line, &pp1, &pp2);
+		if (i == 0 || distSq < minDistSq)
+		{
+			minEdge = i;
+			minDistSq = distSq;
+			p1 = pp1;
+			p2 = pp2;
+		}
+	}
+
+	if (minDistSq < maxRadiusSq)
+	{
+		contact.intersection = true;
+
+		contact.interpenetration = (minDistSq < minRadiusSq);
+
+		contact.vertexFace = false;
+		contact.edge1 = (edges[minEdge].v2 - edges[minEdge].v1).Normalized();
+		contact.edge2 = (line.v2 - line.v1).Normalized();
+
+		// We can actually set the contact point and normal, although this is an edge/edge contact
+		contact.contactPoint = p1;
+		//contact.contactNormal = Vec3Cross(contact.edge1, contact.edge2).Normalized();
+		contact.contactNormal = plane.n.Normalized();
+
+		contact.desc = "seg-seg";
+
+		contact.closestEdge = edges[minEdge]; //? DEBUG
+
+
+		return true;
+	}
+
+	return false;
+}
+
+
+#define INTERPENETRATION_TOLERANCE 0.005f
+
+#define MESHVERTEX_TO_VEC3F(v) Vec3f(v.x, v.y, v.z)
+
+void test_capsule_mesh_interpenetration()
+{	
+	cout << "=======================================================================" << endl;
+	cout << "    test_capsule_mesh_interpenetration()" << endl;	
+	cout << "=======================================================================" << endl;
+
+	vector<SMeshVertex> quadVerts = {
+		SMeshVertex(0, 0, 0, 0, 1.0f, 0),			// (0, 0, 0)
+		SMeshVertex(0, 0, 10.0f, 0, 1.0f, 0),		// (0, 0,10)
+		SMeshVertex(10.0f, 0, 1.0f, 0, 1.0f, 0),	// (10,0,10)
+		SMeshVertex(10.0f, 0, 0, 0, 1.0f, 0)		// (10,0, 0)
+	};
+
+	vector<Vec3f> verts = {
+		Vec3f(-12.000000000f,1.298463225f,12.000000000f),Vec3f(-12.500000000f,1.138158083f,12.500000000f),Vec3f(-12.000000000f,1.200327635f,12.500000000f),
+		Vec3f(-12.500000000f,1.138158083f,12.500000000f),Vec3f(-12.500000000f,1.080067039f,13.000000000f),Vec3f(-12.000000000f,1.200327635f,12.500000000f),
+		Vec3f(-12.000000000f,1.200327635f,12.500000000f),Vec3f(-12.500000000f,1.080067039f,13.000000000f),Vec3f(-12.000000000f,1.124528050f,13.000000000f),
+		Vec3f(-12.500000000f,1.080067039f,13.000000000f),Vec3f(-12.500000000f,1.041857123f,13.500000000f),Vec3f(-12.000000000f,1.124528050f,13.000000000f),
+		Vec3f(-12.000000000f,1.124528050f,13.000000000f),Vec3f(-12.500000000f,1.041857123f,13.500000000f),Vec3f(-12.000000000f,1.072702289f,13.500000000f),
+		Vec3f(-12.500000000f,1.041857123f,13.500000000f),Vec3f(-12.500000000f,1.017385483f,14.000000000f),Vec3f(-12.000000000f,1.072702289f,13.500000000f),
+		Vec3f(-12.500000000f,1.017385483f,14.000000000f),Vec3f(-12.500000000f,1.005581141f,14.500000000f),Vec3f(-12.000000000f,1.038099051f,14.000000000f),
+		Vec3f(-12.000000000f,1.298463225f,12.000000000f),Vec3f(-12.000000000f,1.200327635f,12.500000000f),Vec3f(-11.500000000f,1.410924196f,12.000000000f),
+		Vec3f(-11.500000000f,1.410924196f,12.000000000f),Vec3f(-12.000000000f,1.200327635f,12.500000000f),Vec3f(-11.500000000f,1.289704442f,12.500000000f),
+		Vec3f(-12.000000000f,1.200327635f,12.500000000f),Vec3f(-12.000000000f,1.124528050f,13.000000000f),Vec3f(-11.500000000f,1.289704442f,12.500000000f),
+		Vec3f(-11.500000000f,1.289704442f,12.500000000f),Vec3f(-12.000000000f,1.124528050f,13.000000000f),Vec3f(-11.500000000f,1.191648006f,13.000000000f),
+		Vec3f(-12.000000000f,1.124528050f,13.000000000f),Vec3f(-12.000000000f,1.072702289f,13.500000000f),Vec3f(-11.500000000f,1.191648006f,13.000000000f),
+		Vec3f(-11.500000000f,1.191648006f,13.000000000f),Vec3f(-12.000000000f,1.072702289f,13.500000000f),Vec3f(-11.500000000f,1.121100664f,13.500000000f),
+		Vec3f(-12.000000000f,1.072702289f,13.500000000f),Vec3f(-12.000000000f,1.038099051f,14.000000000f),Vec3f(-11.500000000f,1.121100664f,13.500000000f),
+		Vec3f(-11.500000000f,1.121100664f,13.500000000f),Vec3f(-12.000000000f,1.038099051f,14.000000000f),Vec3f(-11.500000000f,1.074232101f,14.000000000f),
+		Vec3f(-12.000000000f,1.038099051f,14.000000000f),Vec3f(-12.000000000f,1.018895507f,14.500000000f),Vec3f(-11.500000000f,1.074232101f,14.000000000f),
+		Vec3f(-11.500000000f,1.074232101f,14.000000000f),Vec3f(-12.000000000f,1.018895507f,14.500000000f),Vec3f(-11.500000000f,1.045132995f,14.500000000f),
+		Vec3f(-11.500000000f,1.551477313f,11.500000000f),Vec3f(-11.500000000f,1.410924196f,12.000000000f),Vec3f(-11.000000000f,1.729020953f,11.500000000f),
+		Vec3f(-11.000000000f,1.729020953f,11.500000000f),Vec3f(-11.500000000f,1.410924196f,12.000000000f),Vec3f(-11.000000000f,1.564390063f,12.000000000f),
+		Vec3f(-11.500000000f,1.410924196f,12.000000000f),Vec3f(-11.500000000f,1.289704442f,12.500000000f),Vec3f(-11.000000000f,1.564390063f,12.000000000f),
+		Vec3f(-11.000000000f,1.564390063f,12.000000000f),Vec3f(-11.500000000f,1.289704442f,12.500000000f),Vec3f(-11.000000000f,1.417929649f,12.500000000f),
+		Vec3f(-11.500000000f,1.289704442f,12.500000000f),Vec3f(-11.500000000f,1.191648006f,13.000000000f),Vec3f(-11.000000000f,1.417929649f,12.500000000f),
+		Vec3f(-11.000000000f,1.417929649f,12.500000000f),Vec3f(-11.500000000f,1.191648006f,13.000000000f),Vec3f(-11.000000000f,1.294775248f,13.000000000f),
+		Vec3f(-11.500000000f,1.191648006f,13.000000000f),Vec3f(-11.500000000f,1.121100664f,13.500000000f),Vec3f(-11.000000000f,1.294775248f,13.000000000f),
+		Vec3f(-11.000000000f,1.294775248f,13.000000000f),Vec3f(-11.500000000f,1.121100664f,13.500000000f),Vec3f(-11.000000000f,1.201254964f,13.500000000f),
+		Vec3f(-11.500000000f,1.121100664f,13.500000000f),Vec3f(-11.500000000f,1.074232101f,14.000000000f),Vec3f(-11.000000000f,1.201254964f,13.500000000f),
+		Vec3f(-11.000000000f,1.201254964f,13.500000000f),Vec3f(-11.500000000f,1.074232101f,14.000000000f),Vec3f(-11.000000000f,1.137215376f,14.000000000f),
+		Vec3f(-11.500000000f,1.074232101f,14.000000000f),Vec3f(-11.500000000f,1.045132995f,14.500000000f),Vec3f(-11.000000000f,1.137215376f,14.000000000f),
+		Vec3f(-11.000000000f,1.137215376f,14.000000000f),Vec3f(-11.500000000f,1.045132995f,14.500000000f),Vec3f(-11.000000000f,1.095653057f,14.500000000f),
+		Vec3f(-11.000000000f,1.729020953f,11.500000000f),Vec3f(-11.000000000f,1.564390063f,12.000000000f),Vec3f(-10.500000000f,1.946664095f,11.500000000f),
+		Vec3f(-10.500000000f,1.946664095f,11.500000000f),Vec3f(-11.000000000f,1.564390063f,12.000000000f),Vec3f(-10.500000000f,1.756849289f,12.000000000f),
+		Vec3f(-11.000000000f,1.564390063f,12.000000000f),Vec3f(-11.000000000f,1.417929649f,12.500000000f),Vec3f(-10.500000000f,1.756849289f,12.000000000f),
+		Vec3f(-10.500000000f,1.756849289f,12.000000000f),Vec3f(-11.000000000f,1.417929649f,12.500000000f),Vec3f(-10.500000000f,1.587884903f,12.500000000f),
+		Vec3f(-11.000000000f,1.417929649f,12.500000000f),Vec3f(-11.000000000f,1.294775248f,13.000000000f),Vec3f(-10.500000000f,1.587884903f,12.500000000f),
+		Vec3f(-10.500000000f,1.587884903f,12.500000000f),Vec3f(-11.000000000f,1.294775248f,13.000000000f),Vec3f(-10.500000000f,1.442857504f,13.000000000f),
+		Vec3f(-11.000000000f,1.294775248f,13.000000000f),Vec3f(-11.000000000f,1.201254964f,13.500000000f),Vec3f(-10.500000000f,1.442857504f,13.000000000f),
+		Vec3f(-10.500000000f,1.442857504f,13.000000000f),Vec3f(-11.000000000f,1.201254964f,13.500000000f),Vec3f(-10.500000000f,1.326656580f,13.500000000f),
+		Vec3f(-11.000000000f,1.201254964f,13.500000000f),Vec3f(-11.000000000f,1.137215376f,14.000000000f),Vec3f(-10.500000000f,1.326656580f,13.500000000f),
+		Vec3f(-10.500000000f,1.326656580f,13.500000000f),Vec3f(-11.000000000f,1.137215376f,14.000000000f),Vec3f(-10.500000000f,1.243347049f,14.000000000f),
+		Vec3f(-11.000000000f,1.137215376f,14.000000000f),Vec3f(-11.000000000f,1.095653057f,14.500000000f),Vec3f(-10.500000000f,1.243347049f,14.000000000f),
+		Vec3f(-10.500000000f,1.243347049f,14.000000000f),Vec3f(-11.000000000f,1.095653057f,14.500000000f),Vec3f(-10.500000000f,1.187626839f,14.500000000f),
+		Vec3f(-10.500000000f,1.946664095f,11.500000000f),Vec3f(-10.500000000f,1.756849289f,12.000000000f),Vec3f(-10.000000000f,2.215839863f,11.500000000f),
+		Vec3f(-10.000000000f,2.215839863f,11.500000000f),Vec3f(-10.500000000f,1.756849289f,12.000000000f),Vec3f(-10.000000000f,2.003243685f,12.000000000f),
+		Vec3f(-10.500000000f,1.756849289f,12.000000000f),Vec3f(-10.500000000f,1.587884903f,12.500000000f),Vec3f(-10.000000000f,2.003243685f,12.000000000f),
+		Vec3f(-10.000000000f,2.003243685f,12.000000000f),Vec3f(-10.500000000f,1.587884903f,12.500000000f),Vec3f(-10.000000000f,1.813723564f,12.500000000f),
+		Vec3f(-10.500000000f,1.587884903f,12.500000000f),Vec3f(-10.500000000f,1.442857504f,13.000000000f),Vec3f(-10.000000000f,1.813723564f,12.500000000f),
+		Vec3f(-10.000000000f,1.813723564f,12.500000000f),Vec3f(-10.500000000f,1.442857504f,13.000000000f),Vec3f(-10.000000000f,1.650798798f,13.000000000f),
+		Vec3f(-10.500000000f,1.442857504f,13.000000000f),Vec3f(-10.500000000f,1.326656580f,13.500000000f),Vec3f(-10.000000000f,1.650798798f,13.000000000f),
+		Vec3f(-10.000000000f,1.650798798f,13.000000000f),Vec3f(-10.500000000f,1.326656580f,13.500000000f),Vec3f(-10.000000000f,1.519785166f,13.500000000f),
+		Vec3f(-10.500000000f,1.326656580f,13.500000000f),Vec3f(-10.500000000f,1.243347049f,14.000000000f),Vec3f(-10.000000000f,1.519785166f,13.500000000f),
+		Vec3f(-10.000000000f,1.519785166f,13.500000000f),Vec3f(-10.500000000f,1.243347049f,14.000000000f),Vec3f(-10.000000000f,1.418159962f,14.000000000f),
+		Vec3f(-9.500000000f,2.544139385f,11.500000000f),Vec3f(-10.000000000f,2.003243685f,12.000000000f),Vec3f(-9.500000000f,2.315514565f,12.000000000f),
+		Vec3f(-9.500000000f,2.315514565f,12.000000000f),Vec3f(-10.000000000f,1.813723564f,12.500000000f),Vec3f(-9.500000000f,2.112023115f,12.500000000f),
+		Vec3f(-10.000000000f,1.813723564f,12.500000000f),Vec3f(-10.000000000f,1.650798798f,13.000000000f),Vec3f(-9.500000000f,2.112023115f,12.500000000f),
+		Vec3f(-9.500000000f,2.112023115f,12.500000000f),Vec3f(-10.000000000f,1.650798798f,13.000000000f),Vec3f(-9.500000000f,1.935577512f,13.000000000f),
+		Vec3f(-10.000000000f,1.650798798f,13.000000000f),Vec3f(-10.000000000f,1.519785166f,13.500000000f),Vec3f(-9.500000000f,1.935577512f,13.000000000f),
+		Vec3f(-9.500000000f,1.935577512f,13.000000000f),Vec3f(-10.000000000f,1.519785166f,13.500000000f),Vec3f(-9.500000000f,1.788823128f,13.500000000f),
+		Vec3f(-10.000000000f,1.519785166f,13.500000000f),Vec3f(-10.000000000f,1.418159962f,14.000000000f),Vec3f(-9.500000000f,1.788823128f,13.500000000f),
+	};
+
+	/*vector<SMeshFace> meshFaces = {
+		//SMeshFace(quadVerts[0], quadVerts[1], quadVerts[3])		
+	};*/
+
+	/*AABB aabb;
+	aabb.vMin = Vec3f(0, -0.5f, 0);
+	aabb.vMax = Vec3f(10.0f, 0.5f, 10.0f);*/
+
+	AABB aabb;
+	aabb.Reset();
+	vector<SMeshFace> meshFaces;
+	meshFaces.reserve((unsigned int)(verts.size() / 3));
+	for (int i = 0; i < verts.size(); i += 3)
+	{
+		//Vec3f normal = Vec3Normalize(Vec3Cross(verts[1] - verts[0], verts[2] - verts[0]));
+		Vec3f normal;
+		meshFaces.push_back(SMeshFace(SMeshVertex(verts[i], normal), SMeshVertex(verts[i + 1], normal), SMeshVertex(verts[i + 2], normal)));
+
+		aabb.AddPoint(verts[0]);
+		aabb.AddPoint(verts[1]);
+		aabb.AddPoint(verts[2]);
+	}
+
+	aabb.Outset(0.1f);
+
+	SMesh mesh;
+	mesh.Init(meshFaces, aabb, eMESH_KTREE_QUADTREE, 0);
+
+	float capsuleLength = 5.0f; // distance between cap centers
+
+	Vec3f pos(-11.357438087f, 1.365602493f, 12.392386436f);
+
+	SCapsule capsule;
+	capsule.r = 0.25f;
+	capsule.p1 = pos + Vec3f(0, capsule.r, 0);
+	capsule.p2 = capsule.p1 + Vec3f(0, capsuleLength, 0);
+
+	// Force interpenetration tolerance max
+	//capsule.Translate(Vec3f(0, -INTERPENETRATION_TOLERANCE, 0));
+
+	bool interpenetration = false;
+	bool intersection = false;
+	vector<SContactInfo> contacts;
+	vector<SMeshFace> possibleFaces;
+	intersection = IntersectMeshCapsule(mesh, capsule, contacts, INTERPENETRATION_TOLERANCE, &interpenetration, &possibleFaces);
+	
+
+	//-------------------------------------------------------------
+	//		DUMP
+	//-------------------------------------------------------------
+	cout << "capsule lower point = " << capsule.p1 - Vec3f(0, capsule.r, 0) << endl;
+	cout << "intersection = " << (intersection ? "yes" : "no") << endl;	
+	cout << "interpenetration = " << (interpenetration ? "yes" : "no") << endl;
+	
+	cout << "possible faces:" << endl;
+	for (auto itPossibleFace = possibleFaces.begin(); itPossibleFace != possibleFaces.end(); ++itPossibleFace)
+	{
+		cout << "    [" << itPossibleFace->id << "] " << MESHVERTEX_TO_VEC3F(itPossibleFace->vtx[0]) << " " << MESHVERTEX_TO_VEC3F(itPossibleFace->vtx[1]) << " " << MESHVERTEX_TO_VEC3F(itPossibleFace->vtx[2]) << endl;
+
+		SContactInfo contact;
+		IntersectTriangleCapsuleExTEST(itPossibleFace->vtx[0], itPossibleFace->vtx[1], itPossibleFace->vtx[2], capsule, contact, INTERPENETRATION_TOLERANCE);
+	}
+
+	if (intersection)
+	{
+		cout << "contacts:" << endl;
+		for (auto itContact = contacts.begin(); itContact != contacts.end(); ++itContact)
+		{
+			cout << "    { p = " << itContact->contactPoint << endl;
+			cout << "      n = " << itContact->contactNormal << "  (length = " << itContact->contactNormal.Length() << ")" << endl;
+			cout << "      ip = " << (itContact->interpenetration ? "yes" : "no") << endl;
+			cout << "      int = " << (itContact->intersection ? "yes" : "no") << endl;
+			cout << "      desc = '" << itContact->desc << "'" << endl;
+			cout << "      vtxFace = " << (itContact->vertexFace ? "yes" : "no") << endl;
+			cout << "    }" << endl;
+		}
+	}
+}
+
+
 void main()
 {
 	//test_intersections1();
@@ -495,7 +784,9 @@ void main()
 
 	//test_terrain_mesh_creation();
 
-	test_aabb_linesegment_intersections();
+	//test_aabb_linesegment_intersections();
+
+	test_capsule_mesh_interpenetration();
 
 	std::cin.ignore();
 }

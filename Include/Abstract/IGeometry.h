@@ -206,7 +206,7 @@ struct S_API SGeomSubset
 {
 	unsigned long indexOffset;
 	IIndexBuffer* pIndexBuffer;	
-	IMaterial* pMaterial;
+	IMaterial* pMaterial; // must not be owned by SGeomSubset!
 
 	SGeomSubset()
 		: indexOffset(0),

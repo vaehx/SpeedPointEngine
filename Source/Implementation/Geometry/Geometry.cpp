@@ -48,8 +48,11 @@ EIBUsage ParseIBUsage(EGeomUsage geomUsage)
 
 // ----------------------------------------------------------------------------------------
 S_API Geometry::Geometry()
-: m_pRenderer(nullptr),
-m_pEngine(nullptr)
+: m_pRenderer(0),
+m_pEngine(0),
+m_pVertexBuffer(0),
+m_pSubsets(0),
+m_nSubsets(0)
 {
 	//m_pMaterial = new Material();
 }
