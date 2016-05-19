@@ -73,6 +73,7 @@
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(ProjectDir)..\..\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)..\..\Projects\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(ProjectDir)..\..\Include;$(IncludePath)</IncludePath>

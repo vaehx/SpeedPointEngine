@@ -38,7 +38,7 @@ namespace SpeedPoint
 		if (!bFoundLogHandler)
 		{
 			// simply throw it into standard output stream
-			std::printf("%s\n", msg);
+			std::printf("%s\n", (const char*)msg);
 		}
 
 		return res;

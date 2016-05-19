@@ -187,7 +187,7 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const
 			for (u32 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
 				subset.pIndices[iIndex] = modelSubset.pIndices[iIndex] + vtxOffset;
 
-			subset.pMaterial = m_pEngine->GetMaterialManager()->FindMaterial(modelSubset.materialName.c_str());
+			subset.pMaterial = m_pEngine->GetMaterialManager()->GetMaterial(modelSubset.materialName);
 
 			iSubset++;
 		}

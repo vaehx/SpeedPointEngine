@@ -20,23 +20,23 @@ SP_NMSPACE_BEG
 
 struct S_API IResourcePool;
 
-class S_API BasicMaterial : public IMaterial
+class S_API Material : public IMaterial
 {
 private:
-	char* m_pName;
+	string m_Name;
 	SMaterialLayer* m_pLayers;
 	unsigned int m_nLayers;
 
 public:
-	BasicMaterial();
+	Material();
 
-	virtual ~BasicMaterial()
+	virtual ~Material()
 	{
 		Clear();
 	}
 
-	virtual void SetName(const char* name);
-	virtual const char* GetName();
+	virtual void SetName(const string& name);
+	virtual const string& GetName() const;
 	
 	virtual void SetLayerCount(unsigned int layers);
 	virtual SMaterialLayer* GetLayer(unsigned int index);
@@ -48,21 +48,26 @@ public:
 
 
 
-class S_API BasicMaterialManager : public IMaterialManager
+class S_API MaterialManager : public IMaterialManager
 {
 private:
-	ChunkedObjectPool<BasicMaterial> m_Materials;
-	BasicMaterial m_DefMat;	
+	ChunkedObjectPool<Material> m_Materials;
+	Material m_DefMat;
+	IResourcePool* m_pResourcePool;
+
+	// Returns 0 if not found in contrast to GetMaterial() which would return a new object
+	Material* FindMaterial(const string& name);
 
 public:
-	BasicMaterialManager();
+	MaterialManager(IResourcePool* pResourcePool);
+
+	virtual void LoadMaterialBank(const string& smbFile);
 
 	virtual void LogAllMaterials();
 
-	virtual IMaterial* FindMaterial(const char* name);
-	virtual IMaterial* CreateMaterial(const char* name);
+	virtual IMaterial* GetMaterial(const string& name);
 
-	virtual void RemoveMaterial(const char* name);
+	virtual void RemoveMaterial(const string& name);
 	virtual void RemoveMaterial(IMaterial** pMat);
 
 	virtual IMaterial* GetDefaultMaterial()

@@ -1,0 +1,18 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+
+<h1>Textures</h1>
+
+<h2>Texture management</h2>
+
+Textures are managed in an object pool. Each texture object is identified by its specification.<br />
+When you call <code>ResourcePool::GetTexture(specification)</code> it will always return a valid pointer to an existing object with the given specification. <br />
+To load the texture, you can call <code>ResourcePool::LoadTexture()</code>. To add a new texture without existing resource, you can call <code>ResourcePool::AddTexture()</code>.
+
+
+</body>
+</html>

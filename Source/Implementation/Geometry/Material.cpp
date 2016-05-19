@@ -14,37 +14,35 @@
 #include <Implementation\Geometry\Material.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IGeometry.h>
+#include <FileSMB.h>
+#include <vector>
+
+using std::vector;
 
 SP_NMSPACE_BEG
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API BasicMaterial::BasicMaterial()
+S_API Material::Material()
 {
-	m_pName = new char[16];
-	SPSPrintf(m_pName, 16, "unknown");
-
+	m_Name = "unknown";
 	m_pLayers = new SMaterialLayer[1];
-	m_nLayers = 1;	
+	m_nLayers = 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterial::SetName(const char* name)
+S_API void Material::SetName(const string& name)
 {
-	if (IS_VALID_PTR(m_pName))
-		delete[] m_pName;
-
-	m_pName = 0;
-	sp_strcpy(&m_pName, name);
+	m_Name = name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API const char* BasicMaterial::GetName()
+S_API const string& Material::GetName() const
 {
-	return m_pName;
+	return m_Name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterial::SetLayerCount(unsigned int layers)
+S_API void Material::SetLayerCount(unsigned int layers)
 {
 	SMaterialLayer* pOldLayers = m_pLayers;
 	unsigned int nOldLayers = m_nLayers;
@@ -54,11 +52,13 @@ S_API void BasicMaterial::SetLayerCount(unsigned int layers)
 	if (IS_VALID_PTR(pOldLayers) && nOldLayers > 0)
 	{
 		memcpy(m_pLayers, pOldLayers, sizeof(SMaterialLayer) * min(nOldLayers, m_nLayers));
+		delete[] pOldLayers;
+		pOldLayers = 0;
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API SMaterialLayer* BasicMaterial::GetLayer(unsigned int index)
+S_API SMaterialLayer* Material::GetLayer(unsigned int index)
 {	
 	if (index >= m_nLayers || !IS_VALID_PTR(m_pLayers))
 		return 0;	
@@ -67,18 +67,14 @@ S_API SMaterialLayer* BasicMaterial::GetLayer(unsigned int index)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterial::Clear()
+S_API void Material::Clear()
 {
 	if (IS_VALID_PTR(m_pLayers))
 		delete[] m_pLayers;
 
 	m_nLayers = 0;
 	m_pLayers = 0;
-
-	if (IS_VALID_PTR(m_pName))
-		delete[] m_pName;
-
-	m_pName = 0;
+	m_Name = "?CLEARED?";
 }
 
 
@@ -93,67 +89,119 @@ S_API void BasicMaterial::Clear()
 
 
 
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API BasicMaterialManager::BasicMaterialManager()
+S_API MaterialManager::MaterialManager(IResourcePool* pResourcePool)
+	: m_pResourcePool(pResourcePool)
 {
 	SShaderResources& resources = m_DefMat.GetLayer(0)->resources;
 	//resources.textureMap = ...;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+S_API void MaterialManager::LoadMaterialBank(const string& smbFile)
+{
+	vector<SSMBMaterial> loadedMaterials;
+	CSMBLoader smbLoader;
+	
+	smbLoader.ReadSMBFile(smbFile.c_str(), loadedMaterials);
+	for (auto& itMaterial = loadedMaterials.begin(); itMaterial != loadedMaterials.end(); ++itMaterial)
+	{		
+		IMaterial* pNewMat = GetMaterial(itMaterial->name.c_str());
+		SShaderResources& resources = pNewMat->GetLayer(0)->resources;		
+		resources.roughness = itMaterial->roughness;
+		resources.diffuse = itMaterial->diffuse;
+		resources.emissive = itMaterial->emissive;		
+
+		if (IS_VALID_PTR(m_pResourcePool))
+		{			
+			m_pResourcePool->LoadTexture(itMaterial->textureMap, &resources.textureMap);
+			m_pResourcePool->LoadTexture(itMaterial->normalMap, &resources.normalMap);
+			
+			
+			// TODO: Copy further material properties and textures
+			// ...
+				
+
+		}
+	}
+
+	if (!IS_VALID_PTR(m_pResourcePool))
+	{
+		CLog::Log(S_ERROR, "Unable to load textures for materials of material bank file '%s'! Resource pool invalid", smbFile);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API IMaterial* BasicMaterialManager::FindMaterial(const char* name)
-{	
-	if (!IS_VALID_PTR(name))
+S_API Material* MaterialManager::FindMaterial(const string& name)
+{
+	if (name.empty())
 		return 0;
 
 	if (m_Materials.GetUsedObjectCount() == 0)
 		return 0;
 
 	unsigned int iterator;
-	BasicMaterial* pMat = m_Materials.GetFirstUsedObject(iterator);
+	Material* pMat = m_Materials.GetFirstUsedObject(iterator);
 	while (pMat)
-	{	
+	{
 		if (!IS_VALID_PTR(pMat))
 			break;
 
-		if (_stricmp(pMat->GetName(), name) == 0)
+		if (pMat->GetName() == name)
 			return pMat;
 
 		pMat = m_Materials.GetNextUsedObject(iterator);
 	}
 
-	CLog::Log(S_ERROR, "Could not find material '%s'.", name);
-
 	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API IMaterial* BasicMaterialManager::CreateMaterial(const char* name)
+S_API IMaterial* MaterialManager::GetMaterial(const string& name)
 {
-	IMaterial* pMat = m_Materials.Get();
-	pMat->SetName(name);
-	return pMat;
+	Material* pMaterial = FindMaterial(name);
+	if (!IS_VALID_PTR(pMaterial))
+	{
+		// Create new
+		pMaterial = m_Materials.Get();
+		pMaterial->SetName(name);
+	}
+
+	return pMaterial;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterialManager::RemoveMaterial(const char* name)
+S_API void MaterialManager::RemoveMaterial(const string& name)
 {
-	BasicMaterial* pMat = dynamic_cast<BasicMaterial*>(FindMaterial(name));
+	Material* pMat = dynamic_cast<Material*>(FindMaterial(name));
 	
 	if (IS_VALID_PTR(pMat))
 		m_Materials.Release(&pMat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterialManager::RemoveMaterial(IMaterial** pMat)
+S_API void MaterialManager::RemoveMaterial(IMaterial** ppMat)
 {
-	// Todo: Find a better way to cast to BasicMaterial**
-	m_Materials.Release((BasicMaterial**)(pMat));
+	if (!IS_VALID_PTR(ppMat))
+		return;
+
+	Material* pMat = dynamic_cast<Material*>(*ppMat);
+	if (IS_VALID_PTR(pMat))
+		m_Materials.Release(&pMat);
+
+	*ppMat = 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterialManager::LogAllMaterials()
+S_API void MaterialManager::LogAllMaterials()
 {
 	if (m_Materials.GetUsedObjectCount() == 0)
 	{
@@ -162,7 +210,7 @@ S_API void BasicMaterialManager::LogAllMaterials()
 	else
 	{
 		unsigned int iterator;
-		BasicMaterial* pMat = m_Materials.GetFirstUsedObject(iterator);
+		Material* pMat = m_Materials.GetFirstUsedObject(iterator);
 		while (pMat)
 		{
 			if (!IS_VALID_PTR(pMat))
@@ -176,7 +224,7 @@ S_API void BasicMaterialManager::LogAllMaterials()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void BasicMaterialManager::Clear()
+S_API void MaterialManager::Clear()
 {
 	m_Materials.Clear();
 }

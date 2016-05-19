@@ -37,7 +37,11 @@
 #include "Util\SAssert.h"	// including IS_VALID_PTR
 
 #include "Util\SPoolIndex.h"
-#include "Util\SString.h"
+//#include "Util\SString.h"
+
+#include <string>
+using std::string;
+
 #include "Abstract\CLog.h"
 // DO NOT ADD ANY HEADER HERE if you do not know why!Many things depend on it!
 
@@ -133,6 +137,20 @@ ILINE static void sp_strcpy(char** dst, const char* src)
 
 	memcpy(*dst, src, srcLn);
 	(*dst)[srcLn] = 0;
+}
+
+ILINE static bool sp_string_iequals(const string& a, const string& b)
+{
+	unsigned int sz = a.size();
+
+	if (b.size() != sz)
+		return false;
+
+	for (unsigned int i = 0; i < sz; ++i)
+		if (tolower(a[i]) != tolower(b[i]))
+			return false;
+
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

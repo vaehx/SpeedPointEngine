@@ -5,6 +5,9 @@
 
 #pragma once
 #include <SPrerequisites.h>
+#include <string>
+
+using std::string;
 
 SP_NMSPACE_BEG
 
@@ -12,21 +15,17 @@ template<typename T>
 struct S_API ChunkSlot
 {
 	T instance;
-	char* specification;
+	string specification;
 	bool bUsed;
 
 	ChunkSlot()
-		: bUsed(false),
-		specification(0)
+		: bUsed(false)
 	{
 	}
 
 	~ChunkSlot()
 	{
-		if (IS_VALID_PTR(specification))
-			delete[] specification;
-
-		specification = 0;
+		specification = "";
 	}
 };
 
@@ -141,7 +140,7 @@ public:
 	// Arguments:
 	//	pPtrOut - Ptr of a Ptr-To-Object to access outside of this pool. If add failed, 0 is assigned to it.
 	//	specification - the specification, the new object should have
-	ILINE SResult AddItem(T** pPtrOut, const char* specification = 0, void** pChnkPtr = 0)
+	ILINE SResult AddItem(T** pPtrOut, const string& specification = "", void** pChnkPtr = 0)
 	{
 		CheckChunksPtr();
 
@@ -179,14 +178,7 @@ public:
 				// found, now fill
 				pChunkSlot->instance = T();
 				pChunkSlot->bUsed = true;
-				pChunkSlot->specification = 0;
-				if (IS_VALID_PTR(specification))
-				{
-					unsigned int specLen = strlen(specification);
-					pChunkSlot->specification = new char[specLen + 1];	// +1 for terminating zero
-					memcpy((void*)pChunkSlot->specification, (void*)specification, sizeof(char) * specLen);
-					pChunkSlot->specification[specLen] = 0;
-				}
+				pChunkSlot->specification = specification;
 
 				if (IS_VALID_PTR(pPtrOut))
 					*pPtrOut = &pChunkSlot->instance;
@@ -270,7 +262,7 @@ public:
 	// If multiple instances share same specification, then the first occurence is taken. To get
 	// all instances with given specification use GetBySpecificationArr instead.
 	// If nothing matched given specification, nullptr is returned.
-	ILINE T* GetBySpecification(const SString& spec, bool bCaseSensitive = true)
+	ILINE T* GetBySpecification(const string& spec, bool bCaseSensitive = true)
 	{
 		if (nChunks == 0 || !IS_VALID_PTR(pChunks))
 			return nullptr;
@@ -285,15 +277,12 @@ public:
 			{
 				if (!pChnk->pSlots[iSlot].bUsed)
 					continue;
+			
+				bool cmp = (bCaseSensitive ? spec == pChnk->pSlots[iSlot].specification
+					: sp_string_iequals(spec, pChnk->pSlots[iSlot].specification));
 
-				if (IS_VALID_PTR(pChnk->pSlots[iSlot].specification))
-				{
-					bool cmp = (bCaseSensitive ? StrCmp(spec, pChnk->pSlots[iSlot].specification)
-						: StrCmpCI(spec, pChnk->pSlots[iSlot].specification));
-
-					if (cmp)
-						return &pChnk->pSlots[iSlot].instance;
-				}
+				if (cmp)
+					return &pChnk->pSlots[iSlot].instance;			
 			}
 		}
 
@@ -302,7 +291,7 @@ public:
 
 	// If nothing was found, *pResult is set to nullptr and 0 is returned.
 	// Remember to delete the result array which is created by this function.
-	ILINE unsigned int GetBySpecificationArr(const SString& spec, InstancePtr** pResults, bool bCaseSensitive = true)
+	ILINE unsigned int GetBySpecificationArr(const string& spec, InstancePtr** pResults, bool bCaseSensitive = true)
 	{
 		if (nChunks == 0 || !IS_VALID_PTR(pChunks))
 			return nullptr;
@@ -322,18 +311,15 @@ public:
 			{
 				if (!pChnk->pSlots[iSlot].bUsed)
 					continue;
+				
+				bool cmp = (bCaseSensitive ? spec == pChnk->pSlots[iSlot].specification
+					: sp_string_iequals(spec, pChnk->pSlots[iSlot].specification));
 
-				if (IS_VALID_PTR(pChnk->pSlots[iSlot].specification))
+				if (cmp)
 				{
-					bool cmp = (bCaseSensitive ? StrCmp(spec, pChnk->pSlots[iSlot].specification)
-						: StrCmpCI(spec, pChnk->pSlots[iSlot].specification));
-
-					if (cmp)
-					{
-						pTmpRes[tmpSlot] = &pChnk->pSlots[iSlot].instance;
-						++tmpSlot;
-					}
-				}
+					pTmpRes[tmpSlot] = &pChnk->pSlots[iSlot].instance;
+					++tmpSlot;
+				}			
 			}
 		}
 
@@ -373,10 +359,7 @@ public:
 			if (pSlot->bUsed && &pSlot->instance == *t)
 			{
 				pSlot->instance = T();	// reset to defaults
-				if (IS_VALID_PTR(pSlot->specification))
-					delete[] pSlot->specification;
-
-				pSlot->specification = 0;
+				pSlot->specification = "?EMPTY-SLOT?";
 				pSlot->bUsed = false;
 				pChnk->nUsedSlots--;
 				*t = nullptr;

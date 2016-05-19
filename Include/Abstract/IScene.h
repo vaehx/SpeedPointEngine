@@ -99,7 +99,7 @@ struct S_API IScene
 	// Add dynamic object / entity
 	virtual SResult AddObject(IObject* pObject) = 0;
 
-	virtual void Clear() = 0;	
+	virtual void Clear() = 0;
 };
 
 

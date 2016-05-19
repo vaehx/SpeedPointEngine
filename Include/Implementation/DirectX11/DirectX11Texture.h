@@ -73,7 +73,7 @@ struct S_API SLoadedCubemapSide
 class S_API DirectX11Texture : ITexture
 {
 private:
-	SString	m_Specification;
+	string	m_Specification;
 	IGameEngine* m_pEngine;
 	ETextureType m_Type;
 	bool m_bDynamic;
@@ -96,8 +96,8 @@ public:
 	~DirectX11Texture();
 	
 
-	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec);	
-	virtual SResult Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic, bool bStaged);
+	virtual SResult Initialize(IGameEngine* pEngine, const string& spec);	
+	virtual SResult Initialize(IGameEngine* pEngine, const string& spec, bool bDynamic, bool bStaged);
 
 	virtual bool IsStaged() const { return m_bStaged; }
 
@@ -106,10 +106,10 @@ public:
 
 	virtual void* GetStagedData() { return m_pStagedData; }
 	
-	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName);
-	virtual SResult LoadCubemapFromFile(int singleW, int singleH, char* baseName);
+	virtual SResult LoadFromFile(unsigned int w, unsigned int h, int mipLevels, const char* cFileName);
+	virtual SResult LoadCubemapFromFile(unsigned int singleW, unsigned int singleH, const char* baseName);
 	virtual SResult CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor);	
-	virtual SString GetSpecification(void);
+	virtual const string& GetSpecification(void) const;
 
 	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0);
 	virtual SResult Unlock();
@@ -134,7 +134,8 @@ private:
 	static void GetCubemapImageName(SString& name, ECubemapSide side);
 	static unsigned int GetDXCubemapArraySlice(ECubemapSide side);
 
-	SResult LoadTextureImage(const char* cFileName, int w, int h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedFormat);
+	// If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen. w and h reference values will be updated with the actual sizes
+	SResult LoadTextureImage(const char* cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedFormat);
 };
 
 SP_NMSPACE_END

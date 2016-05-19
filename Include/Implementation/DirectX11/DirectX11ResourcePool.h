@@ -27,14 +27,15 @@ private:
 	IGameEngine* m_pEngine;
 	DirectX11Renderer* m_pDXRenderer;
 
+	string m_BasePath;
+
 	ChunkPool<DirectX11IndexBuffer>	m_plIndexBuffers;
 	ChunkPool<DirectX11VertexBuffer> m_plVertexBuffers;
 	ChunkPool<DirectX11Effect> m_plShaders;
-	ChunkPool<DirectX11Texture> m_plTextures;
-	//ChunkPool<SMaterial> m_plMaterials;
+	ChunkPool<DirectX11Texture> m_plTextures;	
 
 public:		
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer);
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, const string& resourceBasePath = "");
 	virtual SResult ClearAll();
 
 
@@ -51,27 +52,17 @@ public:
 
 
 
-	virtual SResult LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTex, bool bDynamic = false, bool bStaged = false);
+	virtual SResult LoadTexture(const string& specification, ITexture** pTex, const string& file = "", UINT w = 0, UINT h = 0, bool bDynamic = false, bool bStaged = false);
 	
-	virtual SResult LoadCubeTexture(const SString& file, UINT w, UINT h, const SString& spec, ITexture** pTex);
+	virtual SResult LoadCubeTexture(const string& specification, ITexture** pTex, const string& file = "", UINT w = 0, UINT h = 0);
 
-	virtual SResult AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTex, bool bDynamic = false, bool bStaged = false);
+	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, const ETextureType& ty, const SColor& clearcolor, bool bDynamic = false, bool bStaged = false);
 
 	// is case sensitive
-	virtual ITexture* GetTexture(const SString& spec);
-	virtual SString GetTextureSpecification(const ITexture* pTex) const;
+	virtual ITexture* GetTexture(const string& spec);
 
 	virtual SResult RemoveTexture(ITexture** pTex);
-	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);	
-	
-
-
-
-	/*
-	virtual SMaterial* AddNewMaterial(const SString& specification);
-	virtual SMaterial* GetMaterial(const SString& specification);
-	virtual void RemoveMaterial(SMaterial** pMat);
-	*/
+	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);
 };
 
 

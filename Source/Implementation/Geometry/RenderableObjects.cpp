@@ -125,11 +125,7 @@ S_API SResult CSkyBox::InitGeometry(IGameEngine* pEngine)
 	SGeomSubset* pSubset = m_Renderable.GetGeometry()->GetSubset(0);
 	if (IS_VALID_PTR(pSubset))
 	{
-		pSubset->pMaterial = pEngine->GetMaterialManager()->CreateMaterial("skybox_mat");
-		if (!IS_VALID_PTR(pSubset->pMaterial))
-		{
-			return CLog::Log(S_ERROR, "Could not create skybox_mat material for skybox");			
-		}
+		pSubset->pMaterial = pEngine->GetMaterialManager()->GetMaterial("skybox_mat");
 
 		SShaderResources& matResources = pSubset->pMaterial->GetLayer(0)->resources;
 		matResources.emissive = float3(0.5f, 0.5f, 0.5f);

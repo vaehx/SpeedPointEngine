@@ -698,7 +698,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	float baseHeightScaled = baseHeight / m_HeightScale;
 	SColor baseColor(baseHeightScaled, baseHeightScaled, baseHeightScaled);	
 
-	SResult res = pRes->AddTexture(m_nSegments + 1, m_nSegments + 1, "terrain_vtxheightmap", eTEXTURE_R32_FLOAT, baseColor, &m_pVtxHeightMap, true, true);
+	SResult res = pRes->AddTexture("terrain_vtxheightmap", &m_pVtxHeightMap, m_nSegments + 1, m_nSegments + 1, eTEXTURE_R32_FLOAT, baseColor, true, true);
 	if (Failure(res))
 		return res;
 

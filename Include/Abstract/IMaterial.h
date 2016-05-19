@@ -16,7 +16,10 @@
 #include <SPrerequisites.h>
 #include "Vector3.h"
 #include "IGameEngine.h"
+#include <string>
 
+
+using std::string;
 
 SP_NMSPACE_BEG
 
@@ -113,8 +116,8 @@ struct S_API IMaterial
 {	
 	virtual ~IMaterial() {}
 
-	virtual void SetName(const char* name) = 0;
-	virtual const char* GetName() = 0;
+	virtual void SetName(const string& name) = 0;
+	virtual const string& GetName() const = 0;
 	
 	// Initially, the material has 1 layer
 	virtual void SetLayerCount(unsigned int layers) = 0;
@@ -141,13 +144,25 @@ struct S_API IMaterialManager
 {
 	virtual ~IMaterialManager() {}
 	
-	// name is case-insensitive
-	virtual IMaterial* FindMaterial(const char* name) = 0;
+	// Loads all materials from the given bank file into memory, overriding existing materials with same name.
+	// While loading the material, 
+	virtual void LoadMaterialBank(const string& smbFile) = 0;
 
-	// name is case-insensitive
-	virtual IMaterial* CreateMaterial(const char* name) = 0;
+	// Summary:
+	//		Returns the material object with the given name.
+	//		If there is no such object, it will be created and the pointer returned.
+	//		If there are multiple materials with the given name, the first one found will be returned.
+	// Arguments:
+	//		name - is case sensitive
+	virtual IMaterial* GetMaterial(const string& name) = 0;
 
-	virtual void RemoveMaterial(const char* name) = 0;
+	// Does the same as GetMaterial()
+	virtual IMaterial* CreateMaterial(const string& name)
+	{
+		return GetMaterial(name);
+	}
+
+	virtual void RemoveMaterial(const string& name) = 0;
 	virtual void RemoveMaterial(IMaterial** pMat) = 0;
 
 	virtual IMaterial* GetDefaultMaterial() = 0;

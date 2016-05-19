@@ -27,12 +27,14 @@ SP_NMSPACE_BEG
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* renderer)
+S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* renderer, const string& resourceBasePath)
 {
 	if (eng == NULL || renderer == NULL) return S_ABORTED;
 
 	m_pEngine = eng;
 	m_pDXRenderer = (DirectX11Renderer*)renderer;
+
+	m_BasePath = resourceBasePath;
 
 	CoInitialize(0);
 
@@ -120,141 +122,119 @@ S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::LoadTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTexture, bool bDynamic, bool bStaged)
+S_API SResult DirectX11ResourcePool::LoadTexture(const string& specification, ITexture** ppTexture, const string& file /*=""*/, UINT w /*=0*/, UINT h /*=0*/, bool bDynamic /*=false*/, bool bStaged /*=false*/)
 {	
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
-		"Cannot load Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
+		"Cannot load Texture (file=%s spec=%s): Resource Pool not initialized.", file.c_str(), specification.c_str());
 
-	/*
-	if (w <= 64 || h <= 64)
-		return m_pEngine->LogD("Cannot load textures with width or height < 64", S_ERROR);	
-	*/
+	if (specification.empty())
+		return CLog::Log(S_ERROR, "Cannot load texture! Empty specification given!");
 
-	if (!src.IsValidString())
-		return m_pEngine->LogE("Invalid texture src specified: " + src);
+	string filePath = m_BasePath + (m_BasePath.empty() ? "" : "\\");
+	if (!file.empty())
+		filePath += file;
+	else
+		filePath += specification;
 
-	if (!spec.IsValidString())
-		m_pEngine->LogW("Invalid or no specification for loaded texture (" + src + ")!");	
 
-	DirectX11Texture* pdxTexture;
+	ITexture* pTex = GetTexture(specification);
 
-	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
-		return m_pEngine->LogE("Failed add texture (" + src + ")");
+	// The texture might exist already
+	pTex->Clear();
 
-	if (Failure(pdxTexture->Initialize(m_pEngine, spec, bDynamic, bStaged)))
-	{
+	if (Failure(pTex->Initialize(m_pEngine, specification, bDynamic, bStaged)))
 		return S_ERROR;
-	}
 	
-	if (Failure(pdxTexture->LoadFromFile(w, h, 5, src)))
-		return EngLog(S_ERROR, m_pEngine, "Failed load texture %s!", (char*)src);
+	if (Failure(pTex->LoadFromFile(w, h, 5, filePath.c_str())))
+		return EngLog(S_ERROR, m_pEngine, "Failed load texture file='%s' spec='%s'!", filePath.c_str(), specification.c_str());
 
-	CLog::Log(S_DEBUG, "Loaded Texture %s, spec='%s', dyn=%d, staged=%d", (char*)src, (char*)spec, bDynamic, bStaged);
+	CLog::Log(S_DEBUG, "Loaded Texture file='%s' spec='%s', dyn=%d, staged=%d", filePath.c_str(), specification.c_str(), bDynamic, bStaged);
 
-	if (pTexture != NULL)
-		*pTexture = (ITexture*)pdxTexture;
+	if (IS_VALID_PTR(ppTexture))
+		*ppTexture = pTex;
 
 	return S_SUCCESS;
 }
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::LoadCubeTexture(const SString& src, UINT w, UINT h, const SString& spec, ITexture** pTexture)
+S_API SResult DirectX11ResourcePool::LoadCubeTexture(const string& specification, ITexture** ppTexture, const string& src /*=""*/, UINT w /*=0*/, UINT h /*=0*/)
 {
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
-		"Cannot load Cubetexture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
+		"Cannot load Cubetexture (%s): Resource Pool not initialized.", src.c_str());
 
-	if (!src.IsValidString())
-		return m_pEngine->LogE("Invalid cubemap src specified: " + src);
+	if (specification.empty())
+		return CLog::Log(S_ERROR, "Empty cubemap specification specified src='%s'!", src.c_str());
 
-	if (!spec.IsValidString())
-		m_pEngine->LogW("Invalid or no specification for loaded cubemap (" + src + ")!");
+	string filePath = m_BasePath + (m_BasePath.empty() ? "" : "\\");
+	if (!src.empty())
+		filePath += src;
+	else
+		filePath += specification;
 
-	DirectX11Texture* pdxTexture;
 
-	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
-		return m_pEngine->LogE("Failed add cubemap (" + src + ")");
+	ITexture* pTex = GetTexture(specification);
 
-	if (Failure(pdxTexture->Initialize(m_pEngine, spec, false, false)))
-	{
+	// Texture may be loaded already
+	pTex->Clear();
+
+	if (Failure(pTex->Initialize(m_pEngine, specification, false, false)))
 		return S_ERROR;
-	}
 
-	if (Failure(pdxTexture->LoadCubemapFromFile(w, h, src)))
-	{
-		return EngLog(S_ERROR, m_pEngine, "Failed load cubemap %s!", (char*)src);
-	}
+	if (Failure(pTex->LoadCubemapFromFile(w, h, filePath.c_str())))
+		return EngLog(S_ERROR, m_pEngine, "Failed load cubemap file='%s' spec='%s'!", filePath.c_str(), specification.c_str());
 
-	CLog::Log(S_DEBUG, "Loaded Cubemap %s, spec='%s'", (char*)src, (char*)spec);
+	CLog::Log(S_DEBUG, "Loaded Cubemap '%s'", specification.c_str());
 
-	if (pTexture != NULL)
-		*pTexture = (ITexture*)pdxTexture;
+	if (ppTexture != NULL)
+		*ppTexture = pTex;
 
 	return S_SUCCESS;
 }
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::AddTexture(UINT w, UINT h, const SString& spec, const ETextureType& ty, const SColor& clearcolor, ITexture** pTexture, bool bDynamic, bool bStaged)
+S_API SResult DirectX11ResourcePool::AddTexture(const string& spec, ITexture** ppTexture, UINT w, UINT h, const ETextureType& ty, const SColor& clearcolor, bool bDynamic, bool bStaged)
 {
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
-		"Cannot add Texture (%s): Resource Pool not initialized.", (spec.IsValidString() ? (char*)spec : ""));
+		"Cannot add Texture (%s): Resource Pool not initialized.", spec.c_str());
 
 	if (w == 0 || h == 0)
-		return m_pEngine->LogD("Tried add texture with width or height <= 0", S_ERROR);
+		return CLog::Log(S_ERROR, "Tried add texture with width or height == 0", S_ERROR);
 
-	if (!spec.IsValidString())
-		m_pEngine->LogW("Invalid or no specification for new texture!");
+	if (spec.empty())
+		return CLog::Log(S_ERROR, "Empty specification given for new texture!");
 
-	DirectX11Texture* pdxTexture;
 
-	if (Failure(m_plTextures.AddItem(&pdxTexture)) || !IS_VALID_PTR(pdxTexture))
-		return m_pEngine->LogE("Failed add texture (" + spec + ")");
+	ITexture* pTex = GetTexture(spec);
 
-	if (Failure(pdxTexture->Initialize(m_pEngine, spec, bDynamic, bStaged)))
-	{
+	pTex->Clear();
+
+	if (Failure(pTex->Initialize(m_pEngine, spec, bDynamic, bStaged)))
 		return S_ERROR;
-	}
 
-	if (Failure(pdxTexture->CreateEmpty(w, h, 1, ty, clearcolor)))
-	{
+	if (Failure(pTex->CreateEmpty(w, h, 1, ty, clearcolor)))
 		return S_ERROR;
-	}
 
-	CLog::Log(S_DEBUG, "Added Texture spec=%s, dyn=%d, staged=%d", (char*)spec, bDynamic, bStaged);
+	CLog::Log(S_DEBUG, "Added Texture spec=%s, dyn=%d, staged=%d", spec.c_str(), bDynamic, bStaged);
 
-	if (pTexture != NULL)
-		*pTexture = (ITexture*)pdxTexture;
+	if (ppTexture != NULL)
+		*ppTexture = pTex;
 
 	return S_SUCCESS;
 }
 
 // **********************************************************************************
 
-S_API ITexture* DirectX11ResourcePool::GetTexture(const SString& spec)
+S_API ITexture* DirectX11ResourcePool::GetTexture(const string& spec)
 {
-	if (!IS_VALID_PTR(m_pDXRenderer) || !m_plTextures.HasElements())
-		return nullptr;
-
 	DirectX11Texture* pDXTexture = m_plTextures.GetBySpecification(spec);
+	if (!IS_VALID_PTR(pDXTexture))
+	{
+		m_plTextures.AddItem(&pDXTexture, spec);
+	}
+
 	return (ITexture*)pDXTexture;
-}
-
-// **********************************************************************************
-
-S_API SString DirectX11ResourcePool::GetTextureSpecification(const ITexture* pTexture) const
-{
-	char* pRes = new char[1]; pRes[0] = 0;
-
-	if (m_plTextures.GetUsedSlotCount() <= 0)
-		return "???";
-
-	DirectX11Texture* pDXTex = (DirectX11Texture*)pTexture;	// probably does reinterpret_cast ??
-	auto pSlot = m_plTextures.GetSlot(pDXTex);
-	if (!IS_VALID_PTR(pSlot))
-		return "???";
-
-	return SString(pSlot->specification);
 }
 
 // **********************************************************************************
@@ -305,30 +285,6 @@ S_API SResult DirectX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* 
 }
 
 
-// **************************************************************************
-//				Materials
-// **************************************************************************
-
-/*
-S_API SMaterial* DirectX11ResourcePool::AddNewMaterial(const SString& specification)
-{
-	SMaterial* pMat = 0;
-	m_plMaterials.AddItem(&pMat, specification);
-	return pMat;
-}
-
-S_API SMaterial* DirectX11ResourcePool::GetMaterial(const SString& specification)
-{
-	return m_plMaterials.GetBySpecification(specification, false);
-}
-
-S_API void DirectX11ResourcePool::RemoveMaterial(SMaterial** pMat)
-{
-	m_plMaterials.Delete(pMat);
-}
-*/
-
-
 
 // **************************************************************************
 //				All
@@ -345,7 +301,6 @@ S_API SResult DirectX11ResourcePool::ClearAll(VOID)
 	m_plIndexBuffers.Clear();
 	//m_plShaders.Clear();
 	m_plTextures.Clear();	
-	//m_plMaterials.Clear();
 
 	m_pEngine = NULL;
 	m_pDXRenderer = NULL;

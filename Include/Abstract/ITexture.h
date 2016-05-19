@@ -60,21 +60,23 @@ public:
 	// -- Initialize --	
 
 	// Initialize the texture
-	virtual SResult Initialize( IGameEngine* pEngine, const SString& spec ) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, const string& spec) = 0;
 	
 	// Initialize the texture with extended params
 	// - Set bDynamic to true, if you want to WRITE new data into the texture after creation
 	// - Set bStaged to true, to create a RAM copy of the data, which allows you to read back data from the texture
-	virtual SResult Initialize( IGameEngine* pEngine, const SString& spec, bool bDynamic, bool bStaged ) = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, const string& spec, bool bDynamic, bool bStaged) = 0;
 
 	virtual bool IsStaged() const = 0;
 
 	// Load a texture from file
-	virtual SResult LoadFromFile(int w, int h, int mipLevels, char* cFileName) = 0;
+	// If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen
+	virtual SResult LoadFromFile(unsigned int w, unsigned int h, int mipLevels, const char* cFileName) = 0;
 
 	// baseName: Path and base filename of the 6 cubemap images without File extension
 	//		("assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp");
-	virtual SResult LoadCubemapFromFile(int singleW, int singleH, char* baseName) = 0;
+	// If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen
+	virtual SResult LoadCubemapFromFile(unsigned int singleW, unsigned int singleH, const char* baseName) = 0;
 
 	// Initialize an empty texture with specified size and type and fill it with clearcolor.
 	// If type is a depth map, then clearcolor.r is used to fill.
@@ -105,7 +107,7 @@ public:
 	virtual void* GetStagedData() = 0;
 
 	// Get the specification
-	virtual SString GetSpecification( void ) = 0;
+	virtual const string& GetSpecification(void) const = 0;
 
 	// ----
 

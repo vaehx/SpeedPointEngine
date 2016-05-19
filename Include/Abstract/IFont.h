@@ -26,10 +26,6 @@ struct SFontConstantsBuffer
 	float struct_padding[2];
 };
 
-struct IFont
-{	
-};
-
 enum EFontSize
 {
 	eFONTSIZE_NORMAL,

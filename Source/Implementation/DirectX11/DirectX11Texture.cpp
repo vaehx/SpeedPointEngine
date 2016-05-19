@@ -54,13 +54,13 @@ DirectX11Texture::~DirectX11Texture()
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& spec)
+S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const string& spec)
 {	
 	return Initialize(pEngine, spec, false, false);
 }
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& spec, bool bDynamic, bool bStaged)
+S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const string& spec, bool bDynamic, bool bStaged)
 {
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);
 
@@ -80,7 +80,7 @@ S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const SString& 
 
 
 // -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, int w, int h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedTextureFmt)
+S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedTextureFmt)
 {
 	HRESULT hRes;
 
@@ -156,6 +156,12 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, int w, i
 
 	UINT nLoadedWidth, nLoadedHeight;
 	pBmpFrameDecode->GetSize(&nLoadedWidth, &nLoadedHeight);
+
+	if (w == 0 || h == 0)
+	{
+		w = nLoadedWidth;
+		h = nLoadedHeight;
+	}
 
 	UINT nBPP = BitsPerPixel(pxlFmtGUID, pImgFactory);
 	if (nBPP == 0)
@@ -282,7 +288,7 @@ S_API unsigned int DirectX11Texture::GetDXCubemapArraySlice(ECubemapSide side)
 }
 
 
-S_API SResult DirectX11Texture::LoadCubemapFromFile(int singleW, int singleH, char* baseName)
+S_API SResult DirectX11Texture::LoadCubemapFromFile(unsigned int singleW, unsigned int singleH, const char* baseName)
 {
 	SP_ASSERTR(m_pEngine && m_pDXRenderer, S_NOTINIT);
 
@@ -310,7 +316,7 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(int singleW, int singleH, ch
 				delete[] itSide->pBuffer;
 
 			return CLog::Log(S_ERROR, "Failed load cubemap image #%d", i);
-		}
+		}		
 
 		if (i == 0)
 		{
@@ -339,7 +345,6 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(int singleW, int singleH, ch
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Now create the directx texture
-
 
 	unsigned int mipLevels = 2;
 
@@ -487,7 +492,7 @@ assert(hr == S_OK);
 
 // -----------------------------------------------------------------------------------
 // remember that the w and h parameters will specify the output texture size to which the image will be scaled to
-S_API SResult DirectX11Texture::LoadFromFile(int w, int h, int mipLevels, char* cFileName)
+S_API SResult DirectX11Texture::LoadFromFile(unsigned int w, unsigned int h, int mipLevels, const char* cFileName)
 {
 	SP_ASSERTR(m_pEngine && m_pDXRenderer, S_NOTINIT);
 
@@ -793,7 +798,7 @@ S_API SResult DirectX11Texture::Fill(SColor color)
 }
 
 // -----------------------------------------------------------------------------------
-S_API SString DirectX11Texture::GetSpecification(void)
+S_API const string& DirectX11Texture::GetSpecification(void) const
 {
 	return m_Specification;
 }
@@ -823,10 +828,10 @@ S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /* = 0*/)
 {
 	if (!m_bDynamic)
-		return CLog::Log(S_ERROR, "Tried DX11Texture::Lock on non-dynamic texture (%s)", (char*)m_Specification);	
+		return CLog::Log(S_ERROR, "Tried DX11Texture::Lock on non-dynamic texture (%s)", m_Specification.c_str());
 
 	if (m_bLocked)
-		return CLog::Log(S_ERROR, "Cannot lock DX11Texture (%s): Already locked!", (char*)m_Specification);
+		return CLog::Log(S_ERROR, "Cannot lock DX11Texture (%s): Already locked!", m_Specification.c_str());
 
 	if (!IS_VALID_PTR(pPixels) || !IS_VALID_PTR(pnPixels))
 		return S_INVALIDPARAM;
@@ -843,7 +848,7 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 	if (m_bStaged)
 	{
 		if (!IS_VALID_PTR(m_pStagedData))
-			return CLog::Log(S_ERROR, "Failed lock staged texture (%s): Staged data invalid (0x%p)!", (char*)m_Specification, m_pStagedData);
+			return CLog::Log(S_ERROR, "Failed lock staged texture (%s): Staged data invalid (0x%p)!", m_Specification.c_str(), m_pStagedData);
 
 		m_bLocked = true;
 		*pPixels = m_pStagedData;
@@ -858,7 +863,7 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 		memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
 		if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
 		{
-			m_pDXRenderer->FrameDump("Failed map texture (" + m_Specification + ") for Lock!");
+			m_pDXRenderer->FrameDump((string("Failed map texture (") + m_Specification + ") for Lock!").c_str());
 			return S_ERROR;
 		}
 
@@ -880,7 +885,7 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 S_API SResult DirectX11Texture::Unlock()
 {
 	if (!m_bLocked)
-		return CLog::Log(S_WARN, "Tried unlock texture (%s) which is not locked!", (char*)m_Specification);
+		return CLog::Log(S_WARN, "Tried unlock texture (%s) which is not locked!", m_Specification.c_str());
 
 	assert(m_nLockedBytes > 0);
 
@@ -904,7 +909,7 @@ S_API SResult DirectX11Texture::Unlock()
 		hr = pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
 		
 		if (FAILED(hr))
-			return CLog::Log(S_ERROR, "Failed map texture (%s) for staged update!", (char*)m_Specification);
+			return CLog::Log(S_ERROR, "Failed map texture (%s) for staged update!", m_Specification.c_str());
 
 		unsigned int bytePerLockedPixel = GetTextureBPP(m_Type);
 
