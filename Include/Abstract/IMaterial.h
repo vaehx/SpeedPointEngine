@@ -17,9 +17,11 @@
 #include "Vector3.h"
 #include "IGameEngine.h"
 #include <string>
+#include <vector>
 
 
 using std::string;
+using std::vector;
 
 SP_NMSPACE_BEG
 
@@ -166,7 +168,10 @@ struct S_API IMaterialManager
 	virtual void RemoveMaterial(IMaterial** pMat) = 0;
 
 	virtual IMaterial* GetDefaultMaterial() = 0;
-	virtual void LogAllMaterials() = 0;
+
+	// Returns a list of all material names
+	virtual void ListMaterials(vector<string>& list) const = 0;
+
 	virtual void Clear() = 0;
 };
 

@@ -63,7 +63,7 @@ public:
 
 	virtual void LoadMaterialBank(const string& smbFile);
 
-	virtual void LogAllMaterials();
+	virtual void ListMaterials(vector<string>& list) const;
 
 	virtual IMaterial* GetMaterial(const string& name);
 

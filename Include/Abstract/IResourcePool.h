@@ -11,10 +11,12 @@
 
 #include <SPrerequisites.h>
 #include <string>
+#include <vector>
 
 SP_NMSPACE_BEG
 
 using std::string;
+using std::vector;
 
 struct S_API IGameEngine;
 struct S_API IVertexBuffer;
@@ -81,6 +83,10 @@ public:
 	// Warning: The parameter of for each Handle() points to a ptr of ITexture which is destroyed
 	// after Handle() returns.
 	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler) = 0;
+
+	// Returns a list of short description for each texture.
+	// E.g. "grassland_n (res\\textures\\grassland_n.png)"
+	virtual void ListTextures(vector<string>& list) const = 0;
 };
 
 

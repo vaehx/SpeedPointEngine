@@ -201,13 +201,9 @@ S_API void MaterialManager::RemoveMaterial(IMaterial** ppMat)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API void MaterialManager::LogAllMaterials()
+S_API void MaterialManager::ListMaterials(vector<string>& list) const
 {
-	if (m_Materials.GetUsedObjectCount() == 0)
-	{
-		CLog::Log(S_DEBUG, "No materials");		
-	}
-	else
+	if (m_Materials.GetUsedObjectCount() > 0)
 	{
 		unsigned int iterator;
 		Material* pMat = m_Materials.GetFirstUsedObject(iterator);
@@ -216,7 +212,7 @@ S_API void MaterialManager::LogAllMaterials()
 			if (!IS_VALID_PTR(pMat))
 				break;
 
-			CLog::Log(S_DEBUG, "Mat '%s': index=%u", pMat->GetName(), iterator);
+			list.push_back(pMat->GetName());
 
 			pMat = m_Materials.GetNextUsedObject(iterator);
 		}

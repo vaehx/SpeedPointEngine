@@ -284,6 +284,28 @@ S_API SResult DirectX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* 
 	return S_SUCCESS;
 }
 
+// **********************************************************************************
+
+S_API void DirectX11ResourcePool::ListTextures(vector<string>& list) const
+{
+	auto pChunks = m_plTextures.GetChunks();
+	unsigned int nChunks = m_plTextures.GetChunkCount();
+	for (unsigned int iChnk = 0; iChnk < nChunks; ++iChnk)
+	{
+		auto pChnk = pChunks[iChnk];
+		if (pChnk->nUsedSlots == 0) continue;
+
+		for (unsigned int iSlot = 0; iSlot < pChnk->nSlots; ++iSlot)
+		{
+			ChunkSlot<DirectX11Texture>* pSlot = &pChnk->pSlots[iSlot];
+			if (!pSlot->bUsed) continue;
+
+			ITexture* pTex = (ITexture*)&pSlot->instance;
+			list.push_back(pTex->GetSpecification());
+		}
+	}
+}
+
 
 
 // **************************************************************************

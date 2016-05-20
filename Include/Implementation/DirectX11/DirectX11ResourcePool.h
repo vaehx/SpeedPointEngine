@@ -63,6 +63,7 @@ public:
 
 	virtual SResult RemoveTexture(ITexture** pTex);
 	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);
+	virtual void ListTextures(vector<string>& list) const;
 };
 
 

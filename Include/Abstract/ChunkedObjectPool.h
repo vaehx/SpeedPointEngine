@@ -82,7 +82,7 @@ public:
 	// objindex is set to the index of the first object
 	// Returns:
 	//	0 if no object is in the pool, pointer to the instance of the first used object otherwise
-	T* GetFirstUsedObject(unsigned int& objindex)
+	T* GetFirstUsedObject(unsigned int& objindex) const
 	{
 		if (!chunks || num_chunks == 0 || num_used_objects == 0)
 			return 0;
@@ -102,7 +102,7 @@ public:
 
 	// Summary:
 	//	Returns a used object with object index > objindex. 0 if no more used object
-	T* GetNextUsedObject(unsigned int& objindex)
+	T* GetNextUsedObject(unsigned int& objindex) const
 	{
 		if (!chunks || num_chunks == 0 || num_used_objects == 0)
 			return 0;
