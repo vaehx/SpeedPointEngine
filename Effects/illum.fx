@@ -9,12 +9,12 @@
 cbuffer SceneCB : register(b0)
 {    
     float4x4 mtxViewProj;    
+    float4x4 mtxTransform;
     float4 sunPos;
     float4 eyePos;
 }
 cbuffer ObjectCB : register(b1)
 {
-    float4x4 mtxWorld;
     float matAmbience;
     float3 matEmissive;
 }
@@ -64,7 +64,7 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
     float4x4 mtxWorldInv = transpose(mtxWorld);
 
     // Convert Position from Object into World-, Camera- and Projection Space
-    float4 wPos = mul(mtxWorld, float4(IN.Position,1.0f));
+    float4 wPos = mul(mtxTransform, float4(IN.Position,1.0f));
     OUT.WorldPos = wPos.xyz;
         
     OUT.Position = mul(mtxViewProj, wPos);

@@ -28,6 +28,11 @@ public:
 	virtual void Clear();
 
 	virtual void Update();
+
+	ID3D11Buffer* GetBuffer() const
+	{
+		return m_pBuffer;
+	}
 };
 
 SP_NMSPACE_END

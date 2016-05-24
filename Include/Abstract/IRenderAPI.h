@@ -25,7 +25,7 @@ SP_NMSPACE_BEG
 //   only use SMatrix4 or SVector4 (=float4) data types in here. Otherwise, make shure
 //   to add proper padding bytes.
 
-struct S_API SObjectConstantsBuffer
+struct S_API SSceneConstants
 {
 
 	// mtxView and mtxProjection could also be in a separate CB, but we want to
@@ -33,14 +33,14 @@ struct S_API SObjectConstantsBuffer
 	// per scene.
 
 	SMatrix4 mtxViewProj;	// 16 * 4 Byte
-
+	
 	// Pos used instead of Dir, to avoid struggling around with angles when calculating
 	// sun traveling due to TOD.   sun dir = normalize(-sunPosition)
 	float4 sunPosition;		// 4 * 4 Byte
 
 	float4 eyePosition;		// 4 * 4 Byte
 
-	SObjectConstantsBuffer& operator = (const SObjectConstantsBuffer& b)
+	SSceneConstants& operator = (const SSceneConstants& b)
 	{
 		mtxViewProj = b.mtxViewProj;
 		sunPosition = b.sunPosition;
@@ -49,36 +49,14 @@ struct S_API SObjectConstantsBuffer
 	}
 };
 
-
-struct S_API SMaterialConstantsBuffer
-{
-	SMatrix4 mtxTransform;	// 4*4 *4 = 4 * 16 Byte
-	float matAmbient;		// 4 Byte
-	float3 matEmissive;		// 3 * 4 = 12 Byte
-
-	SMaterialConstantsBuffer()
-		: matAmbient(0.1f),
-		matEmissive(0,0,0)
-	{
-	}
-
-	SMaterialConstantsBuffer& operator = (const SMaterialConstantsBuffer& b)
-	{
-		mtxTransform = b.mtxTransform;
-		matAmbient = b.matAmbient;
-		matEmissive = b.matEmissive;
-		return *this;
-	}
-};
-
-struct S_API STerrainConstantBuffer
+struct S_API STerrainConstants
 {
 	float fTerrainDMFadeRadius;		// 4 Byte
 	float fTerrainMaxHeight;		// 4 Byte
 	unsigned int vtxHeightMapSz;	// 4 Byte
 	float segmentSize;				// 4 Byte
 
-	STerrainConstantBuffer& operator = (const STerrainConstantBuffer& b)
+	STerrainConstants& operator = (const STerrainConstants& b)
 	{
 		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;
 		fTerrainMaxHeight = b.fTerrainMaxHeight;
@@ -200,8 +178,8 @@ struct S_API IRenderAPI
 	ILINE virtual SResult SetVertexBuffer(unsigned int slot, IVertexBuffer* pVB) = 0;
 	ILINE virtual SResult SetIndexBuffer(unsigned int slot, IIndexBuffer* pIB) = 0;	
 
-	ILINE virtual SResult UpdateMaterialConstantsBuffer(SMaterialConstantsBuffer* pCB) = 0;
-	ILINE virtual SResult UpdateObjectConstantsBuffer(SObjectConstantsBuffer* pCB) = 0;	
+	ILINE virtual SResult UpdateMaterialConstantsBuffer(SMaterialConstants* pCB) = 0;
+	ILINE virtual SResult UpdateObjectConstantsBuffer(SObjectConstants* pCB) = 0;	
 	
 	ILINE virtual SResult Draw(const SDrawCallDesc& dcd) = 0;
 };

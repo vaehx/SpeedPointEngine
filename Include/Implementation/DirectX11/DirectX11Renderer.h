@@ -16,6 +16,7 @@
 #include "DirectX11FBO.h"
 #include "DirectX11Shader.h"
 #include "DirectX11Texture.h"
+#include "DX11ConstantsBuffer.h"
 #include <Util\SQueue.h>
 #include <Abstract\ChunkedObjectPool.h>
 
@@ -131,9 +132,8 @@ private:
 	//ID3D11Buffer* m_pIllumCB;
 	//ID3D11Buffer* m_pHelperCB;
 
-	IConstantsBuffer<SObjectConstantsBuffer>* m_pObjectConstants;
-
-	ID3D11Buffer* m_pTerrainCB;	// instance of STerrainConstantBuffer stored in Terrain Render Desc	
+	DX11ConstantsBuffer<SSceneConstants> m_SceneConstants;
+	DX11ConstantsBuffer<STerrainConstants> m_TerrainConstants;	
 	
 	ID3D11Buffer* m_pBoundCB; // Bound per-object CB, scene cb is assumed to be always bound
 
@@ -171,6 +171,8 @@ private:
 	DirectX11Effect m_DLZPassEffect;
 	DirectX11Effect m_DLLightEffect;
 	DirectX11Effect m_DLCompositeEffect;*/
+
+	DirectX11Shader m_TerrainShader;
 
 	IShaderPass* m_Passes[NUM_SHADERPASS_TYPES];
 	EShaderPassType m_CurrentPass;
@@ -351,12 +353,16 @@ public:
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0);
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
 
+	virtual ITexture* GetDummyTexture() const;
+
 	// Description:
 	//	creates an additional swap chain for the same window as the default viewport
 	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc);	
 
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
+
+	virtual IShader* CreateShader() const;
 
 	virtual void BindShaderPass(EShaderPassType type);
 	virtual IShaderPass* GetCurrentShaderPass() const;
@@ -381,9 +387,12 @@ public:
 
 
 	template<typename T>
-	virtual IConstantsBuffer<T>* CreateConstantsBuffer() const = 0;
+	virtual IConstantsBuffer<T>* CreateConstantsBuffer() const;
 
-	virtual IConstantsBuffer<SObjectConstantsBuffer>* GetObjectConstants() const = 0;
+	template<typename T>
+	virtual void BindConstantsBuffer(const IConstantsBuffer<T>* cb, bool vs = false);
+
+	virtual SSceneConstants* GetSceneConstants() const;
 
 
 
@@ -441,7 +450,7 @@ protected:
 	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj);	
 
 	// Returns false if setting shader resources failed and the object should not be rendered.
-	virtual bool SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMat);	
+	virtual bool SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMat);
 };
 
 

@@ -38,18 +38,13 @@ namespace SpeedPoint
 	enum EShaderFileType
 	{
 		eSHADERFILE_SKYBOX,
-
-		eSHADERFILE_FORWARD,	// Standard forward effect
+		
 		eSHADERFILE_HELPER,	// Forward helper effect
 		eSHADERFILE_FONT,	// forward font effect
 
 		eSHADERFILE_ZPASS,	// ZPass for Deferred Shading
 		eSHADERFILE_DEFERRED_SHADING,	// shading pass for Deferred Shading
-		eSHADERFILE_TERRAIN,	// Deferred Shading Terrain
-
-		eSHADERFILE_DL_ZPASS, // ZPass for Deferred Lighting
-		eSHADERFILE_DL_LIGHT, // Light-Accumulation pass for Deferred Lighting
-		eSHADERFILE_DL_COMPOSITE, // Composite pass for Deferred Lighting		
+		eSHADERFILE_TERRAIN,	// Deferred Shading Terrain	
 	};
 
 

@@ -276,15 +276,41 @@ S_API SResult DirectX11Shader::Bind()
 
 
 
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				Helper Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 S_API SResult HelperShaderPass::Initialize(IRenderer* pRenderer)
 {
 	Clear();
+	m_pRenderer = pRenderer;
 
+	// Create shader
+	SShaderInfo shaderInfo;
+	shaderInfo.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_HELPER);
+	shaderInfo.entry = "helper";	
+	shaderInfo.vertexType = eSHADERVERTEX_SIMPLE;
 
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(pRenderer, shaderInfo);
+
+	// Create CB
+	m_pConstants = m_pRenderer->CreateConstantsBuffer<SHelperConstants>();
+
+	return S_SUCCESS;
 }
 
 S_API void HelperShaderPass::Clear()
 {
+	delete m_pConstants;
+	m_pConstants = 0;
+
+	delete m_pShader;
+	m_pShader = 0;
+
+	m_pRenderer = 0;
 }
 
 S_API SResult HelperShaderPass::Bind()
@@ -292,16 +318,25 @@ S_API SResult HelperShaderPass::Bind()
 	if (!IS_VALID_PTR(m_pRenderer))
 		return S_NOTINITED;
 
-	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
-}
+	m_pShader->Bind();
 
-S_API void HelperShaderPass::SetShaderResources(const SShaderResources* pShaderResources)
-{
+	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
+
 	m_pRenderer->BindTexture((ITexture*)0, 0);
 	m_pRenderer->BindTexture((ITexture*)0, 1);
 
-	m_pHelperConstants->color = shaderResources.diffuse;
-	m_pHelperConstants->mtxTransform = worldMat;
+	m_pRenderer->BindConstantsBuffer(m_pConstants);
+
+	return S_SUCCESS;
+}
+
+S_API void HelperShaderPass::SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& transform)
+{
+	SHelperConstants* constants = m_pConstants->GetConstants();
+	constants->mtxTransform = transform;
+	constants->color = shaderResources.diffuse;
+
+	m_pConstants->Update();
 }
 
 
@@ -309,7 +344,12 @@ S_API void HelperShaderPass::SetShaderResources(const SShaderResources* pShaderR
 
 
 
-// -------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				GBuffer Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 {
 	Clear();
@@ -326,6 +366,17 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 		if (i == 0)
 			m_pGBuffer[i]->InitializeDSV();
 	}
+
+	SShaderInfo si;
+	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_ZPASS);
+	si.entry = "zpass";
+
+	m_pShader = pRenderer->CreateShader();
+	m_pShader->Load(pRenderer, si);
+
+	m_pConstants = pRenderer->CreateConstantsBuffer<SGBufferPassConstants>();
+
+	return S_SUCCESS;
 }
 
 S_API void GBufferShaderPass::Clear()
@@ -334,6 +385,14 @@ S_API void GBufferShaderPass::Clear()
 		delete m_pGBuffer[i];
 
 	m_pGBuffer.clear();
+
+	delete m_pConstants;
+	m_pConstants = 0;
+
+	delete m_pShader;
+	m_pShader = 0;
+
+	m_pRenderer = 0;
 }
 
 S_API SResult GBufferShaderPass::Bind()
@@ -341,16 +400,43 @@ S_API SResult GBufferShaderPass::Bind()
 	if (!IS_VALID_PTR(m_pRenderer))
 		return S_NOTINITED;
 
+	m_pShader->Bind();
+
 	m_pRenderer->BindRTCollection(m_pGBuffer, m_pGBuffer[0], "GBufferShaderPass");
+	m_pRenderer->BindConstantsBuffer(m_pConstants);
+
+	return S_SUCCESS;
+}
+
+S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+{
+	m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
+
+	// Bind textures
+	ITexture* pTextureMap = IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture();
+	ITexture* pNormalMap = IS_VALID_PTR(sr.normalMap) ? sr.normalMap : m_pRenderer->GetDummyTexture();
+
+	m_pRenderer->BindTexture(pTextureMap, 0);
+	m_pRenderer->BindTexture(pNormalMap, 1);
+
+
+
+	// Set constants
+	SGBufferPassConstants* constants = m_pConstants->GetConstants();
+
+
+	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)
+	
 	
 		
-	// TODO: Setup render settings like depth enabling etc..
-
-	// TODO: Add IShaderPass::SetShaderResources(SRenderDesc
-
-
+	constants->mtxTransform = transform;
+	constants->matEmissive = sr.emissive;
+	constants->matAmbient = 0.1f;
 
 
+
+
+	m_pConstants->Update();	
 }
 
 S_API const vector<IFBO*>& GBufferShaderPass::GetGBuffer() const
@@ -358,31 +444,78 @@ S_API const vector<IFBO*>& GBufferShaderPass::GetGBuffer() const
 	return m_pGBuffer;
 }
 
-// -------------------------------------------------------------------------
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				Deferred Shading (Illumination) Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 {
 	m_pRenderer = pRenderer;
 
-	// Use the target viewport as the output
-	pRenderer->BindSingleRT(pRenderer->GetTargetViewport());
+	SShaderInfo si;
+	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_DEFERRED_SHADING);
+	si.entry = "illum";
+	si.vertexType = eSHADERVERTEX_SIMPLE;
 
-	// Use
-	const vector<IFBO*>& gbuffer = m_pGBufferPass->GetGBuffer();
-	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
-		pRenderer->BindTexture(gbuffer[i], i);
+	m_pShader = pRenderer->CreateShader();
+	m_pShader->Load(pRenderer, si);
+
+	m_pConstants = pRenderer->CreateConstantsBuffer<SShadingPassConstants>();
+
+	return S_SUCCESS;
 }
 
 S_API void ShadingShaderPass::Clear()
 {
+	delete m_pConstants;
+	m_pConstants = 0;
 
+	delete m_pShader;
+	m_pShader = 0;
+
+	m_pGBufferPass = 0;
+	m_pShadowmapPass = 0;
+	m_pRenderer = 0;
 }
 
 S_API SResult ShadingShaderPass::Bind()
 {
+	m_pShader->Bind();
 
+	// Use the target viewport as the output
+	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
+
+	const vector<IFBO*>& gbuffer = m_pGBufferPass->GetGBuffer();
+	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
+		m_pRenderer->BindTexture(gbuffer[i], i);
+
+	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------------
+S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform)
+{
+	// transform should be the transformation matrix of the light volume
+	SShadingPassConstants* constants = m_pConstants->GetConstants();
+	constants->mtxTransform = transform;
+
+	m_pConstants->Update();
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				Shadowmap Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
 {
 
@@ -398,7 +531,15 @@ S_API SResult ShadowmapShaderPass::Bind()
 
 }
 
-// -------------------------------------------------------------------------
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				Posteffect Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 S_API SResult PosteffectShaderPass::Initialize(IRenderer* pRenderer)
 {
 

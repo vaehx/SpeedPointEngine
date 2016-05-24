@@ -11,6 +11,7 @@
 
 #include <SPrerequisites.h>
 #include <string>
+#include "Matrix.h"
 
 using std::string;
 
@@ -61,9 +62,15 @@ struct S_API IShader
 
 
 
+struct S_API SObjectConstants
+{
+	SMatrix4 mtxTransform;	// 16 * 4 Byte
+};
+
 enum S_API EShaderPassType
 {
-	eSHADERPASS_GBUFFER = 0,
+	eSHADERPASS_HELPER = 0,
+	eSHADERPASS_GBUFFER,
 	eSHADERPASS_SHADING,
 	eSHADERPASS_SHADOWMAP,
 	eSHADERPASS_POSTEFFECT
@@ -80,7 +87,7 @@ struct S_API IShaderPass
 	virtual SResult Initialize(IRenderer* pRenderer) = 0;
 	virtual void Clear() = 0;
 	virtual SResult Bind() = 0;
-	virtual void SetShaderResources(const SShaderResources* pShaderResources);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
 };
 
 SP_NMSPACE_END

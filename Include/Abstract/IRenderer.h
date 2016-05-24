@@ -256,7 +256,7 @@ struct S_API STerrainRenderDesc
 	ITexture** pDetailMaps; // numLayers
 	unsigned int nLayers;
 
-	STerrainConstantBuffer constants;	
+	STerrainConstants constants;	
 	bool bUpdateCB;
 	bool bRender;
 
@@ -440,7 +440,9 @@ public:
 	//	Pass nullptr as pTex to empty this texture level
 	virtual SResult BindVertexShaderTexture(ITexture* pTex, usint32 lvl = 0) = 0;
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0) = 0;
-	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;		
+	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;
+	
+	virtual ITexture* GetDummyTexture() const = 0;
 	
 
 	// Clearout everything (viewports, buffers, stop render Pipeline thread and task buffer)
@@ -448,6 +450,8 @@ public:
 
 	// Check if this Renderer is initialized properly
 	virtual bool IsInited( void ) = 0;	
+
+	virtual IShader* CreateShader() const = 0;
 
 	virtual void BindShaderPass(EShaderPassType type) = 0;
 	virtual IShaderPass* GetCurrentShaderPass() const = 0;
@@ -476,10 +480,11 @@ public:
 	template<typename T>
 	virtual IConstantsBuffer<T>* CreateConstantsBuffer() const = 0;
 
+	// vs - set to true to bind the CB to vertex shader too. If false, any bound CB to VS is unbound.
 	template<typename T>
-	virtual void BindContantsBuffer(const IConstantsBuffer<T>* cb) = 0;
+	virtual void BindConstantsBuffer(const IConstantsBuffer<T>* cb, bool vs = false) = 0;
 
-	virtual IConstantsBuffer<SObjectConstantsBuffer>* GetObjectConstants() const = 0;
+	virtual SSceneConstants* GetSceneConstants() const = 0;
 
 
 	// Summary:

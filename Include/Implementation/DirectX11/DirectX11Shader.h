@@ -13,12 +13,16 @@
 #include "DirectX11.h"
 #include <Abstract\IShader.h>
 #include <Abstract\IConstantsBuffer.h>
+#include <vector>
+
+using std::vector;
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 class S_API DirectX11Renderer;
 struct S_API IRenderer;
+struct S_API IFBO;
 
 // DX11 implementation of a shader (PS + VS)
 class S_API DirectX11Shader : public IShader
@@ -44,21 +48,23 @@ public:
 
 
 
-// TODO: GET THIS OUT OF THE DIRECTX11 IMPLEMENTATION AND MOVE IT INTO A MORE GENERAL RENDERER
+// TODO: GET THIS OUT OF THE DIRECTX11 IMPLEMENTATION PROJECT AND MOVE IT INTO A MORE GENERAL RENDERER
 
+///////////////////////////////////////////////////////////////////////////////////
 class S_API HelperShaderPass : public IShaderPass
 {
 public:
-	struct SHelperConstants
+	struct SHelperConstants : SObjectConstants
 	{
-		SMatrix4 mtxTransform;	// 16 * 4 Byte
 		float3 color;			// 3 * 4 Byte
 
 		float struct_padding;	// 4 Byte
 	};
 
 	HelperShaderPass()
-		: m_pRenderer(0)
+		: m_pRenderer(0),
+		m_pShader(0),
+		m_pConstants(0)
 	{
 	}
 
@@ -71,15 +77,25 @@ public:
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual void Clear();
 	virtual SResult Bind();
-	virtual void SetShaderResources(const SShaderResources* pShaderResources);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
 
 private:
 	IRenderer* m_pRenderer;
+	IShader* m_pShader;
 	IConstantsBuffer<HelperShaderPass::SHelperConstants>* m_pConstants;
 };
 
+
+///////////////////////////////////////////////////////////////////////////////////
 class S_API GBufferShaderPass : public IShaderPass
 {
+public:
+	struct SGBufferPassConstants : SObjectConstants
+	{
+		float matAmbient;		// 4 Byte
+		float3 matEmissive;		// 3 * 4 = 12 Byte
+	};
+
 private:
 	/*
 	
@@ -91,13 +107,17 @@ private:
 
 	*/
 #define NUM_GBUFFER_LAYERS 2
-	vector<IFBO*> m_pGBuffer;	
+	vector<IFBO*> m_pGBuffer;
 
+	IShader* m_pShader;
+	IConstantsBuffer<SGBufferPassConstants>* m_pConstants;
 	IRenderer* m_pRenderer;
 
 public:
 	GBufferShaderPass()
-		: m_pRenderer(0)
+		: m_pRenderer(0),
+		m_pConstants(0),
+		m_pShader(0)
 	{
 	}
 
@@ -113,8 +133,11 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
 };
 
+
+///////////////////////////////////////////////////////////////////////////////////
 class S_API ShadowmapShaderPass : public IShaderPass
 {
 public:
@@ -130,17 +153,26 @@ public:
 	virtual SResult Bind();
 };
 
+///////////////////////////////////////////////////////////////////////////////////
 class S_API ShadingShaderPass : public IShaderPass
 {
+public:
+	struct SShadingPassConstants : SObjectConstants
+	{
+	};
+
 private:
 	GBufferShaderPass* m_pGBufferPass;
 	ShadowmapShaderPass* m_pShadowmapPass;
 	IRenderer* m_pRenderer;
+	IShader* m_pShader;
+	IConstantsBuffer<SShadingPassConstants>* m_pConstants;
 
 public:
 	ShadingShaderPass(GBufferShaderPass* pGBufferPass, ShadowmapShaderPass* pShadowmapPass)
 		: m_pGBufferPass(pGBufferPass),
-		m_pShadowmapPass(pShadowmapPass)
+		m_pShadowmapPass(pShadowmapPass),
+		m_pRenderer(0)
 	{
 	}
 
@@ -153,9 +185,10 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
 };
 
-
+///////////////////////////////////////////////////////////////////////////////////
 class S_API PosteffectShaderPass : public IShaderPass
 {
 public:

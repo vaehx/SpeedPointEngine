@@ -210,6 +210,26 @@ S_API SRenderObject* C3DEngine::GetCustomRenderObject()
 
 S_API void C3DEngine::RenderCollected()
 {
+
+
+
+
+
+
+
+
+
+	//TODO:   IMPLEMENT NEW SHADER PASS BASED RENDERING HERE !
+
+
+
+
+
+
+
+
+
+
 	unsigned int budgetTimer = m_pEngine->StartBudgetTimer("C3DEngine::RenderCollected()");
 	{
 

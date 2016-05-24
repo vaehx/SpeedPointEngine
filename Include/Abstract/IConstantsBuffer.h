@@ -23,7 +23,7 @@ public:
 	// Uploads the updated constants
 	virtual void Update() = 0;
 
-	virtual T* GetConstants()
+	virtual T* GetConstants() const
 	{
 		return &m_Constants;
 	}
