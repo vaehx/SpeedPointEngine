@@ -16,7 +16,8 @@ using std::string;
 
 SP_NMSPACE_BEG
 
-struct S_API IGameEngine;
+struct S_API IRenderer;
+struct S_API SShaderResources;
 
 // The type of Vertex structure to use as input for a shader/effect
 enum S_API EShaderVertexType
@@ -78,8 +79,8 @@ struct S_API IShaderPass
 
 	virtual SResult Initialize(IRenderer* pRenderer) = 0;
 	virtual void Clear() = 0;
-
-	virtual SResult Bind() = 0;	
+	virtual SResult Bind() = 0;
+	virtual void SetShaderResources(const SShaderResources* pShaderResources);
 };
 
 SP_NMSPACE_END

@@ -78,6 +78,7 @@
     <ClInclude Include="..\..\Include\Abstract\ChunkPool.h" />
     <ClInclude Include="..\..\Include\Abstract\CLog.h" />
     <ClInclude Include="..\..\Include\Abstract\I3DEngine.h" />
+    <ClInclude Include="..\..\Include\Abstract\IConstantsBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IDynamicsPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IAI.h" />
     <ClInclude Include="..\..\Include\Abstract\IAnimationBundle.h" />

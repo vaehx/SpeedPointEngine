@@ -15,6 +15,7 @@
 #include "IGameEngine.h"
 #include "IFont.h" // for FontSize
 #include "IRenderAPI.h"
+#include "IShader.h"
 
 using std::vector;
 
@@ -31,6 +32,7 @@ enum S_API EFrontFace;
 struct S_API IResourcePool;
 struct S_API IVisibleObject;
 struct S_API SRenderSettings;
+template<typename T> struct S_API IConstantsBuffer;
 
 
 
@@ -447,6 +449,9 @@ public:
 	// Check if this Renderer is initialized properly
 	virtual bool IsInited( void ) = 0;	
 
+	virtual void BindShaderPass(EShaderPassType type) = 0;
+	virtual IShaderPass* GetCurrentShaderPass() const = 0;
+
 	virtual SResult BeginScene(void) = 0;
 	virtual SResult EndScene(void) = 0;
 
@@ -467,6 +472,14 @@ public:
 	virtual SResult UpdatePolygonType(S_PRIMITIVE_TYPE type) = 0;
 	virtual void EnableWireframe(bool state = true) = 0;
 	virtual void EnableDepthTest(bool state = true) = 0;
+
+	template<typename T>
+	virtual IConstantsBuffer<T>* CreateConstantsBuffer() const = 0;
+
+	template<typename T>
+	virtual void BindContantsBuffer(const IConstantsBuffer<T>* cb) = 0;
+
+	virtual IConstantsBuffer<SObjectConstantsBuffer>* GetObjectConstants() const = 0;
 
 
 	// Summary:

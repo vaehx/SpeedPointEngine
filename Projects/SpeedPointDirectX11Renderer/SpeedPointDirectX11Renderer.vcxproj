@@ -26,6 +26,7 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11VertexBuffer.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Viewport.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DX11ConstantsBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp" />
@@ -39,6 +40,7 @@
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Texture.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11VertexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DX11ConstantsBuffer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}</ProjectGuid>

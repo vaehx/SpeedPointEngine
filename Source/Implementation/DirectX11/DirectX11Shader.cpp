@@ -276,6 +276,36 @@ S_API SResult DirectX11Shader::Bind()
 
 
 
+S_API SResult HelperShaderPass::Initialize(IRenderer* pRenderer)
+{
+	Clear();
+
+
+}
+
+S_API void HelperShaderPass::Clear()
+{
+}
+
+S_API SResult HelperShaderPass::Bind()
+{
+	if (!IS_VALID_PTR(m_pRenderer))
+		return S_NOTINITED;
+
+	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
+}
+
+S_API void HelperShaderPass::SetShaderResources(const SShaderResources* pShaderResources)
+{
+	m_pRenderer->BindTexture((ITexture*)0, 0);
+	m_pRenderer->BindTexture((ITexture*)0, 1);
+
+	m_pHelperConstants->color = shaderResources.diffuse;
+	m_pHelperConstants->mtxTransform = worldMat;
+}
+
+
+
 
 
 
@@ -312,8 +342,6 @@ S_API SResult GBufferShaderPass::Bind()
 		return S_NOTINITED;
 
 	m_pRenderer->BindRTCollection(m_pGBuffer, m_pGBuffer[0], "GBufferShaderPass");
-
-
 	
 		
 	// TODO: Setup render settings like depth enabling etc..

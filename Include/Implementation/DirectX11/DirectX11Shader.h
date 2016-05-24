@@ -10,8 +10,9 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include <Abstract\IShader.h>
 #include "DirectX11.h"
+#include <Abstract\IShader.h>
+#include <Abstract\IConstantsBuffer.h>
 
 SP_NMSPACE_BEG
 
@@ -45,6 +46,38 @@ public:
 
 // TODO: GET THIS OUT OF THE DIRECTX11 IMPLEMENTATION AND MOVE IT INTO A MORE GENERAL RENDERER
 
+class S_API HelperShaderPass : public IShaderPass
+{
+public:
+	struct SHelperConstants
+	{
+		SMatrix4 mtxTransform;	// 16 * 4 Byte
+		float3 color;			// 3 * 4 Byte
+
+		float struct_padding;	// 4 Byte
+	};
+
+	HelperShaderPass()
+		: m_pRenderer(0)
+	{
+	}
+
+	virtual ~HelperShaderPass()
+	{
+		Clear();
+	}	
+
+	// IShaderPass:
+	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void Clear();
+	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources* pShaderResources);
+
+private:
+	IRenderer* m_pRenderer;
+	IConstantsBuffer<HelperShaderPass::SHelperConstants>* m_pConstants;
+};
+
 class S_API GBufferShaderPass : public IShaderPass
 {
 private:
@@ -73,12 +106,13 @@ public:
 		Clear();
 	}
 
+	const vector<IFBO*>& GetGBuffer() const;
+
+	// IShaderPass:
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual void Clear();
 
 	virtual SResult Bind();
-
-	const vector<IFBO*>& GetGBuffer() const;
 };
 
 class S_API ShadowmapShaderPass : public IShaderPass

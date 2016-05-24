@@ -107,9 +107,8 @@ private:
 	IDXGIAdapter1* m_pAutoSelectedAdapter;	// dont release this. it will be released in m_vAdapters! possibly use shared_ptr
 
 	bool m_bFullscreen;
-		
-	//IRenderPipeline* m_pRenderPipeline;
-		
+
+
 	DirectX11Viewport m_Viewport;	// Default Viewport?
 	IViewport* m_pTargetViewport;
 
@@ -123,16 +122,18 @@ private:
 	D3D11_DEPTH_STENCIL_DESC m_terrainDepthDesc;
 	ID3D11DepthStencilState* m_pTerrainDepthState;
 	
-	// Todo: Do not store CBs in Renderer, but in the objects itself	--> (2.7.2015) Really?
-	SMaterialConstantsBuffer* m_pMaterialConstants;
-	SHelperConstantBuffer* m_pHelperConstants;
-	ID3D11Buffer* m_pIllumCB;
-	ID3D11Buffer* m_pHelperCB;
 
-	SObjectConstantsBuffer* m_pObjectConstants;
-	ID3D11Buffer* m_pPerSceneCB;	
-	ID3D11Buffer* m_pTerrainCB;	// instance of STerrainConstantBuffer stored in Terrain Render Desc
-	//bool m_bPerObjectCBBound;
+
+
+
+	//SMaterialConstantsBuffer* m_pMaterialConstants;
+	//SHelperConstantBuffer* m_pHelperConstants;
+	//ID3D11Buffer* m_pIllumCB;
+	//ID3D11Buffer* m_pHelperCB;
+
+	IConstantsBuffer<SObjectConstantsBuffer>* m_pObjectConstants;
+
+	ID3D11Buffer* m_pTerrainCB;	// instance of STerrainConstantBuffer stored in Terrain Render Desc	
 	
 	ID3D11Buffer* m_pBoundCB; // Bound per-object CB, scene cb is assumed to be always bound
 
@@ -172,6 +173,7 @@ private:
 	DirectX11Effect m_DLCompositeEffect;*/
 
 	IShaderPass* m_Passes[NUM_SHADERPASS_TYPES];
+	EShaderPassType m_CurrentPass;
 
 	bool m_bInScene;
 
@@ -207,8 +209,7 @@ private:
 	void SetSamplerState(ETextureSampling sampling);
 
 	SResult DrawTerrainSubset(const STerrainDrawCallDesc& dcd);
-
-	SResult DrawForwardSubsets(const SRenderDesc& renderDesc);
+	SResult DrawSubsets(const SRenderDesc& renderDesc);
 
 	void SetEyePosition(const Vec3f& eyePos);
 	void SetDepthTestFunction(EDepthTestFunction depthTestFunc);
@@ -288,9 +289,6 @@ public:
 	SResult D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB);
 	SResult InitConstantBuffers();
 
-	// Arguments:
-	//	pTerrainCB - only required if cb == CONSTANTBUFFER_TERRAIN
-	SResult UpdateConstantBuffer(EConstantBufferType cb, const STerrainConstantBuffer* pTerrainCB = nullptr);
 
 	// Draw all things schedule in the render schedule
 	SResult UnleashRenderSchedule();
@@ -360,7 +358,8 @@ public:
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
 
-	virtual SResult BindShaderPass(EShaderPassType type);
+	virtual void BindShaderPass(EShaderPassType type);
+	virtual IShaderPass* GetCurrentShaderPass() const;
 
 	virtual SResult Render(const SRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
@@ -380,6 +379,11 @@ public:
 	virtual IViewport* GetDefaultViewport(void);	
 
 
+
+	template<typename T>
+	virtual IConstantsBuffer<T>* CreateConstantsBuffer() const = 0;
+
+	virtual IConstantsBuffer<SObjectConstantsBuffer>* GetObjectConstants() const = 0;
 
 
 

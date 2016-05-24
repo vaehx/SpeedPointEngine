@@ -49,13 +49,6 @@ struct S_API SObjectConstantsBuffer
 	}
 };
 
-struct S_API SHelperConstantBuffer
-{
-	SMatrix4 mtxTransform;	// 16 * 4 Byte
-	float3 color;			// 3 * 4 Byte
-
-	float struct_padding;	// 4 Byte
-};
 
 struct S_API SMaterialConstantsBuffer
 {

@@ -208,5 +208,8 @@
     <ClInclude Include="..\..\Include\Abstract\ISettings.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IConstantsBuffer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

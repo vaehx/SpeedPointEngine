@@ -17,6 +17,7 @@
 #include <Implementation\DirectX11\DirectX11Texture.h>
 #include <Implementation\DirectX11\DirectX11FBO.h>
 #include <Implementation\DirectX11\DirectX11Font.h>
+#include <Implementation\DirectX11\DX11ConstantsBuffer.h>
 #include <Util\SVertex.h>
 #include <Abstract\ISettings.h>
 //#include <xnamath.h>
@@ -813,6 +814,26 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	return S_SUCCESS;
 }
 
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::BindShaderPass(EShaderPassType type)
+{
+	if (IS_VALID_PTR(m_Passes[type]))
+	{
+		m_Passes[type]->Bind();
+		m_CurrentPass = type;
+	}
+}
+
+
+// --------------------------------------------------------------------
+S_API IShaderPass* DirectX11Renderer::GetCurrentShaderPass() const
+{
+	return m_Passes[m_CurrentPass];
+}
+
+
+
 // --------------------------------------------------------------------
 /*
 S_API SResult DirectX11Renderer::AddRTCollectionFBO(usint32 index, IFBO* pFBO)
@@ -1268,9 +1289,7 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 
-
-	// Set correct depth stencil state
-	// TODO: Get this out of here!
+	// Set correct depth stencil state	
 	EnableDepthTest(renderDesc.bDepthStencilEnable);
 	
 	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
@@ -1278,64 +1297,49 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 
-
-
-
-
-	if (renderDesc.renderPipeline == eRENDER_FORWARD)
+	// Set the viewport matrices
+	if (renderDesc.bCustomViewProjMtx)
 	{
-
-
-
-		// Forward rendering: Rendering directly to backbuffer		
-		//TODO: GET THIS OUT OF HERE, BindSingleRT() IS CALLED IN THE SHADER PASS IMPLEMENTATION OF Bind()!
-		if (Failure(BindSingleRT(m_pTargetViewport)))
-		{
-			return S_ERROR;
-		}
-
-
-
-
-
-
-
-
-
-
-		// Set the viewport matrices
-		if (renderDesc.bCustomViewProjMtx)
-		{
-			FrameDump("Setting custom viewproj mtx");
-			SetViewProjMatrix(renderDesc.viewProjMtx);
-		}
-		else
-		{
-			FrameDump("Setting target viewport viewproj mtx");			
-			SetViewProjMatrix(m_pTargetViewport);
-		}		
-
-		const SVector3& camPos = m_pTargetViewport->GetCamera()->position;
-		SetEyePosition(Vec3f(camPos.x, camPos.y, camPos.z));
-
-		// upload constants
-		UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
-
-		// In case something else was bound to the slot before...
-		m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
-		m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
-
-		// Set correct samplers
-		SetSamplerState(renderDesc.textureSampling);
-
-		// NOW DRAW THE SUBSETS
-		DrawForwardSubsets(renderDesc);
+		FrameDump("Setting custom viewproj mtx");
+		SetViewProjMatrix(renderDesc.viewProjMtx);
 	}
-	else if (renderDesc.renderPipeline == eRENDER_DEFERRED)
+	else
 	{
-		// first, render to gbuffer here. after the loop we'll then render lights and merge into backbuffer
-		// TODO
-	}
+		FrameDump("Setting target viewport viewproj mtx");			
+		SetViewProjMatrix(m_pTargetViewport);
+	}		
+
+	const SVector3& camPos = m_pTargetViewport->GetCamera()->position;
+	SetEyePosition(Vec3f(camPos.x, camPos.y, camPos.z));
+
+	// Upload constants
+	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
+
+
+
+
+
+	// In case something else was bound to the slot before...
+	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+
+
+
+
+
+	// Set correct samplers
+	SetSamplerState(renderDesc.textureSampling);
+
+
+
+
+
+
+	DrawSubsets(renderDesc);
+
+
+
+
 
 	return S_SUCCESS;
 }
@@ -1535,7 +1539,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDesc)
+S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 {	
 	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
 	{
@@ -1869,35 +1873,19 @@ S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::InitConstantBuffers()
 {
+	m_pObjectConstants = new DX11ConstantsBuffer<SObjectConstantsBuffer>();
+	m_pObjectConstants->Initialize(this);
+
+
+
 	// Per-Scene CB
 	m_pObjectConstants = (SObjectConstantsBuffer*)_aligned_malloc(sizeof(SObjectConstantsBuffer), 16);
 
 	if (Failure(D3D11_CreateConstantsBuffer(&m_pPerSceneCB, sizeof(SObjectConstantsBuffer))))
 		return S_ERROR;
 
-	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pPerSceneCB);
+	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &m_pObjectConstants->);
 	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &m_pPerSceneCB);
-
-
-
-	// Material constants:
-	m_pMaterialConstants = (SMaterialConstantsBuffer*)_aligned_malloc(sizeof(SMaterialConstantsBuffer), 16);
-
-	if (Failure(D3D11_CreateConstantsBuffer(&m_pIllumCB, sizeof(SMaterialConstantsBuffer))))
-		return CLog::Log(S_ERROR, "Failed create illum CB!");
-
-	// Helper constants:
-	m_pHelperConstants = (SHelperConstantBuffer*)_aligned_malloc(sizeof(SHelperConstantBuffer), 16);
-
-	if (Failure(D3D11_CreateConstantsBuffer(&m_pHelperCB, sizeof(SHelperConstantBuffer))))
-		return CLog::Log(S_ERROR, "Failed create helper CB!");
-	
-	/*
-	m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &m_pIllumCB);
-	m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &m_pIllumCB);
-	m_bPerObjectCBBound = true;
-	m_pEngine->LogD("Created and set per object CB");
-	*/
 
 
 
@@ -1908,6 +1896,36 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 
 
 	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------
+template<typename T>
+S_API void DirectX11Renderer::BindContantsBuffer(const IConstantsBuffer<T>* cb)
+{
+
+
+
+
+
+
+
+
+
+
+
+
+	// TODO
+
+
+
+
+
+
+
+
+
+
+
 }
 
 // --------------------------------------------------------------------
