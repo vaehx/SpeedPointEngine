@@ -14,7 +14,7 @@
 #include "DirectX11Settings.h"
 #include "DirectX11Viewport.h"
 #include "DirectX11FBO.h"
-#include "DirectX11Effect.h"
+#include "DirectX11Shader.h"
 #include "DirectX11Texture.h"
 #include <Util\SQueue.h>
 #include <Abstract\ChunkedObjectPool.h>
@@ -81,7 +81,7 @@ class S_API DirectX11Renderer : public IRenderer
 {
 private:
 	IGameEngine* m_pEngine;
-	DirectX11Settings m_Settings;	
+	SRenderSettings* m_pSettings;
 
 	IResourcePool* m_pResourcePool;
 
@@ -139,8 +139,7 @@ private:
 
 	// States:	
 	EPrimitiveType m_SetPrimitiveType;
-	
-	EIllumModel m_EnabledIllumModel;
+	EShaderPassType m_EnabledShaderPass;
 
 	// TODO: Eliminate the static 8 there
 	ID3D11ShaderResourceView* m_BoundVSResources[8];
@@ -157,7 +156,7 @@ private:
 	DirectX11FBO m_LightAccumulation;
 
 
-	// The required shaders
+/*	// The required shaders
 
 	DirectX11Effect m_SkyBoxEffect;
 
@@ -170,7 +169,9 @@ private:
 
 	DirectX11Effect m_DLZPassEffect;
 	DirectX11Effect m_DLLightEffect;
-	DirectX11Effect m_DLCompositeEffect;
+	DirectX11Effect m_DLCompositeEffect;*/
+
+	IShaderPass* m_Passes[NUM_SHADERPASS_TYPES];
 
 	bool m_bInScene;
 
@@ -197,7 +198,7 @@ private:
 
 
 
-
+	void InitShaderPasses();
 	void InitBlendStates();
 
 	SResult UpdateRasterizerState();
@@ -329,11 +330,16 @@ public:
 	virtual SResult StoreRTCollection(ERenderTargetCollectionID asId);
 	virtual SResult BindRTCollection(ERenderTargetCollectionID collcetionID);
 	*/
+
+	virtual IFBO* CreateRT() const
+	{
+		return new DirectX11FBO();
+	}
 	
 	virtual SResult BindSingleRT(IFBO* pFBO);
 	virtual SResult BindSingleRT(IViewport* pViewport);
 	
-	virtual SResult BindRTCollection(std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0);
+	virtual SResult BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0);
 
 	virtual IFBO* GetBoundSingleRT();
 
@@ -353,6 +359,8 @@ public:
 
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
+
+	virtual SResult BindShaderPass(EShaderPassType type);
 
 	virtual SResult Render(const SRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
@@ -400,10 +408,7 @@ public:
 
 	virtual SResult UpdateSettings(const SSettingsDesc& dsc);
 
-	virtual IRendererSettings* GetSettings()
-	{		
-		return (IRendererSettings*)&m_Settings;
-	}
+	virtual SRenderSettings* GetSettings() const;
 
 	virtual SResult UpdateCullMode(EFrontFace cullmode);
 	virtual SResult EnableBackfaceCulling(bool state = true);

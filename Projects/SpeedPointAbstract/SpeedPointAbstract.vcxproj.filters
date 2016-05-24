@@ -205,5 +205,8 @@
     <ClInclude Include="..\..\Include\Abstract\Quaternion.h">
       <Filter>Headers\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\ISettings.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -44,9 +44,6 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Effect.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -56,15 +53,15 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Font.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Shader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Effect.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11IndexBuffer.cpp">
@@ -89,6 +86,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Font.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Shader.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

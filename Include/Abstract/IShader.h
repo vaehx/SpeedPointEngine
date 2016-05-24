@@ -10,6 +10,9 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include <string>
+
+using std::string;
 
 SP_NMSPACE_BEG
 
@@ -22,39 +25,61 @@ enum S_API EShaderVertexType
 	eSHADERVERTEX_SIMPLE	// SSimpleVertex
 };
 
-
-// SpeedPoint HLSL Shader Effect (abstract)
-//~~~~~~~~~~~~~~
-// TODO: Refactor this class to IRendererEffect. See implementations also!
-
-
-class S_API IShader
-
-	
-//~~~~~~~~~~~~~~~
+struct S_API SShaderInfo
 {
-public:
+	EShaderVertexType vertexType;
+	string filename;
+	string entry;
+
+	SShaderInfo()
+		: vertexType(eSHADERVERTEX_DEFAULT)
+	{
+	}
+};
+
+
+struct S_API IShader
+{
+	virtual ~IShader()
+	{
+	}
+
 	// Loads the shader from the file and compiles it
 	// It will also select the first available technique as the default
-	virtual SResult Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry, EShaderVertexType vertexType = eSHADERVERTEX_DEFAULT) = 0;
+	virtual SResult Load(IRenderer* pRenderer, const SShaderInfo& info) = 0;	
 
-	// Check if the shader is initialized
-	virtual bool IsInitialized() = 0;
-
-	// Setup the current technique to be used
-	virtual SResult SetTechnique( char* cTechnique ) = 0;
+	virtual void Clear() = 0;
 
 	// Summary:
 	//	 Enable this shader
 	// Description:
 	//	Will set the VS and PS of this effect as currently active ones
-	virtual SResult Enable() = 0;
+	virtual SResult Bind() = 0;
+};
 
-	// Apply this shader to the current state of the render pipeline
-	//virtual SResult ApplyToRenderPipeline( IRenderPipeline* pPipeline ) = 0;	
 
-	// Clearout this shader
-	virtual SResult Clear( void ) = 0;
+
+
+enum S_API EShaderPassType
+{
+	eSHADERPASS_GBUFFER = 0,
+	eSHADERPASS_SHADING,
+	eSHADERPASS_SHADOWMAP,
+	eSHADERPASS_POSTEFFECT
+#define NUM_SHADERPASS_TYPES (eSHADERPASS_POSTEFFECT + 1)
+};
+
+
+struct S_API IShaderPass
+{
+	virtual ~IShaderPass()
+	{		
+	}
+
+	virtual SResult Initialize(IRenderer* pRenderer) = 0;
+	virtual void Clear() = 0;
+
+	virtual SResult Bind() = 0;	
 };
 
 SP_NMSPACE_END

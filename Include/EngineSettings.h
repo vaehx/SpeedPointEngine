@@ -10,6 +10,7 @@
 #include <SPrerequisites.h>
 #include <Util\SColor.h>
 #include <Abstract\IGameEngine.h>
+#include <Abstract\ISettings.h>
 
 SP_NMSPACE_BEG
 
@@ -21,7 +22,7 @@ SP_NMSPACE_BEG
 
 
 // SpeedPoint Engine settings
-class S_API EngineSettings : public IEngineSettings
+class S_API EngineSettings : public ISettings
 {
 private:
 	IGameEngine* m_pGameEngine;

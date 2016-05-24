@@ -112,6 +112,7 @@
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
     <ClInclude Include="..\..\Include\Abstract\IScene.h" />
     <ClInclude Include="..\..\Include\Abstract\IObject.h" />
+    <ClInclude Include="..\..\Include\Abstract\ISettings.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
     <ClInclude Include="..\..\Include\Abstract\IVisible.h" />
     <ClInclude Include="..\..\Include\Abstract\ISound.h" />

@@ -143,7 +143,7 @@ private:
 
 	bool			m_bRunning;		// Is the Game Engine started and initialized?
 	bool			m_bLoggedSkipstages;
-	IEngineSettings*	m_pSettings;		// Main Settings of the Game Engine	
+	ISettings*		m_pSettings;		// Main Settings of the Game Engine	
 
 	EngineComponent<IFramePipeline> m_pFramePipeline;
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
@@ -224,7 +224,7 @@ public:
 		return m_bRunning;
 	}
 
-	ILINE virtual IEngineSettings* GetSettings() const { return m_pSettings; }
+	ILINE virtual ISettings* GetSettings() const { return m_pSettings; }
 	ILINE virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
 	ILINE virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	ILINE virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }

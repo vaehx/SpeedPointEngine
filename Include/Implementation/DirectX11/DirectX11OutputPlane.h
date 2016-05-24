@@ -18,7 +18,7 @@ SP_NMSPACE_BEG
 class S_API DirectX11Renderer;
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
-class S_API DirectX11Effect;
+class S_API DirectX11Shader;
 
 
 

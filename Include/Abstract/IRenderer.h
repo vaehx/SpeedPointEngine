@@ -30,6 +30,7 @@ struct S_API IRendererSettings;
 enum S_API EFrontFace;
 struct S_API IResourcePool;
 struct S_API IVisibleObject;
+struct S_API SRenderSettings;
 
 
 
@@ -411,13 +412,14 @@ public:
 	virtual SResult StoreRTCollection(ERenderTargetCollectionID asId) = 0;
 	*/
 	
-
+	// Factory method to create a new RenderTarget
+	virtual IFBO* CreateRT() const = 0;
 
 	// Summary:
 	//	Binds given collection of render targets.
 	// Arguments:
 	//	depthFBO - The DepthStencil Buffer of this FBO will be bound for rendering
-	virtual SResult BindRTCollection(std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0) = 0;
+	virtual SResult BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0) = 0;
 
 	virtual bool BoundMultipleRTs() const = 0;
 
@@ -457,7 +459,8 @@ public:
 
 	virtual SResult ClearBoundRTs(void) = 0;
 
-	virtual IRendererSettings* GetSettings() = 0;
+	// Returns the SRenderSettings of the engine settings
+	virtual SRenderSettings* GetSettings() const = 0;
 
 	virtual SResult UpdateCullMode(EFrontFace cullmode) = 0;
 	virtual SResult EnableBackfaceCulling(bool state = true) = 0;
@@ -481,40 +484,11 @@ public:
 	// *pFRS is set to 0 ptr after releases
 	virtual void ReleaseFontRenderSlot(SFontRenderSlot** pFRS) = 0;
 
-	virtual SFontRenderSlot* GetFontRenderSlot() = 0;
-
-
-
-	/*
-	// Summary:
-	//	Schedules an object to be rendered using given render desc once.
-	//	Render schedule slot is freed after rendered
-	virtual SResult RenderGeometry(const SRenderDesc& dsc) = 0;
-	*/
-
-	/*
-	// Summary:
-	//	Set up terrain render description that is used when rendering the terrain (immediately
-	//	before unleashing render schedule.
-	//	Render schedule slot is freed after rendered
-	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc) = 0;
-	*/
-
-
-	// Summary:
-	//	Draws the given geometry desc to the GBuffer and its depth buffer
-	virtual SResult DrawDeferred(const SDrawCallDesc& desc) = 0;
-	virtual SResult DrawDeferredLighting() = 0;
-	virtual SResult MergeDeferred() = 0;
+	virtual SFontRenderSlot* GetFontRenderSlot() = 0;	
 
 	// Summary:
 	//	Draws the given geometry desc directly to the back buffer and the depth buffer
 	virtual SResult DrawForward(const SDrawCallDesc& desc) = 0;
-
-
-	// Summary:
-	//	Updates settings of the device if needed and flagged in SettingsDesc mask
-	virtual SResult UpdateSettings(const SSettingsDesc& dsc) = 0;
 
 
 	ILINE virtual void DumpFrameOnce() = 0;

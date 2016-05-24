@@ -58,6 +58,7 @@ struct S_API SColor
 };
 
 // --------------------------------------------------------------------------
+// pFloatArr - a 4 element array (r, g, b, a)
 static inline S_API void SPGetColorFloatArray(float* pFloatArr, const SColor& color)
 {
 	SP_ASSERT(pFloatArr);

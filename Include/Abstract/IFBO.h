@@ -19,7 +19,11 @@ struct S_API IRenderer;
 
 enum S_API EFBOType
 {
-	// G-Buffer FBOs. See documentation for mapping of these values
+	eFBO_R8G8B8A8,
+	eFBO_F32 // 32bit Red Channel
+
+
+/*	// G-Buffer FBOs. See documentation for mapping of these values
 	eFBO_GBUFFER_ALBEDO,	// (deferred-shading)
 	eFBO_GBUFFER_NORMALS,	// (deferred-shading)
 	eFBO_GBUFFER_TANGENTS,	// (deferred-shading)
@@ -33,6 +37,7 @@ enum S_API EFBOType
 	eFBO_LIGHT_DIFFUSE,	// (deferred-rendering)
 
 	eFBO_BACKBUFFER
+	*/
 };
 
 
@@ -49,7 +54,7 @@ public:
 	//	Initialize with given renderer
 	// Arguments:
 	//	nW / nH - (default 0) resolution of the buffer. set to 0 or omit to use FBOType-Default
-	virtual SResult Initialize(EFBOType type, IGameEngine* pEngine, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0) = 0;		
+	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0) = 0;		
 
 	// Initialize 
 	//	Initialize the Depth Stencil Buffer and its View
@@ -57,10 +62,11 @@ public:
 	//	S_NOTINIT - Initialize() was not called or not successful
 	virtual SResult InitializeDSV() = 0;
 
-	virtual bool IsInitialized() = 0;
+	// Summary:
+	//	Mark this FBO to later be used as a texture, so generate the Shader resource view
+	virtual SResult InitializeSRV() = 0;
 
-	// Get the handling engine
-	virtual IGameEngine* GetEngine() = 0;
+	virtual bool IsInitialized() = 0;
 
 	// Get the handling renderer
 	virtual IRenderer* GetRenderer() = 0;

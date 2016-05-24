@@ -546,36 +546,6 @@ enum S_API S_DEPTHSTENCIL_QUALITY
 	S_DEPTHSTENCIL_LOWQUALITY
 };
 
-// SpeedPoint MultiSample count
-enum S_API EMSAACount
-{
-	eMSAA_NONE = 0,
-	eMSAA_NONMASKABLE = 1,
-	eMSAA_2 = 2,
-	eMSAA_3 = 3,
-	eMSAA_4 = 4,
-	eMSAA_5 = 5,
-	eMSAA_6 = 6,
-	eMSAA_7 = 7,
-	eMSAA_8 = 8,
-	eMSAA_9 = 9,
-	eMSAA_10 = 10,
-	eMSAA_11 = 11,
-	eMSAA_12 = 12,
-	eMSAA_13 = 13,
-	eMSAA_14 = 14,
-	eMSAA_15 = 15,
-	eMSAA_16 = 16
-};
-
-// SpeedPoint MultiSample Quality
-enum S_API EMSAAQuality
-{
-	eMSAAQUALITY_HIGH,
-	eMSAAQUALITY_MEDIUM,
-	eMSAAQUALITY_LOW
-};
-
 // SpeedPoint Renderer Vertex Processing mode (Hardware, Software, Mixed)
 enum S_API S_PROCESSING_MODE
 {

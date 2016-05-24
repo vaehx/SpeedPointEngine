@@ -15,6 +15,7 @@
 
 #include <SPrerequisites.h>
 #include "IGeometry.h"
+#include "IShader.h"
 
 SP_NMSPACE_BEG
 
@@ -136,6 +137,7 @@ enum ERenderTarget
 };
 
 
+/*
 enum EShaderType
 {
 	eSHADER_ZPASS,
@@ -146,13 +148,53 @@ enum EShaderType
 
 	eSHADER_HELPER,		// forward helper shader
 	eSHADER_FONT
-};
+};*/
 
-enum EZPassEffect
+/*
+
+
+// Initialization:
+
+
+
+
+
+
+// Render terrain. Notice that there is no shaderpass for the terrain here.
+// We setup all the resources directly in the renderer.
+pRenderer->RenderTerrain(terrain.renderDesc);
+
+// Draw objects for GBuffer pass
+pRenderer->SetShaderPass(eSHADERPASS_GBUFFER);
+foreach (renderObject : renderObjects)
 {
-	eZPASS_DEFAULT,
-	eZPASS_VEGETATION // vegetation bending in VS
-};
+	pRenderer->Render(renderObject.renderDesc);
+}
+
+// Render objects again for each shadow casting light and draw shadow map
+pRenderer->SetShaderPass(eSHADERPASS_SHADOW);
+foreach (light : shadowCastingLights)
+{
+	foreach (renderObject : light.visibleObjects)
+	{
+		pRenderer->Render(renderObject.renderDesc);
+	}
+}
+
+// Now do the shading pass
+pRenderer->SetShaderPass(eSHADERPASS_SHADING);
+foreach (light : lights)
+{
+	pRenderer->Render(light.renderDesc);
+}
+
+
+
+
+
+pGBufferPass->Bind();
+
+*/
 
 struct S_API IRenderAPI
 {
@@ -160,13 +202,10 @@ struct S_API IRenderAPI
 
 	ILINE virtual SResult SetRenderTarget(ERenderTarget rt) = 0;
 
-	ILINE virtual SResult SetTexture(int slot, ITexture* pTexture) = 0;
+	ILINE virtual SResult SetTexture(unsigned int slot, ITexture* pTexture) = 0;
 
-	ILINE virtual SResult SetVertexBuffer(int slot, IVertexBuffer* pVB) = 0;
-	ILINE virtual SResult SetIndexBuffer(int slot, IIndexBuffer* pIB) = 0;
-
-	ILINE virtual SResult SetActiveZPassShader(EZPassEffect zPassEffect) = 0;
-	ILINE virtual SResult SetActiveShader(EShaderType shaderType) = 0;
+	ILINE virtual SResult SetVertexBuffer(unsigned int slot, IVertexBuffer* pVB) = 0;
+	ILINE virtual SResult SetIndexBuffer(unsigned int slot, IIndexBuffer* pIB) = 0;	
 
 	ILINE virtual SResult UpdateMaterialConstantsBuffer(SMaterialConstantsBuffer* pCB) = 0;
 	ILINE virtual SResult UpdateObjectConstantsBuffer(SObjectConstantsBuffer* pCB) = 0;	

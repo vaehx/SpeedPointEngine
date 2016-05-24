@@ -24,8 +24,7 @@ struct S_API IRenderer;
 
 class S_API DirectX11FBO : public IFBO
 {
-private:
-	IGameEngine* m_pEngine;
+private:	
 	DirectX11Renderer* m_pDXRenderer;
 
 	D3D11_TEXTURE2D_DESC m_texDesc;
@@ -52,11 +51,11 @@ public:
 	//	Initialize with given renderer
 	// Arguments:
 	//	nW / nH - (default 0) resolution of the buffer. set to 0 or omit to use FBOType-Default
-	virtual SResult Initialize(EFBOType type, IGameEngine* pEngine, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0);
+	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0);
 	
 	// Summary:
 	//	Mark this FBO to later be used as a texture, so generate the Shader resource view
-	SResult InitializeSRV();
+	virtual SResult InitializeSRV();
 
 	virtual SResult InitializeDSV();
 
@@ -64,11 +63,6 @@ public:
 
 	// Clear buffers
 	virtual void Clear(void);
-
-	virtual IGameEngine* GetEngine()
-	{
-		return m_pEngine;
-	}
 
 	virtual IRenderer* GetRenderer()
 	{

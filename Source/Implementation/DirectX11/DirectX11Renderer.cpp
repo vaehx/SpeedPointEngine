@@ -18,6 +18,7 @@
 #include <Implementation\DirectX11\DirectX11FBO.h>
 #include <Implementation\DirectX11\DirectX11Font.h>
 #include <Util\SVertex.h>
+#include <Abstract\ISettings.h>
 //#include <xnamath.h>
 
 #include <initguid.h>
@@ -69,6 +70,7 @@ S_API SResult DirectX11RenderDeviceCaps::Collect(IRenderer* pRenderer)
 
 S_API DirectX11Renderer::DirectX11Renderer()
 : m_pEngine(0),
+m_pSettings(0),
 m_pResourcePool(0),
 m_pD3DDevice(0),
 m_pD3DDeviceContext(0),
@@ -166,7 +168,7 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter()
 {
 	HRESULT hRes = S_OK;
 
-	SSettingsDesc::ApplicationSet& appSettings = m_pEngine->GetSettings()->Get().app;
+	SApplicationSettings& appSettings = m_pEngine->GetSettings()->Get().app;
 
 
 	// Create and Validate the DXGI Factory
@@ -286,7 +288,7 @@ SResult DirectX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescriptio
 {
 	if (pDesc)
 	{
-		SSettingsDesc::ApplicationSet& appSettings = m_pEngine->GetSettings()->Get().app;
+		SApplicationSettings& appSettings = m_pEngine->GetSettings()->Get().app;
 
 		if (appSettings.bWindowed)
 		{
@@ -315,7 +317,7 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 
 
 	// we probably need the settings of our engine
-	SSettingsDesc::RenderSet& renderSettings = m_pEngine->GetSettings()->Get().render;
+	SRenderSettings& renderSettings = *m_pSettings;
 
 
 
@@ -598,6 +600,7 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 		Shutdown();	// shutdown before initializing again
 
 	m_pEngine = pEngine;		
+	m_pSettings = &pEngine->GetSettings()->Get().render;
 
 	// Auto Select Adapter and display mode
 	if (Failure(AutoSelectAdapter()))
@@ -626,7 +629,7 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	// Initialize the default Viewport
 	// This viewport is forced to be generated. Client is only able to add more SwapChains
 	// !! Do NOT put this call before CreateDX11Device(). InitDefaultViewport depends on an existing device in DX11 !!	
-	SSettingsDesc::ApplicationSet& applicationSettings = pEngine->GetSettings()->Get().app;
+	SApplicationSettings& applicationSettings = pEngine->GetSettings()->Get().app;
 	
 	if (Failure(InitDefaultViewport(applicationSettings.hWnd, applicationSettings.nXResolution, applicationSettings.nYResolution)))
 	{
@@ -706,6 +709,12 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 S_API bool DirectX11Renderer::IsInited(void)
 {
 	return (m_pDXGIFactory && m_pD3DDevice && m_pD3DDeviceContext);
+}
+
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::InitShaderPasses()
+{
+	m_Passes[eSHADERPASS_GBUFFER] = new G
 }
 
 // --------------------------------------------------------------------
@@ -844,7 +853,7 @@ S_API SResult DirectX11Renderer::StoreRTCollection(ERenderTargetCollectionID asI
 */
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindRTCollection(std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name /*= 0*/)
+S_API SResult DirectX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name /*= 0*/)
 {
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
 
@@ -881,6 +890,9 @@ S_API SResult DirectX11Renderer::BindRTCollection(std::vector<IFBO*>& fboCollect
 	// Bind the rtvs
 	m_pD3DDeviceContext->OMSetRenderTargets(nRTVCounter, pRTVs, pDSV);
 	m_pDSV = pDSV;
+
+	delete[] pRTVs;
+	pRTVs = 0;
 
 	FrameDump("Bound RT Collection " + SString(dump_name ? dump_name : "") + " (" + SString::FromInteger(nRTVCounter) + " RTs)!");
 
@@ -1208,7 +1220,7 @@ S_API SResult DirectX11Renderer::EndScene(void)
 	
 	if (Success(sr))
 	{
-		m_Settings.SetClearColor(SColor(.0f, 0.05f, .0f));
+		m_pSettings->clearColor = SColor(.0f, 0.05f, .0f);
 		sr = BindSingleRT(m_pTargetViewport);
 		if (Failure(sr))
 			CLog::Log(S_WARN, "Failed Bind Single RT for clear!");
@@ -1254,7 +1266,11 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 		return S_SUCCESS;
 	}
 
+
+
+
 	// Set correct depth stencil state
+	// TODO: Get this out of here!
 	EnableDepthTest(renderDesc.bDepthStencilEnable);
 	
 	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
@@ -1262,13 +1278,30 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 
+
+
+
+
 	if (renderDesc.renderPipeline == eRENDER_FORWARD)
 	{
-		// Forward rendering: Rendering directly to backbuffer
+
+
+
+		// Forward rendering: Rendering directly to backbuffer		
+		//TODO: GET THIS OUT OF HERE, BindSingleRT() IS CALLED IN THE SHADER PASS IMPLEMENTATION OF Bind()!
 		if (Failure(BindSingleRT(m_pTargetViewport)))
 		{
 			return S_ERROR;
 		}
+
+
+
+
+
+
+
+
+
 
 		// Set the viewport matrices
 		if (renderDesc.bCustomViewProjMtx)
@@ -1514,6 +1547,18 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			continue;
 		}
 
+
+
+
+
+
+
+
+
+
+
+		//TODO: GET THIS OUT OF HERE! ADD SOMETHING LIKE IShaderPass::SetShaderResources(subset.shaderResources) !!
+
 		// Enable correct shader		
 		if (subset.shaderResources.illumModel != m_EnabledIllumModel)
 		{
@@ -1537,7 +1582,7 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 			}
 
 			m_EnabledIllumModel = subset.shaderResources.illumModel;
-		}		
+		}
 
 		// Set material		
 		SMatrix4 worldMtx = SMatrixTranspose(renderDesc.transform.BuildTRS());
@@ -1552,6 +1597,20 @@ S_API SResult DirectX11Renderer::DrawForwardSubsets(const SRenderDesc& renderDes
 
 		// Toggle Backface Culling		
 		EnableBackfaceCulling(subset.shaderResources.enableBackfaceCulling);		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 		DrawForward(subset.drawCallDesc);
@@ -1751,6 +1810,9 @@ S_API SResult DirectX11Renderer::ClearBoundRTs(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
+	float clearColor[4];
+	SPGetColorFloatArray(clearColor, m_pSettings->clearColor);
+
 	// Clear RTs
 	for (unsigned int i = 0; i < m_nRenderTargets; ++i)
 	{
@@ -1759,9 +1821,9 @@ S_API SResult DirectX11Renderer::ClearBoundRTs(void)
 
 		ID3D11RenderTargetView* pRTV = m_pRenderTargets[i]->GetRTV();
 		if (!IS_VALID_PTR(pRTV))
-			continue;
+			continue;		
 
-		m_pD3DDeviceContext->ClearRenderTargetView(pRTV, m_Settings.GetClearColorFloatArr());
+		m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
 	}
 
 	// Clear Depth Buffer
@@ -2145,9 +2207,9 @@ S_API void DirectX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestF
 
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdateSettings(const SSettingsDesc& dsc)
+S_API SRenderSettings* DirectX11Renderer::GetSettings() const
 {
-	return S_SUCCESS;
+	return m_pSettings;
 }
 
 // --------------------------------------------------------------------

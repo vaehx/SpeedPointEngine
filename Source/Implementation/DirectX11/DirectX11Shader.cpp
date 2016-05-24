@@ -9,10 +9,11 @@
 
 #pragma once
 
-#include <Implementation\DirectX11\DirectX11Effect.h>
+#include <Implementation\DirectX11\DirectX11Shader.h>
 #include <Abstract\IGameEngine.h>
 #include <Implementation\DirectX11\DirectX11Renderer.h>
 #include <d3dcompiler.h>
+#include <Abstract\ISettings.h>
 
 #include <fstream>
 using std::ifstream;
@@ -20,7 +21,7 @@ using std::ifstream;
 SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------------
-DirectX11Effect::DirectX11Effect()
+DirectX11Shader::DirectX11Shader()
 : m_pDXRenderer(0),
 m_pEngine(0),
 m_pPixelShader(0),
@@ -30,24 +31,20 @@ m_pVSInputLayout(0)
 }
 
 // -------------------------------------------------------------------------
-DirectX11Effect::~DirectX11Effect()
+DirectX11Shader::~DirectX11Shader()
 {
 	Clear();
 }
 
 // -------------------------------------------------------------------------
-S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFilename, const char* cEntry, EShaderVertexType vertexType /*= eSHADERVERTEX_DEFAULT*/)
+S_API SResult DirectX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 {
-	SP_ASSERTR((m_pEngine = pEngine) && cFilename, S_INVALIDPARAM);
+	assert(IS_VALID_PTR(pRenderer));
+	assert(pRenderer->GetType() == S_DIRECTX11);
 
-	if (IsInitialized())
-		Clear();
-
-	IRenderer* pRenderer = pEngine->GetRenderer();	
-	SP_ASSERTR(pRenderer->GetType() == S_DIRECTX11, S_INVALIDPARAM);
+	Clear();
 
 	m_pDXRenderer = (DirectX11Renderer*)pRenderer;
-
 
 
 	//
@@ -62,13 +59,11 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 
 	char* fxBuffer;
 	unsigned int size;
-	ifstream fxInput(cFilename, ifstream::binary);
+	ifstream fxInput(info.filename, ifstream::binary);
 
 	if (!fxInput.good())
 	{
-		char dbgout[500];
-		SPSPrintf(dbgout, 500, "Failed open FX file ifstream for %s!", cFilename);
-		return m_pEngine->LogE(dbgout);
+		return CLog::Log(S_ERROR, "Failed open FX file ifstream for %s", info.filename.c_str());
 	}
 
 	fxInput.seekg(0, fxInput.end);
@@ -88,16 +83,14 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 #ifdef _DEBUG
 	compileFlags |= D3DCOMPILE_DEBUG;
 #endif	
-
-	char* composedEntryName = new char[60];
-	ZeroMemory(composedEntryName, 60);
-	sprintf_s(composedEntryName, 60, "VS_%s", cEntry);
+	
+	string composedEntryName = "VS_" + info.entry;	
 
 	ID3DBlob *pVSBlob = 0, *pPSBlob = 0, *pErrorBlob = 0;
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
-		0, 0, 0, composedEntryName,
+		0, 0, 0, composedEntryName.c_str(),
 		"vs_4_0",
 		compileFlags,
 		0,
@@ -111,7 +104,7 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
-		0, 0, 0, composedEntryName,
+		0, 0, 0, composedEntryName.c_str(),
 		"ps_4_0",
 		compileFlags,
 		0,
@@ -121,10 +114,7 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 		return S_ERROR;
 	}
 
-	CLog::Log(S_DEBUG, "Loaded and compiled effect '%s'", cFilename);
-
-
-	delete[] composedEntryName;
+	CLog::Log(S_DEBUG, "Loaded and compiled effect '%s'", info.filename.c_str());
 
 
 	
@@ -142,13 +132,13 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 	hRes = m_pDXRenderer->GetD3D11Device()->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), 0, &m_pVertexShader);
 	if (Failure(hRes))
 	{
-		m_pEngine->LogE("Failed create vertex shader!");
+		CLog::Log(S_ERROR, "Failed create vertex shader!");
 	}
 	
 	hRes = m_pDXRenderer->GetD3D11Device()->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), 0, &m_pPixelShader);
 	if (Failure(hRes))
 	{
-		m_pEngine->LogE("Failed create pixel shader!");
+		CLog::Log(S_ERROR, "Failed create pixel shader!");
 	}	
 
 
@@ -156,7 +146,7 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 
 	// 5. Create the polygon layout for the SVertex structure
 	
-	if (vertexType == eSHADERVERTEX_SIMPLE)
+	if (info.vertexType == eSHADERVERTEX_SIMPLE)
 	{
 		const unsigned int NUM_ELEMENTS = 2;
 
@@ -243,13 +233,7 @@ S_API SResult DirectX11Effect::Initialize(IGameEngine* pEngine, const char* cFil
 }
 
 // -------------------------------------------------------------------------
-S_API bool DirectX11Effect::IsInitialized()
-{
-	return (m_pEngine && (m_pPixelShader || m_pVertexShader) && m_pDXRenderer);
-}
-
-// -------------------------------------------------------------------------
-S_API SResult DirectX11Effect::Clear(void)
+S_API void DirectX11Shader::Clear()
 {
 	if (IS_VALID_PTR(m_pPixelShader))
 		m_pPixelShader->Release();
@@ -267,16 +251,18 @@ S_API SResult DirectX11Effect::Clear(void)
 
 	m_pDXRenderer = 0;
 	m_pEngine = 0;
-
-	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------------
-S_API SResult DirectX11Effect::Enable()
+S_API SResult DirectX11Shader::Bind()
 {
-	SP_ASSERTR(m_pDXRenderer && m_pPixelShader && m_pVertexShader && m_pVSInputLayout, S_NOTINIT);
+	if (!IS_VALID_PTR(m_pDXRenderer) || !IS_VALID_PTR(m_pPixelShader) || !IS_VALID_PTR(m_pVertexShader) || !IS_VALID_PTR(m_pVSInputLayout))
+		return S_NOTINIT;	
 
 	ID3D11DeviceContext* pDXDeviceContext = m_pDXRenderer->GetD3D11DeviceContext();	
+	if (!IS_VALID_PTR(pDXDeviceContext))
+		return S_NOTINIT;
+
 	pDXDeviceContext->VSSetShader(m_pVertexShader, 0, 0);		
 	pDXDeviceContext->PSSetShader(m_pPixelShader, 0, 0);	
 	pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);	
@@ -284,12 +270,121 @@ S_API SResult DirectX11Effect::Enable()
 	return S_SUCCESS;
 }
 
+
+
+
+
+
+
+
+
+
 // -------------------------------------------------------------------------
-S_API SResult DirectX11Effect::SetTechnique(char* cTechnique)
+S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 {
-	return Enable();
+	Clear();
+	m_pGBuffer.resize(NUM_GBUFFER_LAYERS);
+
+	const SSettingsDesc& settings = pRenderer->GetEngine()->GetSettings()->Get();
+	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
+	{
+		m_pGBuffer[i] = pRenderer->CreateRT();
+		m_pGBuffer[i]->Initialize(eFBO_R8G8B8A8, pRenderer, settings.app.nXResolution, settings.app.nYResolution);
+		m_pGBuffer[i]->InitializeSRV();
+		
+		// Make the first layer carry the depth buffer
+		if (i == 0)
+			m_pGBuffer[i]->InitializeDSV();
+	}
 }
 
+S_API void GBufferShaderPass::Clear()
+{
+	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
+		delete m_pGBuffer[i];
+
+	m_pGBuffer.clear();
+}
+
+S_API SResult GBufferShaderPass::Bind()
+{
+	if (!IS_VALID_PTR(m_pRenderer))
+		return S_NOTINITED;
+
+	m_pRenderer->BindRTCollection(m_pGBuffer, m_pGBuffer[0], "GBufferShaderPass");
+
+
+	
+		
+	// TODO: Setup render settings like depth enabling etc..
+
+	// TODO: Add IShaderPass::SetShaderResources(SRenderDesc
+
+
+
+
+}
+
+S_API const vector<IFBO*>& GBufferShaderPass::GetGBuffer() const
+{
+	return m_pGBuffer;
+}
+
+// -------------------------------------------------------------------------
+S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
+{
+	m_pRenderer = pRenderer;
+
+	// Use the target viewport as the output
+	pRenderer->BindSingleRT(pRenderer->GetTargetViewport());
+
+	// Use
+	const vector<IFBO*>& gbuffer = m_pGBufferPass->GetGBuffer();
+	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
+		pRenderer->BindTexture(gbuffer[i], i);
+}
+
+S_API void ShadingShaderPass::Clear()
+{
+
+}
+
+S_API SResult ShadingShaderPass::Bind()
+{
+
+}
+
+// -------------------------------------------------------------------------
+S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
+{
+
+}
+
+S_API void ShadowmapShaderPass::Clear()
+{
+
+}
+
+S_API SResult ShadowmapShaderPass::Bind()
+{
+
+}
+
+// -------------------------------------------------------------------------
+S_API SResult PosteffectShaderPass::Initialize(IRenderer* pRenderer)
+{
+
+}
+
+S_API void PosteffectShaderPass::Clear()
+{
+
+}
+
+S_API SResult PosteffectShaderPass::Bind()
+{
+
+}
 
 
 

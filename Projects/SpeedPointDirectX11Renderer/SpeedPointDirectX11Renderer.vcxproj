@@ -21,7 +21,7 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Renderer.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11ResourcePool.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Settings.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Effect.h" />
+    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Shader.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Texture.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11VertexBuffer.h" />
@@ -35,7 +35,7 @@
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Settings.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Effect.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Shader.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Texture.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11VertexBuffer.cpp" />
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp" />

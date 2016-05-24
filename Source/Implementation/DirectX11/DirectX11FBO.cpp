@@ -12,13 +12,13 @@
 #include <Abstract\IRenderer.h>
 #include <SpeedPointEngine.h>
 #include <Implementation\DirectX11\DirectX11Utilities.h>
+#include <Abstract\ISettings.h>
 
 SP_NMSPACE_BEG
 
 // -----------------------------------------------------------------------
 S_API DirectX11FBO::DirectX11FBO()
-	: m_pDXRenderer(0),
-	m_pEngine(0),
+	: m_pDXRenderer(0),	
 	m_pTexture(0),
 	m_pRTV(0),
 	m_nBufferWidth(0),
@@ -34,12 +34,12 @@ S_API DirectX11FBO::~DirectX11FBO()
 }
 
 // -----------------------------------------------------------------------
-S_API SResult DirectX11FBO::Initialize(EFBOType type, IGameEngine* pEngine, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
+S_API SResult DirectX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
 {
 	Clear(); // make sure to clear before initialize again
-
-	SP_ASSERTR((m_pEngine = pEngine), S_INVALIDPARAM);
-	SP_ASSERTXR(pRenderer && pRenderer->GetType() == S_DIRECTX11, S_INVALIDPARAM, m_pEngine);		
+	
+	if (!IS_VALID_PTR(pRenderer) || pRenderer->GetType() != S_DIRECTX11)
+		return S_INVALIDPARAM;
 
 	m_pDXRenderer = (DirectX11Renderer*)pRenderer;
 	m_FBOType = type;
@@ -49,18 +49,11 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, IGameEngine* pEngine, IRen
 	// By default we use sRGB 32bit unsigned normalized buffer
 	DXGI_FORMAT texFmt;	
 	switch (type)
-	{
-	case eFBO_BACKBUFFER:
-	case eFBO_GBUFFER_ALBEDO:
-	case eFBO_GBUFFER_NORMALS:
-	case eFBO_GBUFFER_POSITION:
-	case eFBO_GBUFFER_SRT:
-	case eFBO_GBUFFER_TANGENTS:
-	case eFBO_LIGHT:
-	case eFBO_LIGHT_DIFFUSE:
-	case eFBO_LIGHT_SPECULAR:
-		texFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
+	{		
+	case eFBO_F32:
+		texFmt = DXGI_FORMAT_R32_FLOAT;
 		break;
+	case eFBO_R8G8B8A8:
 	default:
 		texFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
 	}
@@ -82,14 +75,14 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, IGameEngine* pEngine, IRen
 	m_texDesc.SampleDesc = GetD3D11MSAADesc(
 		m_texDesc.Format,
 		m_pDXRenderer->GetD3D11Device(),
-		m_pDXRenderer->GetSettings()->GetMSAACount(),
-		m_pDXRenderer->GetSettings()->GetMSAAQuality());
+		m_pDXRenderer->GetSettings()->msaaCount,
+		m_pDXRenderer->GetSettings()->msaaQuality);
 
 	// now finally create the texture
 	HRESULT hRes;
 	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&m_texDesc, 0, &m_pTexture)))
 	{
-		return m_pEngine->LogE("Failed CreateTexture2D while attempting to create FBO!");
+		return CLog::Log(S_ERROR, "Failed CreateTexture2D while attempting to create FBO!");
 	}
 
 
@@ -102,7 +95,7 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, IGameEngine* pEngine, IRen
 	// create the rtv
 	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateRenderTargetView(m_pTexture, &rtvDesc, &m_pRTV)))
 	{
-		return m_pEngine->LogE("Failed CreateRTV while attempting to create FBO!");
+		return CLog::Log(S_ERROR, "Failed CreateRTV while attempting to create FBO!");
 	}
 
 
@@ -143,7 +136,7 @@ S_API SResult DirectX11FBO::InitializeDSV()
 
 	if (Failure(pD3DDevice->CreateTexture2D(&dsTexDesc, 0, &m_pDepthStencilBuffer)))
 	{
-		return m_pEngine->LogE("Failed Create Depth Stencil Buffer Texture!");
+		return CLog::Log(S_ERROR, "Failed Create Depth Stencil Buffer Texture!");
 	}
 
 
@@ -158,7 +151,7 @@ S_API SResult DirectX11FBO::InitializeDSV()
 
 	if (Failure(pD3DDevice->CreateDepthStencilView(m_pDepthStencilBuffer, &depthStencilViewDesc, &m_pDepthStencilView)))
 	{
-		return m_pEngine->LogE("Failed Create Depth Stencil View!");
+		return CLog::Log(S_ERROR, "Failed Create Depth Stencil View!");
 	}
 
 	
@@ -178,7 +171,7 @@ S_API SResult DirectX11FBO::InitializeSRV()
 	srvDesc.Texture2D.MipLevels = 1;
 
 	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pTexture, &srvDesc, &m_pSRV)))
-		return m_pEngine->LogE("Failed create shader resource view for FBO!");
+		return CLog::Log(S_ERROR, "Failed create shader resource view for FBO!");
 
 	return S_SUCCESS;
 }
@@ -189,8 +182,7 @@ S_API bool DirectX11FBO::IsInitialized()
 	if (m_bSwapChainFBO)
 		return m_pRTV != nullptr; // note: DSV does not need to be initialized
 	else
-		return (m_pTexture && m_pDXRenderer && m_pEngine
-			&& m_nBufferWidth > 0 && m_nBufferHeight > 0);
+		return (m_pTexture && m_pDXRenderer && m_nBufferWidth > 0 && m_nBufferHeight > 0);
 }
 
 // -----------------------------------------------------------------------
@@ -209,8 +201,7 @@ S_API void DirectX11FBO::Clear(void)
 	m_pTexture = 0;
 	m_pDepthStencilView = 0;
 	m_pDepthStencilBuffer = 0;
-	m_pDXRenderer = 0;
-	m_pEngine = 0;
+	m_pDXRenderer = 0;	
 }
 
 
