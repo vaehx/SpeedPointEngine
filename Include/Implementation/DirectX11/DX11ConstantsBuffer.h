@@ -5,6 +5,9 @@
 
 SP_NMSPACE_BEG
 
+struct ID3D11Buffer;
+struct S_API DirectX11Renderer;
+
 template<typename T>
 class S_API DX11ConstantsBuffer : public IConstantsBuffer<T>
 {

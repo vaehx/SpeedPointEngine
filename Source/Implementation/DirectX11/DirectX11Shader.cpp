@@ -282,27 +282,36 @@ S_API SResult DirectX11Shader::Bind()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-S_API SResult HelperShaderPass::Initialize(IRenderer* pRenderer)
+S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 {
 	Clear();
 	m_pRenderer = pRenderer;
 
-	// Create shader
-	SShaderInfo shaderInfo;
-	shaderInfo.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_HELPER);
-	shaderInfo.entry = "helper";	
-	shaderInfo.vertexType = eSHADERVERTEX_SIMPLE;
+	// Create shaders
+	SShaderInfo si;
+	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_FORWARD_HELPER);
+	si.entry = "helper";	
+	si.vertexType = eSHADERVERTEX_SIMPLE;
+
+	m_pHelperShader = m_pRenderer->CreateShader();
+	m_pHelperShader->Load(pRenderer, si);
+
+
+	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_FORWARD);
+	si.entry = "forward";
+	si.vertexType = eSHADERVERTEX_DEFAULT;
 
 	m_pShader = m_pRenderer->CreateShader();
-	m_pShader->Load(pRenderer, shaderInfo);
+	m_pShader->Load(pRenderer, si);
+
 
 	// Create CB
-	m_pConstants = m_pRenderer->CreateConstantsBuffer<SHelperConstants>();
+	m_pConstants = m_pRenderer->CreateConstantsBuffer<SMatObjConstants>();
 
 	return S_SUCCESS;
 }
 
-S_API void HelperShaderPass::Clear()
+S_API void ForwardShaderPass::Clear()
 {
 	delete m_pConstants;
 	m_pConstants = 0;
@@ -313,7 +322,7 @@ S_API void HelperShaderPass::Clear()
 	m_pRenderer = 0;
 }
 
-S_API SResult HelperShaderPass::Bind()
+S_API SResult ForwardShaderPass::Bind()
 {
 	if (!IS_VALID_PTR(m_pRenderer))
 		return S_NOTINITED;
@@ -330,11 +339,42 @@ S_API SResult HelperShaderPass::Bind()
 	return S_SUCCESS;
 }
 
-S_API void HelperShaderPass::SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& transform)
+S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
 {
-	SHelperConstants* constants = m_pConstants->GetConstants();
+	if (sr.illumModel == eILLUM_HELPER)
+	{
+		m_pHelperShader->Bind();
+
+		m_pRenderer->BindTexture((ITexture*)0, 0);
+		m_pRenderer->BindTexture((ITexture*)0, 1);
+	}
+	else
+	{
+		m_pShader->Bind();
+
+		m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
+
+		// Bind textures
+		ITexture* pTextureMap = IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture();
+		ITexture* pNormalMap = IS_VALID_PTR(sr.normalMap) ? sr.normalMap : m_pRenderer->GetDummyTexture();
+
+		m_pRenderer->BindTexture(pTextureMap, 0);
+		m_pRenderer->BindTexture(pNormalMap, 1);
+	}
+
+
+
+	// Set constants
+	SMatObjConstants* constants = m_pConstants->GetConstants();
+
+
+	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)
+
+
+
 	constants->mtxTransform = transform;
-	constants->color = shaderResources.diffuse;
+	constants->matEmissive = sr.emissive;
+	constants->matAmbient = 0.1f;
 
 	m_pConstants->Update();
 }
@@ -368,13 +408,13 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	}
 
 	SShaderInfo si;
-	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_ZPASS);
+	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_DEFERRED_ZPASS);
 	si.entry = "zpass";
 
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
 
-	m_pConstants = pRenderer->CreateConstantsBuffer<SGBufferPassConstants>();
+	m_pConstants = pRenderer->CreateConstantsBuffer<SMatObjConstants>();
 
 	return S_SUCCESS;
 }
@@ -410,6 +450,9 @@ S_API SResult GBufferShaderPass::Bind()
 
 S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
 {
+	if (sr.illumModel == eILLUM_HELPER)
+		return; // helpers cannot be rendered deferred
+
 	m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
 
 	// Bind textures
@@ -422,7 +465,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 	// Set constants
-	SGBufferPassConstants* constants = m_pConstants->GetConstants();
+	SMatObjConstants* constants = m_pConstants->GetConstants();
 
 
 	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)

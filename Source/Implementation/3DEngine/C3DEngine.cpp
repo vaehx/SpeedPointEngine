@@ -210,37 +210,26 @@ S_API SRenderObject* C3DEngine::GetCustomRenderObject()
 
 S_API void C3DEngine::RenderCollected()
 {
-
-
-
-
-
-
-
-
-
-	//TODO:   IMPLEMENT NEW SHADER PASS BASED RENDERING HERE !
-
-
-
-
-
-
-
-
-
-
 	unsigned int budgetTimer = m_pEngine->StartBudgetTimer("C3DEngine::RenderCollected()");
 	{
+
+
+
+		//TODO: Render skybox deferred as well!
 
 		if (IS_VALID_PTR(m_pSkyBoxRenderDesc))
 		{
 			unsigned int skyboxTimer = m_pEngine->StartBudgetTimer("C3DEngine::RenderCollected() - Render Skybox");		
-						
+
+			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 			m_pRenderer->Render(*m_pSkyBoxRenderDesc);
 			
-			m_pEngine->StopBudgetTimer(skyboxTimer);		
+			m_pEngine->StopBudgetTimer(skyboxTimer);
 		}
+
+
+
+		//TODO: Render terrain deferred as well!
 
 		unsigned int terrainTimer = m_pEngine->StartBudgetTimer("C3DEngine::RenderCollected() - Render terrain");
 		{
@@ -249,11 +238,26 @@ S_API void C3DEngine::RenderCollected()
 		}
 
 
+
 		stringstream objectsTimerName;
 		objectsTimerName << "C3DEngine::RenderCollected() - Render RenderObjects (" << m_RenderObjects.GetUsedObjectCount() << ")";
 
 		unsigned int renderObjectsTimer = m_pEngine->StartBudgetTimer(objectsTimerName.str().c_str());
 		{
+
+
+
+
+
+
+			//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
+			//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
+			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+
+
+
+
+
 			unsigned int itRenderObject;
 			SRenderObject* pRenderObject = m_RenderObjects.GetFirstUsedObject(itRenderObject);
 			while (pRenderObject)
@@ -272,6 +276,29 @@ S_API void C3DEngine::RenderCollected()
 
 			m_pEngine->StopBudgetTimer(renderObjectsTimer);
 		}
+
+
+		
+
+
+
+		//TODO: Implement deferred shading pass
+		/*
+
+		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
+		foreach (light : lights)
+		{
+			m_pRenderer->Render(light->pRenderDesc);
+		}
+
+		
+		*/
+
+
+
+
+
+
 
 		m_pEngine->StopBudgetTimer(budgetTimer);
 	}

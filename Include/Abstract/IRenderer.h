@@ -506,7 +506,7 @@ public:
 
 	// Summary:
 	//	Draws the given geometry desc directly to the back buffer and the depth buffer
-	virtual SResult DrawForward(const SDrawCallDesc& desc) = 0;
+	virtual SResult Draw(const SDrawCallDesc& desc) = 0;
 
 
 	ILINE virtual void DumpFrameOnce() = 0;

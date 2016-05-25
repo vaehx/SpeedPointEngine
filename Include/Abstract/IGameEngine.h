@@ -39,12 +39,14 @@ namespace SpeedPoint
 	{
 		eSHADERFILE_SKYBOX,
 		
-		eSHADERFILE_HELPER,	// Forward helper effect
+		eSHADERFILE_FORWARD_HELPER,	// Forward helper effect
+		eSHADERFILE_FORWARD,
+
 		eSHADERFILE_FONT,	// forward font effect
 
-		eSHADERFILE_ZPASS,	// ZPass for Deferred Shading
+		eSHADERFILE_DEFERRED_ZPASS,	// ZPass for Deferred Shading
 		eSHADERFILE_DEFERRED_SHADING,	// shading pass for Deferred Shading
-		eSHADERFILE_TERRAIN,	// Deferred Shading Terrain	
+		eSHADERFILE_TERRAIN,	// Deferred Shading Terrain
 	};
 
 

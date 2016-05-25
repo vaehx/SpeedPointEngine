@@ -701,8 +701,8 @@ S_API bool DirectX11Renderer::IsInited(void)
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::InitShaderPasses()
 {
-	m_Passes[eSHADERPASS_HELPER] = new HelperShaderPass();
-	m_Passes[eSHADERPASS_HELPER]->Initialize(this);
+	m_Passes[eSHADERPASS_FORWARD] = new ForwardShaderPass();
+	m_Passes[eSHADERPASS_FORWARD]->Initialize(this);
 
 	m_Passes[eSHADERPASS_GBUFFER] = new GBufferShaderPass();
 	m_Passes[eSHADERPASS_GBUFFER]->Initialize(this);
@@ -1534,13 +1534,20 @@ S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 			continue;
 		}
 
+		if (m_CurrentPass != eSHADERPASS_FORWARD && subset.shaderResources.illumModel == eILLUM_HELPER)
+		{
+			FrameDump("[DX11Renderer] Cannot render helper with deferred pipeline!");
+			continue;
+		}
+
 
 
 		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, transformMtx);
 
 
+		Draw(subset.drawCallDesc);
 
-		DrawForward(subset.drawCallDesc);
+
 		if (subset.bOnce)
 		{
 			subset.render = false;
@@ -1553,9 +1560,9 @@ S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 }
 
 // --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawForward(const SDrawCallDesc& desc)
+S_API SResult DirectX11Renderer::Draw(const SDrawCallDesc& desc)
 {		
-	FrameDump("DirectX11Renderer::DrawForward()");	
+	FrameDump("DirectX11Renderer::Draw()");	
 
 	// bind vertex data stream
 	if (Failure(SetVBStream(desc.pVertexBuffer)))

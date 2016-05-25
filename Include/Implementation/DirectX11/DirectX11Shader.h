@@ -50,25 +50,24 @@ public:
 
 // TODO: GET THIS OUT OF THE DIRECTX11 IMPLEMENTATION PROJECT AND MOVE IT INTO A MORE GENERAL RENDERER
 
+struct S_API SMatObjConstants : SObjectConstants
+{
+	float matAmbient;		// 4 Byte
+	float3 matEmissive;		// 3 * 4 = 12 Byte
+};
+
 ///////////////////////////////////////////////////////////////////////////////////
-class S_API HelperShaderPass : public IShaderPass
+class S_API ForwardShaderPass : public IShaderPass
 {
 public:
-	struct SHelperConstants : SObjectConstants
-	{
-		float3 color;			// 3 * 4 Byte
-
-		float struct_padding;	// 4 Byte
-	};
-
-	HelperShaderPass()
+	ForwardShaderPass()
 		: m_pRenderer(0),
 		m_pShader(0),
 		m_pConstants(0)
 	{
 	}
 
-	virtual ~HelperShaderPass()
+	virtual ~ForwardShaderPass()
 	{
 		Clear();
 	}	
@@ -81,8 +80,9 @@ public:
 
 private:
 	IRenderer* m_pRenderer;
+	IShader* m_pHelperShader;
 	IShader* m_pShader;
-	IConstantsBuffer<HelperShaderPass::SHelperConstants>* m_pConstants;
+	IConstantsBuffer<SMatObjConstants>* m_pConstants;
 };
 
 
@@ -90,12 +90,6 @@ private:
 class S_API GBufferShaderPass : public IShaderPass
 {
 public:
-	struct SGBufferPassConstants : SObjectConstants
-	{
-		float matAmbient;		// 4 Byte
-		float3 matEmissive;		// 3 * 4 = 12 Byte
-	};
-
 private:
 	/*
 	
@@ -110,7 +104,7 @@ private:
 	vector<IFBO*> m_pGBuffer;
 
 	IShader* m_pShader;
-	IConstantsBuffer<SGBufferPassConstants>* m_pConstants;
+	IConstantsBuffer<SMatObjConstants>* m_pConstants;
 	IRenderer* m_pRenderer;
 
 public:

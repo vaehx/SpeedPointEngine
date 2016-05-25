@@ -416,7 +416,7 @@ public:
 
 	// Summary:
 	//	Draws the given geometry desc directly to the back buffer and the depth buffer
-	virtual SResult DrawForward(const SDrawCallDesc& desc);
+	virtual SResult Draw(const SDrawCallDesc& desc);
 
 
 	virtual SResult UpdateSettings(const SSettingsDesc& dsc);

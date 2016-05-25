@@ -30,7 +30,7 @@ struct S_API SInitialGeometryDesc;
 
 enum S_API EIllumModel
 {
-	eILLUM_HELPER,	// solid color
+	eILLUM_HELPER,	// cannot be rendered with deferred pipeline!
 	eILLUM_SKYBOX,
 	eILLUM_PHONG,
 	eILLUM_BLINNPHONG,

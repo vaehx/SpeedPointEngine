@@ -178,8 +178,8 @@ struct S_API IRenderAPI
 	ILINE virtual SResult SetVertexBuffer(unsigned int slot, IVertexBuffer* pVB) = 0;
 	ILINE virtual SResult SetIndexBuffer(unsigned int slot, IIndexBuffer* pIB) = 0;	
 
-	ILINE virtual SResult UpdateMaterialConstantsBuffer(SMaterialConstants* pCB) = 0;
-	ILINE virtual SResult UpdateObjectConstantsBuffer(SObjectConstants* pCB) = 0;	
+	//ILINE virtual SResult UpdateMaterialConstantsBuffer(SMaterialConstants* pCB) = 0;
+	//ILINE virtual SResult UpdateObjectConstantsBuffer(SObjectConstants* pCB) = 0;	
 	
 	ILINE virtual SResult Draw(const SDrawCallDesc& dcd) = 0;
 };
