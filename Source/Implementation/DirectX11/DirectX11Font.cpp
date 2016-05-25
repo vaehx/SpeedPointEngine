@@ -132,11 +132,9 @@ S_API SResult DirectX11FontRenderer::Init(IRenderer* pRenderer)
 	res = InitD2DScreenTexture();
 	
 	InitBlendDesc();
-
-	IGameEngine* pGameEngine = m_pDXRenderer->GetEngine();
-	SString fontFXFile = pGameEngine->GetShaderPath(eSHADERFILE_FONT);
-
-	m_FontShader.Initialize(pGameEngine, fontFXFile, "font");
+	
+	string fontFXFile = m_pDXRenderer->GetEngine()->GetShaderPath(eSHADERFILE_FONT);
+	m_FontShader.Load(m_pDXRenderer, SShaderInfo(fontFXFile, "font"));
 
 	InitConstantsBuffer();
 
@@ -333,7 +331,7 @@ S_API void DirectX11FontRenderer::EndRender()
 
 
 	ID3D11DeviceContext* pD3D11DeviceContext = m_pDXRenderer->GetD3D11DeviceContext();
-	m_FontShader.Enable();
+	m_FontShader.Bind();
 	pD3D11DeviceContext->OMSetBlendState(m_pBlendState, 0, 0xffffffff);
 	pD3D11DeviceContext->IASetIndexBuffer(m_pD2DIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 

@@ -32,8 +32,7 @@ struct S_API IApplication
 {
 	virtual ~IApplication() {}
 
-	virtual void OnInit(IFramePipeline* pFramePipeline, IGameEngine* pGameEngine) = 0;
-	virtual void OnSettingChange(const SSettingsDesc& dsc) = 0;
+	virtual void OnInit(IFramePipeline* pFramePipeline, IGameEngine* pGameEngine) = 0;	
 
 	virtual void OnLogReport(SResult res, const SString& msg) = 0;
 

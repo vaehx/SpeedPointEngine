@@ -11,7 +11,7 @@
 #include <Implementation\DirectX11\DirectX11VertexBuffer.h>
 #include <Implementation\DirectX11\DirectX11IndexBuffer.h>
 #include <Implementation\DirectX11\DirectX11Texture.h>
-#include <Implementation\DirectX11\DirectX11Effect.h>
+#include <Implementation\DirectX11\DirectX11Shader.h>
 //#include <SpeedPoint.h>
 #include <SpeedPointEngine.h>
 

@@ -425,7 +425,7 @@ S_API SResult SpeedPointEngine::InitializeScene(IScene* pScene)
 
 
 // ----------------------------------------------------------------------------------
-S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
+S_API string SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile) const
 {
 	char* relativePath;
 	switch (shaderFile)
@@ -437,15 +437,15 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
 	case eSHADERFILE_FORWARD:
 		relativePath = "Effects\\illum.fx";	// PS_forward
 		break;
-	case eSHADERFILE_HELPER:
+	/*case eSHADERFILE_HELPER:
 		relativePath = "Effects\\helper.fx";
-		break;
+		break;*/
 	case eSHADERFILE_FONT:
 		relativePath = "Effects\\font.fx";
 		break;
 
 		// Deferred Shading:
-	case eSHADERFILE_ZPASS:
+	case eSHADERFILE_DEFERRED_ZPASS:
 		relativePath = "Effects\\zpass.fx";	// PS_zpass
 		break;
 	case eSHADERFILE_DEFERRED_SHADING:
@@ -455,25 +455,15 @@ S_API SString SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile)
 		relativePath = "Effects\\terrain.fx";
 		break;
 
-		// Deferred lighting / Light prepass:
-	case eSHADERFILE_DL_ZPASS:
-		relativePath = "Effects\\zpass.fx";	// PS_dlzpass
-		break;
-	case eSHADERFILE_DL_LIGHT:
-		relativePath = "Effects\\illum.fx";	// PS_dllight
-		break;
-	case eSHADERFILE_DL_COMPOSITE:
-		relativePath = "Effects\composite.fx";
-
 	default:
 		return "???";
 	}
 
-	char pFXFile[500];
-	sprintf_s(pFXFile, "%s..\\..\\%s", PROJ_DIR, relativePath);
-	relativePath = pFXFile;
+	string path = PROJ_DIR;
+	path += "..\\..\\";
+	path += relativePath;
 
-	return SString(relativePath);
+	return path;
 }
 
 

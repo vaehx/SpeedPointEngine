@@ -166,7 +166,7 @@ namespace SpeedPoint
 		ILINE virtual IScene* GetLoadedScene() const = 0;
 		ILINE virtual IMaterialManager* GetMaterialManager() const = 0;
 
-		virtual SString GetShaderPath(EShaderFileType shaderFile) = 0;
+		virtual string GetShaderPath(EShaderFileType shaderFile) const = 0;
 
 		
 		// Summary:

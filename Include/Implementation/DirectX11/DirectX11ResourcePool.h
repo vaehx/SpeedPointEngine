@@ -11,7 +11,7 @@
 #include <Abstract\IResourcePool.h>
 #include "DirectX11IndexBuffer.h"
 #include "DirectX11VertexBuffer.h"
-#include "DirectX11Effect.h"
+#include "DirectX11Shader.h"
 #include "DirectX11Texture.h"
 #include <Abstract\ChunkPool.h>
 
@@ -31,7 +31,7 @@ private:
 
 	ChunkPool<DirectX11IndexBuffer>	m_plIndexBuffers;
 	ChunkPool<DirectX11VertexBuffer> m_plVertexBuffers;
-	ChunkPool<DirectX11Effect> m_plShaders;
+	ChunkPool<DirectX11Shader> m_plShaders;
 	ChunkPool<DirectX11Texture> m_plTextures;	
 
 public:		

@@ -714,6 +714,9 @@ S_API void DirectX11Renderer::InitShaderPasses()
 		dynamic_cast<GBufferShaderPass*>(m_Passes[eSHADERPASS_GBUFFER]),
 		dynamic_cast<ShadowmapShaderPass*>(m_Passes[eSHADERPASS_SHADOWMAP]));
 	m_Passes[eSHADERPASS_SHADING]->Initialize(this);
+
+	m_Passes[eSHADERPASS_POSTEFFECT] = new PosteffectShaderPass();
+	m_Passes[eSHADERPASS_POSTEFFECT]->Initialize(this);
 }
 
 // --------------------------------------------------------------------
@@ -1302,11 +1305,7 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 	// In case something else was bound to the slot before...
-	ID3D11Buffer* pSceneCB = m_SceneConstants.GetBuffer();
-	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &pSceneCB);
-	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &pSceneCB);
-
-
+	BindSceneCB(m_SceneConstants.GetCB());
 
 
 
@@ -1346,9 +1345,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 	SetViewProjMatrix(m_pTargetViewport);	
 
 	// In case something else was bound to the slot before...
-	ID3D11Buffer* pSceneCB = m_SceneConstants.GetBuffer();
-	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &pSceneCB);
-	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &pSceneCB);
+	BindSceneCB(m_SceneConstants.GetCB());
 
 
 	// Render Terrain
@@ -1384,8 +1381,8 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 
 		EnableBackfaceCulling(true);
 
-		// bind terrain cb
-		BindConstantsBuffer(&m_TerrainConstants);	
+		// bind terrain cb		
+		BindConstantsBuffer(m_TerrainConstants.GetCB());
 
 		// render all chunks
 		if (IS_VALID_PTR(terrainRenderDesc.pDrawCallDescs) && terrainRenderDesc.nDrawCallDescs > 0)
@@ -1807,9 +1804,7 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 	if (Failure(m_SceneConstants.Initialize(this)))
 		return CLog::Log(S_ERROR, "Failed initialize scene constants buffer!");
 
-	ID3D11Buffer* pBuffer = m_SceneConstants.GetBuffer();
-	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &pBuffer);
-	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &pBuffer);
+	BindSceneCB(m_SceneConstants.GetCB());
 
 
 	// Terrain constants
@@ -1821,26 +1816,37 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 }
 
 // --------------------------------------------------------------------
-template<typename T>
-S_API IConstantsBuffer<T>* CreateConstantsBuffer() const
+S_API IConstantsBuffer* DirectX11Renderer::CreateConstantsBuffer() const
 {
-	return new DX11ConstantsBuffer<T>();
+	return new DX11ConstantsBuffer();
 }
 
 // --------------------------------------------------------------------
-template<typename T>
-S_API void DirectX11Renderer::BindConstantsBuffer(const IConstantsBuffer<T>* cb, bool vs /*=false*/)
+S_API void DirectX11Renderer::BindConstantsBuffer(const IConstantsBuffer* cb, bool vs /*=false*/)
 {
-	DX11ConstantsBuffer<T>* dxcb = dyanmic_cast<DX11ConstantsBuffer<T>*>(cb);
-	const ID3D11Buffer* pBuffer = dxcb->GetBuffer();
+	const DX11ConstantsBuffer* dxcb = dynamic_cast<const DX11ConstantsBuffer*>(cb);
+	ID3D11Buffer* pBuffer = dxcb->GetBuffer();
 
 	if (m_pBoundCB != pBuffer)
-	{
+	{		
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &pBuffer);
-		m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, (vs ? &pBuffer : 0));
+		
+		if (vs)
+			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &pBuffer);
+		else
+			m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);
 
-		m_pBound = pBuffer;
+		m_pBoundCB = pBuffer;
 	}
+}
+
+// --------------------------------------------------------------------
+void DirectX11Renderer::BindSceneCB(const IConstantsBuffer* cb)
+{
+	const DX11ConstantsBuffer* pSceneDXCB = dynamic_cast<const DX11ConstantsBuffer*>(cb);
+	ID3D11Buffer* pBuffer = pSceneDXCB->GetBuffer();
+	m_pD3DDeviceContext->PSSetConstantBuffers(0, 1, &pBuffer);
+	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &pBuffer);
 }
 
 // --------------------------------------------------------------------

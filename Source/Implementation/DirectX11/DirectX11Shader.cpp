@@ -306,15 +306,14 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 
 
 	// Create CB
-	m_pConstants = m_pRenderer->CreateConstantsBuffer<SMatObjConstants>();
+	m_Constants.Initialize(pRenderer);	
 
 	return S_SUCCESS;
 }
 
 S_API void ForwardShaderPass::Clear()
 {
-	delete m_pConstants;
-	m_pConstants = 0;
+	m_Constants.Clear();
 
 	delete m_pShader;
 	m_pShader = 0;
@@ -334,7 +333,7 @@ S_API SResult ForwardShaderPass::Bind()
 	m_pRenderer->BindTexture((ITexture*)0, 0);
 	m_pRenderer->BindTexture((ITexture*)0, 1);
 
-	m_pRenderer->BindConstantsBuffer(m_pConstants);
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 	return S_SUCCESS;
 }
@@ -365,7 +364,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 	// Set constants
-	SMatObjConstants* constants = m_pConstants->GetConstants();
+	SMatObjConstants* constants = m_Constants.GetConstants();
 
 
 	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)
@@ -376,7 +375,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	constants->matEmissive = sr.emissive;
 	constants->matAmbient = 0.1f;
 
-	m_pConstants->Update();
+	m_Constants.Update();
 }
 
 
@@ -414,20 +413,19 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
 
-	m_pConstants = pRenderer->CreateConstantsBuffer<SMatObjConstants>();
+	m_Constants.Initialize(pRenderer);	
 
 	return S_SUCCESS;
 }
 
 S_API void GBufferShaderPass::Clear()
 {
-	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
-		delete m_pGBuffer[i];
+	for (auto itLayer = m_pGBuffer.begin(); itLayer != m_pGBuffer.end(); ++itLayer)
+		delete *itLayer;
 
 	m_pGBuffer.clear();
 
-	delete m_pConstants;
-	m_pConstants = 0;
+	m_Constants.Clear();
 
 	delete m_pShader;
 	m_pShader = 0;
@@ -443,7 +441,7 @@ S_API SResult GBufferShaderPass::Bind()
 	m_pShader->Bind();
 
 	m_pRenderer->BindRTCollection(m_pGBuffer, m_pGBuffer[0], "GBufferShaderPass");
-	m_pRenderer->BindConstantsBuffer(m_pConstants);
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 	return S_SUCCESS;
 }
@@ -465,7 +463,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 	// Set constants
-	SMatObjConstants* constants = m_pConstants->GetConstants();
+	SMatObjConstants* constants = m_Constants.GetConstants();
 
 
 	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)
@@ -479,7 +477,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 
-	m_pConstants->Update();	
+	m_Constants.Update();	
 }
 
 S_API const vector<IFBO*>& GBufferShaderPass::GetGBuffer() const
@@ -508,15 +506,14 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
 
-	m_pConstants = pRenderer->CreateConstantsBuffer<SShadingPassConstants>();
+	m_Constants.Initialize(pRenderer);	
 
 	return S_SUCCESS;
 }
 
 S_API void ShadingShaderPass::Clear()
 {
-	delete m_pConstants;
-	m_pConstants = 0;
+	m_Constants.Clear();
 
 	delete m_pShader;
 	m_pShader = 0;
@@ -543,10 +540,10 @@ S_API SResult ShadingShaderPass::Bind()
 S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform)
 {
 	// transform should be the transformation matrix of the light volume
-	SShadingPassConstants* constants = m_pConstants->GetConstants();
+	SShadingPassConstants* constants = m_Constants.GetConstants();
 	constants->mtxTransform = transform;
 
-	m_pConstants->Update();
+	m_Constants.Update();
 }
 
 
@@ -561,7 +558,7 @@ S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShader
 
 S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
 {
-
+	return S_SUCCESS;
 }
 
 S_API void ShadowmapShaderPass::Clear()
@@ -571,7 +568,11 @@ S_API void ShadowmapShaderPass::Clear()
 
 S_API SResult ShadowmapShaderPass::Bind()
 {
+	return S_SUCCESS;
+}
 
+S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+{
 }
 
 
@@ -585,7 +586,7 @@ S_API SResult ShadowmapShaderPass::Bind()
 
 S_API SResult PosteffectShaderPass::Initialize(IRenderer* pRenderer)
 {
-
+	return S_SUCCESS;
 }
 
 S_API void PosteffectShaderPass::Clear()
@@ -595,9 +596,12 @@ S_API void PosteffectShaderPass::Clear()
 
 S_API SResult PosteffectShaderPass::Bind()
 {
-
+	return S_SUCCESS;
 }
 
+S_API void PosteffectShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+{
+}
 
 
 SP_NMSPACE_END

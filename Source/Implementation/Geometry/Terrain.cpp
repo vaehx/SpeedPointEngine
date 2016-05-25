@@ -7,6 +7,7 @@
 #include <Abstract\IIndexBuffer.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\ITexture.h>
+#include <Abstract\ISettings.h>
 
 SP_NMSPACE_BEG
 

@@ -50,12 +50,6 @@ S_API void SpeedPointApplication::OnLogReport(SResult res, const SString& msg)
 }
 
 // ---------------------------------------------------------------------------------------------
-S_API void SpeedPointApplication::OnSettingChange(const SSettingsDesc& dsc)
-{
-	assert(IsInited());
-}
-
-// ---------------------------------------------------------------------------------------------
 S_API void SpeedPointApplication::Update(float fLastFrameTime)
 {
 	assert(IsInited());

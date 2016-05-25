@@ -29,9 +29,6 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11ResourcePool.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Settings.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Texture.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -77,9 +74,6 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Settings.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Texture.cpp">

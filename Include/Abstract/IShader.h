@@ -33,10 +33,22 @@ struct S_API SShaderInfo
 	string filename;
 	string entry;
 
-	SShaderInfo()
-		: vertexType(eSHADERVERTEX_DEFAULT)
+	SShaderInfo(const string& _filename, const string& _entry, EShaderVertexType _vertexType)
+		: filename(_filename),
+		entry(_entry),
+		vertexType(_vertexType)
 	{
 	}
+
+	SShaderInfo(const string& _filename, const string& _entry)
+		: SShaderInfo(_filename, _entry, eSHADERVERTEX_DEFAULT)
+	{
+	}
+
+	SShaderInfo()
+		: SShaderInfo("", "", eSHADERVERTEX_DEFAULT)
+	{
+	}	
 };
 
 
@@ -87,7 +99,7 @@ struct S_API IShaderPass
 	virtual SResult Initialize(IRenderer* pRenderer) = 0;
 	virtual void Clear() = 0;
 	virtual SResult Bind() = 0;
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform) = 0;
 };
 
 SP_NMSPACE_END

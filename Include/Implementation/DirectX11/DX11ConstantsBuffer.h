@@ -3,22 +3,25 @@
 #include <SPrerequisites.h>
 #include <Abstract\IConstantsBuffer.h>
 
+struct ID3D11Buffer;
+
 SP_NMSPACE_BEG
 
-struct ID3D11Buffer;
-struct S_API DirectX11Renderer;
+class S_API DirectX11Renderer;
 
-template<typename T>
-class S_API DX11ConstantsBuffer : public IConstantsBuffer<T>
+class S_API DX11ConstantsBuffer : public IConstantsBuffer
 {
 private:
 	ID3D11Buffer* m_pBuffer;
 	DirectX11Renderer* m_pDXRenderer;
+	void* m_pData;
+	unsigned int m_Size; // num bytes in m_pData
 
 public:
 	DX11ConstantsBuffer()
 		: m_pBuffer(0),
-		m_pDXRenderer(0)
+		m_pDXRenderer(0),
+		m_pData(0)
 	{
 	}
 
@@ -27,10 +30,12 @@ public:
 		Clear();
 	}
 
-	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual SResult Initialize(IRenderer* pRenderer, unsigned int sz);
 	virtual void Clear();
 
 	virtual void Update();
+
+	virtual void* GetData() const;
 
 	ID3D11Buffer* GetBuffer() const
 	{

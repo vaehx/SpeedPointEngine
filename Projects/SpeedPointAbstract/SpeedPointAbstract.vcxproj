@@ -108,7 +108,6 @@
     <ClInclude Include="..\..\Include\Abstract\IPhysics.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderAPI.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderer.h" />
-    <ClInclude Include="..\..\Include\Abstract\IRendererSettings.h" />
     <ClInclude Include="..\..\Include\Abstract\IRenderPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
     <ClInclude Include="..\..\Include\Abstract\IScene.h" />

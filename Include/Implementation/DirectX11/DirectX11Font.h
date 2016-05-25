@@ -46,7 +46,7 @@ private:
 
 	unsigned int m_TexSz[2];
 
-	DirectX11Effect m_FontShader;
+	DirectX11Shader m_FontShader;
 
 	ID3D11Buffer* m_pConstantsBuffer;
 

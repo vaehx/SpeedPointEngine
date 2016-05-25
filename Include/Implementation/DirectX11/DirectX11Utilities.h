@@ -11,6 +11,7 @@
 
 #include <SPrerequisites.h>
 #include "DirectX11.h"
+#include <Abstract\ISettings.h>
 
 SP_NMSPACE_BEG
 

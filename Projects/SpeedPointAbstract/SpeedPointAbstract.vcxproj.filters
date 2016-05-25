@@ -22,9 +22,6 @@
     <ClInclude Include="..\..\Include\Abstract\IOutputPlane.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IRendererSettings.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h">
       <Filter>Headers</Filter>
     </ClInclude>

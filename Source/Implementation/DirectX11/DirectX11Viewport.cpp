@@ -14,6 +14,7 @@
 #include <Abstract\Matrix.h>
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
+#include <Abstract\ISettings.h>
 
 #ifdef _DEBUG
 #include <dxgi1_3.h>
@@ -62,8 +63,8 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	IRenderer* pRenderer = pEngine->GetRenderer();
 	SP_ASSERTR(pRenderer->GetType() == S_DIRECTX11, S_INVALIDPARAM);
 
-	m_pRenderer = (DirectX11Renderer*)pRenderer;
-	DirectX11Settings* pRendererSet = (DirectX11Settings*)m_pRenderer->GetSettings();
+	m_pRenderer = dynamic_cast<DirectX11Renderer*>(pRenderer);
+	SP_ASSERTR(IS_VALID_PTR(m_pRenderer), S_INVALIDPARAM);
 
 	m_bIsAdditional = bIsAdditional;
 	m_Desc = desc;
@@ -100,8 +101,8 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	swapChainDesc.SampleDesc = GetD3D11MSAADesc(
 		swapChainDesc.BufferDesc.Format,
 		m_pRenderer->GetD3D11Device(),
-		pRendererSet->GetMSAACount(),
-		pRendererSet->GetMSAAQuality());
+		engineSet.render.msaaCount,
+		engineSet.render.msaaQuality);
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // i saw no purpose to change this to custom val as we want to support MSAA	
 
 

@@ -12,6 +12,7 @@
 #include <SPrerequisites.h>
 #include "DirectX11.h"
 #include <Abstract\IShader.h>
+#include <Abstract\IRenderer.h>
 #include <Abstract\IConstantsBuffer.h>
 #include <vector>
 
@@ -62,8 +63,7 @@ class S_API ForwardShaderPass : public IShaderPass
 public:
 	ForwardShaderPass()
 		: m_pRenderer(0),
-		m_pShader(0),
-		m_pConstants(0)
+		m_pShader(0)		
 	{
 	}
 
@@ -82,7 +82,7 @@ private:
 	IRenderer* m_pRenderer;
 	IShader* m_pHelperShader;
 	IShader* m_pShader;
-	IConstantsBuffer<SMatObjConstants>* m_pConstants;
+	ConstantsBufferHelper<SMatObjConstants> m_Constants;
 };
 
 
@@ -104,13 +104,12 @@ private:
 	vector<IFBO*> m_pGBuffer;
 
 	IShader* m_pShader;
-	IConstantsBuffer<SMatObjConstants>* m_pConstants;
+	ConstantsBufferHelper<SMatObjConstants> m_Constants;
 	IRenderer* m_pRenderer;
 
 public:
 	GBufferShaderPass()
 		: m_pRenderer(0),
-		m_pConstants(0),
 		m_pShader(0)
 	{
 	}
@@ -135,7 +134,10 @@ public:
 class S_API ShadowmapShaderPass : public IShaderPass
 {
 public:
-	ShadowmapShaderPass();
+	ShadowmapShaderPass()
+	{
+	}
+
 	virtual ~ShadowmapShaderPass()
 	{
 		Clear();
@@ -145,6 +147,7 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -160,7 +163,7 @@ private:
 	ShadowmapShaderPass* m_pShadowmapPass;
 	IRenderer* m_pRenderer;
 	IShader* m_pShader;
-	IConstantsBuffer<SShadingPassConstants>* m_pConstants;
+	ConstantsBufferHelper<SShadingPassConstants> m_Constants;
 
 public:
 	ShadingShaderPass(GBufferShaderPass* pGBufferPass, ShadowmapShaderPass* pShadowmapPass)
@@ -186,7 +189,10 @@ public:
 class S_API PosteffectShaderPass : public IShaderPass
 {
 public:
-	PosteffectShaderPass();
+	PosteffectShaderPass()
+	{
+	}
+
 	virtual ~PosteffectShaderPass()
 	{
 		Clear();
@@ -196,6 +202,7 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
 };
 
 

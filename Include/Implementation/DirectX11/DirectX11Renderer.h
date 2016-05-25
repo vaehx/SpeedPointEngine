@@ -132,8 +132,8 @@ private:
 	//ID3D11Buffer* m_pIllumCB;
 	//ID3D11Buffer* m_pHelperCB;
 
-	DX11ConstantsBuffer<SSceneConstants> m_SceneConstants;
-	DX11ConstantsBuffer<STerrainConstants> m_TerrainConstants;	
+	ConstantsBufferHelper<SSceneConstants> m_SceneConstants;
+	ConstantsBufferHelper<STerrainConstants> m_TerrainConstants;	
 	
 	ID3D11Buffer* m_pBoundCB; // Bound per-object CB, scene cb is assumed to be always bound
 
@@ -207,6 +207,8 @@ private:
 
 	SResult UpdateRasterizerState();
 	SResult UpdateDepthStencilState();
+		
+	void BindSceneCB(const IConstantsBuffer* cb);
 
 	void SetSamplerState(ETextureSampling sampling);
 
@@ -385,12 +387,9 @@ public:
 	virtual IViewport* GetDefaultViewport(void);	
 
 
-
-	template<typename T>
-	virtual IConstantsBuffer<T>* CreateConstantsBuffer() const;
-
-	template<typename T>
-	virtual void BindConstantsBuffer(const IConstantsBuffer<T>* cb, bool vs = false);
+	virtual IConstantsBuffer* CreateConstantsBuffer() const;
+	
+	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false);
 
 	virtual SSceneConstants* GetSceneConstants() const;
 
@@ -419,7 +418,6 @@ public:
 	virtual SResult Draw(const SDrawCallDesc& desc);
 
 
-	virtual SResult UpdateSettings(const SSettingsDesc& dsc);
 
 	virtual SRenderSettings* GetSettings() const;
 
@@ -448,9 +446,6 @@ protected:
 	virtual void SetViewProjMatrix(IViewport* pViewport = 0);
 	virtual void SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj);
 	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj);	
-
-	// Returns false if setting shader resources failed and the object should not be rendered.
-	virtual bool SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMat);
 };
 
 

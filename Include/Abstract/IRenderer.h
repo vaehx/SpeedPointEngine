@@ -16,6 +16,7 @@
 #include "IFont.h" // for FontSize
 #include "IRenderAPI.h"
 #include "IShader.h"
+#include "IConstantsBuffer.h"
 
 using std::vector;
 
@@ -32,9 +33,6 @@ enum S_API EFrontFace;
 struct S_API IResourcePool;
 struct S_API IVisibleObject;
 struct S_API SRenderSettings;
-template<typename T> struct S_API IConstantsBuffer;
-
-
 
 
 // Obsolete
@@ -477,14 +475,15 @@ public:
 	virtual void EnableWireframe(bool state = true) = 0;
 	virtual void EnableDepthTest(bool state = true) = 0;
 
-	template<typename T>
-	virtual IConstantsBuffer<T>* CreateConstantsBuffer() const = 0;
 
-	// vs - set to true to bind the CB to vertex shader too. If false, any bound CB to VS is unbound.
-	template<typename T>
-	virtual void BindConstantsBuffer(const IConstantsBuffer<T>* cb, bool vs = false) = 0;
+
+	virtual IConstantsBuffer* CreateConstantsBuffer() const = 0;
+
+	// vs - set to true to bind the CB to vertex shader too. If false, any bound CB to VS is unbound.	
+	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false) = 0;
 
 	virtual SSceneConstants* GetSceneConstants() const = 0;
+
 
 
 	// Summary:
@@ -522,16 +521,68 @@ public:
 
 
 protected:
+
+
 	// Summary:
 	//	Update projection and View matrix in Constants Buffer to those of the given viewport
 	// Arguments:
 	//	If pViewport is 0 then the current target-viewport is used (default 0)
 	virtual void SetViewProjMatrix(IViewport* pViewport = 0) = 0;
 	virtual void SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
-	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj) = 0;	
-
-	// Returns false if setting shader resources failed and the object should not be rendered.
-	virtual bool SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& worldMtx) = 0;
+	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj) = 0;		
 };
+
+
+///////////////////////////////////////////////////////////////
+
+
+template<typename T>
+class ConstantsBufferHelper
+{
+private:
+	IConstantsBuffer* m_pCB;
+
+public:
+	ConstantsBufferHelper()
+		: m_pCB(0)
+	{
+	}
+
+	SResult Initialize(IRenderer* pRenderer)
+	{
+		Clear();
+		m_pCB = pRenderer->CreateConstantsBuffer();
+		return m_pCB->Initialize(pRenderer, sizeof(T));
+	}
+
+	void Clear()
+	{
+		delete m_pCB;
+		m_pCB = 0;
+	}
+
+	void Update()
+	{
+		if (!m_pCB)
+			return;
+
+		m_pCB->Update();
+	}
+
+	// May return 0 if not initialized!
+	T* GetConstants() const
+	{
+		if (!m_pCB)
+			return 0;
+
+		return (T*)m_pCB->GetData();
+	}
+
+	const IConstantsBuffer* GetCB() const
+	{
+		return m_pCB;
+	}
+};
+
 
 SP_NMSPACE_END
