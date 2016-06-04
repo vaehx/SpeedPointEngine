@@ -437,9 +437,9 @@ S_API string SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile) const
 	case eSHADERFILE_FORWARD:
 		relativePath = "Effects\\illum.fx";	// PS_forward
 		break;
-	/*case eSHADERFILE_HELPER:
+	case eSHADERFILE_FORWARD_HELPER:
 		relativePath = "Effects\\helper.fx";
-		break;*/
+		break;
 	case eSHADERFILE_FONT:
 		relativePath = "Effects\\font.fx";
 		break;

@@ -10,7 +10,8 @@ cbuffer SceneCB : register(b0)
 cbuffer ObjectCB : register(b1)
 {
     float4x4 mtxWorld;
-    float3 diffColor;
+    float matAmbient;
+    float3 helperColor;
 };
 
 // -----------------
@@ -41,7 +42,7 @@ v2f VS_helper(a2v IN)
 //////////////////////////// pixel shader ////////////////////////////////
 float4 PS_helper(v2f IN) : SV_Target0
 {
-	float3 col = IN.Color * diffColor.rgb;
+	float3 col = IN.Color * helperColor.rgb;
 	return float4(col.x, col.y, col.z, 0);
 }
 

@@ -82,6 +82,7 @@ private:
 	IRenderer* m_pRenderer;
 	IShader* m_pHelperShader;
 	IShader* m_pShader;
+	IShader* m_pSkyboxShader;
 	ConstantsBufferHelper<SMatObjConstants> m_Constants;
 };
 

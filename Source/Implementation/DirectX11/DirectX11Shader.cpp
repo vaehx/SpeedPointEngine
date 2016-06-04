@@ -63,7 +63,7 @@ S_API SResult DirectX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& inf
 
 	if (!fxInput.good())
 	{
-		return CLog::Log(S_ERROR, "Failed open FX file ifstream for %s", info.filename.c_str());
+		return CLog::Log(S_ERROR, "Failed open FX file ifstream for %s (entry: %s)", info.filename.c_str(), info.entry.c_str());
 	}
 
 	fxInput.seekg(0, fxInput.end);
@@ -291,7 +291,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 	SShaderInfo si;
 	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_FORWARD_HELPER);
 	si.entry = "helper";	
-	si.vertexType = eSHADERVERTEX_SIMPLE;
+	si.vertexType = eSHADERVERTEX_DEFAULT;
 
 	m_pHelperShader = m_pRenderer->CreateShader();
 	m_pHelperShader->Load(pRenderer, si);
@@ -303,6 +303,14 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 
 	m_pShader = m_pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
+
+
+	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_SKYBOX);
+	si.entry = "skybox";
+	si.vertexType = eSHADERVERTEX_DEFAULT;
+
+	m_pSkyboxShader = m_pRenderer->CreateShader();
+	m_pSkyboxShader->Load(pRenderer, si);
 
 
 	// Create CB
@@ -347,6 +355,16 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 		m_pRenderer->BindTexture((ITexture*)0, 0);
 		m_pRenderer->BindTexture((ITexture*)0, 1);
 	}
+	else if (sr.illumModel == eILLUM_SKYBOX)
+	{
+		m_pSkyboxShader->Bind();
+
+		m_pRenderer->EnableBackfaceCulling(false);
+
+		ITexture* pTextureMap = IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture();
+		m_pRenderer->BindTexture(pTextureMap, 0);
+		m_pRenderer->BindTexture((ITexture*)0, 1);
+	}
 	else
 	{
 		m_pShader->Bind();
@@ -371,8 +389,8 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 
-	constants->mtxTransform = transform;
-	constants->matEmissive = sr.emissive;
+	constants->mtxWorld = transform;
+	constants->matEmissive = sr.diffuse;
 	constants->matAmbient = 0.1f;
 
 	m_Constants.Update();
@@ -470,7 +488,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 	
 	
 		
-	constants->mtxTransform = transform;
+	constants->mtxWorld = transform;
 	constants->matEmissive = sr.emissive;
 	constants->matAmbient = 0.1f;
 
@@ -541,7 +559,7 @@ S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShader
 {
 	// transform should be the transformation matrix of the light volume
 	SShadingPassConstants* constants = m_Constants.GetConstants();
-	constants->mtxTransform = transform;
+	constants->mtxWorld = transform;
 
 	m_Constants.Update();
 }

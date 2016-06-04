@@ -1321,6 +1321,14 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 
+	// Restore scene constants if necessary
+	if (renderDesc.bCustomViewProjMtx)
+	{
+		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
+		memcpy(pSceneConstants, &origSceneConstants, sizeof(SSceneConstants));
+		m_SceneConstants.Update();
+	}
+
 
 
 	return S_SUCCESS;
@@ -1366,9 +1374,6 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 		BindTexture(terrainRenderDesc.pVtxHeightMap, 0);
 		BindVertexShaderTexture(terrainRenderDesc.pVtxHeightMap, 0);
 		BindTexture(terrainRenderDesc.pColorMap, 1);
-
-		m_pD3DDeviceContext->PSSetConstantBuffers(1, 0, nullptr);
-		m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);
 
 		if (terrainRenderDesc.bUpdateCB)
 		{
@@ -1828,13 +1833,9 @@ S_API void DirectX11Renderer::BindConstantsBuffer(const IConstantsBuffer* cb, bo
 	ID3D11Buffer* pBuffer = dxcb->GetBuffer();
 
 	if (m_pBoundCB != pBuffer)
-	{		
+	{
 		m_pD3DDeviceContext->PSSetConstantBuffers(1, 1, &pBuffer);
-		
-		if (vs)
-			m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &pBuffer);
-		else
-			m_pD3DDeviceContext->VSSetConstantBuffers(1, 0, nullptr);
+		m_pD3DDeviceContext->VSSetConstantBuffers(1, 1, &pBuffer);
 
 		m_pBoundCB = pBuffer;
 	}

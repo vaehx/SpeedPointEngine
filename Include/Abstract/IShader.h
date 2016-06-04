@@ -76,7 +76,7 @@ struct S_API IShader
 
 struct S_API SObjectConstants
 {
-	SMatrix4 mtxTransform;	// 16 * 4 Byte
+	SMatrix4 mtxWorld;	// 16 * 4 Byte
 };
 
 enum S_API EShaderPassType
