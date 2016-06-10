@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Abstract\IObject.h>
+#include <Abstract\IEntity.h>
 #include <Abstract\IRenderer.h>
 #include "Geometry.h"
 #include <Implementation\Entity\PhysicalComponent.h>

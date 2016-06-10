@@ -15,7 +15,6 @@
 
 #include <SPrerequisites.h>
 #include "Vector3.h"
-#include "IObject.h"
 
 SP_NMSPACE_BEG
 

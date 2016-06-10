@@ -10,7 +10,7 @@
 #include "Matrix.h" // for Matrix CB
 #include "IViewport.h"	// for SViewportDescription
 #include "IGeometry.h" // for STransformation
-#include "IObject.h"
+#include "IEntity.h"
 #include "IMaterial.h"
 #include "IGameEngine.h"
 #include "IFont.h" // for FontSize

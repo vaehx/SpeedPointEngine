@@ -88,13 +88,11 @@
     <ClInclude Include="..\..\Include\Abstract\IApplication.h" />
     <ClInclude Include="..\..\Include\Abstract\IBot.h" />
     <ClInclude Include="..\..\Include\Abstract\ICollisionShape.h" />
-    <ClInclude Include="..\..\Include\Abstract\ICommandBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IFont.h" />
     <ClInclude Include="..\..\Include\Abstract\IGameEngine.h" />
     <ClInclude Include="..\..\Include\Abstract\IFBO.h" />
     <ClInclude Include="..\..\Include\Abstract\IFramePipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IGeometry.h" />
-    <ClInclude Include="..\..\Include\Abstract\IGraphicsAPI.h" />
     <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h" />
     <ClInclude Include="..\..\Include\Abstract\IInteractive.h" />
     <ClInclude Include="..\..\Include\Abstract\ILight.h" />
@@ -111,10 +109,9 @@
     <ClInclude Include="..\..\Include\Abstract\IRenderPipeline.h" />
     <ClInclude Include="..\..\Include\Abstract\IResourcePool.h" />
     <ClInclude Include="..\..\Include\Abstract\IScene.h" />
-    <ClInclude Include="..\..\Include\Abstract\IObject.h" />
+    <ClInclude Include="..\..\Include\Abstract\IEntity.h" />
     <ClInclude Include="..\..\Include\Abstract\ISettings.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
-    <ClInclude Include="..\..\Include\Abstract\IVisible.h" />
     <ClInclude Include="..\..\Include\Abstract\ISound.h" />
     <ClInclude Include="..\..\Include\Abstract\ISoundSystem.h" />
     <ClInclude Include="..\..\Include\Abstract\ITerrain.h" />

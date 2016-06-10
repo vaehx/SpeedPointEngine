@@ -1,5 +1,5 @@
 #include <Implementation\3DEngine\C3DEngine.h>
-#include <Abstract\IObject.h>
+#include <Abstract\IEntity.h>
 #include <Abstract\IScene.h>
 #include <Abstract\ITerrain.h>
 #include <Abstract\IGameEngine.h>

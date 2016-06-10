@@ -8,7 +8,6 @@
 #include <SPrerequisites.h>
 #include <Abstract\ITerrain.h>
 #include "Geometry.h"
-#include <Abstract\IObject.h>
 
 
 SP_NMSPACE_BEG

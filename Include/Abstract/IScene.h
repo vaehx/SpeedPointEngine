@@ -8,7 +8,7 @@
 #pragma once
 #include <SPrerequisites.h>
 #include "BoundBox.h"
-#include "IObject.h"
+#include "IEntity.h"
 
 SP_NMSPACE_BEG
 

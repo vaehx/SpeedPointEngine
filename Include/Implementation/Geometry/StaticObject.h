@@ -6,7 +6,7 @@
 
 #pragma once
 #include <SPrerequisites.h>
-#include <Abstract\IObject.h>
+#include <Abstract\IEntity.h>
 #include <Abstract\IOctree.h>
 #include <Util\SPool.h>
 #include <Util\SPrimitive.h>
