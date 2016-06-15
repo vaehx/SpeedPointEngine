@@ -9,7 +9,7 @@ SP_NMSPACE_BEG
 
 S_API CRenderableComponent::CRenderableComponent(I3DEngine* pRenderer, IMaterialManager* pMatMgr)
 	: m_pRenderer(pRenderer),
-	m_pRO(0),
+	m_pMatMgr(pMatMgr),
 	m_pEntity(0),
 	m_bVisible(true)
 {
@@ -30,19 +30,20 @@ S_API void CRenderableComponent::Init(IEntity* pEntity)
 	m_pRenderer = pRenderer;
 	m_pEntity = pEntity;
 
-	m_pRO = m_pRenderer->GetRenderObject();
-	assert(IS_VALID_PTR(m_pRO));
+#ifdef _DEBUG
+	_name = pEntity->GetName();
+#endif
 
-	SRenderDesc& rd = m_pRO->renderDesc;
-	rd.renderPipeline = eRENDER_FORWARD;
-	rd.bCustomViewProjMtx = false;
+	SRenderDesc* rd = GetRenderDesc();
+	rd->renderPipeline = eRENDER_FORWARD;
+	rd->bCustomViewProjMtx = false;
 
 	// copy over subsets
-	rd.nSubsets = GetSubsetCount();
-	rd.pSubsets = new SRenderSubset[rd.nSubsets];
-	for (unsigned int i = 0; i < rd.nSubsets; ++i)
+	rd->nSubsets = GetSubsetCount();
+	rd->pSubsets = new SRenderSubset[rd->nSubsets];
+	for (unsigned int i = 0; i < rd->nSubsets; ++i)
 	{
-		SRenderSubset& renderSubset = rd.pSubsets[i];
+		SRenderSubset& renderSubset = rd->pSubsets[i];
 		SGeomSubset* subset = GetSubset(i);
 		if (!IS_VALID_PTR(subset))
 		{
@@ -86,9 +87,9 @@ S_API void CRenderableComponent::Init(IEntity* pEntity)
 		}
 		else
 		{
-			if (IS_VALID_PTR(pMatMgr))
+			if (IS_VALID_PTR(m_pMatMgr))
 			{
-				IMaterial* pDefMat = pMatMgr->GetDefaultMaterial();
+				IMaterial* pDefMat = m_pMatMgr->GetDefaultMaterial();
 				renderSubset.shaderResources = pDefMat->GetLayer(0)->resources;
 			}
 		}
@@ -97,12 +98,11 @@ S_API void CRenderableComponent::Init(IEntity* pEntity)
 
 S_API void CRenderableComponent::Clear()
 {
-	if (IS_VALID_PTR(m_pRO) && IS_VALID_PTR(m_pRenderer))
-	{
-		m_pRenderer->ReleaseRenderObject(&m_pRO);
-	}
+	if (m_pEntity)
+		m_pEntity->ReleaseComponent(this);
 
 	m_pRenderer = 0;
+	m_pMatMgr = 0;
 	m_pEntity = 0;
 }
 
@@ -110,10 +110,8 @@ S_API void CRenderableComponent::SetVisible(bool visible)
 {
 	m_bVisible = visible;
 
-	assert(m_pRO);
-
 	// Update subsets
-	SRenderDesc* rd = &m_pRO->renderDesc;
+	SRenderDesc* rd = GetRenderDesc();
 	for (unsigned int iSubset = 0; iSubset < rd->nSubsets; ++iSubset)
 	{
 		SRenderSubset* pSubset = &rd->pSubsets[iSubset];
@@ -161,22 +159,43 @@ S_API IMaterial* CRenderableComponent::GetSubsetMaterial(unsigned int subset = 0
 
 S_API void CRenderableComponent::SetViewProjMatrix(const SMatrix& mtx)
 {
-	if (IS_VALID_PTR(m_pRO))
-	{
-		SRenderDesc* rd = &m_pRO->renderDesc;
-		rd->bCustomViewProjMtx = true;
-		rd->viewProjMtx = mtx;
-	}
+	SRenderDesc* rd = GetRenderDesc();
+	rd->bCustomViewProjMtx = true;
+	rd->viewProjMtx = mtx;
 }
 
 S_API void CRenderableComponent::UnsetViewProjMatrix()
 {
-	if (IS_VALID_PTR(m_pRO))
+	SRenderDesc* rd = GetRenderDesc();
+	rd->bCustomViewProjMtx = false;
+}
+
+
+
+
+S_API const AABB& CRenderableComponent::GetAABB() const
+{
+	if (IS_VALID_PTR(m_pEntity))
+		m_pEntity->GetBoundBox();
+	else
+		return AABB();
+}
+
+S_API SRenderDesc* CRenderableComponent::GetRenderDesc()
+{
+	return &m_RenderDesc;
+}
+
+S_API void CRenderableComponent::Update()
+{
+	if (IS_VALID_PTR(m_pEntity))
 	{
-		SRenderDesc* rd = &m_pRO->renderDesc;
-		rd->bCustomViewProjMtx = false;
+		m_RenderDesc.transform.translation = SMatrix::MakeTranslationMatrix(m_pEntity->GetPosition());
+		m_RenderDesc.transform.rotation = m_pEntity->GetRotation().ToRotationMatrix();
+		m_RenderDesc.transform.scale = SMatrix::MakeScaleMatrix(m_pEntity->GetSize());
 	}
 }
+
 
 
 SP_NMSPACE_END

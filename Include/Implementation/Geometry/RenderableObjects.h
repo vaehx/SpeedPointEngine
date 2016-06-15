@@ -70,33 +70,4 @@ public:
 };
 
 
-
-
-
-
-// SpeedPoint SkyBox Implementation
-class S_API CSkyBox : public ISkyBox
-{
-private:
-	CStaticObjectRenderable m_Renderable;
-	IGameEngine* m_pEngine;
-	Vec3f m_Position;
-
-public:
-	CSkyBox();
-	~CSkyBox()
-	{
-		Clear();
-	}
-
-	virtual SResult InitGeometry(IGameEngine* pEngine);
-	virtual void SetTexture(ITexture* pTexture);
-	virtual void Clear();
-
-	virtual void SetPosition(const Vec3f& pos);
-
-	virtual SRenderDesc* GetUpdatedRenderDesc();
-};
-
-
 SP_NMSPACE_END

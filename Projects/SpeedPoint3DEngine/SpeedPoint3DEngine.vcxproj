@@ -12,9 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\Implementation\3DEngine\C3DEngine.h" />
+    <ClInclude Include="..\..\Include\Implementation\3DEngine\CSkyBox.h" />
+    <ClInclude Include="..\..\Include\Implementation\3DEngine\Terrain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\3DEngine\C3DEngine.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\CSkyBox.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\Terrain.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{64298E44-4CE3-47C2-9000-023FAC8F943B}</ProjectGuid>

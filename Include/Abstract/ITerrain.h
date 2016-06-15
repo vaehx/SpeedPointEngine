@@ -150,6 +150,17 @@ struct S_API STerrainLayer
 		: pAlphaMask(layer.pAlphaMask), pDetailMap(layer.pDetailMap) {}
 };
 
+struct S_API STerrainInfo
+{
+	unsigned int segments;
+	unsigned int chunkSegments;
+	float size;
+	float baseHeight; //= 0
+	float fChunkStepDist; //= 15.0f
+	unsigned int nLodLevels; //= 4
+	bool center; //= true
+};
+
 
 struct S_API ITerrain
 {
@@ -202,7 +213,7 @@ public:
 	// nLodLevels - Number of total Lod levels. The higher, the higher the level of detail
 	// center - if set to true, the world origin (0, 0) will be used as the center of the terrain
 	// maxKTreeDepth - maximum recursion depth for the creation of the proxy mesh
-	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true) = 0;
+	virtual SResult Init(IRenderer* pRenderer, const STerrainInfo& info) = 0;
 
 	// Uses height scale to scale the sampled heights! Call SetHeightScale() before calling this function!
 	virtual void CalculateProxyMesh(unsigned int maxKTreeRecDepth = 4) = 0;

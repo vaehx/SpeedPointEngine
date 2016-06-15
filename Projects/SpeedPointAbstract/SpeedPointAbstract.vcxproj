@@ -112,6 +112,7 @@
     <ClInclude Include="..\..\Include\Abstract\IEntity.h" />
     <ClInclude Include="..\..\Include\Abstract\ISettings.h" />
     <ClInclude Include="..\..\Include\Abstract\IShader.h" />
+    <ClInclude Include="..\..\Include\Abstract\ISkyBox.h" />
     <ClInclude Include="..\..\Include\Abstract\ISound.h" />
     <ClInclude Include="..\..\Include\Abstract\ISoundSystem.h" />
     <ClInclude Include="..\..\Include\Abstract\ITerrain.h" />

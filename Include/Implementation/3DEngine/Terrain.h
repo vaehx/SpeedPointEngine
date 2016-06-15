@@ -7,7 +7,6 @@
 #pragma once
 #include <SPrerequisites.h>
 #include <Abstract\ITerrain.h>
-#include "Geometry.h"
 
 
 SP_NMSPACE_BEG
@@ -17,7 +16,7 @@ SP_NMSPACE_BEG
 class S_API Terrain : public ITerrain
 {
 private:
-	IGameEngine* m_pEngine;
+	IRenderer* m_pRenderer;
 
 	bool bDynamic;
 
@@ -62,7 +61,7 @@ private:
 
 public:
 	Terrain()		
-		: m_pEngine(nullptr),
+		: m_pRenderer(nullptr),
 		m_pColorMap(nullptr),
 		m_bRequireCBUpdate(true),
 		m_pLodLevels(0),
@@ -77,10 +76,10 @@ public:
 
 	virtual bool IsInited() const
 	{
-		return (IS_VALID_PTR(m_pEngine) && IS_VALID_PTR(m_pColorMap) && m_Layers.size() > 0);
+		return (IS_VALID_PTR(m_pRenderer) && IS_VALID_PTR(m_pColorMap) && m_Layers.size() > 0);
 	}
 	
-	virtual SResult Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight = 0, float fChunkStepDist = 15.0f, unsigned int nLodLevels = 4, bool center = true);
+	virtual SResult Init(IRenderer* pRenderer, const STerrainInfo& info);
 
 	virtual void CalculateProxyMesh(unsigned int maxKTreeRecDepth = 4);
 

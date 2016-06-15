@@ -5,6 +5,7 @@
 SP_NMSPACE_BEG
 
 struct S_API SRenderObject;
+struct S_API IRenderObject;
 
 struct S_API IRenderableComponent : public IComponent
 {
@@ -22,7 +23,7 @@ struct S_API IRenderableComponent : public IComponent
 
 	ILINE virtual void SetVisible(bool visible) = 0;
 
-	ILINE virtual SRenderObject* GetRenderObject() const = 0;
+	ILINE virtual IRenderObject* GetRenderObject() = 0;
 
 	virtual IGeometry* GetGeometry() = 0;
 

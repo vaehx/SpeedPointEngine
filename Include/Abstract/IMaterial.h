@@ -14,8 +14,8 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include "IRenderer.h"
 #include "Vector3.h"
-#include "IGameEngine.h"
 #include <string>
 #include <vector>
 
@@ -25,70 +25,7 @@ using std::vector;
 
 SP_NMSPACE_BEG
 
-struct S_API ITexture;
 struct S_API SInitialGeometryDesc;
-
-enum S_API EIllumModel
-{
-	eILLUM_HELPER,	// cannot be rendered with deferred pipeline!
-	eILLUM_SKYBOX,
-	eILLUM_PHONG,
-	eILLUM_BLINNPHONG,
-	eILLUM_COOKTORRANCE
-};
-
-struct S_API SShaderResources
-{
-	ITexture* textureMap;	// aggregation, color for full unlit roughness
-	ITexture* normalMap;
-	ITexture* ambientOcclusionMap;
-	float3 diffuse;
-	float3 emissive;	
-
-	EIllumModel illumModel;
-
-	ITexture* roughnessMap;
-	float roughness;	// if the glossiness Map is set it is used instead of the global gloss factor
-
-	bool enableBackfaceCulling;
-
-	SShaderResources()
-		: textureMap(0),
-		normalMap(0),
-		ambientOcclusionMap(0),
-		diffuse(0, 0, 0),		
-		emissive(0, 0, 0),		
-		roughnessMap(0),
-		roughness(1.0f),
-		illumModel(eILLUM_BLINNPHONG),
-		enableBackfaceCulling(true)
-	{
-	}
-
-	SShaderResources(const SShaderResources& src)
-	{
-		CopyFrom(src);
-	}
-
-	SShaderResources& operator = (const SShaderResources& src)
-	{
-		CopyFrom(src);
-		return *this;
-	}
-
-	void CopyFrom(const SShaderResources& src)
-	{
-		textureMap = src.textureMap;
-		normalMap = src.normalMap;
-		ambientOcclusionMap = src.ambientOcclusionMap;
-		emissive = src.emissive;
-		diffuse = src.diffuse;		
-		illumModel = src.illumModel;
-		roughnessMap = src.roughnessMap;
-		roughness = src.roughness;
-		enableBackfaceCulling = src.enableBackfaceCulling;
-	}
-};
 
 // Material Layer
 struct S_API SMaterialLayer

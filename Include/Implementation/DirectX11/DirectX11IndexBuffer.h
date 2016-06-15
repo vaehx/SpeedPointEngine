@@ -50,8 +50,7 @@ struct S_API SDirectX11IBCreateFlags
 // SpeedPoint IndexBuffer Resource
 class S_API DirectX11IndexBuffer : public IIndexBuffer
 {
-private:
-	IGameEngine*		m_pEngine;
+private:	
 	IRenderer*			m_pRenderer;
 	ID3D11Buffer*			m_pHWIndexBuffer;
 	void*			m_pShadowBuffer;
@@ -67,11 +66,11 @@ public:
 	DirectX11IndexBuffer(const DirectX11IndexBuffer& o);
 	~DirectX11IndexBuffer();
 	
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, void* pInitialData = nullptr);
+	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, void* pInitialData = nullptr);
 
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, SIndex* pInitialData = nullptr)
+	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, SIndex* pInitialData = nullptr)
 	{
-		return Initialize(pEngine, pRenderer, usage, nSize, S_INDEXBUFFER_16, (void*)pInitialData);
+		return Initialize(pRenderer, usage, nSize, S_INDEXBUFFER_16, (void*)pInitialData);
 	}
 
 	virtual SResult Create(unsigned long nSize, void* pInitialData = nullptr, usint32 nInitialDataCount = 0);	

@@ -19,6 +19,9 @@
 
 SP_NMSPACE_BEG
 
+struct S_API IVertexBuffer;
+struct S_API IIndexBuffer;
+
 
 // Notice:
 // - Constant Buffers must have a size which is a multiple of 16. That means you should
@@ -67,6 +70,14 @@ struct S_API STerrainConstants
 };
 
 
+
+enum S_API EPrimitiveType
+{
+	PRIMITIVE_TYPE_TRIANGLELIST,
+	PRIMITIVE_TYPE_LINES,
+	PRIMITIVE_TYPE_LINESTRIP,
+	PRIMITIVE_TYPE_UNKNOWN
+};
 
 // Summary:
 //	Used in IRenderer::Draw()

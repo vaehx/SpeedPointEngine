@@ -1,8 +1,11 @@
+#include <Implementation\3DEngine\Terrain.h>
+#include <Implementation\3DEngine\CSkyBox.h>
 #include <Implementation\3DEngine\C3DEngine.h>
 #include <Abstract\IEntity.h>
 #include <Abstract\IScene.h>
 #include <Abstract\ITerrain.h>
 #include <Abstract\IGameEngine.h>
+#include <Abstract\ISkyBox.h>
 #include <sstream>
 
 using std::stringstream;
@@ -13,177 +16,109 @@ SP_NMSPACE_BEG
 S_API C3DEngine::C3DEngine(IRenderer* pRenderer, IGameEngine* pEngine)
 	: m_pRenderer(pRenderer),
 	m_pEngine(pEngine),
-	m_pSkyBoxRenderDesc(0)
+	m_pRenderObjects(0),
+	m_pSkyBox(0),
+	m_pTerrain(0)
 {		
 }
 
 S_API C3DEngine::~C3DEngine()
-{	
-	m_RenderObjects.Clear();
+{
+	Clear();
+}
+
+S_API void C3DEngine::Clear()
+{
+	ClearRenderObjects();
+	if (IS_VALID_PTR(m_pRenderObjects))
+		delete m_pRenderObjects;
+
+	m_pRenderObjects = 0;
 	m_pRenderer = 0;
-	m_pEngine = 0;
-	m_pSkyBoxRenderDesc = 0;
+	m_pEngine = 0;	
+
+	if (IS_VALID_PTR(m_pSkyBox))
+		delete m_pSkyBox;
+
+	m_pSkyBox = 0;
+
+	if (IS_VALID_PTR(m_pTerrain))
+		delete m_pTerrain;
+
+	m_pTerrain = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API void C3DEngine::ClearRenderObjects()
 {
+	if (!IS_VALID_PTR(m_pRenderObjects))
+		return;
+
 	// Need to deallocate subset arrays of render descs
 	unsigned int iterator;	
-	SRenderObject* pRenderObject = m_RenderObjects.GetFirstUsedObject(iterator);
+	IRenderObject* pRenderObject = m_pRenderObjects->GetFirst(iterator);
 	while (pRenderObject)
 	{
-		if (pRenderObject->deallocateRenderDesc)
+		pRenderObject->Clear();
+
+		/*if (pRenderObject->deallocateRenderDesc)
 			delete pRenderObject->pRenderDesc;
 
 		pRenderObject->pRenderDesc = 0;
-		pRenderObject->deallocateRenderDesc = false;
-		pRenderObject = m_RenderObjects.GetNextUsedObject(iterator);
+		pRenderObject->deallocateRenderDesc = false;*/
+
+		pRenderObject = m_pRenderObjects->GetNext(iterator);
 	}
 
-	m_RenderObjects.ReleaseAll();
+	m_pRenderObjects->ReleaseAll();
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API unsigned int C3DEngine::CollectVisibleObjects(IScene* pScene, const SCamera* pCamera)
+S_API unsigned int C3DEngine::CollectVisibleObjects(const SCamera* pCamera)
 {
 	unsigned int budgetTimer = m_pEngine->StartBudgetTimer("C3DEngine::CollectVisiableObjects()");
 
-	// TERRAIN
-	ITerrain* pTerrain = pScene->GetTerrain();
-	if (IS_VALID_PTR(pTerrain))
+	// TERRAIN	
+	if (IS_VALID_PTR(m_pTerrain))
 	{
-		pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);	
+		m_pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);	
 	}
 
 
 	// SKYBOX
-	ISkyBox* pSkyBox = pScene->GetSkyBox();
-	if (IS_VALID_PTR(pSkyBox))
+	if (IS_VALID_PTR(m_pSkyBox))
 	{
-		m_pSkyBoxRenderDesc = pSkyBox->GetUpdatedRenderDesc();
+		m_pSkyBox->Update();
 	}
 
 
 
-	// SCENE NODES
-	vector<SSceneNode>* pSceneNodes = pScene->GetSceneNodes();
-	if (!IS_VALID_PTR(pSceneNodes))
-	{
-		m_pEngine->StopBudgetTimer(budgetTimer);
-		return 0;
-	}
-	
-	unsigned int nVisibles = 0;
-	for (auto itSceneNode = pSceneNodes->begin(); itSceneNode != pSceneNodes->end(); itSceneNode++)
-	{
-		bool bSceneNodeVisible = true; // TODO
+	// RENDER OBJECTS
 
-		// Increase visibles counter
-		if (bSceneNodeVisible)
-		{
-			if (itSceneNode->type != eSCENENODE_LIGHT)		
-				nVisibles++;		
-		}
+	//TODO: Determine which render objects are visible!
 
-		// Add the object
-		switch (itSceneNode->type)
-		{
-		case eSCENENODE_STATIC:
-			if (bSceneNodeVisible)				
-				AddVisibleStatic(itSceneNode->pStatic, itSceneNode->aabb);
-			break;
-		case eSCENENODE_ENTITY:
-			if (bSceneNodeVisible)
-				AddVisibleEntity(itSceneNode->pObject, itSceneNode->aabb);
-			break;
-		case eSCENENODE_LIGHT:
-			AddVisibleLight(itSceneNode->pLight, itSceneNode->aabb);
-			break;
-		default:
-			break;
-		}		
-	}
 
 	m_pEngine->StopBudgetTimer(budgetTimer);
 	return 0;
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API void C3DEngine::AddVisibleEntity(IEntity* pEntity, const AABB& aabb)
+S_API IRenderObject* C3DEngine::GetRenderObject()
 {
-	if (!pEntity->IsRenderable())
-	{
-		return;
-	}
-
-	IRenderableComponent* pRenderable = pEntity->GetRenderable();
-	if (!IS_VALID_PTR(pRenderable))
-	{
-		// todo: print error message?
-		return;
-	}
-
-	SRenderDesc* pRenderDesc = pRenderable->GetUpdatedRenderDesc();
-	if (!IS_VALID_PTR(pRenderDesc))
-		return; // invalid render desc - will not be added to the RenderObjects
-
-	SRenderObject* pRenderObject = m_RenderObjects.Get();
-	pRenderObject->pRenderDesc = pRenderDesc;
-	pRenderObject->aabb = aabb;
-#ifdef _DEBUG
-	pRenderObject->name = pEntity->GetName();
-#endif
+	assert(IS_VALID_PTR(m_pRenderObjects));
+	return m_pRenderObjects->Get();
 }
 
-S_API void C3DEngine::AddVisibleLight(ILight* pLight, const AABB& aabb)
+S_API void C3DEngine::ReleaseRenderObject(IRenderObject** pObject)
 {
-	// Add light for deferred light rendering
-	SRenderLight* pRenderLight = m_RenderLights.Get();
-	pLight->GetLightDesc(&pRenderLight->lightDesc);
-
-	// Check found statics and entities if they are lit by this light - ONLY FOR FORWARD RENDERING
-	unsigned int iterator;
-	SRenderObject* pRenderObject = m_RenderObjects.GetFirstUsedObject(iterator);
-	while (pRenderObject)
-	{
-		if (pRenderObject->pRenderDesc->renderPipeline != eRENDER_FORWARD || pRenderObject->nAffectingLights >= 4)
-		{
-			pRenderObject = m_RenderObjects.GetNextUsedObject(iterator);
-			continue;
-		}
-
-
-		// TODO: Check if storing pointers to the lights for deferred rendering is safe here, or if we rather
-		//		should create separate RenderLights for forward rendering.
-		pRenderObject->affectingLights[pRenderObject->nAffectingLights] = pRenderLight;
-
-
-		++pRenderObject->nAffectingLights;
-
-		pRenderObject = m_RenderObjects.GetNextUsedObject(iterator);
-	}
-}
-
-S_API void C3DEngine::AddVisibleStatic(IStaticObject* pStatic, const AABB& aabb)
-{	
-	SRenderDesc* pRenderDesc = pStatic->GetRenderDesc();
-	if (!IS_VALID_PTR(pRenderDesc))
-		return; // invalid render desc, do not add to the render objects
-
-	SRenderObject* pRenderObject = m_RenderObjects.Get();	
-	pRenderObject->pRenderDesc = pRenderDesc;
-	pRenderObject->aabb = aabb;
-#ifdef _DEBUG
-	pRenderObject->name = pStatic->GetName();
-#endif
-
-	pRenderObject->nAffectingLights = 0;
+	assert(IS_VALID_PTR(m_pRenderObjects));
+	m_pRenderObjects->Release(pObject);
 }
 
 
@@ -191,15 +126,11 @@ S_API void C3DEngine::AddVisibleStatic(IStaticObject* pStatic, const AABB& aabb)
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API SRenderObject* C3DEngine::GetCustomRenderObject()
+S_API ITerrain* C3DEngine::CreateTerrain(const STerrainInfo& info)
 {
-	return m_RenderObjects.Get();
+	ClearTerrain();
+	m_pTerrain = new Terrain();
 }
-
-
-
-
-
 
 
 
@@ -217,12 +148,14 @@ S_API void C3DEngine::RenderCollected()
 
 		//TODO: Render skybox deferred as well!
 
-		if (IS_VALID_PTR(m_pSkyBoxRenderDesc))
+		if (IS_VALID_PTR(m_pSkyBox))
 		{
 			unsigned int skyboxTimer = m_pEngine->StartBudgetTimer("C3DEngine::RenderCollected() - Render Skybox");		
 
 			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-			m_pRenderer->Render(*m_pSkyBoxRenderDesc);
+			
+			SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
+			m_pRenderer->Render(*rd);
 			
 			m_pEngine->StopBudgetTimer(skyboxTimer);
 		}
@@ -238,47 +171,51 @@ S_API void C3DEngine::RenderCollected()
 		}
 
 
-
-		stringstream objectsTimerName;
-		objectsTimerName << "C3DEngine::RenderCollected() - Render RenderObjects (" << m_RenderObjects.GetUsedObjectCount() << ")";
-
-		unsigned int renderObjectsTimer = m_pEngine->StartBudgetTimer(objectsTimerName.str().c_str());
+		if (IS_VALID_PTR(m_pRenderObjects))
 		{
 
 
+			stringstream objectsTimerName;
+			objectsTimerName << "C3DEngine::RenderCollected() - Render RenderObjects (" << m_pRenderObjects->GetNumObjects() << ")";
 
-
-
-
-			//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
-			//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
-			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-
-
-
-
-			unsigned int itRenderObject;
-			SRenderObject* pRenderObject = m_RenderObjects.GetFirstUsedObject(itRenderObject);
-			while (pRenderObject)
+			unsigned int renderObjectsTimer = m_pEngine->StartBudgetTimer(objectsTimerName.str().c_str());
 			{
 
+
+
+
+
+
+				//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
+				//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
+				m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+
+
+
+
+
+				unsigned int itRenderObject;
+				IRenderObject* pRenderObject = m_pRenderObjects->GetFirst(itRenderObject);
+				while (pRenderObject)
+				{
+
 #ifdef _DEBUG		
-				if (m_pRenderer->DumpingThisFrame())
-					CLog::Log(S_DEBUG, "Rendering %s", pRenderObject->name.c_str());
+					if (m_pRenderer->DumpingThisFrame())
+						CLog::Log(S_DEBUG, "Rendering %s", pRenderObject->_name.c_str());
 #endif
 
-				m_pRenderer->Render(*pRenderObject->pRenderDesc);
+					SRenderDesc* rd = pRenderObject->GetRenderDesc();
+					m_pRenderer->Render(*rd);
 
-				pRenderObject = m_RenderObjects.GetNextUsedObject(itRenderObject);
+					pRenderObject = m_pRenderObjects->GetNext(itRenderObject);
 
+				}
+
+				m_pEngine->StopBudgetTimer(renderObjectsTimer);
 			}
 
-			m_pEngine->StopBudgetTimer(renderObjectsTimer);
+
 		}
-
-
-		
 
 
 

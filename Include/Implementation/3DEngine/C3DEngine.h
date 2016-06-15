@@ -21,36 +21,35 @@ private:
 	IRenderer* m_pRenderer;	
 	IGameEngine* m_pEngine;
 
+	IRenderObjectPool* m_pRenderObjects;
 
-	// TODO: Consider storing the RenderDescs in the engine, passing a pointer to Object::UpdateRenderDesc() and thereby letting the
-	// object decide, how the Render Desc is filled (maybe by a copy in the object itself?)
-	ChunkedObjectPool<SRenderObject, 40> m_RenderObjects;
-
-	// For deferred shading only
-	ChunkedObjectPool<SRenderLight> m_RenderLights;
-
-	SRenderDesc* m_pSkyBoxRenderDesc;
+	ISkyBox* m_pSkyBox;
+	
 	STerrainRenderDesc m_TerrainRenderDesc;
+	ITerrain* m_pTerrain;
 
-	void AddVisibleStatic(IStaticObject* pStaticObject, const AABB& aabb);
-	void AddVisibleEntity(IEntity* pEntity, const AABB& aabb);
-	void AddVisibleLight(ILight* pLight, const AABB& aabb);
-
+protected:
+	virtual void SetRenderObjectPool(IRenderObjectPool* pPool);
 
 public:
 	C3DEngine(IRenderer* pRenderer, IGameEngine* pEngine);
 	virtual ~C3DEngine();
 	
-	ILINE virtual unsigned int CollectVisibleObjects(IScene* pScene, const SCamera* pCamera);
+	ILINE virtual unsigned int CollectVisibleObjects(const SCamera* pCamera);
+	ILINE virtual IRenderObject* GetRenderObject();
+	ILINE virtual void ReleaseRenderObject(IRenderObject** pObject);
+	ILINE virtual void ClearRenderObjects();
 
-	// Returns the pointer to a renderObject of this frame.
-	// DO NOT USE THE POINTER AFTER RENDERING!
-	ILINE virtual SRenderObject* GetCustomRenderObject();
+	ILINE virtual ISkyBox* GetSkyBox();
 
 	// Render lastly collected visible objects
 	ILINE virtual void RenderCollected();
 
-	ILINE virtual void ClearRenderObjects();
+	ILINE virtual ITerrain* CreateTerrain(const STerrainInfo& info);
+	ILINE virtual ITerrain* GetTerrain();
+	ILINE virtual void ClearTerrain();
+
+	ILINE virtual void Clear();
 };
 
 

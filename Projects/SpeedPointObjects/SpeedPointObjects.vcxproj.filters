@@ -29,15 +29,6 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\StaticObject.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Terrain.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\Geometry\Scene.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -56,11 +47,11 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableComponent.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Terrain.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -77,12 +68,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationBundle.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\StaticObject.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h">
@@ -104,6 +89,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableComponent.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

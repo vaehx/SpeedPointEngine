@@ -15,7 +15,8 @@ public:
 	CEntitySystem(IGameEngine* pEngine);
 
 	// IEntitySystem:
-	virtual IEntity* CreateEntity() const;
+	virtual IEntity* CreateEntity();
+	virtual IRenderableComponent* CreateRenderableComponent() const;
 };
 
 SP_NMSPACE_END

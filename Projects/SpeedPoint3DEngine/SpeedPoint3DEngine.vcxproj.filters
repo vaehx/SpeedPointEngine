@@ -18,9 +18,21 @@
     <ClInclude Include="..\..\Include\Implementation\3DEngine\C3DEngine.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\3DEngine\Terrain.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\3DEngine\CSkyBox.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\3DEngine\C3DEngine.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\Terrain.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\CSkyBox.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

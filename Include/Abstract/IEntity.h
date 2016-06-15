@@ -30,6 +30,7 @@ using std::string;
 
 SP_NMSPACE_BEG
 
+struct S_API IEntity;
 struct S_API IMaterial;
 struct S_API SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
@@ -43,6 +44,7 @@ struct S_API SCamera;
 struct S_API IGameEngine;
 struct S_API ITexture;
 
+struct S_API IRenderableComponent;
 struct S_API IPhysicalComponent;
 
 
@@ -164,12 +166,14 @@ struct S_API IEntity : public STransformable
 	ILINE virtual const char* GetName() const = 0;
 	ILINE virtual void SetName(const char* name) = 0;
 
-	ILINE virtual IComponent* CreateComponent(EComponentType type) const = 0;
+	ILINE virtual IComponent* CreateComponent(EComponentType type) = 0;
 	
 	// Returns NULL if the component was not created
 	ILINE virtual IComponent* GetComponent(EComponentType type) const = 0;
 
-	ILINE virtual void SetComponent(EComponentType type, IComponent* pComponent) const = 0;
+	ILINE virtual void SetComponent(EComponentType type, IComponent* pComponent) = 0;
+
+	ILINE virtual void ReleaseComponent(IComponent* pComponent) = 0;
 };
 
 typedef S_API struct IEntity IObject;
@@ -192,7 +196,8 @@ struct S_API IEntitySystem
 {
 	virtual ~IEntitySystem() {}
 
-	virtual IEntity* CreateEntity() const = 0;
+	virtual IEntity* CreateEntity() = 0;
+	virtual IRenderableComponent* CreateRenderableComponent() const = 0;
 };
 
 
@@ -207,43 +212,6 @@ public:
 	virtual ~ILight() {}
 
 	virtual void GetLightDesc(SLightDesc* pDestDesc) const = 0;
-};
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// A static object does not dynamic, i.e. does not move or is modified in any other way per frame
-struct S_API IStaticObject : public STransformable
-{
-public:
-	virtual ~IStaticObject() {}
-
-	virtual const char* GetName() const = 0;
-	virtual void SetName(const char* name) = 0;
-	
-	ILINE virtual IRenderableComponent* GetRenderable() = 0;
-
-	virtual SRenderDesc* GetRenderDesc() = 0;
-	virtual void Clear() = 0;
-};
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct S_API ISkyBox
-{
-	virtual ~ISkyBox() {}
-
-	virtual SResult InitGeometry(IGameEngine* pEngine) = 0;
-	virtual void SetTexture(ITexture* pTexture) = 0;
-	virtual void Clear() = 0;
-
-	// SkyBox always centered around camera
-	virtual void SetPosition(const Vec3f& pos) = 0;
-
-	// Updates the renderDesc at the given Cameras position
-	virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
 };
 
 

@@ -1,6 +1,6 @@
 // SpeedPoint Basic Terrain
 
-#include <Implementation\Geometry\Terrain.h>
+#include <Implementation\3DEngine\Terrain.h>
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IVertexBuffer.h>
@@ -303,32 +303,32 @@ S_API Terrain::~Terrain()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigned int chunkSegments, float size, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/)
+S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainInfo& info)
 {
 	// Check given sizes		
-	if (!IsPowerOfTwo(segments) || (segments % chunkSegments) > 0)
+	if (!IsPowerOfTwo(info.segments) || (info.segments % info.chunkSegments) > 0)
 		return S_INVALIDPARAM;
 
-	if (chunkSegments < (int)PowerOfTwo(nLodLevels - 1) * 2)
-		return CLog::Log(S_INVALIDPARAM, "Terrain::Init(): Too many lod levels (%u) for %u segments per quad", nLodLevels, chunkSegments);
+	if (info.chunkSegments < (int)PowerOfTwo(info.nLodLevels - 1) * 2)
+		return CLog::Log(S_INVALIDPARAM, "Terrain::Init(): Too many lod levels (%u) for %u segments per quad", info.nLodLevels, info.chunkSegments);
 
 
-	m_pEngine = pEngine;
+	
 
-	m_chunkSegs = chunkSegments;
-	m_nSegments = segments;
+	m_chunkSegs = info.chunkSegments;
+	m_nSegments = info.segments;
 
-	m_fChunkStepDist = fChunkStepDist;
+	m_fChunkStepDist = info.fChunkStepDist;
 
-	m_fSize = size;
-	m_fSegSz = size / (float)segments;
-	m_fTexSz = 1.0f / (float)segments;
+	m_fSize = info.size;
+	m_fSegSz = info.size / (float)info.segments;
+	m_fTexSz = 1.0f / (float)info.segments;
 
-	m_nLodLevels = nLodLevels;
+	m_nLodLevels = info.nLodLevels;
 	m_pLodLevels = new ITerrain::LodLevel[m_nLodLevels];
 	printf("Ter: Allocated LodLevels buffer with %u elements\n", m_nLodLevels);
 
-	m_bCenter = center;
+	m_bCenter = info.center;
 
 	// Create chunk vertex array for each lod level
 	for (unsigned int iLodLvl = 0; iLodLvl < m_nLodLevels; ++iLodLvl)
@@ -350,14 +350,14 @@ S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigne
 			for (unsigned int x = 0; x <= lodLvl.chunkQuads; ++x)
 			{
 				lodLvl.pChunkVertices[z * (lodLvl.chunkQuads + 1) + x] =
-					SVertex(x * fQuadSz, baseHeight, z * fQuadSz, 0, 1.0f, 0, 1.0f, 0, 0,
+					SVertex(x * fQuadSz, info.baseHeight, z * fQuadSz, 0, 1.0f, 0, 1.0f, 0, 0,
 						x * lodLvl.quadSegs * m_fTexSz, z * lodLvl.quadSegs * m_fTexSz);
 			}
 		}
 	}
 
 	// To initialize, generate a flat heightmap
-	GenerateFlatVertexHeightmap(baseHeight);
+	GenerateFlatVertexHeightmap(info.baseHeight);
 
 	// Initialize chunk array
 	unsigned long nChunks = pow2(m_nSegments / m_chunkSegs);
@@ -371,14 +371,14 @@ S_API SResult Terrain::Init(IGameEngine* pEngine, unsigned int segments, unsigne
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 {
-	if (!IS_VALID_PTR(m_pEngine))
+	if (!IS_VALID_PTR(m_pRenderer))
 		return;
 
 	/*
 	printf("Terrain::GenLodLevelChunks(pCamera=%p)\n", pCamera);
 	*/
 
-	IResourcePool* pResources = m_pEngine->GetResources();
+	IResourcePool* pResources = m_pRenderer->GetResourcePool();
 	if (!IS_VALID_PTR(pResources))
 		return;
 
@@ -541,11 +541,11 @@ g_MaxIdxAccum = lodLvl.nIndices;
 
 		// Now create lodLevel's Hardware VB and Hardware IB
 		pResources->AddVertexBuffer(&lodLvl.pVB);
-		lodLvl.pVB->Initialize(m_pEngine, m_pEngine->GetRenderer(), eVBUSAGE_STATIC, lodLvl.pVertices, lodLvl.nVertices);
+		lodLvl.pVB->Initialize(m_pRenderer, eVBUSAGE_STATIC, lodLvl.pVertices, lodLvl.nVertices);
 
 		pResources->AddIndexBuffer(&lodLvl.pIB);		
 		lodLvl.nActualIndices = idxAccum;
-		lodLvl.pIB->Initialize(m_pEngine, m_pEngine->GetRenderer(), eIBUSAGE_STATIC, lodLvl.nActualIndices, S_INDEXBUFFER_32, lodLvl.pIndices);			
+		lodLvl.pIB->Initialize(m_pRenderer, eIBUSAGE_STATIC, lodLvl.nActualIndices, S_INDEXBUFFER_32, lodLvl.pIndices);			
 	}
 }
 
@@ -566,9 +566,9 @@ S_API void Terrain::SetHeightmap(ITexture* heightmap)
 		return;
 	}
 
-	if (!m_bCustomHeightmapSet && IS_VALID_PTR(m_pVtxHeightMap) && IS_VALID_PTR(m_pEngine))
+	if (!m_bCustomHeightmapSet && IS_VALID_PTR(m_pVtxHeightMap) && IS_VALID_PTR(m_pRenderer))
 	{
-		IResourcePool* pResources = m_pEngine->GetResources();
+		IResourcePool* pResources = m_pRenderer->GetResourcePool();
 		pResources->RemoveTexture(&m_pVtxHeightMap);
 	}
 
@@ -684,10 +684,10 @@ S_API void Terrain::MarkDirtyArea(Vec2f areaMin /*= Vec2f(0, 0)*/, Vec2f areaMax
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 {
-	if (!IS_VALID_PTR(m_pEngine))
+	if (!IS_VALID_PTR(m_pRenderer))
 		return S_NOTINIT;
 
-	IResourcePool* pRes = m_pEngine->GetResources();	
+	IResourcePool* pRes = m_pRenderer->GetResourcePool();
 
 	// Remove old texture, if there was one
 	if (IS_VALID_PTR(m_pVtxHeightMap) && !m_bCustomHeightmapSet)
@@ -723,7 +723,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	}
 	else
 	{
-		EngLog(S_ERROR, m_pEngine, "Failed lock vtx height map for terrain!");
+		CLog::Log(S_ERROR, "Failed lock vtx height map for terrain!");
 	}
 
 	MarkDirtyArea(Vec2f(0, 0), Vec2f(1.0f, 1.0f));
@@ -967,7 +967,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 	if (m_bRequireCBUpdate)
 	{
 		pTerrainRenderDesc->bUpdateCB = true;
-		pTerrainRenderDesc->constants.fTerrainDMFadeRadius = m_pEngine->GetSettings()->Get().render.fTerrainDMFadeRange;
+		pTerrainRenderDesc->constants.fTerrainDMFadeRadius = m_pRenderer->GetSettings()->fTerrainDMFadeRange;
 		pTerrainRenderDesc->constants.fTerrainMaxHeight = m_HeightScale;
 		pTerrainRenderDesc->constants.vtxHeightMapSz = m_nSegments + 1;
 		pTerrainRenderDesc->constants.segmentSize = m_fSegSz;
@@ -999,7 +999,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 		STerrainLayer* pLayer = *itLayer;
 		if (!IS_VALID_PTR(pLayer))
 		{
-			m_pEngine->LogE("Invalid terrain layer pointer!");
+			CLog::Log(S_ERROR, "Invalid terrain layer pointer!");
 			return;
 		}
 
@@ -1045,7 +1045,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 
 			if (!IS_VALID_PTR(dcd->pVertexBuffer) || !IS_VALID_PTR(dcd->pIndexBuffer))
 			{
-				EngLog(S_ERROR, m_pEngine, "VB or IB of lod lvl #%u not inited!", iLodLvl);
+				CLog::Log(S_ERROR, "VB or IB of lod lvl #%u not inited!", iLodLvl);
 				continue;
 			}
 		}
@@ -1097,7 +1097,7 @@ S_API Vec2f Terrain::XZToTexCoords(float x, float z) const
 S_API SResult Terrain::SetColorMap(ITexture* pColorMap)
 {
 	if (!IS_VALID_PTR(pColorMap))
-		EngLog(S_INVALIDPARAM, m_pEngine, "Invalid ptr passed to Terrain::SetColorMap!");
+		return CLog::Log(S_INVALIDPARAM, "Invalid ptr passed to Terrain::SetColorMap!");
 
 	m_pColorMap = pColorMap;
 	return S_SUCCESS;
@@ -1135,8 +1135,8 @@ S_API STerrainLayer* Terrain::GetLayer(unsigned int index)
 S_API void Terrain::Clear(void)
 {	
 	IResourcePool* pResources = 0;
-	if (IS_VALID_PTR(m_pEngine))
-		pResources = m_pEngine->GetResources();
+	if (IS_VALID_PTR(m_pRenderer))
+		pResources = m_pRenderer->GetResourcePool();
 
 	// Destruct lod levels
 	if (IS_VALID_PTR(m_pLodLevels))

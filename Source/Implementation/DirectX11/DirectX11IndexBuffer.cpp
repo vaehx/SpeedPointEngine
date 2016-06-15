@@ -14,8 +14,7 @@
 SP_NMSPACE_BEG
 
 S_API DirectX11IndexBuffer::DirectX11IndexBuffer()
-: m_pEngine(NULL),
-m_pRenderer(NULL),
+: m_pRenderer(NULL),
 m_pHWIndexBuffer(NULL),
 m_pShadowBuffer(NULL),
 m_nIndices(0),
@@ -28,8 +27,7 @@ m_bLocked(false)
 
 
 S_API DirectX11IndexBuffer::DirectX11IndexBuffer(const DirectX11IndexBuffer& o)
-	: m_pEngine(o.m_pEngine),
-	m_pRenderer(o.m_pRenderer),
+	: m_pRenderer(o.m_pRenderer),
 	m_pHWIndexBuffer(o.m_pHWIndexBuffer),
 	m_pShadowBuffer(o.m_pShadowBuffer),
 	m_nIndices(o.m_nIndices),
@@ -51,15 +49,14 @@ S_API DirectX11IndexBuffer::~DirectX11IndexBuffer()
 // --------------------------------------------------------------------------------
 S_API BOOL DirectX11IndexBuffer::IsInited(void)
 {
-	return
-		m_pEngine &&
+	return		
 		m_pRenderer &&
 		m_pHWIndexBuffer &&
 		m_pShadowBuffer;
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Initialize(IGameEngine* pEngine,
+S_API SResult DirectX11IndexBuffer::Initialize(
 						IRenderer* renderer,
 						EIBUsage usage,
 						unsigned long nSize,						
@@ -68,8 +65,7 @@ S_API SResult DirectX11IndexBuffer::Initialize(IGameEngine* pEngine,
 {
 	if (IsInited())
 		Clear();
-
-	m_pEngine = pEngine;
+	
 	m_pRenderer = renderer;
 	m_Usage = usage;	
 	m_Format = format;
@@ -107,7 +103,7 @@ S_API SDirectX11IBCreateFlags DirectX11IndexBuffer::GetCreateFlags()
 			0);
 
 	default:
-		m_pEngine->LogW("Tried to retrieve ib create flags for unsupported vb usage!");
+		CLog::Log(S_WARN, "Tried to retrieve ib create flags for unsupported vb usage!");
 		return SDirectX11IBCreateFlags();
 	}
 }
@@ -115,15 +111,15 @@ S_API SDirectX11IBCreateFlags DirectX11IndexBuffer::GetCreateFlags()
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, void* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
 {
-	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
+	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(nIndices_ > 0, S_INVALIDPARAM);
 	SP_ASSERTR(nInitialDataCount <= (usint32)nIndices_, S_INVALIDPARAM);
 
 	if (m_pHWIndexBuffer || m_pShadowBuffer)
-		return m_pEngine->LogE("Tried to create existing IB - Do a clear first!");
+		return CLog::Log(S_ERROR, "Tried to create existing IB - Do a clear first!");
 
 	if (m_Usage == eIBUSAGE_STATIC && !pInitialData)
-		return m_pEngine->LogE("Cannot create static IB without given initial Data!");
+		return CLog::Log(S_ERROR, "Cannot create static IB without given initial Data!");
 
 
 	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
@@ -174,7 +170,7 @@ S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, void* pIniti
 
 	if (Failure(pDXRenderer->GetD3D11Device()->CreateBuffer(&bufferDesc, &IndexData, &m_pHWIndexBuffer)))
 	{
-		return m_pEngine->LogE("Could not create Index buffer resource!");
+		return CLog::Log(S_ERROR, "Could not create Index buffer resource!");
 	}
 
 	return S_SUCCESS;
@@ -187,9 +183,9 @@ S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
 		return S_SUCCESS;
 
 	if (m_Usage == eIBUSAGE_STATIC)
-		return m_pEngine->LogE("Tried to resize static IB!");
+		return CLog::Log(S_ERROR, "Tried to resize static IB!");
 
-	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
+	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 
 	usint32 nIndicesOld = m_nIndices;
 	usint32 nIndicesWrittenOld = m_nIndicesWritten;
@@ -228,13 +224,13 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf)
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, EIBLockType locktype)
 {
-	SP_ASSERTR(m_pEngine, S_NOTINIT);
+	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(buf, S_INVALIDPARAM);
 
 	// just don't allow any lock if not dynamic
 	if (m_Usage == eIBUSAGE_STATIC)
 	{
-		m_pEngine->LogW("Tried to lock static IB!");
+		CLog::Log(S_WARN, "Tried to lock static IB!");
 		return S_ABORTED;
 	}
 
@@ -260,7 +256,7 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, 
 	D3D11_MAPPED_SUBRESOURCE mappedVBResource;
 	if (Failure(pDXRenderer->GetD3D11DeviceContext()->Map(m_pHWIndexBuffer, 0, mapType, 0, &mappedVBResource)))
 	{
-		return m_pEngine->LogE("Failed lock mapped HW-IB resource!");
+		return CLog::Log(S_ERROR, "Failed lock mapped HW-IB resource!");
 	}
 	m_bLocked = true;
 
@@ -274,7 +270,7 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, 
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11IndexBuffer::Fill(void* Indices, unsigned long nIndices_, bool bAppend)
 {
-	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
+	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(Indices, S_INVALIDPARAM);
 	SP_ASSERTR(!m_bLocked, S_ABORTED);
 
@@ -283,7 +279,7 @@ S_API SResult DirectX11IndexBuffer::Fill(void* Indices, unsigned long nIndices_,
 
 
 		if (m_bInitialDataWritten)
-			return m_pEngine->LogReport(S_ABORTED, "Cannot fill static buffer which is already filled!");
+			return CLog::Log(S_ABORTED, "Cannot fill static buffer which is already filled!");
 
 
 		// this Fill()-Call writes initial data so create the buffer with the initial data
@@ -314,7 +310,7 @@ S_API SResult DirectX11IndexBuffer::Fill(void* Indices, unsigned long nIndices_,
 			// Resize
 			// also creates the buffer if not existing yet
 			if (Failure(Resize(nIndices_ + m_nIndicesWritten)))
-				return m_pEngine->LogE("Resize for fill Index buffer failed (append)!");
+				return CLog::Log(S_ERROR, "Resize for fill Index buffer failed (append)!");
 
 		}
 
@@ -328,7 +324,7 @@ S_API SResult DirectX11IndexBuffer::Fill(void* Indices, unsigned long nIndices_,
 
 			// also creates the buffer if not existing yet
 			if (Failure(Resize(nIndices_)))
-				return m_pEngine->LogE("Resize for fill Index buffer failed!");
+				return CLog::Log(S_ERROR, "Resize for fill Index buffer failed!");
 
 		}
 
@@ -346,7 +342,7 @@ S_API SResult DirectX11IndexBuffer::Fill(void* Indices, unsigned long nIndices_,
 	SResult lockResult = Lock(iBegin * formatByteSz, (UINT)(nIndices_ * formatByteSz), (void**)&pIndices, lockType);
 
 	if (Failure(lockResult) || pIndices == 0)
-		return m_pEngine->LogE("Could not lock Index buffer to fill with Index data!");
+		return CLog::Log(S_ERROR, "Could not lock Index buffer to fill with Index data!");
 
 
 	// Now copy data		

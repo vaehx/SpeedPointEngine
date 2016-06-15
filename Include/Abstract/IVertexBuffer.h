@@ -44,7 +44,7 @@ struct S_API IVertexBuffer
 public:
 	// Summary:
 	//	Initialize the vertex buffer, create the Hardware vertex buffer if initial data is given.
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage,
+	virtual SResult Initialize(IRenderer* renderer, EVBUsage usage,
 		const SVertex* pInitialData = nullptr, const unsigned long nInitialVertices = 0) = 0;	
 
 	// Check if this Vertex Buffer is inited properly, this means if the HW Vertex Buffer has been created and filled at least once.

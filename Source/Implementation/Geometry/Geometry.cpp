@@ -205,7 +205,7 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 
 	// Initialize vertices
 	RETURN_ON_ERR(pRenderer->GetResourcePool()->AddVertexBuffer(&m_pVertexBuffer));
-	RETURN_ON_ERR(m_pVertexBuffer->Initialize(pEngine, pRenderer, vbUsage));
+	RETURN_ON_ERR(m_pVertexBuffer->Initialize(pRenderer, vbUsage));
 
 	if (IS_VALID_PTR(pInitialGeom))
 	{
@@ -240,7 +240,7 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 		if (!bLines)
 		{
 			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&pDefSubset->pIndexBuffer));
-			RETURN_ON_ERR(pDefSubset->pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
+			RETURN_ON_ERR(pDefSubset->pIndexBuffer->Initialize(pRenderer, ibUsage, 0));
 
 			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pSubsets) && pInitialGeom->nSubsets > 0)
 			{
@@ -278,7 +278,7 @@ S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitia
 
 			// Create the index buffer for this subset
 			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&subset.pIndexBuffer));
-			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pEngine, pRenderer, ibUsage, 0));
+			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pRenderer, ibUsage, 0));
 
 			subset.pMaterial = subsetGeom.pMaterial;
 			subset.indexOffset = indexOffset;

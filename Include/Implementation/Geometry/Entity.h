@@ -5,7 +5,8 @@
 
 SP_NMSPACE_BEG
 
-struct S_API IEntitySystem;
+// GameEngine required to call subsystem component factories
+struct S_API IGameEngine;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -31,10 +32,13 @@ public:
 	ILINE virtual const char* GetName() const;
 	ILINE virtual void SetName(const char* name);
 
-	ILINE virtual IComponent* CreateComponent(EComponentType component) const;
+	ILINE virtual IComponent* CreateComponent(EComponentType component);
 
 	// Returns NULL if the component was not created
 	ILINE virtual IComponent* GetComponent(EComponentType component) const;
+
+	ILINE virtual void SetComponent(EComponentType type, IComponent* pComponent);
+	ILINE virtual void ReleaseComponent(IComponent* pComponent);
 };
 
 

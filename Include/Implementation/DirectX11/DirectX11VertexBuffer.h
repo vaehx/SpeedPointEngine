@@ -50,8 +50,7 @@ struct S_API SDirectX11VBCreateFlags
 // SpeedPoint VertexBuffer Resource
 class S_API DirectX11VertexBuffer : public IVertexBuffer
 {
-private:
-	IGameEngine*			m_pEngine;	// used for logging!
+private:	
 	IRenderer*			m_pRenderer;
 
 	ID3D11Buffer*			m_pHWVertexBuffer;
@@ -66,7 +65,7 @@ public:
 	DirectX11VertexBuffer(const DirectX11VertexBuffer& o);		
 	~DirectX11VertexBuffer();
 		
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* renderer, EVBUsage usage,
+	virtual SResult Initialize(IRenderer* renderer, EVBUsage usage,
 		const SVertex* pInitialData = nullptr, const unsigned long nInitialVertices = 0);
 
 	SResult Create(const SVertex* pInitialData, const unsigned long nInitialDataCount);

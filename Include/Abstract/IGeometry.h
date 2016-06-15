@@ -24,6 +24,7 @@
 #include <Util\SVertex.h>	// because we cannot forward-declare SVertex (due to delete command)
 #include "Matrix.h"
 //#include "Material.h"
+#include "IRenderAPI.h" // for EPrimitiveType
 #include "IGameEngine.h"	// for IShutdownHandler
 
 SP_NMSPACE_BEG
@@ -104,15 +105,6 @@ struct S_API SMaterialIndices
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
-
-
-enum S_API EPrimitiveType
-{
-	PRIMITIVE_TYPE_TRIANGLELIST,
-	PRIMITIVE_TYPE_LINES,
-	PRIMITIVE_TYPE_LINESTRIP,
-	PRIMITIVE_TYPE_UNKNOWN
-};
 
 enum S_API EGeomUsage
 {

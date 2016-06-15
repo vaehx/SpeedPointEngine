@@ -15,8 +15,7 @@
 SP_NMSPACE_BEG
 
 S_API DirectX11VertexBuffer::DirectX11VertexBuffer()
-: m_pEngine(NULL),
-m_pRenderer(NULL),
+: m_pRenderer(NULL),
 m_pHWVertexBuffer(NULL),
 m_pShadowBuffer(NULL),
 m_nVertices(0),
@@ -26,8 +25,7 @@ m_Usage(eVBUSAGE_STATIC)
 
 
 S_API DirectX11VertexBuffer::DirectX11VertexBuffer(const DirectX11VertexBuffer& o)
-: m_pEngine(o.m_pEngine),
-m_pRenderer(o.m_pRenderer),
+: m_pRenderer(o.m_pRenderer),
 m_pHWVertexBuffer(o.m_pHWVertexBuffer),
 m_pShadowBuffer(o.m_pShadowBuffer),
 m_nVertices(o.m_nVertices),
@@ -46,11 +44,11 @@ S_API DirectX11VertexBuffer::~DirectX11VertexBuffer()
 // --------------------------------------------------------------------------------
 S_API bool DirectX11VertexBuffer::IsInited(void)
 {
-	return m_pEngine && m_pRenderer && m_pHWVertexBuffer && m_pShadowBuffer;
+	return m_pRenderer && m_pHWVertexBuffer && m_pShadowBuffer;
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Initialize(IGameEngine* pEngine,
+S_API SResult DirectX11VertexBuffer::Initialize(
 						IRenderer* renderer,
 						EVBUsage usage,																						
 						const SVertex* pInitialData /* = nullptr */,
@@ -59,15 +57,9 @@ S_API SResult DirectX11VertexBuffer::Initialize(IGameEngine* pEngine,
 	if (IsInited())
 		Clear();
 
-	if (!IS_VALID_PTR((m_pEngine = pEngine)))
-		return S_INVALIDPARAM;
-
 	if (!IS_VALID_PTR((m_pRenderer = renderer)))
 	{
-		EngLog(S_WARN, m_pEngine, "Invalid ptr to renderer given in DirectX11VertexBuffer::Initialize! Quering from engine...");
-		m_pRenderer = m_pEngine->GetRenderer();
-		if (!IS_VALID_PTR(m_pRenderer))
-			return EngLog(S_ERROR, m_pEngine, "Renderer of engine not initialized! Cannot Initialize DirectX11 Vertex Buffer!");
+		return CLog::Log(S_ERROR, "Invalid ptr to renderer given in DirectX11VertexBuffer::Initialize!");		
 	}
 
 	m_Usage = usage;
@@ -112,7 +104,7 @@ S_API SDirectX11VBCreateFlags DirectX11VertexBuffer::GetCreateFlags()
 			D3D11_CPU_ACCESS_WRITE);
 
 	default:
-		m_pEngine->LogW("Tried to retrieve vb create flags for u-nsupported vb usage!");
+		CLog::Log(S_WARN, "Tried to retrieve vb create flags for u-nsupported vb usage!");
 		return SDirectX11VBCreateFlags();
 	}
 }
@@ -120,16 +112,16 @@ S_API SDirectX11VBCreateFlags DirectX11VertexBuffer::GetCreateFlags()
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11VertexBuffer::Create(const SVertex* pInitialData, const unsigned long nInitialDataCount)
 {
-	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
+	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 
-	if (!IS_VALID_PTR(pInitialData))
-		return EngLog(S_INVALIDPARAM, m_pEngine, "Cannot create DX11 Vertex Buffer with invaid initial data pointer!");
+	if (!IS_VALID_PTR(pInitialData))		
+		return CLog::Log(S_INVALIDPARAM, "Cannot create DX11 Vertex Buffer with invaid initial data pointer!");
 
 	if (nInitialDataCount == 0)
-		return EngLog(S_ERROR, m_pEngine, "Cannot create DX11 Vertex Buffer with data count 0!");
+		return CLog::Log(S_ERROR, "Cannot create DX11 Vertex Buffer with data count 0!");
 
 	if (m_pHWVertexBuffer || m_pShadowBuffer)
-		return EngLog(S_ERROR, m_pEngine, "Cannot Create DX11 Vertex Buffer: Already created.");
+		return CLog::Log(S_ERROR, "Cannot Create DX11 Vertex Buffer: Already created.");
 
 	
 	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
@@ -159,7 +151,7 @@ S_API SResult DirectX11VertexBuffer::Create(const SVertex* pInitialData, const u
 
 	if (Failure(pDXRenderer->GetD3D11Device()->CreateBuffer(&bufferDesc, &vertexData, &m_pHWVertexBuffer)))
 	{
-		return m_pEngine->LogE("Could not create Vertex buffer resource!");
+		return CLog::Log(S_ERROR, "Could not create Vertex buffer resource!");
 	}
 
 	return S_SUCCESS;
@@ -268,7 +260,7 @@ S_API SResult DirectX11VertexBuffer::Lock(UINT iBegin, UINT iLength, SVertex** b
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigned long nVertices_)
 {
-	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);
+	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(vertices, S_INVALIDPARAM, "Invalid buffer of vertices given");	
 	SP_ASSERTR(nVertices_ < ULONG_MAX, S_INVALIDPARAM, "Invalid number of vertices given (ULONG_MAX)!");
 
@@ -290,7 +282,7 @@ S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigne
 		}
 
 		if (Failure(Create(vertices, nVertices_)))
-			return EngLog(S_ERROR, m_pEngine, "Cannot fill static vertex buffer: Could not recreate buffer.");		
+			return CLog::Log(S_ERROR, "Cannot fill static vertex buffer: Could not recreate buffer.");
 	}
 	else
 	{
@@ -305,11 +297,11 @@ S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigne
 		// upload vertices
 		DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
 		if (!IS_VALID_PTR(pDXRenderer))
-			return EngLog(S_ERROR, m_pEngine, "Cannot upload vertex data after fill: Renderer is invalid (not a DX11 one?)!");
+			return CLog::Log(S_ERROR, "Cannot upload vertex data after fill: Renderer is invalid (not a DX11 one?)!");
 
 		D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 		if (FAILED(pDXRenderer->GetD3D11DeviceContext()->Map(m_pHWVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
-			return EngLog(S_ERROR, m_pEngine, "Could not map vertex buffer subresource to upload vertex data after fill!");
+			return CLog::Log(S_ERROR, "Could not map vertex buffer subresource to upload vertex data after fill!");
 
 		memcpy(mappedSubresource.pData, m_pShadowBuffer, m_nVertices * sizeof(SVertex));
 
@@ -322,7 +314,7 @@ S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigne
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /* = 0 */, unsigned long nVertices /* = 0 */)
 {
-	if (!IS_VALID_PTR(m_pHWVertexBuffer) || !IS_VALID_PTR(m_pShadowBuffer) || !IS_VALID_PTR(m_pRenderer) || !IS_VALID_PTR(m_pEngine) || m_Usage == eVBUSAGE_STATIC)
+	if (!IS_VALID_PTR(m_pHWVertexBuffer) || !IS_VALID_PTR(m_pShadowBuffer) || !IS_VALID_PTR(m_pRenderer) || m_Usage == eVBUSAGE_STATIC)
 		return S_NOTINITED;
 
 	if (m_nVertices == 0 || m_nVertices < (iVtxStart + nVertices))
@@ -331,7 +323,7 @@ S_API SResult DirectX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /*
 	
 	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
 	if (!IS_VALID_PTR(pDXRenderer))
-		return EngLog(S_ERROR, m_pEngine, "Cannot upload vertex data: Renderer is invalid (not a DX11 one?)!");
+		return CLog::Log(S_ERROR, "Cannot upload vertex data: Renderer is invalid (not a DX11 one?)!");
 
 
 	// TODO:
@@ -341,7 +333,7 @@ S_API SResult DirectX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /*
 
 	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 	if (FAILED(pDXRenderer->GetD3D11DeviceContext()->Map(m_pHWVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
-		return EngLog(S_ERROR, m_pEngine, "Could not map vertex buffer subresource to upload vertex data!");
+		return CLog::Log(S_ERROR, "Could not map vertex buffer subresource to upload vertex data!");
 
 	memcpy(mappedSubresource.pData, m_pShadowBuffer, m_nVertices * sizeof(SVertex));
 

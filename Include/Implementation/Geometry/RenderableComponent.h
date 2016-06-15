@@ -2,6 +2,7 @@
 
 #include "Geometry.h"
 #include <Abstract\IRenderableComponent.h>
+#include <Abstract\I3DEngine.h>
 #include <Abstract\Transformable.h>
 
 SP_NMSPACE_BEG
@@ -9,14 +10,14 @@ SP_NMSPACE_BEG
 struct S_API I3DEngine;
 struct S_API IMaterialManager;
 
-class CRenderableComponent : public IRenderableComponent
+class CRenderableComponent : public IRenderableComponent, public IRenderObject
 {
 private:
 	I3DEngine* m_pRenderer;
 	IMaterialManager* m_pMatMgr;
-	SRenderObject* m_pRO;
 	IEntity* m_pEntity;
 	Geometry m_Geometry;
+	SRenderDesc m_RenderDesc;
 	bool m_bVisible;	
 
 public:
@@ -26,16 +27,18 @@ public:
 	virtual ~CRenderableComponent() {}
 
 	// IComponent:
+public:
 	virtual void Init(IEntity* pEntity);
-	// --
 
+	// IRenderableComponent:
+public:
 	virtual void Clear();
 
 	virtual void SetVisible(bool visible);
 
-	ILINE virtual SRenderObject* GetRenderObject() const
+	ILINE virtual IRenderObject* GetRenderObject()
 	{
-		return m_pRO;
+		return (IRenderObject*)this;
 	}
 
 	virtual IGeometry* GetGeometry();
@@ -49,6 +52,17 @@ public:
 
 	virtual void SetViewProjMatrix(const SMatrix& mtx);
 	virtual void UnsetViewProjMatrix();
+
+	// IRenderObject:
+public:
+	virtual const AABB& GetAABB() const;
+
+	virtual SRenderDesc* GetRenderDesc();
+
+	// Called by the Renderer System
+	virtual void Update();
+
+	virtual void Clear();
 };
 
 SP_NMSPACE_END
