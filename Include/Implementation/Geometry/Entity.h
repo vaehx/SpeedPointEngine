@@ -1,57 +1,45 @@
 #pragma once
 
 #include <Abstract\IEntity.h>
-#include <Abstract\IRenderer.h>
 #include "Geometry.h"
-#include <Implementation\Entity\PhysicalComponent.h>
 
 SP_NMSPACE_BEG
 
+struct S_API IEntitySystem;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
-//			Rigid Body
+//			Entity
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
-class CRigidBodyRenderable : public IRenderableComponent
+class CEntity : public IEntity
 {
 private:
-	SRenderDesc m_RenderDesc;
-	STransformable* m_pTransformable;
-	Geometry m_Geometry;
-	bool m_bVisible;
+	IEntitySystem* m_pEntitySystem;
+	IComponent* m_pComponents[NUM_COMPONENTS];
+	string m_Name;
 
 public:
-	CRigidBodyRenderable();
+	CEntity(IEntitySystem* pEntitySystem);
+	
 
-	virtual ~CRigidBodyRenderable() {}
 
-	virtual void Clear();
+	// IEntity:
 
-	virtual void SetVisible(bool visible);	
+	ILINE virtual const char* GetName() const;
+	ILINE virtual void SetName(const char* name);
 
-	ILINE virtual SRenderDesc* GetUpdatedRenderDesc();
+	ILINE virtual IComponent* CreateComponent(EComponentType component) const;
 
-	virtual IGeometry* GetGeometry();
-
-	virtual IVertexBuffer* GetVertexBuffer();
-
-	virtual SGeomSubset* GetSubset(unsigned int i);
-	virtual unsigned int GetSubsetCount() const;
-
-	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0);
-
-	virtual void SetViewProjMatrix(const SMatrix& mtx);
-	virtual void UnsetViewProjMatrix();
-
-public:
-	void InitRenderDesc(IMaterialManager* pMatMgr, STransformable* pTransformable);
+	// Returns NULL if the component was not created
+	ILINE virtual IComponent* GetComponent(EComponentType component) const;
 };
 
 
-class CRigidBody : public IEntity
+
+/*class CRigidBody : public IEntity
 {
 private:
 	IGameEngine* m_pEngine;
@@ -63,11 +51,6 @@ private:
 	// IObject:
 public:
 	virtual ~CRigidBody() { Clear(); }
-
-	ILINE virtual EntityType GetType() const
-	{
-		return SP_ENTITY_RENDERABLE | SP_ENTITY_PHYSICAL;
-	}
 
 	ILINE virtual void RecalcBoundBox();
 
@@ -89,7 +72,7 @@ public:
 	void Clear();
 
 	IReferenceObject* CreateReferenceObject();
-};
+};*/
 
 
 

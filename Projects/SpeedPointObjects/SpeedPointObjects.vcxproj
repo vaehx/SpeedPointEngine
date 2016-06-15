@@ -11,7 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Entities.cpp" />
+    <ClCompile Include="..\..\Include\Implementation\Geometry\EntitySystem.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Entity.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableComponent.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableObjects.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Geometry.cpp" />
     <ClCompile Include="..\..\Source\Implementation\Geometry\Material.cpp" />
@@ -31,11 +33,13 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Entities.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Entity.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\EntitySystem.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableComponent.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableObjects.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\StaticObject.h" />

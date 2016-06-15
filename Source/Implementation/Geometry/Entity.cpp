@@ -11,10 +11,60 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\Geometry\Entities.h>
+#include <Implementation\Geometry\Entity.h>
 #include <Abstract\IVertexBuffer.h>
 
 SP_NMSPACE_BEG
+
+S_API CEntity::CEntity(IEntitySystem* pEntitySystem)
+	: m_pEntitySystem(pEntitySystem)
+{
+}
+
+S_API const char* CEntity::GetName() const
+{
+	return m_Name.c_str();
+}
+
+S_API void CEntity::SetName(const char* name)
+{
+	m_Name = name;
+}
+
+S_API IComponent* CEntity::CreateComponent(EComponentType component) const
+{
+	if (!IS_VALID_PTR(m_pComponents[component]))
+	{
+		switch (component)
+		{
+		case eCOMPONENT_RENDERABLE:
+			m_pComponents[component] = new 
+		}
+	}
+
+	return m_pComponents[component];
+}
+
+// Returns NULL if the component was not created
+S_API IComponent* CEntity::GetComponent(EComponentType component) const
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

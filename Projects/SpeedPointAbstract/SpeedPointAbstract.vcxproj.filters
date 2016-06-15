@@ -214,5 +214,8 @@
     <ClInclude Include="..\..\Include\Abstract\IParticleSystem.h">
       <Filter>Headers\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IRenderableComponent.h">
+      <Filter>Headers\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

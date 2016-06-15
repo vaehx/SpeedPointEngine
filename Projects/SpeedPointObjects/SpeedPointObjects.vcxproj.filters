@@ -47,7 +47,13 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableObjects.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Entities.cpp">
+    <ClCompile Include="..\..\Source\Implementation\Geometry\Entity.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Include\Implementation\Geometry\EntitySystem.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableComponent.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -88,10 +94,16 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Entities.h">
+    <ClInclude Include="..\..\Include\Implementation\Entity\PhysicalComponent.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Entity\PhysicalComponent.h">
+    <ClInclude Include="..\..\Include\Implementation\Geometry\Entity.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\EntitySystem.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableComponent.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

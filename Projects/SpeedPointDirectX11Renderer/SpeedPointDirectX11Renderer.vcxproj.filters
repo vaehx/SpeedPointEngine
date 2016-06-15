@@ -44,9 +44,6 @@
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\D3D11GraphicsAPI.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Font.h">
       <Filter>Headers</Filter>
     </ClInclude>

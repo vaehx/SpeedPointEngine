@@ -124,6 +124,7 @@
     <ClInclude Include="..\..\Include\Abstract\Matrix.h" />
     <ClInclude Include="..\..\Include\Abstract\Physical.h" />
     <ClInclude Include="..\..\Include\Abstract\Quaternion.h" />
+    <ClInclude Include="..\..\Include\Abstract\IRenderableComponent.h" />
     <ClInclude Include="..\..\Include\Abstract\SAPI.h" />
     <ClInclude Include="..\..\Include\Abstract\Transformable.h" />
     <ClInclude Include="..\..\Include\Abstract\Vector2.h" />

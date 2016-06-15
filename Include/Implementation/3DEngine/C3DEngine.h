@@ -15,34 +15,6 @@ SP_NMSPACE_BEG
 struct S_API IScene;
 struct S_API IRenderableObject;
 
-struct S_API SRenderLight
-{
-	SLightDesc lightDesc;
-};
-
-struct S_API SRenderObject
-{
-#ifdef _DEBUG
-	std::string name;
-#endif
-	//SRenderDesc renderDesc;
-	SRenderDesc* pRenderDesc;
-	bool deallocateRenderDesc;
-	AABB aabb;
-
-	// For forward rendering:
-	SRenderLight* affectingLights[4];
-	int nAffectingLights;
-
-	SRenderObject()
-		: nAffectingLights(0),
-		pRenderDesc(0),
-		deallocateRenderDesc(false)
-	{
-		memset(&affectingLights, 0, sizeof(affectingLights));
-	}
-};
-
 class S_API C3DEngine : public I3DEngine
 {
 private:	

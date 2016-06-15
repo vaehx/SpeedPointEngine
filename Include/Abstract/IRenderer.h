@@ -150,12 +150,11 @@ enum ETextureSampling
 struct S_API SRenderDesc
 {
 	ERenderPipeline renderPipeline;
+
 	SRenderSubset* pSubsets;
 	unsigned int nSubsets;
 
-	//SMaterial material;
 	STransformationDesc transform;
-	//IGeometry* pGeometry;
 
 	SMatrix viewProjMtx; // custom view-proj-mtx, only used if bCustomViewProjMtx is set to true
 	bool bCustomViewProjMtx; // if false, uses current viewport viewproj

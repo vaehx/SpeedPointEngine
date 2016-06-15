@@ -116,36 +116,24 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef unsigned long EntityType;
-#define SP_ENTITY_RENDERABLE 0x01
-#define SP_ENTITY_PHYSICAL 0x01 << 1
-#define SP_ENTITY_ANIMATEABLE 0x01 << 2
-#define SP_ENTITY_SCRIPTED 0x01 << 3
-
-struct S_API IRenderableComponent
+enum EComponentType
 {
-	virtual ~IRenderableComponent()
-	{
-	}
+	eCOMPONENT_RENDERABLE = 0,
+	//eCOMPONENT_PHYSICAL,
+	//eCOMPONENT_ANIMATION,
+	//eCOMPONENT_SCRIPT
 
-	virtual void Clear() = 0;
-
-	ILINE virtual void SetVisible(bool visible) = 0;
-
-	ILINE virtual SRenderDesc* GetUpdatedRenderDesc() = 0;
-
-	virtual IGeometry* GetGeometry() = 0;
-
-	virtual IVertexBuffer* GetVertexBuffer() = 0;
-
-	virtual SGeomSubset* GetSubset(unsigned int i) = 0;
-	virtual unsigned int GetSubsetCount() const = 0;
-
-	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0) = 0;
-
-	virtual void SetViewProjMatrix(const SMatrix& mtx) = 0;
-	virtual void UnsetViewProjMatrix() = 0;
+	NUM_COMPONENTS
 };
+
+struct IComponent
+{
+	ILINE virtual void Init(IEntity* pEntity) = 0;
+	ILINE virtual EComponentType GetType() const = 0;
+	ILINE virtual void Clear() = 0;
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct S_API IAnimateableComponent
 {
@@ -169,31 +157,22 @@ struct S_API IScriptComponent
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // A complex object - composed of components
-class S_API IEntity : public STransformable
+struct S_API IEntity : public STransformable
 {
-protected:	
-	string m_Name;
+	virtual ~IEntity() {}
 
-public:	
-	virtual ~IEntity() {}	
+	ILINE virtual const char* GetName() const = 0;
+	ILINE virtual void SetName(const char* name) = 0;
 
-	ILINE virtual EntityType GetType() const { return 0; };
+	ILINE virtual IComponent* CreateComponent(EComponentType type) const = 0;
+	
+	// Returns NULL if the component was not created
+	ILINE virtual IComponent* GetComponent(EComponentType type) const = 0;
 
-	ILINE virtual const char* GetName() const { return m_Name.c_str(); }
-	ILINE virtual void SetName(const char* name) { m_Name = name; }
-
-	ILINE virtual bool IsRenderable() const { return (GetType() & SP_ENTITY_RENDERABLE) != 0; }
-	ILINE virtual bool IsPhysical() const { return (GetType() & SP_ENTITY_PHYSICAL) != 0; }
-	ILINE virtual bool IsAnimateable() const { return (GetType() & SP_ENTITY_ANIMATEABLE) != 0; }
-	ILINE virtual bool IsScripted() const { return (GetType() & SP_ENTITY_SCRIPTED) != 0; }
-
-	ILINE virtual IRenderableComponent* GetRenderable() const { return 0; }
-	ILINE virtual IPhysicalComponent* GetPhysical() const { return 0; }
-	ILINE virtual IAnimateableComponent* GetAnimateable() const { return 0; }
-	ILINE virtual IScriptComponent* GetScriptable() const { return 0; }
+	ILINE virtual void SetComponent(EComponentType type, IComponent* pComponent) const = 0;
 };
 
-typedef S_API class IEntity IObject;
+typedef S_API struct IEntity IObject;
 
 
 
@@ -206,6 +185,15 @@ struct S_API IReferenceObject : public IEntity
 };
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct S_API IEntitySystem
+{
+	virtual ~IEntitySystem() {}
+
+	virtual IEntity* CreateEntity() const = 0;
+};
 
 
 

@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\D3D11GraphicsAPI.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11FBO.h" />
     <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Font.h" />
