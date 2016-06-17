@@ -22,7 +22,7 @@ SP_NMSPACE_BEG
 
 using std::vector;
 using std::string;
-
+/*
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class S_API CStaticObjectRenderable : public IRenderableComponent
@@ -128,6 +128,7 @@ public:
 	virtual SRenderDesc* GetRenderDesc();
 	virtual void Clear();
 };
+*/
 
 
 SP_NMSPACE_END

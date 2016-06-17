@@ -8,6 +8,7 @@
 #include <Abstract\IResourcePool.h>
 #include <Abstract\ITexture.h>
 #include <Abstract\ISettings.h>
+#include <Util\SVertex.h>
 
 SP_NMSPACE_BEG
 

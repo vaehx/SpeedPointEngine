@@ -34,6 +34,8 @@ public:
 
 	ILINE virtual IComponent* CreateComponent(EComponentType component);
 
+	ILINE virtual IRenderableComponent* CreateRenderable();
+
 	// Returns NULL if the component was not created
 	ILINE virtual IComponent* GetComponent(EComponentType component) const;
 

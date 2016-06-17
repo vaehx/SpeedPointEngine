@@ -19,7 +19,7 @@ S_API IEntity* CEntitySystem::CreateEntity()
 
 S_API IRenderableComponent* CEntitySystem::CreateRenderableComponent() const
 {
-	return (CRenderableComponent*)m_pEngine->Get3DEngine()->GetRenderObject();	
+	return (CRenderableComponent*)m_pEngine->Get3DEngine()->GetRenderObject();
 }
 
 SP_NMSPACE_END

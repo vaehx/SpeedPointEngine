@@ -6,6 +6,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <Implementation\DirectX11\DirectX11Font.h>
+#include <Util\SVertex.h>
+#include <Abstract\IIndexBuffer.h>
 
 SP_NMSPACE_BEG
 

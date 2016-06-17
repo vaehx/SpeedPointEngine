@@ -50,7 +50,7 @@ struct S_API IRenderObjectPool
 	virtual unsigned int GetNumObjects() const = 0;
 
 	// Returns true if the object was released, false if parameter is invalid
-	virtual void Release(IRenderObject** pObject) = 0;
+	virtual bool Release(IRenderObject** pObject) = 0;
 	virtual void ReleaseAll() = 0;
 };
 
@@ -122,7 +122,7 @@ public:
 	virtual ~I3DEngine() {};
 
 	template<class RenderObjImpl>
-	ILINE virtual void CreateRenderObjectPool()
+	ILINE void CreateRenderObjectPool()
 	{
 		SetRenderObjectPool(new RenderObjectPool<RenderObjImpl>());
 	}

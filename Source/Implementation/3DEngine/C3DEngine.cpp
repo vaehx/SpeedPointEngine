@@ -130,6 +130,7 @@ S_API ITerrain* C3DEngine::CreateTerrain(const STerrainInfo& info)
 {
 	ClearTerrain();
 	m_pTerrain = new Terrain();
+	return m_pTerrain;
 }
 
 

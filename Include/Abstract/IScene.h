@@ -73,18 +73,8 @@ struct S_API IScene
 
 	virtual SResult Initialize(IGameEngine* pGameEngine) = 0;
 
-	virtual void SetSkyBox(ISkyBox* pSkyBox) = 0;
-	virtual ISkyBox* GetSkyBox() const = 0;
-
-	virtual ITerrain* GetTerrain() const = 0;
-	
-	// Notice: Make sure to call ITerrain->GenLodLevelChunks() with your camera afterwards.
-	//
-	// center - Set to true to make (0,0) the center of the terrain
-	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center = true) = 0;
-
 	// Loads SPM Model from file
-	virtual IStaticObject* LoadStaticObjectFromFile(const char* file, const char* objName) = 0;
+	virtual IEntity* LoadObjectFromFile(const char* file, const char* objName) = 0;
 
 	//virtual void RegisterObject(IObject* pObject) = 0;
 	//virtual IObject* CreateObject(EObjectType type) = 0;
@@ -94,7 +84,6 @@ struct S_API IScene
 	virtual std::vector<SSceneNode>* GetSceneNodes() = 0;
 	
 	virtual SResult AddSceneNode(const SSceneNode& node) = 0;
-	virtual SResult AddStaticObject(IStaticObject* pStatic) = 0;	
 	
 	// Add dynamic object / entity
 	virtual SResult AddObject(IObject* pObject) = 0;

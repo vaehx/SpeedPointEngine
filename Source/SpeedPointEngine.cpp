@@ -19,6 +19,7 @@
 #include <Abstract\IScene.h>
 #include <Implementation\Geometry\Material.h>
 #include <Implementation\3DEngine\C3DEngine.h>
+#include <Implementation\Geometry\EntitySystem.h>
 
 #include <Abstract\SAssert_Impl.h>
 
@@ -160,7 +161,7 @@ S_API void SpeedPointEngine::Shutdown(void)
 	// Handle all shutdown handlers first	
 	unsigned int nHandled = m_ShutdownHandlers.size();
 	for (auto itShutdownHandler = m_ShutdownHandlers.begin(); itShutdownHandler != m_ShutdownHandlers.end();)
-	{	
+	{
 		IShutdownHandler* pSH = *itShutdownHandler;
 
 		// definetly increments, no matter if pSH was found or not.
@@ -188,6 +189,8 @@ S_API void SpeedPointEngine::Shutdown(void)
 	m_pFontRenderer.Clear();
 
 	m_pMaterialManager.Clear();
+
+	m_pEntitySystem.Clear();
 
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool	
 	m_pRenderer.Clear();
@@ -296,6 +299,10 @@ S_API void SpeedPointEngine::CheckFinishInit()
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::FinishInitialization()
 {	
+	// Create other components
+	m_pEntitySystem.SetOwn(new CEntitySystem(this));
+
+
 	// Register the framepipeline sections
 	if (!IS_VALID_PTR(m_pRenderer.pComponent)) return S_ERROR;
 	

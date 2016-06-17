@@ -7,10 +7,10 @@
 
 SP_NMSPACE_BEG
 
-S_API CRenderableComponent::CRenderableComponent(I3DEngine* pRenderer, IMaterialManager* pMatMgr)
+S_API CRenderableComponent::CRenderableComponent(IEntity* pEntity, I3DEngine* pRenderer, IMaterialManager* pMatMgr)
 	: m_pRenderer(pRenderer),
 	m_pMatMgr(pMatMgr),
-	m_pEntity(0),
+	m_pEntity(pEntity),
 	m_bVisible(true)
 {
 }
@@ -20,18 +20,27 @@ S_API CRenderableComponent::~CRenderableComponent()
 	Clear();
 }
 
-S_API void CRenderableComponent::Init(IEntity* pEntity)
+S_API IEntity* CRenderableComponent::GetEntity() const
+{
+	return m_pEntity;
+}
+
+S_API void CRenderableComponent::SetEntity(IEntity* entity)
+{
+	m_pEntity = entity;
+}
+
+S_API void CRenderableComponent::Init()
 {
 	assert(IS_VALID_PTR(m_pRenderer));
-	assert(IS_VALID_PTR(pEntity));
+	assert(IS_VALID_PTR(m_pEntity));
 
 	I3DEngine* pRenderer = m_pRenderer;
 	Clear();
 	m_pRenderer = pRenderer;
-	m_pEntity = pEntity;
 
 #ifdef _DEBUG
-	_name = pEntity->GetName();
+	_name = m_pEntity->GetName();
 #endif
 
 	SRenderDesc* rd = GetRenderDesc();
@@ -148,7 +157,7 @@ S_API unsigned int CRenderableComponent::GetSubsetCount() const
 	return m_Geometry.GetSubsetCount();
 }
 
-S_API IMaterial* CRenderableComponent::GetSubsetMaterial(unsigned int subset = 0)
+S_API IMaterial* CRenderableComponent::GetSubsetMaterial(unsigned int subset /*= 0*/)
 {
 	SGeomSubset* pSubset = m_Geometry.GetSubset(subset);
 	if (IS_VALID_PTR(pSubset))

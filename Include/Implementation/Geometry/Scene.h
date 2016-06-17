@@ -13,8 +13,6 @@ class S_API Scene : public IScene
 {
 private:
 	IGameEngine* m_pEngine;
-	ITerrain* m_pTerrain;
-	ISkyBox* m_pSkyBox;
 	std::vector<SSceneNode>* m_pSceneNodes;
 
 	void CheckSceneNodesArray();
@@ -29,20 +27,15 @@ public:
 
 	virtual SResult Initialize(IGameEngine* pGameEngine);
 
-	virtual void SetSkyBox(ISkyBox* pSkyBox);
-	virtual ISkyBox* GetSkyBox() const;
-
-	virtual ITerrain* GetTerrain() const { return m_pTerrain; }
 	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center = true);
 
-	virtual IStaticObject* LoadStaticObjectFromFile(const char* file, const char* objName);
+	virtual IEntity* LoadObjectFromFile(const char* file, const char* objName);
 	
 	virtual SResult CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const;
 
 	virtual std::vector<SSceneNode>* GetSceneNodes();
 
 	virtual SResult AddSceneNode(const SSceneNode& node);
-	virtual SResult AddStaticObject(IStaticObject* pStatic);
 
 	// Add dynamic object / entity
 	virtual SResult AddObject(IObject* pObject);

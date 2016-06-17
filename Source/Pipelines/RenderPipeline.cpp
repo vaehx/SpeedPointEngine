@@ -64,7 +64,7 @@ S_API SResult RenderPipeline::Run()
 
 
 	const SCamera* pCamera = m_pEngine->GetRenderer()->GetTargetViewport()->GetCamera();
-	m_pEngine->Get3DEngine()->CollectVisibleObjects(m_pEngine->GetLoadedScene(), pCamera);
+	m_pEngine->Get3DEngine()->CollectVisibleObjects(pCamera);
 
 	m_pEngine->Get3DEngine()->RenderCollected();
 

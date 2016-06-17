@@ -146,6 +146,7 @@ private:
 	ISettings*		m_pSettings;		// Main Settings of the Game Engine	
 
 	EngineComponent<IFramePipeline> m_pFramePipeline;
+	EngineComponent<IEntitySystem> m_pEntitySystem;
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 	EngineComponent<IFontRenderer> m_pFontRenderer;
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
@@ -226,6 +227,7 @@ public:
 
 	ILINE virtual ISettings* GetSettings() const { return m_pSettings; }
 	ILINE virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
+	ILINE virtual IEntitySystem* GetEntitySystem() const { return m_pEntitySystem; }
 	ILINE virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	ILINE virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
 	ILINE virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }

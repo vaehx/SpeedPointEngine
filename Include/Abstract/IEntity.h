@@ -130,8 +130,10 @@ enum EComponentType
 
 struct IComponent
 {
-	ILINE virtual void Init(IEntity* pEntity) = 0;
+	ILINE virtual void Init() = 0;	
 	ILINE virtual EComponentType GetType() const = 0;
+	ILINE virtual void SetEntity(IEntity* entity) = 0;
+	ILINE virtual IEntity* GetEntity() const = 0;
 	ILINE virtual void Clear() = 0;
 };
 
@@ -168,6 +170,8 @@ struct S_API IEntity : public STransformable
 
 	ILINE virtual IComponent* CreateComponent(EComponentType type) = 0;
 	
+	ILINE virtual IRenderableComponent* CreateRenderable() = 0;
+
 	// Returns NULL if the component was not created
 	ILINE virtual IComponent* GetComponent(EComponentType type) const = 0;
 

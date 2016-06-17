@@ -14,13 +14,13 @@
 #pragma once
 
 #include <SPrerequisites.h>
-#include "IGeometry.h"
 #include "IShader.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
+struct S_API ITexture;
 
 
 // Notice:

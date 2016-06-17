@@ -4,6 +4,7 @@
 #include <Abstract\IScene.h>
 #include <Abstract\ITerrain.h>
 #include <Abstract\IRenderer.h>
+#include <Abstract\I3DEngine.h>
 
 SP_NMSPACE_BEG
 
@@ -31,7 +32,11 @@ S_API void EngineSettings::SetTerrainDetailMapFadeRadius(float radius)
 {
 	m_Desc.render.fTerrainDMFadeRange = radius;
 	if (IS_VALID_PTR(m_pGameEngine))
-		m_pGameEngine->GetLoadedScene()->GetTerrain()->RequireCBUpdate();
+	{
+		ITerrain* pTerrain = m_pGameEngine->Get3DEngine()->GetTerrain();
+		if (IS_VALID_PTR(pTerrain))
+			pTerrain->RequireCBUpdate();
+	}
 }
 
 // ------------------------------------------------------------------------------------------

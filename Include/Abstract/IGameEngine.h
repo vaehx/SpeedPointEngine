@@ -34,6 +34,7 @@ namespace SpeedPoint
 	struct S_API IMaterial;
 	struct S_API IMaterialManager;
 	struct S_API ISettings;
+	struct S_API IEntitySystem;
 
 	enum EShaderFileType
 	{
@@ -153,6 +154,7 @@ namespace SpeedPoint
 
 
 		ILINE virtual IFramePipeline* GetFramePipeline() const = 0;
+		ILINE virtual IEntitySystem* GetEntitySystem() const = 0;
 		ILINE virtual IRenderer* GetRenderer() const = 0;	
 		ILINE virtual I3DEngine* Get3DEngine() const = 0;
 		ILINE virtual IFontRenderer* GetFontRenderer() const = 0;
@@ -160,7 +162,7 @@ namespace SpeedPoint
 //		ILINE virtual IAI* GetAI() const = 0;
 //		ILINE virtual IScriptEngine* GetScriptEngine() const = 0;
 		ILINE virtual IResourcePool* GetResources() const = 0;
-		ILINE virtual CLogWrapper* GetLog() = 0;	
+		ILINE virtual CLogWrapper* GetLog() = 0;
 		ILINE virtual IFileLog* GetFileLog() = 0;
 		ILINE virtual ISettings* GetSettings() const = 0;	
 		ILINE virtual IScene* GetLoadedScene() const = 0;

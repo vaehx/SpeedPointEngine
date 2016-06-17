@@ -14,7 +14,7 @@
 #include <Implementation\Geometry\RenderableObjects.h>
 
 SP_NMSPACE_BEG
-
+/*
 
 S_API IRenderableComponent* CReferenceObject::GetRenderable() const
 {
@@ -35,6 +35,6 @@ S_API IScriptComponent* CReferenceObject::GetScriptable() const
 {
 	return IS_VALID_PTR(m_pBase) ? m_pBase->GetScriptable() : 0;
 }
-
+*/
 
 SP_NMSPACE_END

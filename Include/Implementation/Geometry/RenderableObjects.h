@@ -16,7 +16,7 @@
 
 SP_NMSPACE_BEG
 
-
+/*
 class S_API CReferenceObject : public IReferenceObject
 {
 private:
@@ -68,6 +68,6 @@ public:
 	ILINE virtual IAnimateableComponent* GetAnimateable() const;
 	ILINE virtual IScriptComponent* GetScriptable() const;
 };
-
+*/
 
 SP_NMSPACE_END

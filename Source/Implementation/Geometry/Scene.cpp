@@ -1,19 +1,17 @@
 
 #include <Abstract\IGeometry.h>
 #include <Implementation\Geometry\Scene.h>
-#include <Implementation\Geometry\Terrain.h>
-#include <Implementation\Geometry\StaticObject.h>
+#include <Implementation\Geometry\Entity.h>
 #include <FileSPM.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IMaterial.h>
+#include <Abstract\IRenderableComponent.h>
 
 SP_NMSPACE_BEG
 
 // -------------------------------------------------------------------------------------------------
 S_API Scene::Scene()	
-	: m_pTerrain(0),
-	m_pEngine(0),
-	m_pSkyBox(0)
+	: m_pEngine(0)
 {
 	m_pSceneNodes = new std::vector<SSceneNode>();
 }
@@ -21,14 +19,6 @@ S_API Scene::Scene()
 // -------------------------------------------------------------------------------------------------
 S_API void Scene::Clear()
 {
-	if (IS_VALID_PTR(m_pTerrain))
-	{
-		m_pTerrain->Clear();
-		delete m_pTerrain;
-	}
-
-	m_pTerrain = nullptr;
-
 	if (!IS_VALID_PTR(m_pSceneNodes))
 		delete m_pSceneNodes;
 
@@ -75,23 +65,6 @@ S_API SResult Scene::AddSceneNode(const SSceneNode& node)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API SResult Scene::AddStaticObject(IStaticObject* pStatic)
-{
-	CheckSceneNodesArray();
-
-	if (!IS_VALID_PTR(pStatic))
-		return S_INVALIDPARAM;
-
-	SSceneNode node;
-	node.aabb = pStatic->GetBoundBox();
-	node.type = eSCENENODE_STATIC;
-	node.pStatic = pStatic;
-
-	m_pSceneNodes->push_back(node);
-	return S_SUCCESS;
-}
-
-// -------------------------------------------------------------------------------------------------
 S_API SResult Scene::AddObject(IObject* pObject)
 {
 	CheckSceneNodesArray();
@@ -112,27 +85,7 @@ S_API SResult Scene::AddObject(IObject* pObject)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API ITerrain* Scene::CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center /*=true*/)
-{
-	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr);
-	if (IS_VALID_PTR(m_pTerrain))
-		m_pTerrain->Clear();
-
-	m_pTerrain = new Terrain();	
-
-	if (Failure(m_pTerrain->Init(m_pEngine, nSegs, nChunkSegs, fSideSz, baseHeight, fChunkStepDist, nLodLevels, center)))
-	{
-		delete m_pTerrain;
-		m_pTerrain = 0;
-
-		EngLog(S_ERROR, m_pEngine, "Failed initialize terrain in Scene::CreateTerrain");
-	}
-
-	return m_pTerrain;
-}
-
-// -------------------------------------------------------------------------------------------------
-S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const char* objName)
+S_API IEntity* Scene::LoadObjectFromFile(const char* filename, const char* objName)
 {
 	SP_ASSERTR(IS_VALID_PTR(m_pEngine), nullptr, "Engine not initialized!");
 
@@ -195,12 +148,12 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const
 		vtxOffset += itModel->nVertices;
 	}
 
-	StaticObject* pStaticObject = new StaticObject();
+	IEntity* pEntity = m_pEngine->GetEntitySystem()->CreateEntity();
+	pEntity->SetName(objName);
 
-	SResult res;
-	if (Failure(res = pStaticObject->Init(m_pEngine, objName, &geomDesc)))
-		CLog::Log(S_ERROR, "Failed init static object while loading file '%s'", filename);
-
+	IRenderableComponent* pRenderable = pEntity->CreateRenderable();
+	pRenderable->GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), &geomDesc);
+	pRenderable->Init();
 	
 	// Cleanup
 	delete[] geomDesc.pVertices;
@@ -219,7 +172,7 @@ S_API IStaticObject* Scene::LoadStaticObjectFromFile(const char* filename, const
 		delete[] itModel->pVertices;
 	}
 
-	return pStaticObject;
+	return pEntity;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -237,18 +190,6 @@ S_API SResult Scene::CreateNormalsGeometry(IRenderableComponent* renderable, SIn
 	}
 
 	return S_SUCCESS;
-}
-
-// -------------------------------------------------------------------------------------------------
-void Scene::SetSkyBox(ISkyBox* pSkyBox)
-{
-	m_pSkyBox = pSkyBox;
-}
-
-// -------------------------------------------------------------------------------------------------
-ISkyBox* Scene::GetSkyBox() const
-{
-	return m_pSkyBox;
 }
 
 SP_NMSPACE_END

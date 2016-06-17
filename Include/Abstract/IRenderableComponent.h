@@ -18,7 +18,6 @@ struct S_API IRenderableComponent : public IComponent
 	{
 		return eCOMPONENT_RENDERABLE;
 	}
-
 	// ----
 
 	ILINE virtual void SetVisible(bool visible) = 0;

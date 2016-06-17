@@ -49,9 +49,17 @@ S_API IComponent* CEntity::CreateComponent(EComponentType component)
 		case eCOMPONENT_RENDERABLE:
 			m_pComponents[component] = m_pEntitySystem->CreateRenderableComponent();
 		}
+
+		if (IS_VALID_PTR(m_pComponents[component]))
+			m_pComponents[component]->SetEntity(this);
 	}
 
 	return m_pComponents[component];
+}
+
+S_API IRenderableComponent* CEntity::CreateRenderable()
+{
+	return (IRenderableComponent*)CreateComponent(eCOMPONENT_RENDERABLE);
 }
 
 // Returns NULL if the component was not created

@@ -22,13 +22,15 @@ private:
 
 public:
 	// Material Manager required to get default materials
-	CRenderableComponent(I3DEngine* pRenderer, IMaterialManager* pMatMgr);
+	CRenderableComponent();
 
-	virtual ~CRenderableComponent() {}
+	virtual ~CRenderableComponent();
 
 	// IComponent:
 public:
-	virtual void Init(IEntity* pEntity);
+	virtual void Init();
+	virtual IEntity* GetEntity() const;
+	virtual void SetEntity(IEntity* entity);
 
 	// IRenderableComponent:
 public:
@@ -61,8 +63,6 @@ public:
 
 	// Called by the Renderer System
 	virtual void Update();
-
-	virtual void Clear();
 };
 
 SP_NMSPACE_END

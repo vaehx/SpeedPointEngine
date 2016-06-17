@@ -22,15 +22,44 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\ArchitectureTools\Microsoft.VisualStudio.TeamArchitect.ModelingProject.targets" Condition="'$(VSToolsPath)' != ''" />
   <ItemGroup>
+    <Content Include="ModelDefinition\Package1_1211.uml">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ModelDefinition\Package_1211.uml">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ModelDefinition\Package_1219.uml">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ModelDefinition\Package_1224.uml">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="ModelDefinition\Package_1623.uml">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="SpeedPointCore.classdiagram">
+    <Content Include="ModelDefinition\Package_1940.uml">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="SpeedPointCore.classdiagram.layout">
+    <Content Include="Renderer.classdiagram">
       <SubType>Content</SubType>
-      <DependentUpon>SpeedPointCore.classdiagram</DependentUpon>
+    </Content>
+    <Content Include="Renderer.classdiagram.layout">
+      <SubType>Content</SubType>
+      <DependentUpon>Renderer.classdiagram</DependentUpon>
+    </Content>
+    <Content Include="RenderProcess.classdiagram">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="RenderProcess.classdiagram.layout">
+      <SubType>Content</SubType>
+      <DependentUpon>RenderProcess.classdiagram</DependentUpon>
+    </Content>
+    <Content Include="TLA.componentdiagram">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="TLA.componentdiagram.layout">
+      <SubType>Content</SubType>
+      <DependentUpon>TLA.componentdiagram</DependentUpon>
     </Content>
     <Folder Include="ModelDefinition\" />
     <Content Include="Scene.classdiagram">

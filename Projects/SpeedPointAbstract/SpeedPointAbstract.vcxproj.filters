@@ -79,9 +79,6 @@
     <ClInclude Include="..\..\Include\Abstract\ILog.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IGameEngine.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IPhysics.h">
       <Filter>Headers\Physics</Filter>
     </ClInclude>
@@ -222,6 +219,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IGeometry.h">
       <Filter>Headers\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IGameEngine.h">
+      <Filter>Headers\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

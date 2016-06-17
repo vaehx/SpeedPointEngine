@@ -9,9 +9,6 @@
 #include <SPrerequisites.h>
 #include "Matrix.h" // for Matrix CB
 #include "IViewport.h"	// for SViewportDescription
-#include "IGeometry.h" // for STransformation
-#include "IEntity.h"
-#include "IMaterial.h"
 #include "IGameEngine.h"
 #include "IFont.h" // for FontSize
 #include "IRenderAPI.h"
