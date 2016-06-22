@@ -14,6 +14,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include "IEntity.h"
 #include "Vector3.h"
 
 SP_NMSPACE_BEG
@@ -36,10 +37,15 @@ struct SPhysicalState
 	// ... linear momentum, force, rotation, torque, angular velocity, angular momentum, inverse inertia tensor, ...
 };
 
-struct IPhysicalComponent
+struct IPhysicalComponent : public IComponent
 {
 	virtual ~IPhysicalComponent()
 	{
+	}
+
+	virtual EComponentType GetType() const
+	{
+		return eCOMPONENT_PHYSICAL;
 	}
 
 	virtual void SetCollisionShape(const SGeomShape& shape) = 0;

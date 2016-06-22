@@ -216,7 +216,7 @@ struct S_API IGeometry : public IShutdownHandler
 {
 	virtual ~IGeometry() {}
 
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
+	virtual SResult Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
 	
 	virtual IRenderer* GetRenderer() = 0;
 

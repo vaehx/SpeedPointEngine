@@ -11,57 +11,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsCollisionShape.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsLiquid.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsMaterial.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsWind.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsIntersection.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsEngine.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicalSolidSystem.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicalSolid.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysIntersectInfo.h">
+    <ClInclude Include="..\..\Include\Physics\CPhysics.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsBody.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsCollisionShape.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsLiquid.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsMaterial.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsWind.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysics3DIntersect.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysics2DIntersect.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicalSolidSystem.cpp">
+    <ClCompile Include="..\..\Source\Physics\CPhysics.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

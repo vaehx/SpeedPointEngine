@@ -49,7 +49,6 @@ EIBUsage ParseIBUsage(EGeomUsage geomUsage)
 // ----------------------------------------------------------------------------------------
 S_API Geometry::Geometry()
 : m_pRenderer(0),
-m_pEngine(0),
 m_pVertexBuffer(0),
 m_pSubsets(0),
 m_nSubsets(0)
@@ -71,7 +70,7 @@ S_API void Geometry::Clear()
 		if (m_nSubsets > 0 && IS_VALID_PTR(m_pSubsets))
 		{
 			for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
-				m_pEngine->GetResources()->RemoveIndexBuffer(&m_pSubsets[iSubset].pIndexBuffer);
+				m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pSubsets[iSubset].pIndexBuffer);
 
 			delete[] m_pSubsets;
 		}
@@ -83,15 +82,16 @@ S_API void Geometry::Clear()
 		m_pRenderer = nullptr;
 	}
 
-	if (IS_VALID_PTR(m_pEngine))
+	//TODO: Avoid having a pointer of the engine in the renderer!
+	IGameEngine* pEngine = m_pRenderer->GetEngine();
+	if (IS_VALID_PTR(pEngine))
 	{
-		m_pEngine->UnregisterShutdownHandler(this);
-		m_pEngine = nullptr;
+		pEngine->UnregisterShutdownHandler(this);		
 	}
 }
 
 // ----------------------------------------------------------------------------------------
-S_API void Geometry::CalculateInitialNormalsOrTangents(SInitialGeometryDesc* pInitialGeom)
+S_API void Geometry::CalculateInitialNormalsOrTangents(const SInitialGeometryDesc* pInitialGeom)
 {
 	SVertex* pVertices = pInitialGeom->pVertices;
 
@@ -182,15 +182,17 @@ S_API void Geometry::CalculateInitialNormalsOrTangents(SInitialGeometryDesc* pIn
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SResult Geometry::Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom /* = nullptr */)
+S_API SResult Geometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom /* = nullptr */)
 {
 	Clear();
 
 	assert(pRenderer);
 	m_pRenderer = pRenderer;
 
-	m_pEngine = pEngine;
-	m_pEngine->RegisterShutdownHandler(this);	
+	//TODO: Avoid having an engine pointer in the renderer
+	IGameEngine* pEngine = pRenderer->GetEngine();
+	if (IS_VALID_PTR(pEngine))
+		pEngine->RegisterShutdownHandler(this);	
 
 	EVBUsage vbUsage = eVBUSAGE_STATIC;
 	EIBUsage ibUsage = eIBUSAGE_STATIC;
@@ -419,48 +421,5 @@ S_API void Geometry::CalculateBoundBox(AABB& aabb, const SMatrix& transform)
 		aabb.AddPoint(transformed.xyz());
 	}
 }
-
-
-
-
-
-
-
-
-// ----------------------------------------------------------------------------------------
-/*
-S_API SResult Geometry::Render()
-{
-	if (!IS_VALID_PTR(m_pRenderer))
-		return S_NOTINIT;
-
-	IVertexBuffer* pVB = GetVertexBuffer();
-	if (!IS_VALID_PTR(pVB))
-		return S_ERROR;
-
-	IIndexBuffer* pIB = GetIndexBuffer();
-	if (!IS_VALID_PTR(pIB))
-		return S_ERROR;
-
-	SRenderDesc dsc;
-	dsc.drawCallDesc.pVertexBuffer = pVB;
-	dsc.drawCallDesc.iStartVBIndex = 0;
-	dsc.drawCallDesc.iEndVBIndex = pVB->GetVertexCount() - 1;
-	dsc.drawCallDesc.pIndexBuffer = pIB;
-	dsc.drawCallDesc.iStartIBIndex = 0;
-	dsc.drawCallDesc.iEndIBIndex = pIB->GetIndexCount() - 1;
-
-	dsc.pGeometrical = this;
-	dsc.technique = eRENDER_FORWARD;	
-
-	return m_pRenderer->RenderGeometry(dsc);
-}
-*/
-
-
-
-
-
-
 
 SP_NMSPACE_END

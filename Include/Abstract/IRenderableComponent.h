@@ -1,11 +1,12 @@
 #pragma once
 
 #include "IEntity.h"
+#include "IGeometry.h"
 
 SP_NMSPACE_BEG
 
-struct S_API SRenderObject;
 struct S_API IRenderObject;
+struct S_API IMaterialManager;
 
 struct S_API IRenderableComponent : public IComponent
 {
@@ -17,8 +18,10 @@ struct S_API IRenderableComponent : public IComponent
 	ILINE virtual EComponentType GetType() const
 	{
 		return eCOMPONENT_RENDERABLE;
-	}
+	}	
 	// ----
+
+	ILINE virtual void Init(const SInitialGeometryDesc* geomDesc = nullptr, IMaterialManager* pMatMgr = nullptr) = 0;
 
 	ILINE virtual void SetVisible(bool visible) = 0;
 

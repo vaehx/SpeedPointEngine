@@ -60,7 +60,7 @@ S_API void C3DEngine::ClearRenderObjects()
 	IRenderObject* pRenderObject = m_pRenderObjects->GetFirst(iterator);
 	while (pRenderObject)
 	{
-		pRenderObject->Clear();
+		pRenderObject->OnRelease();
 
 		/*if (pRenderObject->deallocateRenderDesc)
 			delete pRenderObject->pRenderDesc;
@@ -118,6 +118,9 @@ S_API IRenderObject* C3DEngine::GetRenderObject()
 S_API void C3DEngine::ReleaseRenderObject(IRenderObject** pObject)
 {
 	assert(IS_VALID_PTR(m_pRenderObjects));
+	if (IS_VALID_PTR(*pObject))
+		(*pObject)->OnRelease();
+
 	m_pRenderObjects->Release(pObject);
 }
 

@@ -7,17 +7,16 @@
 
 SP_NMSPACE_BEG
 
-S_API CRenderableComponent::CRenderableComponent(IEntity* pEntity, I3DEngine* pRenderer, IMaterialManager* pMatMgr)
-	: m_pRenderer(pRenderer),
-	m_pMatMgr(pMatMgr),
-	m_pEntity(pEntity),
+S_API CRenderableComponent::CRenderableComponent()
+	: m_pRenderer(0),
+	m_pEntity(0),
 	m_bVisible(true)
 {
 }
 
 S_API CRenderableComponent::~CRenderableComponent()
 {
-	Clear();
+	OnRelease();
 }
 
 S_API IEntity* CRenderableComponent::GetEntity() const
@@ -30,18 +29,24 @@ S_API void CRenderableComponent::SetEntity(IEntity* entity)
 	m_pEntity = entity;
 }
 
-S_API void CRenderableComponent::Init()
+S_API void CRenderableComponent::Init(const SInitialGeometryDesc* geomDesc /*= nullptr*/, IMaterialManager* pMatMgr /*= nullptr*/)
 {
 	assert(IS_VALID_PTR(m_pRenderer));
 	assert(IS_VALID_PTR(m_pEntity));
 
 	I3DEngine* pRenderer = m_pRenderer;
-	Clear();
+	ClearRenderableComponent();
 	m_pRenderer = pRenderer;
 
 #ifdef _DEBUG
 	_name = m_pEntity->GetName();
 #endif
+
+	if (Failure(m_Geometry.Init(m_pRenderer->GetRenderer(), geomDesc)))
+	{
+		CLog::Log(S_ERROR, "Failed init renderable geometry of entity '%s'", m_pEntity->GetName());
+		return;
+	}
 
 	SRenderDesc* rd = GetRenderDesc();
 	rd->renderPipeline = eRENDER_FORWARD;
@@ -96,23 +101,31 @@ S_API void CRenderableComponent::Init()
 		}
 		else
 		{
-			if (IS_VALID_PTR(m_pMatMgr))
+			if (IS_VALID_PTR(pMatMgr))
 			{
-				IMaterial* pDefMat = m_pMatMgr->GetDefaultMaterial();
+				IMaterial* pDefMat = pMatMgr->GetDefaultMaterial();
 				renderSubset.shaderResources = pDefMat->GetLayer(0)->resources;
 			}
 		}
 	}
 }
 
-S_API void CRenderableComponent::Clear()
+S_API void CRenderableComponent::ClearRenderableComponent()
 {
-	if (m_pEntity)
-		m_pEntity->ReleaseComponent(this);
+	m_Geometry.Clear();
+	m_RenderDesc.Clear();
 
 	m_pRenderer = 0;
-	m_pMatMgr = 0;
 	m_pEntity = 0;
+}
+
+S_API void CRenderableComponent::OnRelease()
+{
+	if (IS_VALID_PTR(m_pEntity))
+		m_pEntity->ReleaseComponent(this);
+
+	// In case entity was null or the entity didn't call ClearComponent()
+	ClearRenderableComponent();
 }
 
 S_API void CRenderableComponent::SetVisible(bool visible)
@@ -182,10 +195,15 @@ S_API void CRenderableComponent::UnsetViewProjMatrix()
 
 
 
-S_API const AABB& CRenderableComponent::GetAABB() const
+S_API void CRenderableComponent::SetRenderer(I3DEngine* p3DEngine)
+{
+	m_pRenderer = p3DEngine;
+}
+
+S_API AABB CRenderableComponent::GetAABB() const
 {
 	if (IS_VALID_PTR(m_pEntity))
-		m_pEntity->GetBoundBox();
+		return m_pEntity->GetBoundBox();
 	else
 		return AABB();
 }
@@ -196,12 +214,26 @@ S_API SRenderDesc* CRenderableComponent::GetRenderDesc()
 }
 
 S_API void CRenderableComponent::Update()
+{	
+}
+
+S_API void CRenderableComponent::OnEntityEvent(const SEntityEvent& e)
 {
-	if (IS_VALID_PTR(m_pEntity))
+	if (!IS_VALID_PTR(m_pEntity))
+		return;
+
+	switch (e.type)
 	{
-		m_RenderDesc.transform.translation = SMatrix::MakeTranslationMatrix(m_pEntity->GetPosition());
-		m_RenderDesc.transform.rotation = m_pEntity->GetRotation().ToRotationMatrix();
-		m_RenderDesc.transform.scale = SMatrix::MakeScaleMatrix(m_pEntity->GetSize());
+	case eENTITY_EVENT_TRANSFORM:
+		//TODO: This is not safe for multi-threading. When an entity transform event is triggered while it is rendered, this causes very bad things
+		//TODO:   Solution:
+		//TODO:			#1 Do not allow changing entity transform when rendering. (Is this even possible?)
+		//TODO:			#2 Use a flag 'm_bTransformChanged'. Then copy the actual transformation in RenderableComponent::Update()
+		m_RenderDesc.transform.translation = SMatrix::MakeTranslationMatrix(e.transform.pos);
+		m_RenderDesc.transform.rotation = e.transform.rot.ToRotationMatrix();
+		m_RenderDesc.transform.scale = SMatrix::MakeScaleMatrix(e.transform.scale);
+		m_RenderDesc.transform.preRotation = SMatrix::MakeTranslationMatrix(-e.transform.pivot);
+		break;
 	}
 }
 

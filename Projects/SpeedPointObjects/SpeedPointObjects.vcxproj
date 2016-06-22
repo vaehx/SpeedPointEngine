@@ -26,7 +26,6 @@
     <ClCompile Include="..\..\Source\Implementation\Geometry\Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\Entity\PhysicalComponent.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationBundle.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
@@ -37,6 +36,7 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
+    <ClInclude Include="..\..\Include\Implementation\Geometry\PhysicalComponent.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableComponent.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableObjects.h" />
     <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h" />

@@ -14,11 +14,12 @@ class CRenderableComponent : public IRenderableComponent, public IRenderObject
 {
 private:
 	I3DEngine* m_pRenderer;
-	IMaterialManager* m_pMatMgr;
 	IEntity* m_pEntity;
 	Geometry m_Geometry;
 	SRenderDesc m_RenderDesc;
-	bool m_bVisible;	
+	bool m_bVisible;
+
+	void ClearRenderableComponent();
 
 public:
 	// Material Manager required to get default materials
@@ -27,14 +28,14 @@ public:
 	virtual ~CRenderableComponent();
 
 	// IComponent:
-public:
-	virtual void Init();
+public:	
 	virtual IEntity* GetEntity() const;
 	virtual void SetEntity(IEntity* entity);
+	ILINE virtual void OnEntityEvent(const SEntityEvent& e);
 
 	// IRenderableComponent:
 public:
-	virtual void Clear();
+	ILINE virtual void Init(const SInitialGeometryDesc* geomDesc = nullptr, IMaterialManager* pMatMgr = nullptr);
 
 	virtual void SetVisible(bool visible);
 
@@ -57,12 +58,15 @@ public:
 
 	// IRenderObject:
 public:
-	virtual const AABB& GetAABB() const;
+	virtual void OnRelease();
+	virtual void SetRenderer(I3DEngine* p3DEngine);
+	
+	virtual AABB GetAABB() const;
 
 	virtual SRenderDesc* GetRenderDesc();
 
 	// Called by the Renderer System
-	virtual void Update();
+	virtual void Update();	
 };
 
 SP_NMSPACE_END

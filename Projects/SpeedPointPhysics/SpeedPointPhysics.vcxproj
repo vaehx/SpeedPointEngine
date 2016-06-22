@@ -10,6 +10,12 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Include\Physics\CPhysics.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\Physics\CPhysics.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -40,7 +46,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\..\Dependencies\DirectX\Include;$(SolutionDir)\..\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\Dependencies\DirectX\Include;$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
     <TargetExt>.lib</TargetExt>
     <LibraryPath>$(SolutionDir)\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -76,27 +82,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsEngine.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsIntersection.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicalSolid.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsCollisionShape.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsLiquid.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsMaterial.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicalSolidSystem.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysicsWind.h" />
-    <ClInclude Include="..\..\Include\OnionPhysics\SPhysIntersectInfo.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicalSolidSystem.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysics2DIntersect.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysics3DIntersect.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsBody.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsCollisionShape.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsLiquid.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsMaterial.cpp" />
-    <ClCompile Include="..\..\Source\OnionPhysics\SPhysicsWind.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

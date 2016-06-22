@@ -29,7 +29,6 @@ SP_NMSPACE_BEG
 class S_API Geometry : public IGeometry
 {
 protected:
-	IGameEngine* m_pEngine;
 	IRenderer* m_pRenderer;
 	
 	SGeomSubset* m_pSubsets;
@@ -40,13 +39,13 @@ protected:
 	EPrimitiveType m_PrimitiveType;
 
 private:
-	inline static void CalculateInitialNormalsOrTangents(SInitialGeometryDesc* pInitialGeom);
+	inline static void CalculateInitialNormalsOrTangents(const SInitialGeometryDesc* pInitialGeom);
 
 public:
 	Geometry();
 	virtual ~Geometry();	
 
-	virtual SResult Init(IGameEngine* pEngine, IRenderer* pRenderer, SInitialGeometryDesc* pInitialGeom = nullptr);
+	virtual SResult Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom = nullptr);
 
 	virtual IRenderer* GetRenderer()
 	{

@@ -151,9 +151,7 @@ S_API IEntity* Scene::LoadObjectFromFile(const char* filename, const char* objNa
 	IEntity* pEntity = m_pEngine->GetEntitySystem()->CreateEntity();
 	pEntity->SetName(objName);
 
-	IRenderableComponent* pRenderable = pEntity->CreateRenderable();
-	pRenderable->GetGeometry()->Init(m_pEngine, m_pEngine->GetRenderer(), &geomDesc);
-	pRenderable->Init();
+	pEntity->CreateRenderable()->Init(&geomDesc, m_pEngine->GetMaterialManager());	
 	
 	// Cleanup
 	delete[] geomDesc.pVertices;

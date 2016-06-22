@@ -153,6 +153,7 @@ private:
 	EngineComponent<IScene> m_pScene;
 	EngineComponent<IMaterialManager> m_pMaterialManager;
 	EngineComponent<I3DEngine> m_p3DEngine;
+	EngineComponent<IPhysics> m_pPhysics;
 	EngineFileLog m_FileLog;
 	CLogWrapper m_LogWrapper;
 
@@ -228,6 +229,7 @@ public:
 	ILINE virtual ISettings* GetSettings() const { return m_pSettings; }
 	ILINE virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
 	ILINE virtual IEntitySystem* GetEntitySystem() const { return m_pEntitySystem; }
+	ILINE virtual IPhysics* GetPhysics() const { return m_pPhysics; }
 	ILINE virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	ILINE virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
 	ILINE virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }

@@ -17,6 +17,10 @@ public:
 	// IEntitySystem:
 	virtual IEntity* CreateEntity();
 	virtual IRenderableComponent* CreateRenderableComponent() const;
+	virtual IPhysicalComponent* CreatePhysicalComponent() const;
+
+	virtual void RemoveRenderableComponent(IRenderableComponent* renderable) const;
+	virtual void RemovePhysicalComponent(IPhysicalComponent* physical) const;
 };
 
 SP_NMSPACE_END

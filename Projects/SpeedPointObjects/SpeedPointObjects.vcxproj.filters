@@ -79,9 +79,6 @@
     <ClInclude Include="..\..\Include\Implementation\Geometry\Material.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Entity\PhysicalComponent.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Entity.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -92,6 +89,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Implementation\Geometry\Geometry.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\Geometry\PhysicalComponent.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

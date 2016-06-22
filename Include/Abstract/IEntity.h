@@ -22,6 +22,8 @@
 #include <SPrerequisites.h>
 #include "Transformable.h"
 #include "BoundBox.h"
+#include "Vector3.h"
+#include "Quaternion.h"
 #include <vector>
 #include <string>
 
@@ -118,10 +120,36 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum S_API EEntityEvent
+{
+	// The transformation of the entity is invalidated
+	eENTITY_EVENT_TRANSFORM
+};
+
+struct S_API SEntityEvent
+{
+	EEntityEvent type;
+	union
+	{
+		struct
+		{
+			Vec3f pos, scale, pivot;
+			Quat rot;
+		} transform;
+	};
+
+	SEntityEvent()
+	{
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 enum EComponentType
 {
 	eCOMPONENT_RENDERABLE = 0,
-	//eCOMPONENT_PHYSICAL,
+	eCOMPONENT_PHYSICAL,
 	//eCOMPONENT_ANIMATION,
 	//eCOMPONENT_SCRIPT
 
@@ -130,11 +158,10 @@ enum EComponentType
 
 struct IComponent
 {
-	ILINE virtual void Init() = 0;	
 	ILINE virtual EComponentType GetType() const = 0;
 	ILINE virtual void SetEntity(IEntity* entity) = 0;
 	ILINE virtual IEntity* GetEntity() const = 0;
-	ILINE virtual void Clear() = 0;
+	ILINE virtual void OnEntityEvent(const SEntityEvent& event) {}
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,19 +192,36 @@ struct S_API IEntity : public STransformable
 {
 	virtual ~IEntity() {}
 
+	ILINE virtual const Vec3f& GetPos() const = 0;
+	ILINE virtual void SetPos(const Vec3f& pos) = 0;
+
+	ILINE virtual const Quat& GetRotation() const = 0;
+	ILINE virtual void SetRotation(const Quat& rotation) = 0;
+
+	ILINE virtual const Vec3f& GetScale() const = 0;
+	ILINE virtual void SetScale(const Vec3f& scale) = 0;
+
+	ILINE virtual const Vec3f& GetPivot() const = 0;
+	ILINE virtual void SetPivot(const Vec3f& pivot) = 0;
+
 	ILINE virtual const char* GetName() const = 0;
 	ILINE virtual void SetName(const char* name) = 0;
 
 	ILINE virtual IComponent* CreateComponent(EComponentType type) = 0;
 	
 	ILINE virtual IRenderableComponent* CreateRenderable() = 0;
+	ILINE virtual IPhysicalComponent* CreatePhysical() = 0;
 
 	// Returns NULL if the component was not created
 	ILINE virtual IComponent* GetComponent(EComponentType type) const = 0;
+	ILINE virtual IRenderableComponent* GetRenderable() const = 0;
+	ILINE virtual IPhysicalComponent* GetPhysical() const = 0;
 
 	ILINE virtual void SetComponent(EComponentType type, IComponent* pComponent) = 0;
 
 	ILINE virtual void ReleaseComponent(IComponent* pComponent) = 0;
+
+	ILINE virtual void Clear() = 0;
 };
 
 typedef S_API struct IEntity IObject;
@@ -202,6 +246,10 @@ struct S_API IEntitySystem
 
 	virtual IEntity* CreateEntity() = 0;
 	virtual IRenderableComponent* CreateRenderableComponent() const = 0;
+	virtual IPhysicalComponent* CreatePhysicalComponent() const = 0;
+
+	virtual void RemoveRenderableComponent(IRenderableComponent* renderable) const = 0;
+	virtual void RemovePhysicalComponent(IPhysicalComponent* physical) const = 0;
 };
 
 

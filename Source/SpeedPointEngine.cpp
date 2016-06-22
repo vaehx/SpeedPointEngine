@@ -20,7 +20,7 @@
 #include <Implementation\Geometry\Material.h>
 #include <Implementation\3DEngine\C3DEngine.h>
 #include <Implementation\Geometry\EntitySystem.h>
-
+#include <Physics\CPhysics.h>
 #include <Abstract\SAssert_Impl.h>
 
 SP_NMSPACE_BEG
@@ -191,6 +191,7 @@ S_API void SpeedPointEngine::Shutdown(void)
 	m_pMaterialManager.Clear();
 
 	m_pEntitySystem.Clear();
+	m_pPhysics.Clear();
 
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool	
 	m_pRenderer.Clear();
@@ -301,7 +302,7 @@ S_API SResult SpeedPointEngine::FinishInitialization()
 {	
 	// Create other components
 	m_pEntitySystem.SetOwn(new CEntitySystem(this));
-
+	m_pPhysics.SetCustom(new CPhysics());
 
 	// Register the framepipeline sections
 	if (!IS_VALID_PTR(m_pRenderer.pComponent)) return S_ERROR;

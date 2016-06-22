@@ -130,9 +130,6 @@
     <ClInclude Include="..\..\Include\Abstract\Animateable.h">
       <Filter>Headers\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Physical.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IOcean.h">
       <Filter>Headers\Scene</Filter>
     </ClInclude>
@@ -222,6 +219,15 @@
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IGameEngine.h">
       <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IPhysicalComponent.h">
+      <Filter>Headers\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\ComponentPool.h">
+      <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IPhysicalObject.h">
+      <Filter>Headers\Physics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

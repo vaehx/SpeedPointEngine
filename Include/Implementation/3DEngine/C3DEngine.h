@@ -21,7 +21,7 @@ private:
 	IRenderer* m_pRenderer;	
 	IGameEngine* m_pEngine;
 
-	IRenderObjectPool* m_pRenderObjects;
+	IComponentPool<IRenderObject>* m_pRenderObjects;
 
 	ISkyBox* m_pSkyBox;
 	
@@ -29,11 +29,16 @@ private:
 	ITerrain* m_pTerrain;
 
 protected:
-	virtual void SetRenderObjectPool(IRenderObjectPool* pPool);
+	virtual void SetRenderObjectPool(IComponentPool<IRenderObject>* pPool);
 
 public:
 	C3DEngine(IRenderer* pRenderer, IGameEngine* pEngine);
 	virtual ~C3DEngine();
+
+	ILINE virtual IRenderer* GetRenderer() const
+	{
+		return m_pRenderer;
+	}
 	
 	ILINE virtual unsigned int CollectVisibleObjects(const SCamera* pCamera);
 	ILINE virtual IRenderObject* GetRenderObject();

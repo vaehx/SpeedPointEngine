@@ -13,6 +13,7 @@
 
 #include <Implementation\Geometry\Entity.h>
 #include <Implementation\Geometry\RenderableComponent.h>
+#include <Abstract\IPhysicalComponent.h>
 #include <Abstract\IGameEngine.h>
 #include <Abstract\I3DEngine.h>
 #include <Abstract\IVertexBuffer.h>
@@ -24,6 +25,70 @@ S_API CEntity::CEntity(IEntitySystem* pEntitySystem)
 {
 }
 
+S_API void CEntity::Clear()
+{
+	for (int i = 0; i < NUM_COMPONENTS; ++i)
+	{
+		ReleaseComponent(m_pComponents[i]);
+	}
+}
+
+
+void CEntity::OnEntityTransformEvent()
+{
+	SEntityEvent e;
+	e.type = eENTITY_EVENT_TRANSFORM;
+	e.transform.pos = m_Pos;
+	e.transform.rot = m_Rot;
+	e.transform.scale = m_Scale;
+	e.transform.pivot = m_Pivot;
+
+	OnEntityEvent(e);
+}
+
+S_API const Vec3f& CEntity::GetPos() const
+{
+	return m_Pos;
+}
+
+S_API void CEntity::SetPos(const Vec3f& pos)
+{	
+	m_Pos = pos;
+	OnEntityTransformEvent();
+}
+
+S_API const Quat& CEntity::GetRotation() const
+{
+	return m_Rot;
+}
+
+S_API void CEntity::SetRotation(const Quat& rotation)
+{
+	m_Rot = rotation;
+	OnEntityTransformEvent();
+}
+
+S_API const Vec3f& CEntity::GetScale() const
+{
+	return m_Scale;
+}
+
+S_API void CEntity::SetScale(const Vec3f& scale)
+{
+	m_Scale = scale;
+	OnEntityTransformEvent();
+}
+
+S_API const Vec3f& CEntity::GetPivot() const
+{
+	return m_Pivot;
+}
+S_API void CEntity::SetPivot(const Vec3f& pivot)
+{
+	m_Pivot = pivot;
+	OnEntityTransformEvent();
+}
+
 S_API const char* CEntity::GetName() const
 {
 	return m_Name.c_str();
@@ -32,6 +97,15 @@ S_API const char* CEntity::GetName() const
 S_API void CEntity::SetName(const char* name)
 {
 	m_Name = name;
+}
+
+void CEntity::OnEntityEvent(const SEntityEvent& event)
+{
+	for (int i = 0; i < NUM_COMPONENTS; ++i)
+	{
+		if (IS_VALID_PTR(m_pComponents[i]))
+			m_pComponents[i]->OnEntityEvent(event);
+	}
 }
 
 S_API IComponent* CEntity::CreateComponent(EComponentType component)
@@ -48,6 +122,11 @@ S_API IComponent* CEntity::CreateComponent(EComponentType component)
 		{
 		case eCOMPONENT_RENDERABLE:
 			m_pComponents[component] = m_pEntitySystem->CreateRenderableComponent();
+			break;
+
+		case eCOMPONENT_PHYSICAL:
+			m_pComponents[component] = m_pEntitySystem->CreatePhysicalComponent();
+			break;
 		}
 
 		if (IS_VALID_PTR(m_pComponents[component]))
@@ -62,10 +141,25 @@ S_API IRenderableComponent* CEntity::CreateRenderable()
 	return (IRenderableComponent*)CreateComponent(eCOMPONENT_RENDERABLE);
 }
 
+S_API IPhysicalComponent* CEntity::CreatePhysical()
+{
+	return (IPhysicalComponent*)CreateComponent(eCOMPONENT_PHYSICAL);
+}
+
 // Returns NULL if the component was not created
 S_API IComponent* CEntity::GetComponent(EComponentType component) const
 {
 	return m_pComponents[component];
+}
+
+S_API IRenderableComponent* CEntity::GetRenderable() const
+{
+	return (IRenderableComponent*)GetComponent(eCOMPONENT_RENDERABLE);
+}
+
+S_API IPhysicalComponent* CEntity::GetPhysical() const
+{
+	return (IPhysicalComponent*)GetComponent(eCOMPONENT_PHYSICAL);
 }
 
 S_API void CEntity::SetComponent(EComponentType type, IComponent* pComponent)
@@ -75,10 +169,27 @@ S_API void CEntity::SetComponent(EComponentType type, IComponent* pComponent)
 
 S_API void CEntity::ReleaseComponent(IComponent* pComponent)
 {
+	if (!IS_VALID_PTR(pComponent))
+		return;
+
 	for (int i = 0; i < NUM_COMPONENTS; ++i)
 	{
 		if (m_pComponents[i] == pComponent)
 		{
+			// Unset entity so there can be no loop back to Entity::ReleaseComponent()
+			m_pComponents[i]->SetEntity(0);
+
+			//TODO: How to release app-custom components?
+			switch (i)
+			{
+			case eCOMPONENT_RENDERABLE:
+				m_pEntitySystem->RemoveRenderableComponent((IRenderableComponent*)m_pComponents[i]);
+				break;
+			case eCOMPONENT_PHYSICAL:
+				m_pEntitySystem->RemovePhysicalComponent((IPhysicalComponent*)m_pComponents[i]);
+				break;
+			}
+
 			m_pComponents[i] = 0;
 			break;
 		}

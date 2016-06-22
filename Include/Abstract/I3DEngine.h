@@ -1,8 +1,8 @@
 #pragma once
 
 #include "IRenderer.h"
-#include "ChunkedObjectPool.h"
 #include "ITerrain.h"
+#include "ComponentPool.h"
 #include <SPrerequisites.h>
 
 SP_NMSPACE_BEG
@@ -15,98 +15,18 @@ struct S_API IRenderObject
 	string _name;
 #endif
 
+	virtual void SetRenderer(I3DEngine* p3DEngine) = 0;
+
 	virtual ~IRenderObject() {}
 
-	virtual const AABB& GetAABB() const = 0;
+	virtual AABB GetAABB() const = 0;
 	
 	virtual SRenderDesc* GetRenderDesc() = 0;
 
 	// Called by the Renderer System
 	virtual void Update() = 0;
 
-	virtual void Clear() = 0;
-};
-
-
-
-struct S_API IRenderObjectPool
-{	
-	virtual IRenderObject* Get() = 0;
-	
-	// Returns:
-	//	The first used render object in the pool or 0 if there is none in the pool
-	// Arguments:
-	//	id - is set to the index of the first used object
-	virtual IRenderObject* GetFirst(unsigned int& id) const = 0;
-	
-	// Returns:
-	//	The next render object in the pool after the given index or 0 if there is no more
-	// Arguments:
-	//	id - is set to the index of the next used object AFTER the given index
-	virtual IRenderObject* GetNext(unsigned int& id) const = 0;
-
-	// Returns:
-	//	The number of used objects in the pool
-	virtual unsigned int GetNumObjects() const = 0;
-
-	// Returns true if the object was released, false if parameter is invalid
-	virtual bool Release(IRenderObject** pObject) = 0;
-	virtual void ReleaseAll() = 0;
-};
-
-// RenderObjImpl must be an implementation of IRenderObject
-template<class RenderObjImpl>
-class S_API RenderObjectPool : public IRenderObjectPool
-{
-private:
-	ChunkedObjectPool<RenderObjImpl> m_Pool;
-
-public:
-	virtual IRenderObject* Get()
-	{
-		return dynamic_cast<IRenderObject*>(m_Pool.Get());
-	}
-
-	virtual IRenderObject* GetFirst(unsigned int& id) const
-	{
-		return dynamic_cast<IRenderObject*>(m_Pool.GetFirstUsedObject(id));
-	}
-
-	virtual IRenderObject* GetNext(unsigned int& id) const
-	{
-		return dynamic_cast<IRenderObject*>(m_Pool.GetNextUsedObject(id));
-	}
-
-	virtual unsigned int GetNumObjects() const
-	{
-		return m_Pool.GetUsedObjectCount();
-	}
-
-	virtual bool Release(IRenderObject** ppObject)
-	{
-		if (!ppObject)
-			return false;
-
-		IRenderObject* pObject = *ppObject;
-		if (!pObject)
-			return false;
-
-		RenderObjImpl* pImplObject = dynamic_cast<RenderObjImpl*>(pObject);
-		m_Pool.Release(&pImplObject);
-
-		*ppObject = 0;
-		return true;
-	}
-
-	virtual void ReleaseAll()
-	{
-		m_Pool.ReleaseAll();
-	}
-
-	ChunkedObjectPool<RenderObjImpl>* GetPool() const
-	{
-		return &m_Pool;
-	}
+	virtual void OnRelease() = 0;
 };
 
 
@@ -116,7 +36,7 @@ public:
 struct S_API I3DEngine
 {
 protected:
-	virtual void SetRenderObjectPool(IRenderObjectPool* pPool) = 0;
+	virtual void SetRenderObjectPool(IComponentPool<IRenderObject>* pPool) = 0;
 
 public:
 	virtual ~I3DEngine() {};
@@ -124,8 +44,10 @@ public:
 	template<class RenderObjImpl>
 	ILINE void CreateRenderObjectPool()
 	{
-		SetRenderObjectPool(new RenderObjectPool<RenderObjImpl>());
+		SetRenderObjectPool(new ComponentPool<IRenderObject, RenderObjImpl>());
 	}
+
+	ILINE virtual IRenderer* GetRenderer() const = 0;
 
 	// Summary:
 	//	Finds and returns an empty Render Object
