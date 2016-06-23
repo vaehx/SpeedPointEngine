@@ -72,10 +72,8 @@ S_API SResult Scene::AddObject(IObject* pObject)
 	if (!IS_VALID_PTR(pObject))
 		return S_INVALIDPARAM;
 
-	pObject->RecalcBoundBox();
-
 	SSceneNode node;
-	node.aabb = pObject->GetBoundBox();
+	node.aabb = pObject->GetAABB();
 	node.type = eSCENENODE_ENTITY;
 	node.pObject = pObject;
 

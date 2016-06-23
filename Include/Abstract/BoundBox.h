@@ -126,6 +126,17 @@ struct S_API SAxisAlignedBoundBox
 		vMin += v;
 		vMax += v;
 	}
+
+	inline SAxisAlignedBoundBox& Transform(const SMatrix& transform)
+	{
+		//TODO: Maybe avoid 7 flops by using a 3x3 matrix here!
+		Vec3f sz = (transform * Vec4f((vMax - vMin) * 0.5f, 0.0f)).xyz();
+		Vec3f pos = (transform * Vec4f((vMax + vMin) * 0.5f, 1.0f)).xyz();
+		vMin = pos - sz;
+		vMax = pos + sz;
+
+		return *this;
+	}
 };
 typedef struct S_API SAxisAlignedBoundBox AABB;
 

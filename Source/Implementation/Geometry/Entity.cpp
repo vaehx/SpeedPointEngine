@@ -21,7 +21,8 @@
 SP_NMSPACE_BEG
 
 S_API CEntity::CEntity(IEntitySystem* pEntitySystem)
-	: m_pEntitySystem(pEntitySystem)
+	: m_pEntitySystem(pEntitySystem),
+	m_bTransformInvalid(true)
 {
 }
 
@@ -43,6 +44,7 @@ void CEntity::OnEntityTransformEvent()
 	e.transform.scale = m_Scale;
 	e.transform.pivot = m_Pivot;
 
+	m_bTransformInvalid = true;
 	OnEntityEvent(e);
 }
 
@@ -87,6 +89,21 @@ S_API void CEntity::SetPivot(const Vec3f& pivot)
 {
 	m_Pivot = pivot;
 	OnEntityTransformEvent();
+}
+
+S_API const SMatrix& CEntity::GetTransform()
+{
+	if (m_bTransformInvalid)
+	{
+		STransformationDesc transform;
+		transform.translation = SMatrix::MakeTranslationMatrix(m_Pos);
+		transform.rotation = m_Rot.ToRotationMatrix();
+		transform.scale = SMatrix::MakeScaleMatrix(m_Scale);
+		transform.preRotation = SMatrix::MakeTranslationMatrix(-m_Pivot);
+		m_Transform = transform.BuildTRS();
+	}
+
+	return m_Transform;
 }
 
 S_API const char* CEntity::GetName() const
@@ -194,6 +211,24 @@ S_API void CEntity::ReleaseComponent(IComponent* pComponent)
 			break;
 		}
 	}
+}
+
+S_API AABB CEntity::GetAABB()
+{
+	IRenderableComponent* pRenderable = GetRenderable();
+	if (pRenderable)
+		return pRenderable->GetAABB();
+
+	IPhysicalComponent* pPhysical = GetPhysical();
+	if (pPhysical)
+		return pPhysical->GetAABB();
+
+	return AABB();
+}
+
+S_API AABB CEntity::GetWorldAABB()
+{
+	return GetAABB().Transform(GetTransform());
 }
 
 

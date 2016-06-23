@@ -25,6 +25,9 @@ private:
 	Vec3f m_Pos, m_Scale, m_Pivot;
 	Quat m_Rot;
 
+	bool m_bTransformInvalid;
+	SMatrix m_Transform;
+
 	void OnEntityEvent(const SEntityEvent& e);
 	void OnEntityTransformEvent();
 
@@ -51,6 +54,11 @@ public:
 
 	ILINE virtual const char* GetName() const;
 	ILINE virtual void SetName(const char* name);
+
+	ILINE virtual const SMatrix& GetTransform();
+
+	ILINE virtual AABB GetAABB();
+	ILINE virtual AABB GetWorldAABB();
 
 	ILINE virtual IComponent* CreateComponent(EComponentType component);
 

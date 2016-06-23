@@ -20,6 +20,8 @@ class PhysicalComponent : public IPhysicalComponent, public IPhysObject
 private:
 	IEntity* m_pEntity;
 	
+
+
 	// Should be in Object space. Transform this by the object's transformation matrix to get the world-space collision shape.
 	// You can also use world-space coordinates for the shape, but whenever the object moves, you have to manually update the shape vectors.
 	SGeomShape m_CollisionShape;
@@ -67,6 +69,10 @@ public:
 
 		ClearPhysicalComponent();
 	}
+
+	// IPhysicalComponent + IPhysObject:
+public:
+	virtual AABB GetAABB();
 };
 
 

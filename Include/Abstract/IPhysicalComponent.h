@@ -50,6 +50,8 @@ struct IPhysicalComponent : public IComponent
 
 	virtual void SetCollisionShape(const SGeomShape& shape) = 0;
 	virtual SGeomShape* GetCollisionShape() = 0;
+
+	virtual AABB GetAABB() = 0;
 };
 
 

@@ -19,7 +19,7 @@ struct S_API IRenderObject
 
 	virtual ~IRenderObject() {}
 
-	virtual AABB GetAABB() const = 0;
+	virtual AABB GetAABB() = 0;
 	
 	virtual SRenderDesc* GetRenderDesc() = 0;
 

@@ -20,12 +20,14 @@
 
 #include <SPrerequisites.h>
 #include "ComponentPool.h"
+#include "BoundBox.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IPhysObject
 {
 	virtual void OnRelease() = 0;
+	virtual AABB GetAABB() = 0;
 /*
 	// Enable the physics calculation
 	virtual void EnablePhysics(void) = 0;

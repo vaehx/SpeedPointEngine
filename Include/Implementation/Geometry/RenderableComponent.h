@@ -19,6 +19,9 @@ private:
 	SRenderDesc m_RenderDesc;
 	bool m_bVisible;
 
+	AABB m_AABB;
+	bool m_bBoundBoxInvalid;
+
 	void ClearRenderableComponent();
 
 public:
@@ -60,13 +63,15 @@ public:
 public:
 	virtual void OnRelease();
 	virtual void SetRenderer(I3DEngine* p3DEngine);
-	
-	virtual AABB GetAABB() const;
 
 	virtual SRenderDesc* GetRenderDesc();
 
 	// Called by the Renderer System
-	virtual void Update();	
+	virtual void Update();
+
+	// IRenderableComponent + IRenderObject:
+public:
+	virtual AABB GetAABB();
 };
 
 SP_NMSPACE_END

@@ -10,7 +10,8 @@ SP_NMSPACE_BEG
 S_API CRenderableComponent::CRenderableComponent()
 	: m_pRenderer(0),
 	m_pEntity(0),
-	m_bVisible(true)
+	m_bVisible(true),
+	m_bBoundBoxInvalid(true)
 {
 }
 
@@ -47,6 +48,8 @@ S_API void CRenderableComponent::Init(const SInitialGeometryDesc* geomDesc /*= n
 		CLog::Log(S_ERROR, "Failed init renderable geometry of entity '%s'", m_pEntity->GetName());
 		return;
 	}
+
+	m_bBoundBoxInvalid = true;
 
 	SRenderDesc* rd = GetRenderDesc();
 	rd->renderPipeline = eRENDER_FORWARD;
@@ -117,6 +120,8 @@ S_API void CRenderableComponent::ClearRenderableComponent()
 
 	m_pRenderer = 0;
 	m_pEntity = 0;
+
+	m_bBoundBoxInvalid = true;
 }
 
 S_API void CRenderableComponent::OnRelease()
@@ -200,12 +205,12 @@ S_API void CRenderableComponent::SetRenderer(I3DEngine* p3DEngine)
 	m_pRenderer = p3DEngine;
 }
 
-S_API AABB CRenderableComponent::GetAABB() const
+S_API AABB CRenderableComponent::GetAABB()
 {
-	if (IS_VALID_PTR(m_pEntity))
-		return m_pEntity->GetBoundBox();
-	else
-		return AABB();
+	if (m_bBoundBoxInvalid)
+		m_Geometry.CalculateBoundBox(m_AABB, SMatrix());
+
+	return m_AABB;
 }
 
 S_API SRenderDesc* CRenderableComponent::GetRenderDesc()

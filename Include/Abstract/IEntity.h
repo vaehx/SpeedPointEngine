@@ -188,7 +188,7 @@ struct S_API IScriptComponent
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // A complex object - composed of components
-struct S_API IEntity : public STransformable
+struct S_API IEntity
 {
 	virtual ~IEntity() {}
 
@@ -206,6 +206,11 @@ struct S_API IEntity : public STransformable
 
 	ILINE virtual const char* GetName() const = 0;
 	ILINE virtual void SetName(const char* name) = 0;
+
+	ILINE virtual const SMatrix& GetTransform() = 0;
+
+	ILINE virtual AABB GetAABB() = 0;
+	ILINE virtual AABB GetWorldAABB() = 0;
 
 	ILINE virtual IComponent* CreateComponent(EComponentType type) = 0;
 	

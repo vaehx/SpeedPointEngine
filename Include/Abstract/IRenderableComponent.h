@@ -27,6 +27,8 @@ struct S_API IRenderableComponent : public IComponent
 
 	ILINE virtual IRenderObject* GetRenderObject() = 0;
 
+	ILINE virtual AABB GetAABB() = 0;
+
 	virtual IGeometry* GetGeometry() = 0;
 
 	virtual IVertexBuffer* GetVertexBuffer() = 0;
