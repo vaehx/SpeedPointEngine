@@ -36,8 +36,12 @@ S_API void CRenderableComponent::Init(const SInitialGeometryDesc* geomDesc /*= n
 	assert(IS_VALID_PTR(m_pEntity));
 
 	I3DEngine* pRenderer = m_pRenderer;
+	IEntity* pEntity = m_pEntity;
+	
 	ClearRenderableComponent();
+
 	m_pRenderer = pRenderer;
+	m_pEntity = pEntity;
 
 #ifdef _DEBUG
 	_name = m_pEntity->GetName();
@@ -165,6 +169,15 @@ S_API IVertexBuffer* CRenderableComponent::GetVertexBuffer()
 	return m_Geometry.GetVertexBuffer();
 }
 
+S_API IIndexBuffer* CRenderableComponent::GetIndexBuffer(unsigned int subset /*= 0*/)
+{
+	SGeomSubset* pSubset = m_Geometry.GetSubset(subset);
+	if (IS_VALID_PTR(pSubset))
+		return pSubset->pIndexBuffer;
+	else
+		return 0;
+}
+
 S_API SGeomSubset* CRenderableComponent::GetSubset(unsigned int i)
 {
 	return m_Geometry.GetSubset(i);
@@ -218,6 +231,24 @@ S_API SRenderDesc* CRenderableComponent::GetRenderDesc()
 	return &m_RenderDesc;
 }
 
+S_API void CRenderableComponent::SetTransform(const SMatrix& transform)
+{
+	m_RenderDesc.transform = transform;
+}
+
+S_API void CRenderableComponent::SetCustomViewProjMatrix(const SMatrix* viewProj)
+{
+	if (IS_VALID_PTR(viewProj))
+	{
+		m_RenderDesc.bCustomViewProjMtx = true;
+		m_RenderDesc.viewProjMtx = *viewProj;
+	}
+	else
+	{
+		m_RenderDesc.bCustomViewProjMtx = false;
+	}
+}
+
 S_API void CRenderableComponent::Update()
 {	
 }
@@ -230,15 +261,20 @@ S_API void CRenderableComponent::OnEntityEvent(const SEntityEvent& e)
 	switch (e.type)
 	{
 	case eENTITY_EVENT_TRANSFORM:
+	{
 		//TODO: This is not safe for multi-threading. When an entity transform event is triggered while it is rendered, this causes very bad things
 		//TODO:   Solution:
 		//TODO:			#1 Do not allow changing entity transform when rendering. (Is this even possible?)
 		//TODO:			#2 Use a flag 'm_bTransformChanged'. Then copy the actual transformation in RenderableComponent::Update()
-		m_RenderDesc.transform.translation = SMatrix::MakeTranslationMatrix(e.transform.pos);
-		m_RenderDesc.transform.rotation = e.transform.rot.ToRotationMatrix();
-		m_RenderDesc.transform.scale = SMatrix::MakeScaleMatrix(e.transform.scale);
-		m_RenderDesc.transform.preRotation = SMatrix::MakeTranslationMatrix(-e.transform.pivot);
+		STransformationDesc transform;
+		transform.translation = SMatrix::MakeTranslationMatrix(e.transform.pos);
+		transform.rotation = e.transform.rot.ToRotationMatrix();
+		transform.scale = SMatrix::MakeScaleMatrix(e.transform.scale);
+		transform.preRotation = SMatrix::MakeTranslationMatrix(-e.transform.pivot);
+
+		m_RenderDesc.transform = transform.BuildTRS();
 		break;
+	}
 	}
 }
 

@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////////
+﻿//////////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the SpeedPointEngine
 // Copyright (c) 2011-2015, Pascal Rosenkranz
@@ -121,6 +121,20 @@ struct S_API Quat
 		return Quat(cosf(ha), axis * sinf(ha));
 	}
 
+	static Quat FromRotationMatrix(const Mat44& m)
+	{
+		Quat q;
+		q.w = sqrtf(max(0, 1.0f + m._11 + m._22 + m._33)) * 0.5f;
+		q.v.x = sqrtf(max(0, 1.0f + m._11 - m._22 - m._33)) * 0.5f;
+		q.v.y = sqrtf(max(0, 1.0f - m._11 + m._22 - m._33)) * 0.5f;
+		q.v.z = sqrtf(max(0, 1.0f - m._11 - m._22 + m._33)) * 0.5f;
+		
+		q.v.x = _copysignf(q.v.x, m._32 - m._23);
+		q.v.y = _copysignf(q.v.y, m._13 - m._31);
+		q.v.z = _copysignf(q.v.z, m._21 - m._12);
+		return q;
+	}
+
 
 	inline float Length() const;
 	inline Quat Normalized() const;
@@ -204,6 +218,13 @@ inline Vec3f operator *(const Quat& q, const Vec3f& p)
 inline Vec3f RotateVector(const Vec3f& vec, const Vec3f& axis, float rad)
 {
 	return Quat::FromAxisAngle(axis, rad) * vec;
+}
+
+
+// Build TRS: Scale -> Rotation -> Translation
+inline static void MakeTransformationTRS(const Vec3f& translation, const Quat& rotation, const Vec3f& scale, Mat44* pMat)
+{
+	MakeTransformationTRS(translation, rotation.ToRotationMatrix(), scale, pMat);
 }
 
 

@@ -1523,9 +1523,7 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 
 // --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
-{	
-	SMatrix4 transformMtx = SMatrixTranspose(renderDesc.transform.BuildTRS());
-
+{
 	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
 	{
 		SRenderSubset& subset = renderDesc.pSubsets[iSubset];
@@ -1544,7 +1542,7 @@ S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 
 
 
-		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, transformMtx);
+		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, renderDesc.transform);
 
 
 		Draw(subset.drawCallDesc);

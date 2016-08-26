@@ -159,12 +159,10 @@ S_API SRenderDesc* CSkyBox::GetRenderDesc()
 
 S_API void CSkyBox::Update()
 {
-	// set / update transformation
-	STransformationDesc& transformDesc = m_RenderDesc.transform;
+	STransformationDesc transformDesc;
 	transformDesc.translation = SMatrix::MakeTranslationMatrix(m_Position);
-
-	SMatrixIdentity(transformDesc.rotation);
-	SMatrixIdentity(transformDesc.scale);	
+	
+	m_RenderDesc.transform = transformDesc.BuildTRS();
 }
 
 SP_NMSPACE_END

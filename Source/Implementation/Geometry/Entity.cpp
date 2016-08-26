@@ -20,10 +20,13 @@
 
 SP_NMSPACE_BEG
 
-S_API CEntity::CEntity(IEntitySystem* pEntitySystem)
-	: m_pEntitySystem(pEntitySystem),
-	m_bTransformInvalid(true)
+S_API CEntity::CEntity()
+	: m_bTransformInvalid(true)
 {
+	for (int i = 0; i < NUM_COMPONENTS; ++i)
+	{
+		m_pComponents[i] = 0;
+	}
 }
 
 S_API void CEntity::Clear()
@@ -31,6 +34,7 @@ S_API void CEntity::Clear()
 	for (int i = 0; i < NUM_COMPONENTS; ++i)
 	{
 		ReleaseComponent(m_pComponents[i]);
+		m_pComponents[i] = 0;
 	}
 }
 
@@ -59,6 +63,11 @@ S_API void CEntity::SetPos(const Vec3f& pos)
 	OnEntityTransformEvent();
 }
 
+S_API void CEntity::Translate(const Vec3f& translate)
+{
+	SetPos(GetPos() + translate);
+}
+
 S_API const Quat& CEntity::GetRotation() const
 {
 	return m_Rot;
@@ -68,6 +77,11 @@ S_API void CEntity::SetRotation(const Quat& rotation)
 {
 	m_Rot = rotation;
 	OnEntityTransformEvent();
+}
+
+S_API void CEntity::Rotate(const Quat& rotate)
+{
+	SetRotation(GetRotation() * rotate);
 }
 
 S_API const Vec3f& CEntity::GetScale() const
@@ -101,6 +115,7 @@ S_API const SMatrix& CEntity::GetTransform()
 		transform.scale = SMatrix::MakeScaleMatrix(m_Scale);
 		transform.preRotation = SMatrix::MakeTranslationMatrix(-m_Pivot);
 		m_Transform = transform.BuildTRS();
+		m_bTransformInvalid = false;
 	}
 
 	return m_Transform;
@@ -127,9 +142,10 @@ void CEntity::OnEntityEvent(const SEntityEvent& event)
 
 S_API IComponent* CEntity::CreateComponent(EComponentType component)
 {
-	if (!IS_VALID_PTR(m_pEntitySystem))
+	IEntitySystem* pEntitySystem = SpeedPointEnv::GetEngine()->GetEntitySystem();
+	if (!IS_VALID_PTR(pEntitySystem))
 	{
-		CLog::Log(S_ERROR, "Cannot create entity component: m_pEntitySystem invalid!");
+		CLog::Log(S_ERROR, "Cannot create entity component: pEntitySystem invalid!");
 		return 0;
 	}
 
@@ -138,11 +154,13 @@ S_API IComponent* CEntity::CreateComponent(EComponentType component)
 		switch (component)
 		{
 		case eCOMPONENT_RENDERABLE:
-			m_pComponents[component] = m_pEntitySystem->CreateRenderableComponent();
+		{
+			m_pComponents[(int)component] = pEntitySystem->CreateRenderableComponent();
 			break;
+		}
 
 		case eCOMPONENT_PHYSICAL:
-			m_pComponents[component] = m_pEntitySystem->CreatePhysicalComponent();
+			m_pComponents[component] = pEntitySystem->CreatePhysicalComponent();
 			break;
 		}
 
@@ -189,6 +207,8 @@ S_API void CEntity::ReleaseComponent(IComponent* pComponent)
 	if (!IS_VALID_PTR(pComponent))
 		return;
 
+	IEntitySystem* pEntitySystem = SpeedPointEnv::GetEngine()->GetEntitySystem();
+
 	for (int i = 0; i < NUM_COMPONENTS; ++i)
 	{
 		if (m_pComponents[i] == pComponent)
@@ -200,10 +220,10 @@ S_API void CEntity::ReleaseComponent(IComponent* pComponent)
 			switch (i)
 			{
 			case eCOMPONENT_RENDERABLE:
-				m_pEntitySystem->RemoveRenderableComponent((IRenderableComponent*)m_pComponents[i]);
+				pEntitySystem->RemoveRenderableComponent((IRenderableComponent*)m_pComponents[i]);
 				break;
 			case eCOMPONENT_PHYSICAL:
-				m_pEntitySystem->RemovePhysicalComponent((IPhysicalComponent*)m_pComponents[i]);
+				pEntitySystem->RemovePhysicalComponent((IPhysicalComponent*)m_pComponents[i]);
 				break;
 			}
 

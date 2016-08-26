@@ -82,8 +82,7 @@ S_API void Geometry::Clear()
 		m_pRenderer = nullptr;
 	}
 
-	//TODO: Avoid having a pointer of the engine in the renderer!
-	IGameEngine* pEngine = m_pRenderer->GetEngine();
+	IGameEngine* pEngine = SpeedPointEnv::GetEngine();
 	if (IS_VALID_PTR(pEngine))
 	{
 		pEngine->UnregisterShutdownHandler(this);		

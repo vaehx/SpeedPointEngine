@@ -61,7 +61,7 @@ S_API SResult DirectX11IndexBuffer::Initialize(
 						EIBUsage usage,
 						unsigned long nSize,						
 						S_INDEXBUFFER_FORMAT format,
-						void* pInitialData /* = nullptr */)
+						const void* pInitialData /* = nullptr */)
 {
 	if (IsInited())
 		Clear();
@@ -109,7 +109,7 @@ S_API SDirectX11IBCreateFlags DirectX11IndexBuffer::GetCreateFlags()
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, void* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
+S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, const void* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
 {
 	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(nIndices_ > 0, S_INVALIDPARAM);

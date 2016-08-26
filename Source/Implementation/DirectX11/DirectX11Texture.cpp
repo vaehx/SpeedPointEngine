@@ -791,7 +791,7 @@ S_API SResult DirectX11Texture::Fill(SColor color)
 
 	for (unsigned int i = 0; i < nPixels; ++i)
 	{
-		pPixels[i] = GetColorUINT(color);
+		pPixels[i] = color.ToInt_RGBA();
 	}
 
 	return Unlock();

@@ -66,14 +66,14 @@ public:
 	DirectX11IndexBuffer(const DirectX11IndexBuffer& o);
 	~DirectX11IndexBuffer();
 	
-	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, void* pInitialData = nullptr);
+	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, const void* pInitialData = nullptr);
 
-	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, SIndex* pInitialData = nullptr)
+	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, const SIndex* pInitialData = nullptr)
 	{
-		return Initialize(pRenderer, usage, nSize, S_INDEXBUFFER_16, (void*)pInitialData);
+		return Initialize(pRenderer, usage, nSize, S_INDEXBUFFER_16, (const void*)pInitialData);
 	}
 
-	virtual SResult Create(unsigned long nSize, void* pInitialData = nullptr, usint32 nInitialDataCount = 0);	
+	virtual SResult Create(unsigned long nSize, const void* pInitialData = nullptr, usint32 nInitialDataCount = 0);	
 
 	virtual BOOL IsInited(void);	
 	virtual SResult Resize(unsigned long nNewSize);	

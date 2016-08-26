@@ -32,6 +32,9 @@
     <Filter Include="Headers\Renderer\RenderAPI">
       <UniqueIdentifier>{6aa44c19-7572-4916-b242-eb5dda05573f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{b5fd5195-ec58-4ce1-af99-f64358835972}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\Abstract\IOutputPlane.h">
@@ -229,5 +232,16 @@
     <ClInclude Include="..\..\Include\Abstract\IPhysicalObject.h">
       <Filter>Headers\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\CHelper.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SColor.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dummy.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

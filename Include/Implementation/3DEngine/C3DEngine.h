@@ -5,6 +5,9 @@
 #include <Abstract\ChunkedObjectPool.h>
 #include <Abstract\IRenderer.h>
 #include <vector>
+#include <map>
+
+using std::map;
 
 #ifdef _DEBUG
 #include <string>
@@ -22,14 +25,26 @@ private:
 	IGameEngine* m_pEngine;
 
 	IComponentPool<IRenderObject>* m_pRenderObjects;
+	ChunkedObjectPool<SHelperRenderObject> m_HelperPool;
+	map<unsigned int, SRenderDesc> m_HelperPrefabs; // index = (uint)type * 2 + (uint)bOutline
 
 	ISkyBox* m_pSkyBox;
 	
 	STerrainRenderDesc m_TerrainRenderDesc;
 	ITerrain* m_pTerrain;
 
+
+	void ClearHelperPrefabs();
+
 protected:
 	virtual void SetRenderObjectPool(IComponentPool<IRenderObject>* pPool);
+	virtual SHelperRenderObject* GetHelperRenderObject()
+	{
+		return m_HelperPool.Get();
+	}
+
+	virtual SResult _CreateHelperPrefab(unsigned int id, const SHelperGeometryDesc* geometry);
+	virtual bool _HelperPrefabExists(unsigned int id) const;
 
 public:
 	C3DEngine(IRenderer* pRenderer, IGameEngine* pEngine);
@@ -44,6 +59,8 @@ public:
 	ILINE virtual IRenderObject* GetRenderObject();
 	ILINE virtual void ReleaseRenderObject(IRenderObject** pObject);
 	ILINE virtual void ClearRenderObjects();
+
+	ILINE virtual void ClearHelperRenderObjects();
 
 	ILINE virtual ISkyBox* GetSkyBox();
 

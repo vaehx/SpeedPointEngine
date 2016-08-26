@@ -194,9 +194,11 @@ struct S_API IEntity
 
 	ILINE virtual const Vec3f& GetPos() const = 0;
 	ILINE virtual void SetPos(const Vec3f& pos) = 0;
+	ILINE virtual void Translate(const Vec3f& translate) = 0;
 
 	ILINE virtual const Quat& GetRotation() const = 0;
 	ILINE virtual void SetRotation(const Quat& rotation) = 0;
+	ILINE virtual void Rotate(const Quat& rotate) = 0;
 
 	ILINE virtual const Vec3f& GetScale() const = 0;
 	ILINE virtual void SetScale(const Vec3f& scale) = 0;
@@ -256,7 +258,6 @@ struct S_API IEntitySystem
 	virtual void RemoveRenderableComponent(IRenderableComponent* renderable) const = 0;
 	virtual void RemovePhysicalComponent(IPhysicalComponent* physical) const = 0;
 };
-
 
 
 

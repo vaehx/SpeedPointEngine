@@ -133,6 +133,7 @@ struct S_API SMatrix
 };
 
 typedef struct S_API SMatrix SMatrix4;
+typedef struct S_API SMatrix Mat44;
 
 static inline SMatrix operator * (const SMatrix& a, const SMatrix& b)
 {
@@ -454,6 +455,18 @@ inline void EulerAnglesFromRotationMatrix(const SMatrix& matrix, Vec3f* pEulerAn
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// T * R * S = Scale -> Rotate -> Translate
+inline static void MakeTransformationTRS(const Vec3f& translation, const Mat44& rotation, const Vec3f& scale, Mat44* pMat)
+{
+	if (!pMat)
+		return;
+
+	*pMat =
+		Mat44::MakeTranslationMatrix(translation)
+		* rotation
+		* Mat44::MakeScaleMatrix(scale);
+}
 
 
 // Summary:

@@ -298,7 +298,9 @@ S_API void FramePipeline::StopBudgetTimer(unsigned int timerId)
 		return;
 
 	unstagedTimers[timerId].Stop();
-	m_FrameDebugInfo.budgetTimerIndent--;	
+
+	if (m_FrameDebugInfo.budgetTimerIndent > 0)
+		m_FrameDebugInfo.budgetTimerIndent--;
 }
 
 // -------------------------------------------------------------------------------------

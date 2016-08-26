@@ -55,6 +55,23 @@ struct S_API SColor
 	{
 		return float3(r, g, b);
 	}
+
+	// Returns color in 0xAARRGGBB format
+	inline u32 ToInt_ARGB() const
+	{
+		return (char)(a * 255.0f) << 24 |
+			(char)(r * 255.0f) << 16 |
+			(char)(g * 255.0f) << 8 |
+			(char)(b * 255.0f);
+	}
+
+	inline u32 ToInt_RGBA() const
+	{
+		return (char)(r * 255.0f) << 24 |
+			(char)(g * 255.0f) << 16 |
+			(char)(b * 255.0f) << 8 |
+			(char)(a * 255.0f);
+	}
 };
 
 // --------------------------------------------------------------------------
@@ -69,15 +86,21 @@ static inline S_API void SPGetColorFloatArray(float* pFloatArr, const SColor& co
 }
 
 // --------------------------------------------------------------------------
-
-// Converts the given SColor to an unsigned int coded color
-// 0xRRGGBBAA
-static inline S_API unsigned int GetColorUINT(const SColor& color)
+static inline S_API void SPGetColorFloatArray(float* pFloatArr, unsigned int intColorARGB)
 {
-	return (char)(color.r * 255.0f) << 24 |
-		(char)(color.g * 255.0f) << 16 |
-		(char)(color.b * 255.0f) << 8 |
-		(char)(color.a * 255.0f);
+	SP_ASSERT(pFloatArr);
+	pFloatArr[0] = (float)((intColorARGB & 0x00ff0000) << 8) / 255.0f;
+	pFloatArr[1] = (float)((intColorARGB & 0x0000ff00) << 16) / 255.0f;
+	pFloatArr[2] = (float)((intColorARGB & 0x000000ff) << 24) / 255.0f;
+	pFloatArr[3] = (float)((intColorARGB & 0xff000000)) / 255.0f;
+}
+
+static inline S_API void SPGetColorFloat3(float3* pVec, unsigned int intColorARGB)
+{
+	SP_ASSERT(pVec);
+	pVec->x = (float)((intColorARGB & 0x00ff0000) << 8) / 255.0f;
+	pVec->y = (float)((intColorARGB & 0x0000ff00) << 16) / 255.0f;
+	pVec->z = (float)((intColorARGB & 0x000000ff) << 24) / 255.0f;
 }
 
 

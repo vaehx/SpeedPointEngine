@@ -18,7 +18,6 @@ struct S_API IGameEngine;
 class CEntity : public IEntity
 {
 private:
-	IEntitySystem* m_pEntitySystem;
 	IComponent* m_pComponents[NUM_COMPONENTS];
 	string m_Name;
 
@@ -32,9 +31,7 @@ private:
 	void OnEntityTransformEvent();
 
 public:
-	CEntity(IEntitySystem* pEntitySystem);
-	
-
+	CEntity();
 
 	// IEntity:
 
@@ -42,9 +39,11 @@ public:
 
 	ILINE virtual const Vec3f& GetPos() const;
 	ILINE virtual void SetPos(const Vec3f& pos);
+	ILINE virtual void Translate(const Vec3f& translate);
 
 	ILINE virtual const Quat& GetRotation() const;
 	ILINE virtual void SetRotation(const Quat& rotation);
+	ILINE virtual void Rotate(const Quat& rotate);
 
 	ILINE virtual const Vec3f& GetScale() const;
 	ILINE virtual void SetScale(const Vec3f& scale);

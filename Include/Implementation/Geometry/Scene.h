@@ -27,8 +27,6 @@ public:
 
 	virtual SResult Initialize(IGameEngine* pGameEngine);
 
-	virtual ITerrain* CreateTerrain(unsigned int nSegs, unsigned int nChunkSegs, float fSideSz, float baseHeight, float fChunkStepDist, unsigned int nLodLevels, bool center = true);
-
 	virtual IEntity* LoadObjectFromFile(const char* file, const char* objName);
 	
 	virtual SResult CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const;

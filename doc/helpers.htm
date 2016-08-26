@@ -1,0 +1,37 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+
+<h1>Renderer: Helper objects</h1>
+
+In many cases you may want to render helper geometry to debug your algorithms.<br />
+In SpeedPoint, you can do this very easily:
+<pre>
+#include &lt;Abstract\I3DEngine.h&gt;
+...
+CBoxHelper* pBox = p3DEngine->AddHelper&lt;CBoxHelper&gt;(CBoxHelper::Params(vMin, vMax));
+</pre>
+
+<p>
+To delete a helper, use `pBox->Release()`. The helper will be marked as trash and will
+be removed during the garbage collection phase of the renderer.<br />
+<b>DO NOT access the pointer to the helper after releasing it!</b>
+</p>
+
+<p>
+Available helpers are:
+<ul>
+	<li>CDynamicMeshHelper: Allows direct access to the RenderDesc of the helper</li>
+	<li>CPointHelper</li>
+	<li>CLineHelper</li>
+	<li>CBoxHelper</li>
+	<li>CSphereHelper</li>	
+</ul>
+</p>
+
+
+</body>
+</html>

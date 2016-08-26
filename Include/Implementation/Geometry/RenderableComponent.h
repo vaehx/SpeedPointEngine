@@ -49,8 +49,6 @@ public:
 
 	virtual IGeometry* GetGeometry();
 
-	virtual IVertexBuffer* GetVertexBuffer();
-
 	virtual SGeomSubset* GetSubset(unsigned int i);
 	virtual unsigned int GetSubsetCount() const;
 
@@ -65,6 +63,9 @@ public:
 	virtual void SetRenderer(I3DEngine* p3DEngine);
 
 	virtual SRenderDesc* GetRenderDesc();
+	virtual void SetTransform(const SMatrix& transform);
+
+	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj);
 
 	// Called by the Renderer System
 	virtual void Update();
@@ -72,6 +73,8 @@ public:
 	// IRenderableComponent + IRenderObject:
 public:
 	virtual AABB GetAABB();
+	virtual IVertexBuffer* GetVertexBuffer();
+	virtual IIndexBuffer* GetIndexBuffer(unsigned int subset = 0);
 };
 
 SP_NMSPACE_END

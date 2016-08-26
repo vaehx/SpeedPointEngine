@@ -17,7 +17,7 @@ S_API CEntitySystem::CEntitySystem(IGameEngine* pEngine)
 
 S_API IEntity* CEntitySystem::CreateEntity()
 {
-	return new CEntity(this);
+	return new CEntity();
 }
 
 S_API IRenderableComponent* CEntitySystem::CreateRenderableComponent() const

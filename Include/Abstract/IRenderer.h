@@ -217,7 +217,8 @@ struct S_API SRenderDesc
 	SRenderSubset* pSubsets;
 	unsigned int nSubsets;
 
-	STransformationDesc transform;
+	//STransformationDesc transform;
+	SMatrix transform;
 
 	SMatrix viewProjMtx; // custom view-proj-mtx, only used if bCustomViewProjMtx is set to true
 	bool bCustomViewProjMtx; // if false, uses current viewport viewproj

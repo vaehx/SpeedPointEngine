@@ -51,6 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>SP_UNITTEST;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -74,6 +75,7 @@
     <ClInclude Include="..\..\Include\Abstract\Animateable.h" />
     <ClInclude Include="..\..\Include\Abstract\BoundBox.h" />
     <ClInclude Include="..\..\Include\Abstract\Camera.h" />
+    <ClInclude Include="..\..\Include\Abstract\CHelper.h" />
     <ClInclude Include="..\..\Include\Abstract\ChunkedObjectPool.h" />
     <ClInclude Include="..\..\Include\Abstract\ChunkPool.h" />
     <ClInclude Include="..\..\Include\Abstract\CLog.h" />
@@ -134,8 +136,12 @@
     <ClInclude Include="..\..\Include\Abstract\Vector3.h" />
     <ClInclude Include="..\..\Include\Abstract\Vector4.h" />
     <ClInclude Include="..\..\Include\SPrerequisites.h" />
+    <ClInclude Include="..\..\Include\Util\SColor.h" />
     <ClInclude Include="..\..\Include\Util\SResult.h" />
     <ClInclude Include="..\..\Include\Util\SString.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dummy.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

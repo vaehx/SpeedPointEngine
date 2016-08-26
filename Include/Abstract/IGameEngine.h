@@ -137,7 +137,6 @@ namespace SpeedPoint
 		virtual SResult InitializeRenderer(const S_RENDERER_TYPE& type, IRenderer* pRender, bool bManageDealloc = true) = 0;
 		virtual SResult InitializeFontRenderer() = 0;
 		virtual SResult Initialize3DEngine(I3DEngine* p3DEngine, bool bManageDealloc = true) = 0;
-//		virtual SResult InitializePhysics() = 0;
 //		virtual SResult InitializeAI() = 0;
 //		virtual SResult InitializeScriptEngine() = 0;		
 		virtual SResult InitializeLogger(IFileLogHandler* pCustomFileLogHandler = 0) = 0;
@@ -160,7 +159,6 @@ namespace SpeedPoint
 		ILINE virtual IRenderer* GetRenderer() const = 0;	
 		ILINE virtual I3DEngine* Get3DEngine() const = 0;
 		ILINE virtual IFontRenderer* GetFontRenderer() const = 0;
-//		ILINE virtual IPhysics* GetPhysics() const = 0;
 //		ILINE virtual IAI* GetAI() const = 0;
 //		ILINE virtual IScriptEngine* GetScriptEngine() const = 0;
 		ILINE virtual IResourcePool* GetResources() const = 0;
@@ -242,4 +240,23 @@ namespace SpeedPoint
 			return r;
 		}
 	}
+
+
+
+
+	class S_API SpeedPointEnv
+	{
+	private:
+		static IGameEngine* m_pEngine;
+	public:
+		static IGameEngine* GetEngine()
+		{
+			return m_pEngine;
+		}
+
+		static void SetEngine(IGameEngine* pEngine)
+		{
+			m_pEngine = pEngine;
+		}
+	};
 }

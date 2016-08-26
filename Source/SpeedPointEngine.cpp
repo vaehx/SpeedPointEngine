@@ -26,7 +26,8 @@
 SP_NMSPACE_BEG
 
 CLogIntrnl g_LogIntrnl;
-	
+
+IGameEngine* SpeedPointEnv::m_pEngine;
 
 
 S_API void EngineFileLog::Clear()
@@ -143,6 +144,8 @@ S_API SpeedPointEngine::SpeedPointEngine()
 m_bLoggedSkipstages(false),
 m_pApplication(nullptr)
 {
+	SpeedPointEnv::SetEngine(this);
+
 	m_pSettings = new EngineSettings();
 	m_pSettings->Initialize(this);
 }
@@ -151,6 +154,7 @@ m_pApplication(nullptr)
 S_API SpeedPointEngine::~SpeedPointEngine()
 {
 	Shutdown();
+	SpeedPointEnv::SetEngine(0);
 }
 
 // ----------------------------------------------------------------------------------
@@ -192,6 +196,9 @@ S_API void SpeedPointEngine::Shutdown(void)
 
 	m_pEntitySystem.Clear();
 	m_pPhysics.Clear();
+
+	// has to be called before clearing renderer (RenderAPI)
+	m_p3DEngine.Clear();
 
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool	
 	m_pRenderer.Clear();
@@ -301,8 +308,9 @@ S_API void SpeedPointEngine::CheckFinishInit()
 S_API SResult SpeedPointEngine::FinishInitialization()
 {	
 	// Create other components
-	m_pEntitySystem.SetOwn(new CEntitySystem(this));
+	// Physics has to be initialized before entity system, because it is required to setup the component pool
 	m_pPhysics.SetCustom(new CPhysics());
+	m_pEntitySystem.SetOwn(new CEntitySystem(this));	
 
 	// Register the framepipeline sections
 	if (!IS_VALID_PTR(m_pRenderer.pComponent)) return S_ERROR;
@@ -427,9 +435,9 @@ S_API SResult SpeedPointEngine::InitializeScene(IScene* pScene)
 	SP_ASSERTR(IS_VALID_PTR(pScene), S_INVALIDPARAM);
 	m_pScene.SetOwn(pScene);
 	m_pScene->Initialize(this);
+
 	return S_SUCCESS;
 }
-
 
 
 // ----------------------------------------------------------------------------------

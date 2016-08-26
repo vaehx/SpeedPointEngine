@@ -17,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\3DEngine\C3DEngine.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\CHelper.cpp" />
     <ClCompile Include="..\..\Source\Implementation\3DEngine\CSkyBox.cpp" />
     <ClCompile Include="..\..\Source\Implementation\3DEngine\Terrain.cpp" />
   </ItemGroup>

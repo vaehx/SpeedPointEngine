@@ -72,7 +72,19 @@ public:
 
 	// IPhysicalComponent + IPhysObject:
 public:
-	virtual AABB GetAABB();
+	//TODO: Not implemented yet -> Calculate AABB from collision shape
+	virtual AABB GetAABB()
+	{
+
+
+
+		//TODO
+		return AABB();
+
+
+
+
+	}
 };
 
 
