@@ -1133,6 +1133,7 @@ S_API SResult DirectX11Renderer::BeginScene(void)
 
 	// Reset to target viewport camera
 	SetViewProjMatrix(m_pTargetViewport);
+	SetEyePosition(m_pTargetViewport->GetCamera()->position);
 
 	return S_SUCCESS;
 }

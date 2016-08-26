@@ -306,6 +306,8 @@ S_API Terrain::~Terrain()
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainInfo& info)
 {
+	m_pRenderer = pRenderer;
+
 	// Check given sizes		
 	if (!IsPowerOfTwo(info.segments) || (info.segments % info.chunkSegments) > 0)
 		return S_INVALIDPARAM;
