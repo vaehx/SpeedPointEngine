@@ -55,17 +55,27 @@ S_API void CDynamicMeshHelper::SetParams(const Params& params)
 	subset->shaderResources.illumModel = eILLUM_HELPER;
 	
 	SDrawCallDesc* dcd = &subset->drawCallDesc;
+	dcd->primitiveType = params.topology;
+
 	bool lines = (params.topology == PRIMITIVE_TYPE_LINES || params.topology == PRIMITIVE_TYPE_LINESTRIP);
 	if (params.numVertices > 0 && IS_VALID_PTR(params.pVertices) && (!lines || (lines && params.numIndices > 0 && IS_VALID_PTR(params.pIndices))))
 	{
 		pResources->AddVertexBuffer(&dcd->pVertexBuffer);
 		dcd->pVertexBuffer->Initialize(pRenderer, eVBUSAGE_DYNAMIC_RARE, params.pVertices, params.numVertices);
+		dcd->iStartVBIndex = 0;
+		dcd->iEndVBIndex = params.numVertices - 1;
 
-		if (lines)
+		if (!lines)
 		{
 			pResources->AddIndexBuffer(&dcd->pIndexBuffer);
 			dcd->pIndexBuffer->Initialize(pRenderer, eIBUSAGE_STATIC, params.numIndices, params.pIndices);
+			dcd->iStartIBIndex = 0;
+			dcd->iEndIBIndex = params.numIndices - 1;
 		}
+	}
+	else
+	{
+		subset->render = false;
 	}
 }
 

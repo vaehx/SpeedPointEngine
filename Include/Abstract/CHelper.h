@@ -63,6 +63,8 @@ protected:
 	SHelperRenderParams m_RenderParams;
 
 public:
+	string _name;
+
 	virtual ~CHelper() {}
 
 	virtual const Mat44& GetTransform() const
