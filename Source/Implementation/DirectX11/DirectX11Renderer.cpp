@@ -1129,7 +1129,10 @@ S_API SResult DirectX11Renderer::BeginScene(void)
 	if (m_bDumpFrame)
 		m_pEngine->LogD("Beginning rendering of scene... (Begin Frame)");	
 	
-	m_bInScene = true;	
+	m_bInScene = true;
+
+	// Reset to target viewport camera
+	SetViewProjMatrix(m_pTargetViewport);
 
 	return S_SUCCESS;
 }
@@ -1542,7 +1545,7 @@ S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 
 
 
-		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, renderDesc.transform);
+		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, SMatrixTranspose(renderDesc.transform));
 
 
 		Draw(subset.drawCallDesc);
