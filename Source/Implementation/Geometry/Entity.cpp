@@ -21,7 +21,8 @@
 SP_NMSPACE_BEG
 
 S_API CEntity::CEntity()
-	: m_bTransformInvalid(true)
+	: m_bTransformInvalid(true),
+	m_Scale(1.0f)
 {
 	for (int i = 0; i < NUM_COMPONENTS; ++i)
 	{

@@ -73,7 +73,6 @@ S_API SResult RenderPipeline::Run()
 		m_pFramePipeline->RenderDebugInfo();
 
 	m_pEngine->GetRenderer()->EndScene();
-	m_pEngine->Get3DEngine()->ClearRenderObjects();
 
 	return S_SUCCESS;
 }
