@@ -65,6 +65,11 @@ protected:
 public:
 	string _name;
 
+	CHelper()
+		: m_bTrash(false)
+	{
+	}
+
 	virtual ~CHelper() {}
 
 	virtual const Mat44& GetTransform() const
@@ -148,10 +153,15 @@ public:
 
 private:
 	SRenderDesc m_RenderDesc;
+	Vec3f m_Pos;
+	Quat m_Rotation;
+	Vec3f m_Scale;
 
 	void ClearRenderDesc();
+	void RecalcTransform();
 
 public:
+	CDynamicMeshHelper();
 	virtual ~CDynamicMeshHelper();
 
 	virtual SRenderDesc* GetDynamicMesh();

@@ -373,28 +373,31 @@ S_API void C3DEngine::RenderCollected()
 				trash = false;
 
 				SRenderDesc* rd = 0;
-				if (pHelper->pHelper->GetTypeId() == SP_HELPER_DYNAMIC_MESH)
+				const SHelperRenderParams* renderParams = pHelper->pHelper->GetRenderParams();
+
+				if (renderParams->visible)
 				{
-					rd = pHelper->pHelper->GetDynamicMesh();
-				}
-				else
-				{
-					const SHelperRenderParams* renderParams = pHelper->pHelper->GetRenderParams();
-					if (renderParams->visible)
+					if (pHelper->pHelper->GetTypeId() == SP_HELPER_DYNAMIC_MESH)
+					{
+						rd = pHelper->pHelper->GetDynamicMesh();
+					}
+					else
 					{
 						unsigned int prefab = pHelper->pHelper->GetTypeId() * 2 + (unsigned int)renderParams->outline;
-						if (prefab < m_HelperPrefabs.size())
+						auto foundPrefab = m_HelperPrefabs.find(prefab);
+						if (foundPrefab != m_HelperPrefabs.end())
 						{
-							rd = &m_HelperPrefabs[prefab];
-
-							SPGetColorFloat3(&rd->pSubsets[0].shaderResources.diffuse, renderParams->color);
-							rd->bDepthStencilEnable = renderParams->depthTestEnable;
+							rd = &foundPrefab->second;
+							rd->transform = pHelper->pHelper->GetTransform();
 						}
 					}
 				}
 
 				if (IS_VALID_PTR(rd) && rd->nSubsets > 0 && IS_VALID_PTR(rd->pSubsets))
 				{
+					SPGetColorFloat3(&rd->pSubsets[0].shaderResources.diffuse, renderParams->color);
+					rd->bDepthStencilEnable = renderParams->depthTestEnable;
+
 					m_pRenderer->Render(*rd);
 				}
 			}

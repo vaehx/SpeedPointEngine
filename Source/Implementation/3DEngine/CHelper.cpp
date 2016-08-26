@@ -10,6 +10,13 @@ SP_NMSPACE_BEG
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+S_API CDynamicMeshHelper::CDynamicMeshHelper()	
+	: CHelper(),
+	m_Scale(1.0f)
+{
+	RecalcTransform();
+}
+
 S_API CDynamicMeshHelper::~CDynamicMeshHelper()
 {
 	ClearRenderDesc();
@@ -58,7 +65,7 @@ S_API void CDynamicMeshHelper::SetParams(const Params& params)
 	dcd->primitiveType = params.topology;
 
 	bool lines = (params.topology == PRIMITIVE_TYPE_LINES || params.topology == PRIMITIVE_TYPE_LINESTRIP);
-	if (params.numVertices > 0 && IS_VALID_PTR(params.pVertices) && (!lines || (lines && params.numIndices > 0 && IS_VALID_PTR(params.pIndices))))
+	if (params.numVertices > 0 && IS_VALID_PTR(params.pVertices) && (lines || (!lines && params.numIndices > 0 && IS_VALID_PTR(params.pIndices))))
 	{
 		pResources->AddVertexBuffer(&dcd->pVertexBuffer);
 		dcd->pVertexBuffer->Initialize(pRenderer, eVBUSAGE_DYNAMIC_RARE, params.pVertices, params.numVertices);
@@ -97,67 +104,44 @@ S_API void CDynamicMeshHelper::SetTransform(const Mat44& transform)
 	m_RenderDesc.transform = transform;
 }
 
+S_API void CDynamicMeshHelper::RecalcTransform()
+{
+	MakeTransformationTRS(m_Pos, m_Rotation.ToRotationMatrix(), m_Scale, &m_RenderDesc.transform);
+}
 
 S_API void CDynamicMeshHelper::SetPos(const Vec3f& pos)
 {
-	m_RenderDesc.transform._14 = pos.x;
-	m_RenderDesc.transform._24 = pos.y;
-	m_RenderDesc.transform._34 = pos.z;
+	m_Pos = pos;
+	RecalcTransform();
 }
 
 S_API Vec3f CDynamicMeshHelper::GetPos() const
 {
-	return Vec3f(m_RenderDesc.transform._14, m_RenderDesc.transform._24, m_RenderDesc.transform._34);
+	return m_Pos;
 }
 
 
 S_API void CDynamicMeshHelper::SetRotation(const Quat& rot)
 {
-	Vec3f pos = GetPos();
-	Vec3f scale = GetScale();
-	MakeTransformationTRS(pos, rot.ToRotationMatrix(), scale, &m_RenderDesc.transform);
+	m_Rotation = rot;
+	RecalcTransform();
 }
 
 S_API Quat CDynamicMeshHelper::GetRotation() const
 {
-	const Mat44& t = m_RenderDesc.transform;
-	
-	Vec3f invscale = GetScale();
-	invscale = Vec3f(1.0f / invscale.x, 1.0f / invscale.y, 1.0f / invscale.z);
-
-	Mat44 rotMtx(
-		t._11 * invscale.x, t._12 * invscale.y, t._13 * invscale.z, 0,
-		t._21 * invscale.x, t._22 * invscale.y, t._23 * invscale.z, 0,
-		t._31 * invscale.x, t._32 * invscale.y, t._33 * invscale.z, 0,
-		0, 0, 0, 1.0f);
-
-	return Quat::FromRotationMatrix(rotMtx);
+	return m_Rotation;
 }
 
 
 S_API void CDynamicMeshHelper::SetScale(const Vec3f& scale)
 {
-	Mat44& t = m_RenderDesc.transform;
-
-	Vec3f factor = GetScale();
-	factor = Vec3f(scale.x / factor.x, scale.y / factor.y, scale.y / factor.z);
-
-	m_RenderDesc.transform = Mat44(
-		t._11 * factor.x, t._12 * factor.y, t._13 * factor.z, t._14,
-		t._21 * factor.x, t._22 * factor.y, t._23 * factor.z, t._24,
-		t._31 * factor.x, t._32 * factor.y, t._33 * factor.z, t._34,
-		0, 0, 0, 1.0f
-	);
+	m_Scale = scale;
+	RecalcTransform();
 }
 
 S_API Vec3f CDynamicMeshHelper::GetScale() const
 {
-	const Mat44& t = m_RenderDesc.transform;
-	Vec3f scale;
-	scale.x = Vec3f(t._11, t._21, t._31).Length();
-	scale.y = Vec3f(t._12, t._22, t._32).Length();
-	scale.z = Vec3f(t._13, t._23, t._33).Length();
-	return scale;
+	return m_Scale;
 }
 
 
