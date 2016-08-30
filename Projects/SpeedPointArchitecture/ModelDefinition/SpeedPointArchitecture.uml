@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<modelStoreModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm4="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm5="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/LogicalClassDesigner" xmlns:dm9="http://schemas.microsoft.com/VisualStudio/TeamArchitect/ComponentDesigner"
+<modelStoreModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm4="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm5="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/LogicalClassDesigner" xmlns:dm9="http://schemas.microsoft.com/VisualStudio/TeamArchitect/ComponentDesigner"
   dslVersion="1.0.0.0"
   Id="1490c86b-ead9-4795-aaf8-21a50d062d48"
   name="SpeedPointArchitecture" xmlns="http://schemas.microsoft.com/dsltools/ModelStore">
@@ -869,43 +869,6 @@ Use ShaderPassFactory here instead to decouple ShaderPass implementations from R
               </associationHasOwnedEnds>
             </relationshipOwnedElementsInternal>
           </association>
-          <association
-            Id="fdd519a3-a698-465b-8d67-b064af4ec5e0"
-            isDerived="false"
-            sourceEndRoleName=""
-            targetEndRoleName=""
-            isLeaf="false"
-            isAbstract="false">
-            <classMoniker
-              Id="6431e734-0865-4116-adf9-e9c3a65ef71c"
-              LastKnownName="SRenderObject"
-              LastKnownLocation="Package_1940.uml" />
-            <relationshipOwnedElementsInternal>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="e7f9289d-c4af-4250-a641-144a69e2123a"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="Shared"
-                  isComposite="false"
-                  isNavigableOwned="false" />
-              </associationHasOwnedEnds>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="06adcb7e-60bf-4ca3-92ec-e28898f56652"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="None"
-                  isComposite="false" />
-              </associationHasOwnedEnds>
-            </relationshipOwnedElementsInternal>
-          </association>
         </targetEnds>
       </class>
     </packageHasNamedElement>
@@ -983,43 +946,6 @@ Use ShaderPassFactory here instead to decouple ShaderPass implementations from R
               </associationHasOwnedEnds>
             </relationshipOwnedElementsInternal>
           </association>
-          <association
-            Id="56361a5c-2ff7-4627-a51f-24e6a48948ad"
-            isDerived="false"
-            sourceEndRoleName=""
-            targetEndRoleName=""
-            isLeaf="false"
-            isAbstract="false">
-            <interfaceMoniker
-              Id="e3f76543-e7a4-44c2-8ac1-f8abc04843a7"
-              LastKnownName="IVertexBuffer"
-              LastKnownLocation="Package_1940.uml" />
-            <relationshipOwnedElementsInternal>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="53c03367-758a-4b5e-af81-689399609658"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="Shared"
-                  isComposite="false"
-                  isNavigableOwned="false" />
-              </associationHasOwnedEnds>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="8d133f25-0979-45f2-87cc-47ebbb94ab58"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="None"
-                  isComposite="false" />
-              </associationHasOwnedEnds>
-            </relationshipOwnedElementsInternal>
-          </association>
         </targetEnds>
       </class>
     </packageHasNamedElement>
@@ -1080,43 +1006,6 @@ Use ShaderPassFactory here instead to decouple ShaderPass implementations from R
         isLeaf="false"
         isActiveClass="false">
         <targetEnds>
-          <association
-            Id="450f0e57-ecb1-4c4f-89e8-1d6427fc116a"
-            isDerived="false"
-            sourceEndRoleName=""
-            targetEndRoleName=""
-            isLeaf="false"
-            isAbstract="false">
-            <interfaceMoniker
-              Id="306a92f8-c3d2-4cc3-bb18-1d57de45c9a6"
-              LastKnownName="IIndexBuffer"
-              LastKnownLocation="Package_1940.uml" />
-            <relationshipOwnedElementsInternal>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="98d14ccb-3c80-4b24-bf0d-c976161d8525"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="Shared"
-                  isComposite="false"
-                  isNavigableOwned="false" />
-              </associationHasOwnedEnds>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="447c61de-eccd-491b-b160-73c90b567996"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="None"
-                  isComposite="false" />
-              </associationHasOwnedEnds>
-            </relationshipOwnedElementsInternal>
-          </association>
           <association
             Id="30450718-4011-47e2-b9b6-5bdaaf737f2b"
             isDerived="false"
@@ -1271,47 +1160,7 @@ Use ShaderPassFactory here instead to decouple ShaderPass implementations from R
         name="SMaterialLayer"
         isAbstract="false"
         isLeaf="false"
-        isActiveClass="false">
-        <targetEnds>
-          <association
-            Id="28626079-c3c2-4b0c-b589-959f6fb7e305"
-            isDerived="false"
-            sourceEndRoleName=""
-            targetEndRoleName=""
-            isLeaf="false"
-            isAbstract="false">
-            <classMoniker
-              Id="9f8af1a7-e4ba-4fea-88a1-a49d05742475"
-              LastKnownName="SShaderResources"
-              LastKnownLocation="Package_1940.uml" />
-            <relationshipOwnedElementsInternal>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="4f0ea11d-38af-4991-b954-dcae672b4172"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="Composite"
-                  isComposite="false"
-                  isNavigableOwned="false" />
-              </associationHasOwnedEnds>
-              <associationHasOwnedEnds>
-                <memberEnd
-                  Id="4600e4a7-f363-4b5e-9f62-c8d02820eb3a"
-                  isLeaf="false"
-                  isStatic="false"
-                  isReadOnly="false"
-                  isDerived="false"
-                  isDerivedUnion="false"
-                  aggregation="None"
-                  isComposite="true" />
-              </associationHasOwnedEnds>
-            </relationshipOwnedElementsInternal>
-          </association>
-        </targetEnds>
-      </class>
+        isActiveClass="false" />
     </packageHasNamedElement>
     <packageHasNamedElement>
       <undefinedType
@@ -1327,12 +1176,6 @@ Use ShaderPassFactory here instead to decouple ShaderPass implementations from R
       <undefinedType
         Id="9b83281e-b28c-426e-8fa9-369c2a6933c5"
         name="float" />
-    </packageHasNamedElement>
-    <packageHasNamedElement>
-      <packageMoniker
-        Id="d0d34940-9ead-4841-966a-5056f6019903"
-        LastKnownName="Renderer"
-        LastKnownLocation="Package_1940.uml" />
     </packageHasNamedElement>
     <packageHasNamedElement>
       <class
@@ -3262,28 +3105,402 @@ Use ShaderPassFactory here instead to decouple ShaderPass implementations from R
         isLeaf="false" />
     </packageHasNamedElement>
     <packageHasNamedElement>
-      <packageMoniker
-        Id="b4e57ffa-38c8-4afe-8eb0-b68ebcee13d9"
-        LastKnownName="Scene"
-        LastKnownLocation="Package_1211.uml" />
+      <class
+        Id="39babf91-c5ce-47fe-8c7e-f8d8f89a8dbd"
+        name="CEntity"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <targetEnds>
+          <association
+            Id="f57815e8-6854-4ff4-b843-f4052786f76d"
+            isDerived="false"
+            sourceEndRoleName=""
+            targetEndRoleName=""
+            isLeaf="false"
+            isAbstract="false">
+            <interfaceMoniker
+              Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de"
+              LastKnownName="IComponent"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="f641a848-07c4-48f2-83f5-1df956d28340"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="Shared"
+                  isComposite="false"
+                  isNavigableOwned="false" />
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="5466ae1e-7c38-4b4e-ac35-4e0f0d70c52d"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="false">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="3967ec08-dabf-4ee3-837c-5fef5d10e4a3"
+                      name="Lower"
+                      value="*" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="b79fd487-7a70-4a5d-9495-385794e7ab92"
+                      name="Upper"
+                      value="*" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+        </targetEnds>
+      </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
-      <packageMoniker
-        Id="bfde10e2-fc55-4aef-b9a7-953e72ef9b61"
-        LastKnownName="Renderer"
-        LastKnownLocation="Package1_1211.uml" />
+      <Interface
+        Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de"
+        name="IComponent"
+        isAbstract="false"
+        isLeaf="false" />
     </packageHasNamedElement>
     <packageHasNamedElement>
-      <packageMoniker
-        Id="f5b5f477-2e9d-41aa-b2a6-30d63f147a6d"
-        LastKnownName="Core"
-        LastKnownLocation="Package_1219.uml" />
+      <class
+        Id="3e4abdb4-6e18-4993-a89a-fd0a753d7172"
+        name="CRenderMeshComponent"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <suppliersInternal>
+          <interfaceRealization
+            Id="603d79a0-156f-4752-b8cc-087fcabe1760">
+            <interfaceMoniker
+              Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de"
+              LastKnownName="IComponent"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization
+            Id="8345299e-988e-48cd-8435-e9eab84febd7"
+            isSubstitutable="false">
+            <classMoniker
+              Id="47621dae-203c-443c-95a2-6b2060a9c2d9"
+              LastKnownName="CRenderMesh"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
-      <packageMoniker
-        Id="15dcadc7-74df-44ca-bce7-796f7e3f5f2a"
-        LastKnownName="Application"
-        LastKnownLocation="Package_1224.uml" />
+      <class
+        Id="bd291cea-af3f-4976-ba76-ac386b125e02"
+        name="CRenderLightComponent"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <suppliersInternal>
+          <interfaceRealization
+            Id="8461ca34-8d0a-49b6-b5cb-c6766778f606">
+            <interfaceMoniker
+              Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de"
+              LastKnownName="IComponent"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization
+            Id="a902bba0-7402-440c-9910-742e26a0f0e8"
+            isSubstitutable="false">
+            <classMoniker
+              Id="5944bb7d-94b7-4136-b65f-65b74f02ebeb"
+              LastKnownName="CRenderLight"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="b7ba2abb-fb87-48a1-9613-5a637a78fab4"
+        name="CParticleSystemComponent"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <suppliersInternal>
+          <interfaceRealization
+            Id="daaf9758-e060-49b6-890c-9c62f70c9a91">
+            <interfaceMoniker
+              Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de"
+              LastKnownName="IComponent"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization
+            Id="e1b5bc0d-987b-44f7-a931-9925a978b615"
+            isSubstitutable="false">
+            <classMoniker
+              Id="72d06f14-fdef-4243-81a5-5735a6d433ed"
+              LastKnownName="CParticleSystem"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="87b2df28-c460-4aa4-81f1-f63865ce5d1f"
+        name="CRigidBodyComponent"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <suppliersInternal>
+          <interfaceRealization
+            Id="982623b8-1bfb-497d-85bb-e62f76a264de">
+            <interfaceMoniker
+              Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de"
+              LastKnownName="IComponent"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization
+            Id="016a6b3c-be95-4f98-91b6-e832858408c4"
+            isSubstitutable="false">
+            <classMoniker
+              Id="b1229d46-aba6-46db-8dd1-23ad3e7fcb99"
+              LastKnownName="CRigidBody"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="47621dae-203c-443c-95a2-6b2060a9c2d9"
+        name="CRenderMesh"
+        isAbstract="true"
+        isLeaf="false"
+        isActiveClass="false" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="5944bb7d-94b7-4136-b65f-65b74f02ebeb"
+        name="CRenderLight"
+        isAbstract="true"
+        isLeaf="false"
+        isActiveClass="false" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="72d06f14-fdef-4243-81a5-5735a6d433ed"
+        name="CParticleSystem"
+        isAbstract="true"
+        isLeaf="false"
+        isActiveClass="false" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="b1229d46-aba6-46db-8dd1-23ad3e7fcb99"
+        name="CRigidBody"
+        isAbstract="true"
+        isLeaf="false"
+        isActiveClass="false" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="3c579c5b-0070-47c3-9670-691c9ed4ee2d"
+        name="CRenderer"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <targetEnds>
+          <association
+            Id="070977a9-00f2-4c5d-b1e3-b2af431ce617"
+            isDerived="false"
+            sourceEndRoleName=""
+            targetEndRoleName=""
+            isLeaf="false"
+            isAbstract="false">
+            <classMoniker
+              Id="47621dae-203c-443c-95a2-6b2060a9c2d9"
+              LastKnownName="CRenderMesh"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="c739761a-b2b1-4d85-9c4c-01045c352d04"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="Composite"
+                  isComposite="false"
+                  isNavigableOwned="false" />
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="1383cd08-b3ec-4ce7-b5f1-ee84e2ed1722"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="true">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="bc016056-ee68-4031-9221-845169a8e833"
+                      name="Lower"
+                      value="*" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="dd9cb9d3-9721-48ae-8fe8-3de3c3274422"
+                      name="Upper"
+                      value="*" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+          <association
+            Id="6dabe11f-4fc8-44ff-95ca-f89f0cc2742b"
+            isDerived="false"
+            sourceEndRoleName=""
+            targetEndRoleName=""
+            isLeaf="false"
+            isAbstract="false">
+            <classMoniker
+              Id="5944bb7d-94b7-4136-b65f-65b74f02ebeb"
+              LastKnownName="CRenderLight"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="09bdcae2-4c2b-40b1-8ad1-b53bce405f27"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="Composite"
+                  isComposite="false"
+                  isNavigableOwned="false" />
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="0c3b247a-ff1c-41ab-8ed1-6ac7a191e850"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="true">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="678e175d-fbe1-4831-b724-310ef20a8121"
+                      name="Lower"
+                      value="*" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="665015a2-d71b-4bdb-aeb1-4c06f5675f09"
+                      name="Upper"
+                      value="*" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+          <association
+            Id="3aeca28a-b3c9-405f-9e2b-a7de85253377"
+            isDerived="false"
+            sourceEndRoleName=""
+            targetEndRoleName=""
+            isLeaf="false"
+            isAbstract="false">
+            <classMoniker
+              Id="72d06f14-fdef-4243-81a5-5735a6d433ed"
+              LastKnownName="CParticleSystem"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="6fb99275-1449-4546-a9be-7cbe16a54671"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="Composite"
+                  isComposite="false"
+                  isNavigableOwned="false" />
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd
+                  Id="07129c60-70c8-40d4-b318-1eed5fd29758"
+                  isLeaf="false"
+                  isStatic="false"
+                  isReadOnly="false"
+                  isDerived="false"
+                  isDerivedUnion="false"
+                  aggregation="None"
+                  isComposite="true">
+                  <lowerValueInternal>
+                    <literalString
+                      Id="8983b42a-d5bc-4289-a3ee-abfca1a88fbd"
+                      name="Lower"
+                      value="*" />
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString
+                      Id="c98a0b60-be43-4c30-af95-ce16058e8a32"
+                      name="Upper"
+                      value="*" />
+                  </upperValueInternal>
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+          </association>
+        </targetEnds>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <Interface
+        Id="c66603a9-8727-4861-8f84-a84f230e4bdb"
+        name="IRenderMesh"
+        isAbstract="false"
+        isLeaf="false" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="f08d1708-a664-4022-81b5-e2b168aeff48"
+        name="CWeapon"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <suppliersInternal>
+          <interfaceRealization
+            Id="3f52439b-9082-4a71-a757-c6e3fc0692bd">
+            <interfaceMoniker
+              Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de"
+              LastKnownName="IComponent"
+              LastKnownLocation="SpeedPointArchitecture.uml" />
+          </interfaceRealization>
+        </suppliersInternal>
+      </class>
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType

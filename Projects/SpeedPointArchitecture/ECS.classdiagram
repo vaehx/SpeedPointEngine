@@ -1,0 +1,244 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<logicalClassDesignerModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm4="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm5="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/ModelStore" xmlns:dm9="http://schemas.microsoft.com/VisualStudio/TeamArchitect/ComponentDesigner" dslVersion="1.0.0.0" Id="d4d83baa-692a-4af1-8109-3c7e55893468" name="ECS" linkedPackageId="de887313-a9ec-4a81-a174-3f9e30abae4e" xmlns="http://schemas.microsoft.com/dsltools/LogicalClassDesigner">
+  <profileInstances>
+    <packageHasProfileInstances Id="0a75173e-7b5a-4838-89cc-ca8a952c7e9b">
+      <profileInstance Id="5d7bf09e-82fa-4b17-a998-0808524b53a5" name="StandardProfileL2">
+        <elementDefinition Id="e34d544e-0fea-4ed6-ac5e-1b74119ac791" />
+      </profileInstance>
+      <elementDefinition Id="0caec977-1f8c-4ba3-a7db-8cc9ad9cc73b" />
+    </packageHasProfileInstances>
+    <packageHasProfileInstances Id="82e80118-5027-4808-9a29-24eb6eecaf5c">
+      <profileInstance Id="50d75c60-0485-4fc8-802f-9c47637ab014" name="StandardProfileL3">
+        <elementDefinition Id="532ea607-fb19-44b8-8502-3351b05452be" />
+      </profileInstance>
+      <elementDefinition Id="29349502-908c-4fda-9054-c48619c59ed0" />
+    </packageHasProfileInstances>
+  </profileInstances>
+  <packagedElements>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="82dd2ba2-4d7e-44ba-b0fc-317e8f2f704c" name="CEntity" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="39babf91-c5ce-47fe-8c7e-f8d8f89a8dbd" />
+        <targetEnds>
+          <association Id="91882453-4ec7-4724-b3ba-459529879b17" isDerived="false" sourceEndRoleName="" targetEndRoleName="" isLeaf="false" isAbstract="false">
+            <interfaceMoniker Id="f706d81f-6488-4889-9497-c777cc5456f4" LastKnownName="IComponent" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd Id="798129e2-1709-4f0d-8e21-701d42e5cd83" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="Shared" isComposite="false" isNavigableOwned="false">
+                  <elementDefinition Id="f641a848-07c4-48f2-83f5-1df956d28340" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd Id="43f01eac-787e-442d-b314-fad91fe22b36" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+                  <lowerValueInternal>
+                    <literalString Id="fddd568c-6c1a-44a5-95a6-fb48220b34a4" name="Lower" value="*">
+                      <elementDefinition Id="3967ec08-dabf-4ee3-837c-5fef5d10e4a3" />
+                    </literalString>
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString Id="7afec00d-ab61-4968-b0c6-2606bc8725cd" name="Upper" value="*">
+                      <elementDefinition Id="b79fd487-7a70-4a5d-9495-385794e7ab92" />
+                    </literalString>
+                  </upperValueInternal>
+                  <elementDefinition Id="5466ae1e-7c38-4b4e-ac35-4e0f0d70c52d" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+            <elementDefinition Id="f57815e8-6854-4ff4-b843-f4052786f76d" />
+          </association>
+        </targetEnds>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <Interface Id="f706d81f-6488-4889-9497-c777cc5456f4" name="IComponent" isAbstract="false" isLeaf="false">
+        <elementDefinition Id="bde4ebf5-d25c-423c-af55-1fb23a5d15de" />
+      </Interface>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="78c1d826-65e4-4f61-a7aa-0be7c7278ae3" name="CRenderMeshComponent" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="3e4abdb4-6e18-4993-a89a-fd0a753d7172" />
+        <suppliersInternal>
+          <interfaceRealization Id="591ffcf4-03e7-4969-8283-4fb4935ed923">
+            <interfaceMoniker Id="f706d81f-6488-4889-9497-c777cc5456f4" LastKnownName="IComponent" />
+            <elementDefinition Id="603d79a0-156f-4752-b8cc-087fcabe1760" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization Id="0462bc07-3b18-4b58-bee2-ac89e735f1ee" isSubstitutable="false">
+            <classMoniker Id="2aea4bbf-76b1-4f5f-882d-bec29691b4ca" LastKnownName="CRenderMesh" />
+            <elementDefinition Id="8345299e-988e-48cd-8435-e9eab84febd7" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="971d80f2-1a24-4fb3-b7b1-cbe9a82f76a4" name="CRenderLightComponent" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="bd291cea-af3f-4976-ba76-ac386b125e02" />
+        <suppliersInternal>
+          <interfaceRealization Id="fe2f3560-10e7-4d5f-9a7b-882c094501a7">
+            <interfaceMoniker Id="f706d81f-6488-4889-9497-c777cc5456f4" LastKnownName="IComponent" />
+            <elementDefinition Id="8461ca34-8d0a-49b6-b5cb-c6766778f606" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization Id="2e7fd6ab-e841-457d-9b99-ecfa32816d55" isSubstitutable="false">
+            <classMoniker Id="d88eaa20-22b9-41b8-a86a-b8cc9df822e0" LastKnownName="CRenderLight" />
+            <elementDefinition Id="a902bba0-7402-440c-9910-742e26a0f0e8" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="3dfc88a0-817f-4050-92f8-787190e03e86" name="CParticleSystemComponent" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="b7ba2abb-fb87-48a1-9613-5a637a78fab4" />
+        <suppliersInternal>
+          <interfaceRealization Id="ee3b0e6f-94ba-465f-bc89-2c1dbb269371">
+            <interfaceMoniker Id="f706d81f-6488-4889-9497-c777cc5456f4" LastKnownName="IComponent" />
+            <elementDefinition Id="daaf9758-e060-49b6-890c-9c62f70c9a91" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization Id="b876c2af-6d9d-4b77-b91f-2e146a593fe7" isSubstitutable="false">
+            <classMoniker Id="c4f556b5-c4e4-4fc6-b74b-fd5559668afa" LastKnownName="CParticleSystem" />
+            <elementDefinition Id="e1b5bc0d-987b-44f7-a931-9925a978b615" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="33149f73-16f6-4351-ae0c-b9c36eadfa58" name="CRigidBodyComponent" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="87b2df28-c460-4aa4-81f1-f63865ce5d1f" />
+        <suppliersInternal>
+          <interfaceRealization Id="6add3a18-eaf7-4daa-96f2-221f74b1649e">
+            <interfaceMoniker Id="f706d81f-6488-4889-9497-c777cc5456f4" LastKnownName="IComponent" />
+            <elementDefinition Id="982623b8-1bfb-497d-85bb-e62f76a264de" />
+          </interfaceRealization>
+        </suppliersInternal>
+        <generalsInternal>
+          <generalization Id="6d5d50e4-b043-4338-bb3d-bb55502876a5" isSubstitutable="false">
+            <classMoniker Id="0c0dbabb-04d5-4eed-bccf-af1d3fe567fe" LastKnownName="CRigidBody" />
+            <elementDefinition Id="016a6b3c-be95-4f98-91b6-e832858408c4" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="2aea4bbf-76b1-4f5f-882d-bec29691b4ca" name="CRenderMesh" isAbstract="true" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="47621dae-203c-443c-95a2-6b2060a9c2d9" />
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="d88eaa20-22b9-41b8-a86a-b8cc9df822e0" name="CRenderLight" isAbstract="true" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="5944bb7d-94b7-4136-b65f-65b74f02ebeb" />
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="c4f556b5-c4e4-4fc6-b74b-fd5559668afa" name="CParticleSystem" isAbstract="true" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="72d06f14-fdef-4243-81a5-5735a6d433ed" />
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="0c0dbabb-04d5-4eed-bccf-af1d3fe567fe" name="CRigidBody" isAbstract="true" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="b1229d46-aba6-46db-8dd1-23ad3e7fcb99" />
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="5890db4c-5ee5-4513-8ad1-1292a839dadc" name="CRenderer" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="3c579c5b-0070-47c3-9670-691c9ed4ee2d" />
+        <targetEnds>
+          <association Id="a2738e9f-0f94-4069-9baa-d2aaa3240540" isDerived="false" sourceEndRoleName="" targetEndRoleName="" isLeaf="false" isAbstract="false">
+            <classMoniker Id="2aea4bbf-76b1-4f5f-882d-bec29691b4ca" LastKnownName="CRenderMesh" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd Id="118d4b5f-39a7-4fa8-b16f-ea06a789fb76" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="Composite" isComposite="false" isNavigableOwned="false">
+                  <elementDefinition Id="c739761a-b2b1-4d85-9c4c-01045c352d04" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd Id="944e3414-8356-47a5-9e95-2c28396d1bd3" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="true">
+                  <lowerValueInternal>
+                    <literalString Id="2ec1bdfd-6328-477d-bd68-66008205238b" name="Lower" value="*">
+                      <elementDefinition Id="bc016056-ee68-4031-9221-845169a8e833" />
+                    </literalString>
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString Id="8143a329-658b-42f0-8964-b9dd5d9b5e92" name="Upper" value="*">
+                      <elementDefinition Id="dd9cb9d3-9721-48ae-8fe8-3de3c3274422" />
+                    </literalString>
+                  </upperValueInternal>
+                  <elementDefinition Id="1383cd08-b3ec-4ce7-b5f1-ee84e2ed1722" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+            <elementDefinition Id="070977a9-00f2-4c5d-b1e3-b2af431ce617" />
+          </association>
+          <association Id="2dceb54b-7db8-4d77-bdf4-cf814e2d066d" isDerived="false" sourceEndRoleName="" targetEndRoleName="" isLeaf="false" isAbstract="false">
+            <classMoniker Id="d88eaa20-22b9-41b8-a86a-b8cc9df822e0" LastKnownName="CRenderLight" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd Id="0be38150-124e-4231-a2f2-2fc90e1e35f0" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="Composite" isComposite="false" isNavigableOwned="false">
+                  <elementDefinition Id="09bdcae2-4c2b-40b1-8ad1-b53bce405f27" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd Id="ec90f692-0d63-4dc8-b995-bf3e6e01d2af" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="true">
+                  <lowerValueInternal>
+                    <literalString Id="da189edd-87d9-4a5c-acc1-c0fea4fa8b27" name="Lower" value="*">
+                      <elementDefinition Id="678e175d-fbe1-4831-b724-310ef20a8121" />
+                    </literalString>
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString Id="7d5db896-4715-4faa-a2c4-ad314a2c0d8a" name="Upper" value="*">
+                      <elementDefinition Id="665015a2-d71b-4bdb-aeb1-4c06f5675f09" />
+                    </literalString>
+                  </upperValueInternal>
+                  <elementDefinition Id="0c3b247a-ff1c-41ab-8ed1-6ac7a191e850" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+            <elementDefinition Id="6dabe11f-4fc8-44ff-95ca-f89f0cc2742b" />
+          </association>
+          <association Id="893d2f65-e1d0-4d81-9a82-316dbe12ef80" isDerived="false" sourceEndRoleName="" targetEndRoleName="" isLeaf="false" isAbstract="false">
+            <classMoniker Id="c4f556b5-c4e4-4fc6-b74b-fd5559668afa" LastKnownName="CParticleSystem" />
+            <relationshipOwnedElementsInternal>
+              <associationHasOwnedEnds>
+                <memberEnd Id="aef7ffd5-9230-48bb-8888-72651c36ccea" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="Composite" isComposite="false" isNavigableOwned="false">
+                  <elementDefinition Id="6fb99275-1449-4546-a9be-7cbe16a54671" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+              <associationHasOwnedEnds>
+                <memberEnd Id="840e87a2-bbcc-4fd1-b7c7-abd1fac8c9d0" isLeaf="false" isStatic="false" isReadOnly="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="true">
+                  <lowerValueInternal>
+                    <literalString Id="9e42f1ce-da84-4b93-a263-f151f103d2e4" name="Lower" value="*">
+                      <elementDefinition Id="8983b42a-d5bc-4289-a3ee-abfca1a88fbd" />
+                    </literalString>
+                  </lowerValueInternal>
+                  <upperValueInternal>
+                    <literalString Id="b87be23a-3aed-4140-b7e1-26f387b7b61b" name="Upper" value="*">
+                      <elementDefinition Id="c98a0b60-be43-4c30-af95-ce16058e8a32" />
+                    </literalString>
+                  </upperValueInternal>
+                  <elementDefinition Id="07129c60-70c8-40d4-b318-1eed5fd29758" />
+                </memberEnd>
+              </associationHasOwnedEnds>
+            </relationshipOwnedElementsInternal>
+            <elementDefinition Id="3aeca28a-b3c9-405f-9e2b-a7de85253377" />
+          </association>
+        </targetEnds>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="b34c1441-d34a-4c6a-ab0e-49e7c653bda0" name="CWeapon" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="f08d1708-a664-4022-81b5-e2b168aeff48" />
+        <suppliersInternal>
+          <interfaceRealization Id="7c0b7f8f-1b58-4c76-a88c-83fbca713452">
+            <interfaceMoniker Id="f706d81f-6488-4889-9497-c777cc5456f4" LastKnownName="IComponent" />
+            <elementDefinition Id="3f52439b-9082-4a71-a757-c6e3fc0692bd" />
+          </interfaceRealization>
+        </suppliersInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+  </packagedElements>
+  <package Id="de887313-a9ec-4a81-a174-3f9e30abae4e" name="SpeedPointArchitecture">
+    <elementDefinition Id="1490c86b-ead9-4795-aaf8-21a50d062d48" />
+  </package>
+</logicalClassDesignerModel>
