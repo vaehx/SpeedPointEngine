@@ -393,7 +393,7 @@ S_API void CBoxHelper::RecalcTransform()
 		rotation.m[i][2] = ndim.z;
 	}
 
-	MakeTransformationTRS(m_Params.center, rotation, Vec3f(scale[0], scale[1], scale[2]), &m_Transform);
+	MakeTransformationTRS(m_Params.center, SMatrixTranspose(rotation), Vec3f(scale[0], scale[1], scale[2]) * 2.0f, &m_Transform);
 }
 
 S_API void CBoxHelper::SetParams(const CBoxHelper::Params& params)
