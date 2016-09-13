@@ -15,7 +15,8 @@ SP_NMSPACE_BEG
 S_API C3DEngine::C3DEngine(IRenderer* pRenderer, IGameEngine* pEngine)
 	: m_pRenderer(pRenderer),
 	m_pEngine(pEngine),
-	m_pRenderObjects(0),
+	m_pMeshes(0),
+	m_pLights(0),
 	m_pSkyBox(0),
 	m_pTerrain(0)
 {
@@ -35,11 +36,16 @@ S_API void C3DEngine::Clear()
 	ClearHelperPrefabs();
 	ClearHelperRenderObjects();
 
-	ClearRenderObjects();
-	if (IS_VALID_PTR(m_pRenderObjects))
-		delete m_pRenderObjects;
+	ClearRenderMeshes();
+	if (IS_VALID_PTR(m_pMeshes))
+		delete m_pMeshes;
+	m_pMeshes = 0;
 
-	m_pRenderObjects = 0;
+	ClearRenderLights();
+	if (IS_VALID_PTR(m_pLights))
+		delete m_pLights;
+	m_pLights = 0;
+
 	m_pRenderer = 0;
 	m_pEngine = 0;	
 
@@ -81,38 +87,81 @@ S_API void C3DEngine::ClearHelperPrefabs()
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API void C3DEngine::SetRenderObjectPool(IComponentPool<IRenderObject>* pPool)
+S_API void C3DEngine::SetRenderMeshPool(IComponentPool<CRenderMesh>* pPool)
 {
 	assert(IS_VALID_PTR(pPool));
-	m_pRenderObjects = pPool;
+
+	if (IS_VALID_PTR(m_pMeshes))
+		delete m_pMeshes;
+
+	m_pMeshes = pPool;
+}
+
+S_API void C3DEngine::ClearRenderMeshes()
+{
+	if (!IS_VALID_PTR(m_pMeshes))
+		return;
+
+	unsigned int iterator;	
+	CRenderMesh* pMesh = m_pMeshes->GetFirst(iterator);
+	while (pMesh)
+	{
+		pMesh->Release();
+		pMesh = m_pMeshes->GetNext(iterator);
+	}
+
+	m_pMeshes->ReleaseAll();
+}
+
+S_API CRenderMesh* C3DEngine::CreateMesh(const SRenderMeshParams& params)
+{
+	if (m_pMeshes)
+	{
+		CRenderMesh* mesh = m_pMeshes->Get();
+		if (Failure(mesh->Init(params)))
+			CLog::Log(S_ERROR, "Failed init RenderMesh");
+
+		return mesh;
+	}
+	else
+		return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API void C3DEngine::ClearRenderObjects()
+S_API void C3DEngine::SetRenderLightPool(IComponentPool<CRenderLight>* pPool)
 {
-	if (!IS_VALID_PTR(m_pRenderObjects))
-		return;
+	assert(IS_VALID_PTR(pPool));
 
-	// Need to deallocate subset arrays of render descs
-	unsigned int iterator;	
-	IRenderObject* pRenderObject = m_pRenderObjects->GetFirst(iterator);
-	while (pRenderObject)
-	{
-		pRenderObject->OnRelease();
+	if (IS_VALID_PTR(m_pLights))
+		delete m_pLights;
 
-		/*if (pRenderObject->deallocateRenderDesc)
-			delete pRenderObject->pRenderDesc;
-
-		pRenderObject->pRenderDesc = 0;
-		pRenderObject->deallocateRenderDesc = false;*/
-
-		pRenderObject = m_pRenderObjects->GetNext(iterator);
-	}
-
-	m_pRenderObjects->ReleaseAll();
+	m_pLights = pPool;
 }
 
+S_API void C3DEngine::ClearRenderLights()
+{
+	if (!IS_VALID_PTR(m_pLights))
+		return;
+
+	unsigned int iterator;
+	CRenderLight* pLight = m_pLights->GetFirst(iterator);
+	while (pLight)
+	{
+		pLight->Release();
+		pLight = m_pLights->GetNext(iterator);
+	}
+
+	m_pLights->ReleaseAll();
+}
+
+S_API CRenderLight* C3DEngine::CreateLight()
+{
+	if (m_pLights)
+		return m_pLights->Get();
+	else
+		return 0;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -142,27 +191,6 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(const SCamera* pCamera)
 
 	m_pEngine->StopBudgetTimer(budgetTimer);
 	return 0;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-S_API IRenderObject* C3DEngine::GetRenderObject()
-{
-	assert(IS_VALID_PTR(m_pRenderObjects));
-	IRenderObject* pRO = m_pRenderObjects->Get();
-	pRO->SetRenderer(this);
-	return pRO;
-}
-
-S_API void C3DEngine::ReleaseRenderObject(IRenderObject** pObject)
-{
-	assert(IS_VALID_PTR(m_pRenderObjects));
-	if (IS_VALID_PTR(*pObject))
-		(*pObject)->OnRelease();
-
-	m_pRenderObjects->Release(pObject);
 }
 
 
@@ -288,20 +316,20 @@ S_API void C3DEngine::RenderCollected()
 	unsigned int budgetTimer = m_pEngine->StartBudgetTimer("C3DEngine::RenderCollected()");
 	{
 
-
-
 		//TODO: Render skybox deferred as well!
 
 		if (IS_VALID_PTR(m_pSkyBox))
 		{
 			unsigned int skyboxTimer = m_pEngine->StartBudgetTimer("C3DEngine::RenderCollected() - Render Skybox");		
+			{
 
-			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-			
-			SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
-			m_pRenderer->Render(*rd);
-			
-			m_pEngine->StopBudgetTimer(skyboxTimer);
+				m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+
+				SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
+				m_pRenderer->Render(*rd);
+
+				m_pEngine->StopBudgetTimer(skyboxTimer);
+			}
 		}
 
 
@@ -315,117 +343,116 @@ S_API void C3DEngine::RenderCollected()
 		}
 
 
-		if (IS_VALID_PTR(m_pRenderObjects))
-		{
+		RenderMeshes();
 
-
-			stringstream objectsTimerName;
-			objectsTimerName << "C3DEngine::RenderCollected() - Render RenderObjects (" << m_pRenderObjects->GetNumObjects() << ")";
-
-			unsigned int renderObjectsTimer = m_pEngine->StartBudgetTimer(objectsTimerName.str().c_str());
-			{
-
-
-
-
-
-
-				//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
-				//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
-				m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-
-
-
-
-				unsigned int itRenderObject;
-				IRenderObject* pRenderObject = m_pRenderObjects->GetFirst(itRenderObject);
-				while (pRenderObject)
-				{
-
-#ifdef _DEBUG		
-					if (m_pRenderer->DumpingThisFrame())
-						CLog::Log(S_DEBUG, "Rendering %s", pRenderObject->_name.c_str());
-#endif
-
-					SRenderDesc* rd = pRenderObject->GetRenderDesc();
-					m_pRenderer->Render(*rd);
-
-					pRenderObject = m_pRenderObjects->GetNext(itRenderObject);
-
-				}
-
-				m_pEngine->StopBudgetTimer(renderObjectsTimer);
-			}
-
-
-		}
-
-
-		// Render Helper objects:
-		unsigned int itHelper;
-		SHelperRenderObject* pHelper = m_HelperPool.GetFirstUsedObject(itHelper);
-		while (pHelper)
-		{
-			bool trash = true;
-			if (IS_VALID_PTR(pHelper->pHelper) && !pHelper->pHelper->IsTrash())
-			{
-				trash = false;
-
-				SRenderDesc* rd = 0;
-				const SHelperRenderParams* renderParams = pHelper->pHelper->GetRenderParams();
-
-				if (renderParams->visible)
-				{
-					if (pHelper->pHelper->GetTypeId() == SP_HELPER_DYNAMIC_MESH)
-					{
-						rd = pHelper->pHelper->GetDynamicMesh();
-					}
-					else
-					{
-						unsigned int prefab = pHelper->pHelper->GetTypeId() * 2 + (unsigned int)renderParams->outline;
-						auto foundPrefab = m_HelperPrefabs.find(prefab);
-						if (foundPrefab != m_HelperPrefabs.end())
-						{
-							rd = &foundPrefab->second;
-							rd->transform = pHelper->pHelper->GetTransform();
-						}
-					}
-				}
-
-				if (IS_VALID_PTR(rd) && rd->nSubsets > 0 && IS_VALID_PTR(rd->pSubsets))
-				{
-					SPGetColorFloat3(&rd->pSubsets[0].shaderResources.diffuse, renderParams->color);
-					rd->bDepthStencilEnable = renderParams->depthTestEnable;
-
-					m_pRenderer->Render(*rd);
-				}
-			}
-
-			if (pHelper->releaseAfterRender || trash)
-			{
-				m_HelperPool.Release(&pHelper);
-			}
-
-			pHelper = m_HelperPool.GetNextUsedObject(itHelper);
-		}
+		RenderHelpers();
 
 
 		//TODO: Implement deferred shading pass
 		/*
-
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
 		foreach (light : lights)
 		{
 			m_pRenderer->Render(light->pRenderDesc);
 		}
-
-		
 		*/
-		
-
 
 		m_pEngine->StopBudgetTimer(budgetTimer);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::RenderMeshes()
+{
+	if (IS_VALID_PTR(m_pMeshes))
+	{
+		stringstream objectsTimerName;
+		objectsTimerName << "C3DEngine::RenderCollected() - Render RenderObjects (" << m_pMeshes->GetNumObjects() << ")";
+
+		unsigned int renderObjectsTimer = m_pEngine->StartBudgetTimer(objectsTimerName.str().c_str());
+		{
+
+
+			//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
+			//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
+			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+
+
+
+
+
+			unsigned int itMesh;
+			CRenderMesh* pMesh = m_pMeshes->GetFirst(itMesh);
+			while (pMesh)
+			{
+
+#ifdef _DEBUG		
+				if (m_pRenderer->DumpingThisFrame())
+					CLog::Log(S_DEBUG, "Rendering %s", pMesh->_name.c_str());
+#endif
+
+				SRenderDesc* rd = pMesh->GetRenderDesc();
+				m_pRenderer->Render(*rd);
+
+				pMesh = m_pMeshes->GetNext(itMesh);
+
+			}
+
+			m_pEngine->StopBudgetTimer(renderObjectsTimer);
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::RenderHelpers()
+{
+	unsigned int itHelper;
+	SHelperRenderObject* pHelper = m_HelperPool.GetFirstUsedObject(itHelper);
+	while (pHelper)
+	{
+		bool trash = true;
+		if (IS_VALID_PTR(pHelper->pHelper) && !pHelper->pHelper->IsTrash())
+		{
+			trash = false;
+
+			SRenderDesc* rd = 0;
+			const SHelperRenderParams* renderParams = pHelper->pHelper->GetRenderParams();
+
+			if (renderParams->visible)
+			{
+				if (pHelper->pHelper->GetTypeId() == SP_HELPER_DYNAMIC_MESH)
+				{
+					rd = pHelper->pHelper->GetDynamicMesh();
+				}
+				else
+				{
+					unsigned int prefab = pHelper->pHelper->GetTypeId() * 2 + (unsigned int)renderParams->outline;
+					auto foundPrefab = m_HelperPrefabs.find(prefab);
+					if (foundPrefab != m_HelperPrefabs.end())
+					{
+						rd = &foundPrefab->second;
+						rd->transform = pHelper->pHelper->GetTransform();
+					}
+				}
+			}
+
+			if (IS_VALID_PTR(rd) && rd->nSubsets > 0 && IS_VALID_PTR(rd->pSubsets))
+			{
+				SPGetColorFloat3(&rd->pSubsets[0].shaderResources.diffuse, renderParams->color);
+				rd->bDepthStencilEnable = renderParams->depthTestEnable;
+
+				m_pRenderer->Render(*rd);
+			}
+		}
+
+		if (pHelper->releaseAfterRender || trash)
+		{
+			m_HelperPool.Release(&pHelper);
+		}
+
+		pHelper = m_HelperPool.GetNextUsedObject(itHelper);
 	}
 }
 

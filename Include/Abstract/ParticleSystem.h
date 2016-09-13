@@ -9,14 +9,10 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
+#include "IRenderObject.h"
 
-namespace SpeedPoint
-{
-	// SpeedPoint Particle System (abstract)
-	class S_API IParticleSystem
-	{
-	public:
-		//// TODO
-	};
-}
+SP_NMSPACE_BEG
+
+
+
+SP_NMSPACE_END

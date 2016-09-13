@@ -36,19 +36,7 @@ struct S_API IEntity;
 struct S_API IMaterial;
 struct S_API SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
-struct S_API SLightDesc;
-struct S_API SRenderDesc;
-struct S_API IGeometry;
-struct S_API IVertexBuffer;
-struct S_API IIndexBuffer;
-struct S_API SGeomSubset;
-struct S_API SCamera;
 struct S_API IGameEngine;
-struct S_API ITexture;
-
-struct S_API IRenderableComponent;
-struct S_API IPhysicalComponent;
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -117,68 +105,48 @@ public:
 	}
 };
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum S_API EEntityEvent
-{
-	// The transformation of the entity is invalidated
-	eENTITY_EVENT_TRANSFORM
-};
 
-struct S_API SEntityEvent
+struct S_API IComponent
 {
-	EEntityEvent type;
-	union
-	{
-		struct
-		{
-			Vec3f pos, scale, pivot;
-			Quat rot;
-		} transform;
-	};
+protected:
+	IEntity* m_pEntity;
 
-	SEntityEvent()
+public:
+	IComponent() : m_pEntity(0) {}
+	IComponent(IEntity* pEntity) : m_pEntity(pEntity) { }
+
+	virtual ~IComponent()
 	{
+		m_pEntity = 0;
 	}
-};
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-enum EComponentType
-{
-	eCOMPONENT_RENDERABLE = 0,
-	eCOMPONENT_PHYSICAL,
-	//eCOMPONENT_ANIMATION,
-	//eCOMPONENT_SCRIPT
-
-	NUM_COMPONENTS
-};
-
-struct IComponent
-{
-	ILINE virtual EComponentType GetType() const = 0;
-	ILINE virtual void SetEntity(IEntity* entity) = 0;
-	ILINE virtual IEntity* GetEntity() const = 0;
-	ILINE virtual void OnEntityEvent(const SEntityEvent& event) {}
-};
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct S_API IAnimateableComponent
-{
-	virtual ~IAnimateableComponent()
+	// We need this, because we need a standard constructor to be able
+	// to construct the components in the subsystems
+	ILINE virtual void SetEntity(IEntity* pEntity)
 	{
+		m_pEntity = pEntity;
 	}
+
+	ILINE virtual IEntity* GetEntity() const
+	{
+		return m_pEntity;
+	}
+
+	ILINE virtual void Release() = 0;
+	ILINE virtual bool IsTrash() const = 0;
+
+	
+	// Events:
+
+	// We let the entity call this event itself, instead of having a Transformable component that
+	// other components can register their event handlers to
+	ILINE virtual void OnEntityTransformed() {};
 };
 
-struct S_API IScriptComponent
-{
-	virtual ~IScriptComponent()
-	{
-	}
-};
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +155,6 @@ struct S_API IScriptComponent
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-// A complex object - composed of components
 struct S_API IEntity
 {
 	virtual ~IEntity() {}
@@ -214,21 +181,63 @@ struct S_API IEntity
 	ILINE virtual AABB GetAABB() = 0;
 	ILINE virtual AABB GetWorldAABB() = 0;
 
-	ILINE virtual IComponent* CreateComponent(EComponentType type) = 0;
+	// If the component is already added to the entity, will not add again
+	// Will not add if the given component cannot be cast to an IComponent ptr
+	template<typename ComponentImpl>
+	ILINE void AddComponent(ComponentImpl* pComponentImpl)
+	{
+		IComponent* pComponent = dynamic_cast<IComponent*>(pComponentImpl);
+		if (pComponent)
+			AddComponentIntrl(pComponent, false);
+	}
+
+	// Adds and manages ownership of a new component of the given type
+	// Returns 0 if the given component type cannot be cast to an IComponent ptr.
+	template<typename ComponentImpl>
+	ILINE ComponentImpl* CreateComponent()
+	{
+		ComponentImpl* pComponentImpl = new ComponentImpl();
+		IComponent* pComponent = dynamic_cast<IComponent*>(pComponentImpl);
+		if (pComponent)
+		{
+			AddComponentIntrl(pComponent, true);
+			return pComponentImpl;
+		}
+		else
+		{
+			delete pComponentImpl;
+			return 0;
+		}
+	}
+
+	ILINE virtual bool HasComponent(IComponent* pComponent) const = 0;
 	
-	ILINE virtual IRenderableComponent* CreateRenderable() = 0;
-	ILINE virtual IPhysicalComponent* CreatePhysical() = 0;
-
-	// Returns NULL if the component was not created
-	ILINE virtual IComponent* GetComponent(EComponentType type) const = 0;
-	ILINE virtual IRenderableComponent* GetRenderable() const = 0;
-	ILINE virtual IPhysicalComponent* GetPhysical() const = 0;
-
-	ILINE virtual void SetComponent(EComponentType type, IComponent* pComponent) = 0;
-
+	// Warning: If this is a managed component, it will be destructed
+	// by this call and the pointer will be INVALID !
 	ILINE virtual void ReleaseComponent(IComponent* pComponent) = 0;
 
+	ILINE virtual unsigned int GetNumComponents() const = 0;
+	ILINE virtual IComponent* GetComponentByIndex(unsigned int index) const = 0;
+
+	template<typename T>
+	ILINE T* GetComponent() const
+	{
+		//TODO: This approach might be slow. Check that.
+		unsigned int numComponents = GetNumComponents();
+		for (unsigned int i = 0; i < numComponents; ++i)
+		{
+			T* pCom = dynamic_cast<T*>(GetComponentByIndex(i));
+			if (pCom)
+				return pCom;
+		}
+
+		return 0;
+	}
+
 	ILINE virtual void Clear() = 0;
+
+protected:
+	ILINE virtual void AddComponentIntrl(IComponent* pComponent, bool managed = false) = 0;
 };
 
 typedef S_API struct IEntity IObject;
@@ -242,38 +251,6 @@ struct S_API IReferenceObject : public IEntity
 	virtual IObject* GetBase() = 0;
 	virtual SResult SetBase(IObject* base) = 0;
 };
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct S_API IEntitySystem
-{
-	virtual ~IEntitySystem() {}
-
-	virtual IEntity* CreateEntity() = 0;
-	virtual IRenderableComponent* CreateRenderableComponent() const = 0;
-	virtual IPhysicalComponent* CreatePhysicalComponent() const = 0;
-
-	virtual void RemoveRenderableComponent(IRenderableComponent* renderable) const = 0;
-	virtual void RemovePhysicalComponent(IPhysicalComponent* physical) const = 0;
-};
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// A light
-struct S_API ILight : public STransformable
-{
-public:
-	virtual ~ILight() {}
-
-	virtual void GetLightDesc(SLightDesc* pDestDesc) const = 0;
-};
-
-
-
 
 
 SP_NMSPACE_END

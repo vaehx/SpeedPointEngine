@@ -19,5 +19,8 @@
     <ClCompile Include="..\..\Source\Physics\CPhysics.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Physics\PhysObject.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

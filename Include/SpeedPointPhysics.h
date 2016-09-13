@@ -9,4 +9,4 @@
 
 #pragma once
 
-#include <Abstract\IPhysicalObject.h>
+#include <Abstract\IPhysics.h>

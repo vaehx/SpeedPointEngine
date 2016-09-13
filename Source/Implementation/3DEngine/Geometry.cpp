@@ -1,18 +1,18 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the SpeedPointEngine
-// Copyright (c) 2011-2014, iSmokiieZz
+// Copyright (c) 2011-2016, Pascal Rosenkranz
 // ------------------------------------------------------------------------------
 // Filename:	Geometry.cpp
-// Created:	8/18/2014 by iSmokiieZz
+// Created:		8/18/2014 by Pascal Rosenkranz
 // Description:
 // -------------------------------------------------------------------------------
 // History:
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\Geometry\Geometry.h>
-#include <Implementation\Geometry\Material.h>
+#include <Implementation\3DEngine\Geometry.h>
+#include <Implementation\3DEngine\Material.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IVertexBuffer.h>
@@ -47,7 +47,7 @@ EIBUsage ParseIBUsage(EGeomUsage geomUsage)
 
 
 // ----------------------------------------------------------------------------------------
-S_API Geometry::Geometry()
+S_API CGeometry::CGeometry()
 : m_pRenderer(0),
 m_pVertexBuffer(0),
 m_pSubsets(0),
@@ -57,13 +57,13 @@ m_nSubsets(0)
 }
 
 // ----------------------------------------------------------------------------------------
-S_API Geometry::~Geometry()
+S_API CGeometry::~CGeometry()
 {
 	Clear();
 }
 
 // ----------------------------------------------------------------------------------------
-S_API void Geometry::Clear()
+S_API void CGeometry::Clear()
 {
 	if (IS_VALID_PTR(m_pRenderer))
 	{
@@ -90,7 +90,7 @@ S_API void Geometry::Clear()
 }
 
 // ----------------------------------------------------------------------------------------
-S_API void Geometry::CalculateInitialNormalsOrTangents(const SInitialGeometryDesc* pInitialGeom)
+S_API void CGeometry::CalculateInitialNormalsOrTangents(const SInitialGeometryDesc* pInitialGeom)
 {
 	SVertex* pVertices = pInitialGeom->pVertices;
 
@@ -181,7 +181,7 @@ S_API void Geometry::CalculateInitialNormalsOrTangents(const SInitialGeometryDes
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SResult Geometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom /* = nullptr */)
+S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom /* = nullptr */)
 {
 	Clear();
 
@@ -305,7 +305,7 @@ S_API SResult Geometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* p
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SResult Geometry::CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength) const
+S_API SResult CGeometry::CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength) const
 {
 	SVertex* pShadowBuffer = 0;
 	if (!IS_VALID_PTR(m_pVertexBuffer) || !IS_VALID_PTR((pShadowBuffer = m_pVertexBuffer->GetShadowBuffer())))
@@ -338,7 +338,7 @@ S_API SResult Geometry::CalculateNormalsGeometry(SInitialGeometryDesc& dsc, floa
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SVertex* Geometry::GetVertex(unsigned long index)
+S_API SVertex* CGeometry::GetVertex(unsigned long index)
 {
 	if (!IS_VALID_PTR(m_pVertexBuffer))
 		return 0;
@@ -351,7 +351,7 @@ S_API SVertex* Geometry::GetVertex(unsigned long index)
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SIndex* Geometry::GetIndex(unsigned long index)
+S_API SIndex* CGeometry::GetIndex(unsigned long index)
 {	
 	for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
 	{
@@ -366,7 +366,7 @@ S_API SIndex* Geometry::GetIndex(unsigned long index)
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SVertex* Geometry::GetVertices()
+S_API SVertex* CGeometry::GetVertices()
 {
 	if (!IS_VALID_PTR(m_pVertexBuffer))
 		return 0;
@@ -375,7 +375,7 @@ S_API SVertex* Geometry::GetVertices()
 }
 
 // ----------------------------------------------------------------------------------------
-S_API unsigned long Geometry::GetVertexCount() const
+S_API unsigned long CGeometry::GetVertexCount() const
 {
 	if (!IS_VALID_PTR(m_pVertexBuffer))
 		return 0;
@@ -384,7 +384,7 @@ S_API unsigned long Geometry::GetVertexCount() const
 }
 
 // ----------------------------------------------------------------------------------------
-S_API unsigned long Geometry::GetIndexCount() const
+S_API unsigned long CGeometry::GetIndexCount() const
 {
 	if (!IS_VALID_PTR(m_pSubsets) || m_nSubsets == 0)
 		return 0;
@@ -406,7 +406,7 @@ S_API unsigned long Geometry::GetIndexCount() const
 
 
 // ----------------------------------------------------------------------------------------
-S_API void Geometry::CalculateBoundBox(AABB& aabb, const SMatrix& transform)
+S_API void CGeometry::CalculateBoundBox(AABB& aabb, const SMatrix& transform)
 {
 	if (!IS_VALID_PTR(m_pVertexBuffer) || m_pVertexBuffer->GetVertexCount() == 0)
 		return;

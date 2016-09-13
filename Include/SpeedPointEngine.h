@@ -146,7 +146,6 @@ private:
 	ISettings*		m_pSettings;		// Main Settings of the Game Engine	
 
 	EngineComponent<IFramePipeline> m_pFramePipeline;
-	EngineComponent<IEntitySystem> m_pEntitySystem;
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 	EngineComponent<IFontRenderer> m_pFontRenderer;
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
@@ -187,6 +186,7 @@ public:
 	virtual SResult InitializeFontRenderer();
 	virtual SResult InitializeResourcePool(IMaterialManager* pMatMgr, bool bManageDealloc = true);
 	virtual SResult InitializeLogger(IFileLogHandler* pCustomLogHandler = 0);
+	virtual SResult InitializePhysics();
 	virtual SResult InitializeScene(IScene* pScene);
 
 
@@ -228,7 +228,6 @@ public:
 
 	ILINE virtual ISettings* GetSettings() const { return m_pSettings; }
 	ILINE virtual IFramePipeline* GetFramePipeline() const { return m_pFramePipeline; }
-	ILINE virtual IEntitySystem* GetEntitySystem() const { return m_pEntitySystem; }
 	ILINE virtual IPhysics* GetPhysics() const { return m_pPhysics; }
 	ILINE virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	ILINE virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
@@ -237,7 +236,7 @@ public:
 	ILINE virtual IFileLog* GetFileLog() { return &m_FileLog; }	
 	ILINE virtual CLogWrapper* GetLog() { return &m_LogWrapper; }	
 	ILINE virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
-	ILINE virtual IScene* GetLoadedScene() const { return m_pScene; }
+	ILINE virtual IScene* GetScene() const { return m_pScene; }
 	ILINE virtual IMaterialManager* GetMaterialManager() const { return m_pMaterialManager; }
 
 //	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }

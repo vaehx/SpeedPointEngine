@@ -35,6 +35,23 @@ SP_NMSPACE_BEG
 
 struct SMesh;
 
+struct SShapeTransformation
+{
+	Quat rotation;
+	Vec3f pivot;
+	Vec3f translation;
+	Vec3f scale;
+
+	SShapeTransformation() : scale(1.0f) {}
+
+	SShapeTransformation(const Vec3f& translation_, const Vec3f& pivot_, const Quat& rotation_, const Vec3f& scale_)
+		: translation(translation_),
+		pivot(pivot_),
+		rotation(rotation_),
+		scale(scale_)
+	{
+	}
+};
 
 
 // hd = OBB half dim, c = OBB Center, p = ray point, v = ray direction
@@ -171,7 +188,6 @@ struct SGeomShape
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //					P o i n t
@@ -186,6 +202,7 @@ typedef S_API Vec3f SPoint;
 //					 R a y
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 struct S_API SRay
 {
@@ -291,6 +308,15 @@ struct S_API SSphere
 	inline operator SGeomShape() const
 	{
 		return SGeomShape(center, 0, 0, radius, 0, 0, eGEOMSHAPE_SPHERE);
+	}
+
+	ILINE SSphere GetTransformed(const SShapeTransformation& transform) const
+	{
+		SSphere sphere;
+		sphere.radius = radius * max(max(transform.scale.x, transform.scale.y), transform.scale.z);
+		sphere.center = transform.rotation * (center - transform.pivot) + transform.pivot;
+		sphere.center += transform.translation;
+		return sphere;
 	}
 };
 
@@ -1024,6 +1050,26 @@ struct SCapsule
 		p1 = (p1 - mid) * factor + mid;
 		p2 = (p2 - mid) * factor + mid;
 		return *this;
+	}
+
+	ILINE SCapsule GetTransformed(const SShapeTransformation& transform) const
+	{
+		SCapsule capsule(*this);
+		
+		// Scale
+		capsule.p1 *= transform.scale;
+		capsule.p2 *= transform.scale;
+		capsule.r *= max(max(transform.scale.x, transform.scale.y), transform.scale.z);
+
+		// Rotate around pivot
+		capsule.p1 = transform.rotation * (capsule.p1 - transform.pivot) + transform.pivot;
+		capsule.p2 = transform.rotation * (capsule.p2 - transform.pivot) + transform.pivot;
+
+		// Translate
+		capsule.p1 += transform.translation;
+		capsule.p2 += transform.translation;
+
+		return capsule;
 	}
 };
 
@@ -2308,13 +2354,19 @@ inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vec
 // ----------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------
-inline bool IntersectShapes(const SGeomShape& shape1, const SGeomShape& shape2, vector<SContactInfo>& contacts, float interpenetrationTolerance = 0.00001f)
+inline bool IntersectShapes(
+	const SGeomShape& shape1,
+	const SShapeTransformation& transform1,
+	const SGeomShape& shape2,
+	const SShapeTransformation& transform2,
+	vector<SContactInfo>& contacts,
+	float interpenetrationTolerance = 0.00001f)
 {
 	// Capsule - Mesh
 	if (shape1.type == eGEOMSHAPE_CAPSULE && shape2.type == eGEOMSHAPE_MESH)
-		return IntersectMeshCapsule(*shape2.pMesh, SCapsule(shape1), contacts, interpenetrationTolerance);
+		return IntersectMeshCapsule(*shape2.pMesh, SCapsule(shape1).GetTransformed(transform1), contacts, interpenetrationTolerance);
 	else if (shape1.type == eGEOMSHAPE_MESH && shape2.type == eGEOMSHAPE_CAPSULE)
-		return IntersectMeshCapsule(*shape1.pMesh, SCapsule(shape2), contacts, interpenetrationTolerance);
+		return IntersectMeshCapsule(*shape1.pMesh, SCapsule(shape2).GetTransformed(transform2), contacts, interpenetrationTolerance);
 
 	// Capsule - Capsule
 

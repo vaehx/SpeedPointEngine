@@ -11,26 +11,32 @@ S_API CPhysics::~CPhysics()
 {
 }
 
-S_API void CPhysics::SetPhysObjectPool(IComponentPool<IPhysObject>* pPool)
+S_API void CPhysics::SetPhysObjectPool(IComponentPool<CPhysObject>* pPool)
 {
 	assert(pPool);
 	m_pObjects = pPool;
 }
 
-S_API IPhysObject* CPhysics::GetPhysObjects()
+S_API CPhysObject* CPhysics::CreatePhysObject(const SPhysObjectParams& params)
 {
 	if (IS_VALID_PTR(m_pObjects))
-		return m_pObjects->Get();
+	{
+		CPhysObject* pPhysObject = m_pObjects->Get();
+		pPhysObject->Init(params);
+		return pPhysObject;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
-S_API void CPhysics::ReleasePhysObject(IPhysObject** pObject)
+S_API void CPhysics::ReleasePhysObject(CPhysObject** pObject)
 {
 	if (IS_VALID_PTR(m_pObjects))
 	{
 		if (IS_VALID_PTR(pObject) && IS_VALID_PTR(*pObject))
-			(*pObject)->OnRelease();
+			(*pObject)->Release();
 
 		m_pObjects->Release(pObject);
 	}
@@ -41,10 +47,10 @@ S_API void CPhysics::ClearPhysObjects()
 	if (IS_VALID_PTR(m_pObjects))
 	{
 		unsigned int i;
-		IPhysObject* pObj = m_pObjects->GetFirst(i);
+		CPhysObject* pObj = m_pObjects->GetFirst(i);
 		while (pObj)
 		{
-			pObj->OnRelease();
+			pObj->Release();
 			pObj = m_pObjects->GetNext(i);
 		}
 

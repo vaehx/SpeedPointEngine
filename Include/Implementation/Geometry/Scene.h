@@ -3,6 +3,9 @@
 
 #include <SPrerequisites.h>
 #include <Abstract\IScene.h>
+#include <vector>
+
+using std::vector;
 
 SP_NMSPACE_BEG
 
@@ -13,7 +16,7 @@ class S_API Scene : public IScene
 {
 private:
 	IGameEngine* m_pEngine;
-	std::vector<SSceneNode>* m_pSceneNodes;
+	vector<IEntity*> m_Entities;
 
 	void CheckSceneNodesArray();
 
@@ -26,19 +29,11 @@ public:
 	}
 
 	virtual SResult Initialize(IGameEngine* pGameEngine);
+	virtual void Clear();
 
 	virtual IEntity* LoadObjectFromFile(const char* file, const char* objName);
-	
-	virtual SResult CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const;
-
-	virtual std::vector<SSceneNode>* GetSceneNodes();
-
-	virtual SResult AddSceneNode(const SSceneNode& node);
-
-	// Add dynamic object / entity
-	virtual SResult AddObject(IObject* pObject);
-
-	virtual void Clear();
+	virtual IEntity* SpawnEntity();
+	virtual void AddObject(IEntity* pEntity);
 };
 
 SP_NMSPACE_END

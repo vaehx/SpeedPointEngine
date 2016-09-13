@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Geometry.h"
-#include <Abstract\IRenderableComponent.h>
+#include <Abstract\RenderMesh.h>
+#include <Abstract\IEntity.h>
 #include <Abstract\I3DEngine.h>
 #include <Abstract\Transformable.h>
 
@@ -10,32 +10,29 @@ SP_NMSPACE_BEG
 struct S_API I3DEngine;
 struct S_API IMaterialManager;
 
-class CRenderableComponent : public IRenderableComponent, public IRenderObject
+class CRenderableComponent : public IComponent, public CRenderMesh
 {
 private:
-	I3DEngine* m_pRenderer;
-	IEntity* m_pEntity;
-	Geometry m_Geometry;
-	SRenderDesc m_RenderDesc;
-	bool m_bVisible;
-
-	AABB m_AABB;
-	bool m_bBoundBoxInvalid;
+	bool m_bTrash;
 
 	void ClearRenderableComponent();
 
 public:
-	// Material Manager required to get default materials
 	CRenderableComponent();
-
 	virtual ~CRenderableComponent();
 
 	// IComponent:
-public:	
-	virtual IEntity* GetEntity() const;
-	virtual void SetEntity(IEntity* entity);
-	ILINE virtual void OnEntityEvent(const SEntityEvent& e);
+public:
+	virtual void OnEntityTransformed();
 
+	// IComponent + CRenderMesh:
+public:
+	ILINE virtual void Release();
+	ILINE virtual bool IsTrash() const;
+
+
+
+	/*
 	// IRenderableComponent:
 public:
 	ILINE virtual void Init(const SInitialGeometryDesc* geomDesc = nullptr, IMaterialManager* pMatMgr = nullptr);
@@ -75,6 +72,7 @@ public:
 	virtual AABB GetAABB();
 	virtual IVertexBuffer* GetVertexBuffer();
 	virtual IIndexBuffer* GetIndexBuffer(unsigned int subset = 0);
+	*/
 };
 
 SP_NMSPACE_END

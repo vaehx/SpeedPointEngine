@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RenderMesh.h"
+#include "RenderLight.h"
 #include "IRenderer.h"
 #include "ITerrain.h"
 #include "CHelper.h"
@@ -9,34 +11,6 @@
 SP_NMSPACE_BEG
 
 struct S_API ISkyBox;
-
-struct S_API IRenderObject
-{
-#ifdef _DEBUG
-	string _name;
-#endif
-
-	virtual void SetRenderer(I3DEngine* p3DEngine) = 0;
-
-	virtual ~IRenderObject() {}
-
-	virtual AABB GetAABB() = 0;
-	
-	virtual SRenderDesc* GetRenderDesc() = 0;
-	virtual void SetTransform(const SMatrix& transform) = 0;
-
-	// viewProj - The custom view-projection matrix to apply when rendering this renderobject.
-	//			  If viewproj == 0, the custom viewproj matrix is unset and the renderer uses the viewproj of the viewport
-	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj) = 0;
-
-	virtual IVertexBuffer* GetVertexBuffer() = 0;
-	virtual IIndexBuffer* GetIndexBuffer(unsigned int subset = 0) = 0;
-
-	// Called by the Renderer System
-	virtual void Update() = 0;
-
-	virtual void OnRelease() = 0;
-};
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,14 +36,15 @@ struct SHelperRenderObject
 	}
 };
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //TODO: Refactor this to the actual "IRenderer"
 struct S_API I3DEngine
 {
 protected:
-	virtual void SetRenderObjectPool(IComponentPool<IRenderObject>* pPool) = 0;
+	virtual void SetRenderMeshPool(IComponentPool<CRenderMesh>* pPool) = 0;
+	virtual void SetRenderLightPool(IComponentPool<CRenderLight>* pPool) = 0;
+
 	virtual SHelperRenderObject* GetHelperRenderObject() = 0;
 	virtual SResult _CreateHelperPrefab(unsigned int id, const SHelperGeometryDesc* geometry) = 0;
 	virtual bool _HelperPrefabExists(unsigned int id) const = 0;
@@ -77,23 +52,17 @@ protected:
 public:
 	virtual ~I3DEngine() {};
 
-	template<class RenderObjImpl>
-	ILINE void CreateRenderObjectPool()
-	{
-		SetRenderObjectPool(new ComponentPool<IRenderObject, RenderObjImpl>());
-	}
-
 	ILINE virtual IRenderer* GetRenderer() const = 0;
 
-	// Summary:
-	//	Finds and returns an empty Render Object
-	ILINE virtual IRenderObject* GetRenderObject() = 0;
+	template<class RenderMeshImpl>
+	ILINE void CreateRenderMeshPool() { SetRenderMeshPool(new ComponentPool<CRenderMesh, RenderMeshImpl>()); }
+	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params) = 0;
+	ILINE virtual void ClearRenderMeshes() = 0;
 
-	// Summary:
-	//	Releases the passed object in the pool and sets the pointer to 0
-	ILINE virtual void ReleaseRenderObject(IRenderObject** pObject) = 0;
-
-	ILINE virtual void ClearRenderObjects() = 0;
+	template<class RenderLightImpl>
+	ILINE void CreateRenderLightPool() { SetRenderLightPool(new ComponentPool<CRenderLight, RenderLightImpl>()); }
+	ILINE virtual CRenderLight* CreateLight() = 0;
+	ILINE virtual void ClearRenderLights() = 0;
 
 
 	// Will not override existing prefabs!

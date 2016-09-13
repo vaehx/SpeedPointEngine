@@ -35,6 +35,9 @@
     <Filter Include="Source">
       <UniqueIdentifier>{b5fd5195-ec58-4ce1-af99-f64358835972}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Renderer\RenderObjects">
+      <UniqueIdentifier>{886bae50-d23f-4f56-b42d-3d0f43325cea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Include\Abstract\IOutputPlane.h">
@@ -136,9 +139,6 @@
     <ClInclude Include="..\..\Include\Abstract\IOcean.h">
       <Filter>Headers\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IMaterial.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\Transformable.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
@@ -163,25 +163,10 @@
     <ClInclude Include="..\..\Include\Abstract\IOctreeNode.h">
       <Filter>Headers\Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ILight.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IEntity.h">
       <Filter>Headers\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IParticle.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IParticleSystem.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IRenderableComponent.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\ITerrain.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ISkyBox.h">
       <Filter>Headers\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IConstantsBuffer.h">
@@ -217,26 +202,41 @@
     <ClInclude Include="..\..\Include\Abstract\IViewport.h">
       <Filter>Headers\Renderer\RenderAPI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IGeometry.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\IGameEngine.h">
       <Filter>Headers\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IPhysicalComponent.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\ComponentPool.h">
       <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IPhysicalObject.h">
-      <Filter>Headers\Physics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Abstract\CHelper.h">
       <Filter>Headers\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Include\Util\SColor.h">
       <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IRenderObject.h">
+      <Filter>Headers\Renderer\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\ISkyBox.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\RenderMesh.h">
+      <Filter>Headers\Renderer\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\RenderLight.h">
+      <Filter>Headers\Renderer\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\ParticleSystem.h">
+      <Filter>Headers\Renderer\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IGeometry.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\IMaterial.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Abstract\PhysObject.h">
+      <Filter>Headers\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

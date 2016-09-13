@@ -8,17 +8,17 @@ SP_NMSPACE_BEG
 class S_API CPhysics : public IPhysics
 {
 private:
-	IComponentPool<IPhysObject>* m_pObjects;
+	IComponentPool<CPhysObject>* m_pObjects;
 
 protected:
-	virtual void SetPhysObjectPool(IComponentPool<IPhysObject>* pPool);
+	virtual void SetPhysObjectPool(IComponentPool<CPhysObject>* pPool);
 
 public:
 	CPhysics();
 	~CPhysics();
 
-	ILINE virtual IPhysObject* GetPhysObjects();
-	ILINE virtual void ReleasePhysObject(IPhysObject** pObject);
+	ILINE virtual CPhysObject* CreatePhysObject(const SPhysObjectParams& params = SPhysObjectParams());
+	ILINE virtual void ReleasePhysObject(CPhysObject** pObject);
 	ILINE virtual void ClearPhysObjects();
 };
 

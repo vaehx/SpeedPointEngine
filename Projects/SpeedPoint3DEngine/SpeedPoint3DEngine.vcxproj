@@ -13,12 +13,17 @@
   <ItemGroup>
     <ClInclude Include="..\..\Include\Implementation\3DEngine\C3DEngine.h" />
     <ClInclude Include="..\..\Include\Implementation\3DEngine\CSkyBox.h" />
+    <ClInclude Include="..\..\Include\Implementation\3DEngine\Geometry.h" />
+    <ClInclude Include="..\..\Include\Implementation\3DEngine\Material.h" />
     <ClInclude Include="..\..\Include\Implementation\3DEngine\Terrain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\3DEngine\C3DEngine.cpp" />
     <ClCompile Include="..\..\Source\Implementation\3DEngine\CHelper.cpp" />
     <ClCompile Include="..\..\Source\Implementation\3DEngine\CSkyBox.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\Geometry.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\Material.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\3DEngine\RenderMesh.cpp" />
     <ClCompile Include="..\..\Source\Implementation\3DEngine\Terrain.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -55,7 +60,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

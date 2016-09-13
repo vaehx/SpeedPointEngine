@@ -17,9 +17,8 @@
 #include <Pipelines\RenderPipeline.h>
 #include <fstream>
 #include <Abstract\IScene.h>
-#include <Implementation\Geometry\Material.h>
+#include <Implementation\3DEngine\Material.h>
 #include <Implementation\3DEngine\C3DEngine.h>
-#include <Implementation\Geometry\EntitySystem.h>
 #include <Physics\CPhysics.h>
 #include <Abstract\SAssert_Impl.h>
 
@@ -194,7 +193,6 @@ S_API void SpeedPointEngine::Shutdown(void)
 
 	m_pMaterialManager.Clear();
 
-	m_pEntitySystem.Clear();
 	m_pPhysics.Clear();
 
 	// has to be called before clearing renderer (RenderAPI)
@@ -306,12 +304,7 @@ S_API void SpeedPointEngine::CheckFinishInit()
 
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::FinishInitialization()
-{	
-	// Create other components
-	// Physics has to be initialized before entity system, because it is required to setup the component pool
-	m_pPhysics.SetCustom(new CPhysics());
-	m_pEntitySystem.SetOwn(new CEntitySystem(this));	
-
+{
 	// Register the framepipeline sections
 	if (!IS_VALID_PTR(m_pRenderer.pComponent)) return S_ERROR;
 	
@@ -426,6 +419,13 @@ S_API SResult SpeedPointEngine::InitializeLogger(IFileLogHandler* pCustomFileLog
 	LogD("Initialized File Logger!");
 
 
+	return S_SUCCESS;
+}
+
+// ----------------------------------------------------------------------------------
+S_API SResult SpeedPointEngine::InitializePhysics()
+{
+	m_pPhysics.SetOwn(new CPhysics());
 	return S_SUCCESS;
 }
 

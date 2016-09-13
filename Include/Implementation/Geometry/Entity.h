@@ -1,12 +1,11 @@
 #pragma once
 
 #include <Abstract\IEntity.h>
-#include "Geometry.h"
+#include <vector>
+
+using std::vector;
 
 SP_NMSPACE_BEG
-
-// GameEngine required to call subsystem component factories
-struct S_API IGameEngine;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -15,10 +14,15 @@ struct S_API IGameEngine;
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
-class CEntity : public IEntity
+class S_API CEntity : public IEntity
 {
 private:
-	IComponent* m_pComponents[NUM_COMPONENTS];
+	vector<IComponent*> m_Components;
+
+	// List of components that will be destructed by the entity
+	// instead of a subsystem.
+	vector<IComponent*> m_ManagedComponents;
+
 	string m_Name;
 
 	Vec3f m_Pos, m_Scale, m_Pivot;
@@ -27,13 +31,13 @@ private:
 	bool m_bTransformInvalid;
 	SMatrix m_Transform;
 
-	void OnEntityEvent(const SEntityEvent& e);
-	void OnEntityTransformEvent();
+	void OnEntityTransformed();
+
+protected:
+	ILINE virtual void AddComponentIntrl(IComponent* pComponent, bool managed = false);
 
 public:
 	CEntity();
-
-	// IEntity:
 
 	ILINE virtual void Clear();
 
@@ -59,56 +63,11 @@ public:
 	ILINE virtual AABB GetAABB();
 	ILINE virtual AABB GetWorldAABB();
 
-	ILINE virtual IComponent* CreateComponent(EComponentType component);
-
-	ILINE virtual IRenderableComponent* CreateRenderable();
-	ILINE virtual IPhysicalComponent* CreatePhysical();
-
-	// Returns NULL if the component was not created
-	ILINE virtual IComponent* GetComponent(EComponentType component) const;
-	ILINE virtual IRenderableComponent* GetRenderable() const;
-	ILINE virtual IPhysicalComponent* GetPhysical() const;
-
-	ILINE virtual void SetComponent(EComponentType type, IComponent* pComponent);
+	ILINE virtual bool HasComponent(IComponent* pComponent) const;
 	ILINE virtual void ReleaseComponent(IComponent* pComponent);
+	ILINE virtual unsigned int GetNumComponents() const;
+	ILINE virtual IComponent* GetComponentByIndex(unsigned int index) const;
 };
-
-
-
-/*class CRigidBody : public IEntity
-{
-private:
-	IGameEngine* m_pEngine;
-	CRigidBodyRenderable m_Renderable;
-	PhysicalComponent m_Physical;
-
-	vector<IReferenceObject*> m_RefObjects;
-
-	// IObject:
-public:
-	virtual ~CRigidBody() { Clear(); }
-
-	ILINE virtual void RecalcBoundBox();
-
-	ILINE virtual IRenderableComponent* GetRenderable() const { return (IRenderableComponent*)&m_Renderable; }
-	ILINE virtual IPhysicalComponent* GetPhysical() const { return (IPhysicalComponent*)&m_Physical; }
-
-public:
-	CRigidBody();
-
-	SResult Init(IGameEngine* pEngine, const char* name = "RigidBody", SInitialGeometryDesc* pInitialGeom = nullptr);
-
-	void SetVisible(bool visible);
-
-	IGeometry* GetGeometry();
-
-	IMaterial* GetSubsetMaterial(unsigned int subset = 0);
-	unsigned int GetSubsetCount() const;
-
-	void Clear();
-
-	IReferenceObject* CreateReferenceObject();
-};*/
 
 
 

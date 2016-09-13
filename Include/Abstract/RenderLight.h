@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the SpeedPointEngine
-// Copyright (c) 2011-2014, iSmokiieZz
+// Copyright (c) 2011-2016, Pascal Rosenkranz
 // ------------------------------------------------------------------------------
 // Filename:	ILight.h
-// Created:	11/18/2014 by iSmokiieZz
+// Created:		11/18/2014 by Pascal Rosenkranz
 // Description:
 // -------------------------------------------------------------------------------
 // History:
@@ -13,30 +13,15 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
+#include "IRenderObject.h"
 #include <Util\SColor.h>
 
 SP_NMSPACE_BEG
 
-/*
-enum ELightType
+class S_API CRenderLight : public IRenderObject
 {
-	ELIGHT_OMNIDIRECTIONAL,
-	ELIGHT_POINT = ELIGHT_OMNIDIRECTIONAL	
+private:
+	SLightDesc m_LightDesc;
 };
-
-struct S_API SLight
-{
-	SColor color;
-	float radius;
-	float innerRadius;
-
-	SLight()
-		: radius(1.0f),
-		innerRadius(0.5f)
-	{
-	}
-};
-*/
 
 SP_NMSPACE_END

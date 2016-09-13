@@ -8,276 +8,43 @@
 SP_NMSPACE_BEG
 
 S_API CRenderableComponent::CRenderableComponent()
-	: m_pRenderer(0),
-	m_pEntity(0),
-	m_bVisible(true),
-	m_bBoundBoxInvalid(true)
+	: IComponent(),
+	m_bTrash(false)
 {
 }
 
 S_API CRenderableComponent::~CRenderableComponent()
 {
-	OnRelease();
+	Clear();
 }
 
-S_API IEntity* CRenderableComponent::GetEntity() const
+S_API void CRenderableComponent::Release()
 {
-	return m_pEntity;
-}
+	Clear();
+	m_bTrash = true;
 
-S_API void CRenderableComponent::SetEntity(IEntity* entity)
-{
-	m_pEntity = entity;
-}
-
-S_API void CRenderableComponent::Init(const SInitialGeometryDesc* geomDesc /*= nullptr*/, IMaterialManager* pMatMgr /*= nullptr*/)
-{
-	assert(IS_VALID_PTR(m_pRenderer));
-	assert(IS_VALID_PTR(m_pEntity));
-
-	I3DEngine* pRenderer = m_pRenderer;
-	IEntity* pEntity = m_pEntity;
-	
-	ClearRenderableComponent();
-
-	m_pRenderer = pRenderer;
-	m_pEntity = pEntity;
-
-#ifdef _DEBUG
-	_name = m_pEntity->GetName();
-#endif
-
-	if (Failure(m_Geometry.Init(m_pRenderer->GetRenderer(), geomDesc)))
+	if (m_pEntity)
 	{
-		CLog::Log(S_ERROR, "Failed init renderable geometry of entity '%s'", m_pEntity->GetName());
-		return;
-	}
-
-	m_bBoundBoxInvalid = true;
-
-	SRenderDesc* rd = GetRenderDesc();
-	rd->renderPipeline = eRENDER_FORWARD;
-	rd->bCustomViewProjMtx = false;
-
-	// copy over subsets
-	rd->nSubsets = GetSubsetCount();
-	rd->pSubsets = new SRenderSubset[rd->nSubsets];
-	for (unsigned int i = 0; i < rd->nSubsets; ++i)
-	{
-		SRenderSubset& renderSubset = rd->pSubsets[i];
-		SGeomSubset* subset = GetSubset(i);
-		if (!IS_VALID_PTR(subset))
-		{
-			renderSubset.render = false;
-			continue;
-		}
-
-		renderSubset.drawCallDesc.primitiveType = m_Geometry.GetPrimitiveType();
-
-		renderSubset.drawCallDesc.pVertexBuffer = GetVertexBuffer();
-		renderSubset.drawCallDesc.pIndexBuffer = subset->pIndexBuffer;
-
-		renderSubset.render = false;
-		if (renderSubset.drawCallDesc.primitiveType == PRIMITIVE_TYPE_LINES)
-		{
-			renderSubset.render = m_bVisible;
-		}
-		else if (IS_VALID_PTR(renderSubset.drawCallDesc.pIndexBuffer))
-		{
-			renderSubset.render = m_bVisible;
-			renderSubset.drawCallDesc.iStartIBIndex = 0;
-			renderSubset.drawCallDesc.iEndIBIndex = renderSubset.drawCallDesc.pIndexBuffer->GetIndexCount() - 1;
-		}
-
-		if (!IS_VALID_PTR(renderSubset.drawCallDesc.pVertexBuffer))
-		{
-			renderSubset.render = false;
-		}
-		else
-		{
-			renderSubset.drawCallDesc.iStartVBIndex = 0;
-			renderSubset.drawCallDesc.iEndVBIndex = renderSubset.drawCallDesc.pVertexBuffer->GetVertexCount() - 1;
-		}
-
-		// Material is copied over. Warning: Avoid modifying the material during rendering.
-		// TODO: To update a material, implement a method to flag a subset material to be updated,
-		// 	 then do it below when updating the transform.
-		if (subset->pMaterial)
-		{
-			renderSubset.shaderResources = subset->pMaterial->GetLayer(0)->resources;
-		}
-		else
-		{
-			if (IS_VALID_PTR(pMatMgr))
-			{
-				IMaterial* pDefMat = pMatMgr->GetDefaultMaterial();
-				renderSubset.shaderResources = pDefMat->GetLayer(0)->resources;
-			}
-		}
-	}
-}
-
-S_API void CRenderableComponent::ClearRenderableComponent()
-{
-	m_Geometry.Clear();
-	m_RenderDesc.Clear();
-
-	m_pRenderer = 0;
-	m_pEntity = 0;
-
-	m_bBoundBoxInvalid = true;
-}
-
-S_API void CRenderableComponent::OnRelease()
-{
-	if (IS_VALID_PTR(m_pEntity))
 		m_pEntity->ReleaseComponent(this);
-
-	// In case entity was null or the entity didn't call ClearComponent()
-	ClearRenderableComponent();
-}
-
-S_API void CRenderableComponent::SetVisible(bool visible)
-{
-	m_bVisible = visible;
-
-	// Update subsets
-	SRenderDesc* rd = GetRenderDesc();
-	for (unsigned int iSubset = 0; iSubset < rd->nSubsets; ++iSubset)
-	{
-		SRenderSubset* pSubset = &rd->pSubsets[iSubset];
-
-		// do not show invalid subsets
-		if (IS_VALID_PTR(pSubset->drawCallDesc.pVertexBuffer) && IS_VALID_PTR(pSubset->drawCallDesc.pIndexBuffer))
-		{
-			pSubset->render = m_bVisible;
-		}
-		else
-		{
-			pSubset->render = false;
-		}
+		m_pEntity = 0;
 	}
 }
 
-S_API IGeometry* CRenderableComponent::GetGeometry()
+S_API bool CRenderableComponent::IsTrash() const
 {
-	return &m_Geometry;
+	return m_bTrash;
 }
 
-S_API IVertexBuffer* CRenderableComponent::GetVertexBuffer()
+// -------------------------------------------------------------------------------------------
+
+S_API void CRenderableComponent::OnEntityTransformed()
 {
-	return m_Geometry.GetVertexBuffer();
-}
-
-S_API IIndexBuffer* CRenderableComponent::GetIndexBuffer(unsigned int subset /*= 0*/)
-{
-	SGeomSubset* pSubset = m_Geometry.GetSubset(subset);
-	if (IS_VALID_PTR(pSubset))
-		return pSubset->pIndexBuffer;
-	else
-		return 0;
-}
-
-S_API SGeomSubset* CRenderableComponent::GetSubset(unsigned int i)
-{
-	return m_Geometry.GetSubset(i);
-}
-
-S_API unsigned int CRenderableComponent::GetSubsetCount() const
-{
-	return m_Geometry.GetSubsetCount();
-}
-
-S_API IMaterial* CRenderableComponent::GetSubsetMaterial(unsigned int subset /*= 0*/)
-{
-	SGeomSubset* pSubset = m_Geometry.GetSubset(subset);
-	if (IS_VALID_PTR(pSubset))
-		return pSubset->pMaterial;
-	else
-		return 0;
-}
-
-S_API void CRenderableComponent::SetViewProjMatrix(const SMatrix& mtx)
-{
-	SRenderDesc* rd = GetRenderDesc();
-	rd->bCustomViewProjMtx = true;
-	rd->viewProjMtx = mtx;
-}
-
-S_API void CRenderableComponent::UnsetViewProjMatrix()
-{
-	SRenderDesc* rd = GetRenderDesc();
-	rd->bCustomViewProjMtx = false;
-}
-
-
-
-
-S_API void CRenderableComponent::SetRenderer(I3DEngine* p3DEngine)
-{
-	m_pRenderer = p3DEngine;
-}
-
-S_API AABB CRenderableComponent::GetAABB()
-{
-	if (m_bBoundBoxInvalid)
-		m_Geometry.CalculateBoundBox(m_AABB, SMatrix());
-
-	return m_AABB;
-}
-
-S_API SRenderDesc* CRenderableComponent::GetRenderDesc()
-{
-	return &m_RenderDesc;
-}
-
-S_API void CRenderableComponent::SetTransform(const SMatrix& transform)
-{
-	m_RenderDesc.transform = transform;
-}
-
-S_API void CRenderableComponent::SetCustomViewProjMatrix(const SMatrix* viewProj)
-{
-	if (IS_VALID_PTR(viewProj))
-	{
-		m_RenderDesc.bCustomViewProjMtx = true;
-		m_RenderDesc.viewProjMtx = *viewProj;
-	}
-	else
-	{
-		m_RenderDesc.bCustomViewProjMtx = false;
-	}
-}
-
-S_API void CRenderableComponent::Update()
-{	
-}
-
-S_API void CRenderableComponent::OnEntityEvent(const SEntityEvent& e)
-{
-	if (!IS_VALID_PTR(m_pEntity))
+	if (!m_pEntity)
 		return;
 
-	switch (e.type)
-	{
-	case eENTITY_EVENT_TRANSFORM:
-	{
-		//TODO: This is not safe for multi-threading. When an entity transform event is triggered while it is rendered, this causes very bad things
-		//TODO:   Solution:
-		//TODO:			#1 Do not allow changing entity transform when rendering. (Is this even possible?)
-		//TODO:			#2 Use a flag 'm_bTransformChanged'. Then copy the actual transformation in RenderableComponent::Update()
-		STransformationDesc transform;
-		transform.translation = SMatrix::MakeTranslationMatrix(e.transform.pos);
-		transform.rotation = e.transform.rot.ToRotationMatrix();
-		transform.scale = SMatrix::MakeScaleMatrix(e.transform.scale);
-		transform.preRotation = SMatrix::MakeTranslationMatrix(-e.transform.pivot);
+	//TODO: Do not update the transform here immediately to support multithreading!
 
-		m_RenderDesc.transform = transform.BuildTRS();
-		break;
-	}
-	}
+	m_RenderDesc.transform = m_pEntity->GetTransform();
 }
-
-
 
 SP_NMSPACE_END

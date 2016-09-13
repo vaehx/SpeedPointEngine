@@ -1,11 +1,15 @@
-
 #include <Abstract\IGeometry.h>
 #include <Implementation\Geometry\Scene.h>
 #include <Implementation\Geometry\Entity.h>
 #include <FileSPM.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IMaterial.h>
-#include <Abstract\IRenderableComponent.h>
+
+#include <Implementation\Geometry\RenderableComponent.h>
+#include <Implementation\Geometry\PhysicalComponent.h>
+
+#include <Abstract\I3DEngine.h>
+#include <Abstract\IPhysics.h>
 
 SP_NMSPACE_BEG
 
@@ -13,73 +17,60 @@ SP_NMSPACE_BEG
 S_API Scene::Scene()	
 	: m_pEngine(0)
 {
-	m_pSceneNodes = new std::vector<SSceneNode>();
 }
 
 // -------------------------------------------------------------------------------------------------
 S_API void Scene::Clear()
 {
-	if (!IS_VALID_PTR(m_pSceneNodes))
-		delete m_pSceneNodes;
+	for (auto itEntity = m_Entities.begin(); itEntity != m_Entities.end(); ++itEntity)
+	{
+		IEntity* pEntity = *itEntity;
+		if (pEntity)
+		{
+			pEntity->Clear();
+			delete pEntity;
+		}
+	}
 
-	m_pSceneNodes = 0;
+	m_Entities.clear();
+
+	m_pEngine = 0;
 }
 
 // -------------------------------------------------------------------------------------------------
 S_API SResult Scene::Initialize(IGameEngine* pGameEngine)
 {
 	SP_ASSERTR(IS_VALID_PTR(pGameEngine), S_INVALIDPARAM);
+	
 	m_pEngine = pGameEngine;
-	return S_SUCCESS;
-}
-
-// -------------------------------------------------------------------------------------------------
-S_API std::vector<SSceneNode>* Scene::GetSceneNodes()
-{
-	return m_pSceneNodes;
-}
-
-// -------------------------------------------------------------------------------------------------
-void Scene::CheckSceneNodesArray()
-{
-	if (!IS_VALID_PTR(m_pSceneNodes))
-	{
-		m_pSceneNodes = new std::vector<SSceneNode>();		
-	}
-}
 
 
-// -------------------------------------------------------------------------------------------------
-S_API SResult Scene::AddSceneNode(const SSceneNode& node)
-{
-	if (!IS_VALID_PTR(node.pObject) && !IS_VALID_PTR(node.pLight) && !IS_VALID_PTR(node.pStatic))
-	{
-		return CLog::Log(S_ERROR, "Cannot AddSceneNode: All pointers of node invalid!");
-	}
+	I3DEngine* p3DEngine = m_pEngine->Get3DEngine();
+	if (p3DEngine)
+		p3DEngine->CreateRenderMeshPool<CRenderableComponent>();
+	else
+		CLog::Log(S_ERROR, "Cannot create render mesh pool: 3DEngine not initialized");
 
-	CheckSceneNodesArray();
 
-	m_pSceneNodes->push_back(node);
+	IPhysics* pPhysics = m_pEngine->GetPhysics();
+	if (pPhysics)
+		m_pEngine->GetPhysics()->CreatePhysObjectPool<CPhysicalComponent>();
+	else
+		CLog::Log(S_ERROR, "Cannot create phys object pool: Physics not initialized");
 
 	return S_SUCCESS;
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API SResult Scene::AddObject(IObject* pObject)
+S_API void Scene::AddObject(IEntity* pEntity)
 {
-	CheckSceneNodesArray();
+	m_Entities.push_back(pEntity);
+}
 
-	if (!IS_VALID_PTR(pObject))
-		return S_INVALIDPARAM;
-
-	SSceneNode node;
-	node.aabb = pObject->GetAABB();
-	node.type = eSCENENODE_ENTITY;
-	node.pObject = pObject;
-
-	m_pSceneNodes->push_back(node);
-
-	return S_SUCCESS;
+// -------------------------------------------------------------------------------------------------
+S_API IEntity* Scene::SpawnEntity()
+{
+	return new CEntity();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -146,11 +137,18 @@ S_API IEntity* Scene::LoadObjectFromFile(const char* filename, const char* objNa
 		vtxOffset += itModel->nVertices;
 	}
 
-	IEntity* pEntity = m_pEngine->GetEntitySystem()->CreateEntity();
+	// Create the entity
+	IEntity* pEntity = SpawnEntity();
 	pEntity->SetName(objName);
 
-	pEntity->CreateRenderable()->Init(&geomDesc, m_pEngine->GetMaterialManager());	
+	SRenderMeshParams meshParams;
+	meshParams.pGeomDesc = &geomDesc;
+#ifdef _DEBUG
+	meshParams._name = objName;
+#endif
+	pEntity->AddComponent(m_pEngine->Get3DEngine()->CreateMesh(meshParams));
 	
+
 	// Cleanup
 	delete[] geomDesc.pVertices;
 
@@ -169,23 +167,6 @@ S_API IEntity* Scene::LoadObjectFromFile(const char* filename, const char* objNa
 	}
 
 	return pEntity;
-}
-
-// -------------------------------------------------------------------------------------------------
-S_API SResult Scene::CreateNormalsGeometry(IRenderableComponent* renderable, SInitialGeometryDesc* pNormalsGeometry) const
-{
-	if (!IS_VALID_PTR(renderable) || !IS_VALID_PTR(pNormalsGeometry))
-		return S_INVALIDPARAM;
-
-	if (!IS_VALID_PTR(m_pEngine))
-		return S_NOTINIT;	
-	
-	if (Failure(renderable->GetGeometry()->CalculateNormalsGeometry(*pNormalsGeometry, 3.0f)))
-	{
-		return EngLog(S_ERROR, m_pEngine, "Failed Calculcate Normals Geometry!");
-	}
-
-	return S_SUCCESS;
 }
 
 SP_NMSPACE_END

@@ -26,7 +26,7 @@ SP_NMSPACE_BEG
 
 // Summary:
 //	This is the raw geometry (without material)
-class S_API Geometry : public IGeometry
+class S_API CGeometry : public IGeometry
 {
 protected:
 	IRenderer* m_pRenderer;
@@ -42,8 +42,8 @@ private:
 	inline static void CalculateInitialNormalsOrTangents(const SInitialGeometryDesc* pInitialGeom);
 
 public:
-	Geometry();
-	virtual ~Geometry();	
+	CGeometry();
+	virtual ~CGeometry();	
 
 	virtual SResult Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom = nullptr);
 

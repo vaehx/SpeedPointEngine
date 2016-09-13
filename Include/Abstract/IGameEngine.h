@@ -144,6 +144,8 @@ namespace SpeedPoint
 		// Inits Renderer specific resource pool and the material manager
 		virtual SResult InitializeResourcePool(IMaterialManager* pMatMgr, bool bManageDealloc = true) = 0;		
 		
+		virtual SResult InitializePhysics() = 0;
+
 		// instance is deleted by engine on shutdown
 		virtual SResult InitializeScene(IScene* pScene) = 0;
 
@@ -154,7 +156,6 @@ namespace SpeedPoint
 
 
 		ILINE virtual IFramePipeline* GetFramePipeline() const = 0;
-		ILINE virtual IEntitySystem* GetEntitySystem() const = 0;
 		ILINE virtual IPhysics* GetPhysics() const = 0;
 		ILINE virtual IRenderer* GetRenderer() const = 0;	
 		ILINE virtual I3DEngine* Get3DEngine() const = 0;
@@ -165,7 +166,7 @@ namespace SpeedPoint
 		ILINE virtual CLogWrapper* GetLog() = 0;
 		ILINE virtual IFileLog* GetFileLog() = 0;
 		ILINE virtual ISettings* GetSettings() const = 0;	
-		ILINE virtual IScene* GetLoadedScene() const = 0;
+		ILINE virtual IScene* GetScene() const = 0;
 		ILINE virtual IMaterialManager* GetMaterialManager() const = 0;
 
 		virtual string GetShaderPath(EShaderFileType shaderFile) const = 0;

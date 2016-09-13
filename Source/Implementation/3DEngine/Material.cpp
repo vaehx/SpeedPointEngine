@@ -11,7 +11,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\Geometry\Material.h>
+#include <Implementation\3DEngine\Material.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IGeometry.h>
 #include <FileSMB.h>

@@ -24,7 +24,9 @@ private:
 	IRenderer* m_pRenderer;	
 	IGameEngine* m_pEngine;
 
-	IComponentPool<IRenderObject>* m_pRenderObjects;
+	IComponentPool<CRenderMesh>* m_pMeshes;
+	IComponentPool<CRenderLight>* m_pLights;
+
 	ChunkedObjectPool<SHelperRenderObject> m_HelperPool;
 	map<unsigned int, SRenderDesc> m_HelperPrefabs; // index = (uint)type * 2 + (uint)bOutline
 
@@ -36,8 +38,13 @@ private:
 
 	void ClearHelperPrefabs();
 
+	void RenderMeshes();
+	void RenderHelpers();
+
 protected:
-	virtual void SetRenderObjectPool(IComponentPool<IRenderObject>* pPool);
+	virtual void SetRenderMeshPool(IComponentPool<CRenderMesh>* pPool);
+	virtual void SetRenderLightPool(IComponentPool<CRenderLight>* pPool);
+	
 	virtual SHelperRenderObject* GetHelperRenderObject()
 	{
 		return m_HelperPool.Get();
@@ -56,9 +63,14 @@ public:
 	}
 	
 	ILINE virtual unsigned int CollectVisibleObjects(const SCamera* pCamera);
-	ILINE virtual IRenderObject* GetRenderObject();
-	ILINE virtual void ReleaseRenderObject(IRenderObject** pObject);
-	ILINE virtual void ClearRenderObjects();
+
+
+	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params);
+	ILINE virtual void ClearRenderMeshes();
+
+	ILINE virtual CRenderLight* CreateLight();
+	ILINE virtual void ClearRenderLights();
+
 
 	ILINE virtual void ClearHelperRenderObjects();
 
