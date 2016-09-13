@@ -745,6 +745,16 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 
 	m_TerrainShader.Clear();
 
+	for (int i = 0; i < NUM_SHADERPASS_TYPES; ++i)
+	{
+		if (m_Passes[i])
+		{
+			m_Passes[i]->Clear();
+			delete m_Passes[i];
+			m_Passes[i] = 0;
+		}
+	}
+
 	m_GBuffer1.Clear();
 	m_GBuffer2.Clear();
 	m_LightAccumulation.Clear();

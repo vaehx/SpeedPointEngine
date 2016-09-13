@@ -323,8 +323,26 @@ S_API void ForwardShaderPass::Clear()
 {
 	m_Constants.Clear();
 
-	delete m_pShader;
-	m_pShader = 0;
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+		m_pShader = 0;
+	}
+
+	if (m_pHelperShader)
+	{
+		m_pHelperShader->Clear();
+		delete m_pHelperShader;
+		m_pHelperShader = 0;
+	}
+
+	if (m_pSkyboxShader)
+	{
+		m_pSkyboxShader->Clear();
+		delete m_pSkyboxShader;
+		m_pSkyboxShader = 0;
+	}
 
 	m_pRenderer = 0;
 }
@@ -439,14 +457,25 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 S_API void GBufferShaderPass::Clear()
 {
 	for (auto itLayer = m_pGBuffer.begin(); itLayer != m_pGBuffer.end(); ++itLayer)
-		delete *itLayer;
-
+	{
+		IFBO* pLayer = *itLayer;
+		if (pLayer)
+		{
+			pLayer->Clear();
+			delete pLayer;
+			*itLayer = 0;
+		}
+	}
 	m_pGBuffer.clear();
 
 	m_Constants.Clear();
 
-	delete m_pShader;
-	m_pShader = 0;
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+		m_pShader = 0;
+	}
 
 	m_pRenderer = 0;
 }
@@ -533,8 +562,12 @@ S_API void ShadingShaderPass::Clear()
 {
 	m_Constants.Clear();
 
-	delete m_pShader;
-	m_pShader = 0;
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+		m_pShader = 0;
+	}
 
 	m_pGBufferPass = 0;
 	m_pShadowmapPass = 0;

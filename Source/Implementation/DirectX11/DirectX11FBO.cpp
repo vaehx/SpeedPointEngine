@@ -196,6 +196,7 @@ S_API void DirectX11FBO::Clear(void)
 
 	SP_SAFE_RELEASE(m_pTexture);	
 	SP_SAFE_RELEASE(m_pDepthStencilBuffer);
+	SP_SAFE_RELEASE(m_pSRV);
 
 	m_pRTV = 0;
 	m_pTexture = 0;
