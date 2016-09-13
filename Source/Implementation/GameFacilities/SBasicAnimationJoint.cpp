@@ -1,6 +1,6 @@
 // SpeedPoint Basic Animation Joint
 
-#include <Implementation\Geometry\AnimationJoint.h>
+#include <Implementation\GameFacilities\AnimationJoint.h>
 
 namespace SpeedPoint
 {

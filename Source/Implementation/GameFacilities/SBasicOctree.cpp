@@ -1,48 +1,47 @@
-// SpeedPoint Basic Octree Node
+// SpeedPoint Octree
 
-#include <Implementation\Geometry\OctreeNode.h>
+#include <Implementation\GameFacilities\Octree.h>
 
 namespace SpeedPoint
 {
 	// **********************************************************************************
-	
-	S_API bool OctreeNode::IsLeaf( void )
+
+	S_API SResult Octree::Initialize( ISolid* pSolid )
 	{
-		return false;
+		return S_ERROR;
 	}
 
 	// **********************************************************************************
-	
-	S_API IOctreeNode* OctreeNode::GetChild( SP_UNIQUE id )
+
+	S_API ISolid* Octree::GetSolid( void )
 	{
 		return NULL;
 	}
 
 	// **********************************************************************************
 
-	S_API int OctreeNode::GetPolygonCount( void )
+	S_API SResult Octree::Compile( int nMaxDepth, int nMinPolys )
+	{
+		return S_ERROR;
+	}
+
+	// **********************************************************************************
+
+	S_API IOctreeNode* Octree::GetRootNode( void )
+	{
+		return NULL;
+	}
+
+	// **********************************************************************************
+
+	S_API int Octree::GetCollidingNodes( const AABB& bb, IOctreeNode** nodes )
 	{
 		return -1;
 	}
 
 	// **********************************************************************************
 
-	S_API AABB OctreeNode::GetBoundBox( void )
-	{
-		return AABB();
-	}
-
-	// **********************************************************************************
-
-	S_API DWORD* OctreeNode::GetTriangles( void )
-	{
-		return NULL;
-	}
-
-	// **********************************************************************************
-
-	S_API void OctreeNode::Clear( void )
+	S_API void Octree::Clear( void )
 	{
 	}
-
 }

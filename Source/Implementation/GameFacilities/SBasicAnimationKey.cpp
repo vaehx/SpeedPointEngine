@@ -1,6 +1,6 @@
 // SpeedPoint Basic Animation Key
 
-#include <Implementation\Geometry\AnimationKey.h>
+#include <Implementation\GameFacilities\AnimationKey.h>
 
 namespace SpeedPoint
 {

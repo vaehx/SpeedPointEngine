@@ -1,4 +1,4 @@
-#include <Implementation\Geometry\PhysicalComponent.h>
+#include <Implementation\GameFacilities\PhysicalComponent.h>
 
 SP_NMSPACE_BEG
 

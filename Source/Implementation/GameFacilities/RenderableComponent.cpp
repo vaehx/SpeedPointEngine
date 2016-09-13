@@ -1,4 +1,4 @@
-#include <Implementation\Geometry\RenderableComponent.h>
+#include <Implementation\GameFacilities\RenderableComponent.h>
 #include <Abstract\I3DEngine.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IMaterial.h>

@@ -11,33 +11,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Entity.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\PhysicalComponent.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableComponent.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationJoint.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationKey.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationSequence.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctree.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Scene.cpp" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationBundle.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationJoint.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationKey.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationSequence.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\Entity.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\Octree.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\OctreeNode.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\PhysicalComponent.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\RenderableComponent.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\Scene.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationBundle.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Entity.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\PhysicalComponent.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableComponent.h" />
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\Entity.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\PhysicalComponent.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\RenderableComponent.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationBundle.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationJoint.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationKey.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationSequence.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicOctree.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicOctreeNode.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\Scene.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FACEAC68-301E-41D3-AA53-EBFDE139F192}</ProjectGuid>
     <RootNamespace>SpeedPointGeometry</RootNamespace>
-    <ProjectName>SpeedPointScene</ProjectName>
+    <ProjectName>SpeedPointGameFacilities</ProjectName>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

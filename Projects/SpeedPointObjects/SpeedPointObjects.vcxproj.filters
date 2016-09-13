@@ -11,67 +11,67 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationJoint.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationKey.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationSequence.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctree.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicOctreeNode.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\SBasicAnimationBundle.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Scene.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\Entity.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\RenderableComponent.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\Geometry\PhysicalComponent.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationBundle.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationJoint.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationKey.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationSequence.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\Entity.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\Octree.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\OctreeNode.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\PhysicalComponent.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\RenderableComponent.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\Scene.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\OctreeNode.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Octree.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationSequence.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationKey.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationJoint.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\AnimationBundle.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Scene.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\Entity.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\RenderableComponent.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\Geometry\PhysicalComponent.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\Entity.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\PhysicalComponent.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\RenderableComponent.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationBundle.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationJoint.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationKey.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationSequence.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicOctree.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicOctreeNode.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\Scene.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 // SpeedPoint Basic Animation Bundle
 
-#include <Implementation\Geometry\AnimationBundle.h>
+#include <Implementation\GameFacilities\AnimationBundle.h>
 
 namespace SpeedPoint
 {

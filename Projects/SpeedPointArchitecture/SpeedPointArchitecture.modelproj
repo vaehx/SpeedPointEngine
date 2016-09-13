@@ -69,12 +69,12 @@
       <DependentUpon>TLA.componentdiagram</DependentUpon>
     </Content>
     <Folder Include="ModelDefinition\" />
-    <Content Include="Scene.classdiagram">
+    <Content Include="GameFacilities.classdiagram">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Scene.classdiagram.layout">
+    <Content Include="GameFacilities.classdiagram.layout">
       <SubType>Content</SubType>
-      <DependentUpon>Scene.classdiagram</DependentUpon>
+      <DependentUpon>GameFacilities.classdiagram</DependentUpon>
     </Content>
     <Content Include="ModelDefinition\SpeedPointArchitecture.uml">
       <SubType>Content</SubType>
