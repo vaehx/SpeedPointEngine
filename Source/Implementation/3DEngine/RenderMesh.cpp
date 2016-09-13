@@ -130,9 +130,14 @@ S_API AABB CRenderMesh::GetAABB()
 	if (m_bBoundBoxInvalid)
 	{
 		if (IS_VALID_PTR(m_pGeometry))
+		{
 			m_pGeometry->CalculateBoundBox(m_AABB, SMatrix());
+			m_bBoundBoxInvalid = false;
+		}
 		else
+		{
 			m_AABB = AABB();
+		}
 	}
 
 	return m_AABB;
