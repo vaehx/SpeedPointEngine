@@ -245,7 +245,7 @@ S_API SResult C3DEngine::_CreateHelperPrefab(unsigned int id, const SHelperGeome
 			if (Failure(pResources->AddIndexBuffer(&dcd->pIndexBuffer)))
 				return CLog::Log(S_ERROR, "Failed create helper prefab: cannot create index buffer");
 
-			if (Failure(dcd->pIndexBuffer->Initialize(m_pRenderer, eIBUSAGE_STATIC, geometry->indices.size(), &geometry->indices[0])))
+			if (Failure(dcd->pIndexBuffer->Initialize(m_pRenderer, eIBUSAGE_STATIC, &geometry->indices[0], geometry->indices.size())))
 				return CLog::Log(S_ERROR, "Failed create helper prefab: cannot fill index buffer");
 
 			dcd->iStartIBIndex = 0;

@@ -548,7 +548,7 @@ g_MaxIdxAccum = lodLvl.nIndices;
 
 		pResources->AddIndexBuffer(&lodLvl.pIB);		
 		lodLvl.nActualIndices = idxAccum;
-		lodLvl.pIB->Initialize(m_pRenderer, eIBUSAGE_STATIC, lodLvl.nActualIndices, S_INDEXBUFFER_32, lodLvl.pIndices);			
+		lodLvl.pIB->Initialize(m_pRenderer, eIBUSAGE_STATIC, S_INDEXBUFFER_32, lodLvl.pIndices, lodLvl.nActualIndices);
 	}
 }
 

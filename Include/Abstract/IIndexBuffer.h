@@ -61,8 +61,8 @@ public:
 	//	Initialize the Index Buffer
 	// Arguments:
 	//	pInitialData - Specifies inital buffer data. If 0, then nSize and format is ignored and the buffers are created as soon as Fill() is called.
-	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, S_INDEXBUFFER_FORMAT format, const void* pInitialData = nullptr) = 0;
-	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, unsigned long nSize, const SIndex* pInitialData = nullptr) = 0;
+	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, S_INDEXBUFFER_FORMAT format, const void* pInitialData = nullptr, unsigned long nInitialIndices = 0) = 0;
+	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, const SIndex* pInitialData = nullptr, unsigned long nInitialIndices = 0) = 0;
 
 	// Create the Hardware Index Buffer
 	virtual SResult Create( unsigned long nIndices_, const void* pInitialData = nullptr, usint32 nInitialDataCount = 0) = 0;

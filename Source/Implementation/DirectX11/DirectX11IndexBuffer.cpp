@@ -58,10 +58,10 @@ S_API BOOL DirectX11IndexBuffer::IsInited(void)
 // --------------------------------------------------------------------------------
 S_API SResult DirectX11IndexBuffer::Initialize(
 						IRenderer* renderer,
-						EIBUsage usage,
-						unsigned long nSize,						
+						EIBUsage usage,						
 						S_INDEXBUFFER_FORMAT format,
-						const void* pInitialData /* = nullptr */)
+						const void* pInitialData /* = nullptr */,
+						unsigned long nSize /* = 0 */)
 {
 	if (IsInited())
 		Clear();

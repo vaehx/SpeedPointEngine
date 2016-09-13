@@ -92,7 +92,7 @@ S_API SResult CSkyBox::InitGeometry(IRenderer* pRenderer, const SShaderResources
 	subset.drawCallDesc.pVertexBuffer->Initialize(pRenderer, eVBUSAGE_STATIC, pVertices, nVertices);	
 
 	resources->AddIndexBuffer(&subset.drawCallDesc.pIndexBuffer);
-	subset.drawCallDesc.pIndexBuffer->Initialize(pRenderer, eIBUSAGE_STATIC, nIndices, pIndices);	
+	subset.drawCallDesc.pIndexBuffer->Initialize(pRenderer, eIBUSAGE_STATIC, pIndices, nIndices);
 
 	subset.drawCallDesc.iStartVBIndex = 0;
 	subset.drawCallDesc.iEndVBIndex = nVertices - 1;

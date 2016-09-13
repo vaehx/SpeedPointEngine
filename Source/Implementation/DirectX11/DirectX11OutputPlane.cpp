@@ -95,7 +95,7 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 	}
 
 	m_pIndexBuffer = new DirectX11IndexBuffer();
-	if (Failure(m_pIndexBuffer->Initialize(renderer, eIBUSAGE_STATIC, 10 * 10 * 6, pIndices)))
+	if (Failure(m_pIndexBuffer->Initialize(renderer, eIBUSAGE_STATIC, pIndices, 10 * 10 * 6)))
 	{
 		return m_pEngine->LogE("Failed initialize index buffer of OutputPlane!");
 	}

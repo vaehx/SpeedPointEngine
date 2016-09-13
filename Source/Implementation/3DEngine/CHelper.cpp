@@ -75,7 +75,7 @@ S_API void CDynamicMeshHelper::SetParams(const Params& params)
 		if (!lines)
 		{
 			pResources->AddIndexBuffer(&dcd->pIndexBuffer);
-			dcd->pIndexBuffer->Initialize(pRenderer, eIBUSAGE_STATIC, params.numIndices, params.pIndices);
+			dcd->pIndexBuffer->Initialize(pRenderer, eIBUSAGE_STATIC, params.pIndices, params.numIndices);
 			dcd->iStartIBIndex = 0;
 			dcd->iEndIBIndex = params.numIndices - 1;
 		}

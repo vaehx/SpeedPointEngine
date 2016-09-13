@@ -241,7 +241,7 @@ S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* 
 		if (!bLines)
 		{
 			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&pDefSubset->pIndexBuffer));
-			RETURN_ON_ERR(pDefSubset->pIndexBuffer->Initialize(pRenderer, ibUsage, 0));
+			RETURN_ON_ERR(pDefSubset->pIndexBuffer->Initialize(pRenderer, ibUsage));
 
 			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pSubsets) && pInitialGeom->nSubsets > 0)
 			{
@@ -279,7 +279,7 @@ S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* 
 
 			// Create the index buffer for this subset
 			RETURN_ON_ERR(pRenderer->GetResourcePool()->AddIndexBuffer(&subset.pIndexBuffer));
-			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pRenderer, ibUsage, 0));
+			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pRenderer, ibUsage));
 
 			subset.pMaterial = subsetGeom.pMaterial;
 			subset.indexOffset = indexOffset;
