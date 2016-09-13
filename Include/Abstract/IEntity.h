@@ -33,6 +33,7 @@ using std::string;
 SP_NMSPACE_BEG
 
 struct S_API IEntity;
+struct S_API IComponent;
 struct S_API IMaterial;
 struct S_API SAxisAlignedBoundBox;
 typedef struct S_API SAxisAlignedBoundBox AABB;
@@ -106,44 +107,6 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-struct S_API IComponent
-{
-protected:
-	IEntity* m_pEntity;
-
-public:
-	IComponent() : m_pEntity(0) {}
-	IComponent(IEntity* pEntity) : m_pEntity(pEntity) { }
-
-	virtual ~IComponent()
-	{
-		m_pEntity = 0;
-	}
-
-	// We need this, because we need a standard constructor to be able
-	// to construct the components in the subsystems
-	ILINE virtual void SetEntity(IEntity* pEntity)
-	{
-		m_pEntity = pEntity;
-	}
-
-	ILINE virtual IEntity* GetEntity() const
-	{
-		return m_pEntity;
-	}
-
-	ILINE virtual void Release() = 0;
-	ILINE virtual bool IsTrash() const = 0;
-
-	
-	// Events:
-
-	// We let the entity call this event itself, instead of having a Transformable component that
-	// other components can register their event handlers to
-	ILINE virtual void OnEntityTransformed() {};
-};
 
 
 
@@ -251,6 +214,68 @@ struct S_API IReferenceObject : public IEntity
 	virtual IObject* GetBase() = 0;
 	virtual SResult SetBase(IObject* base) = 0;
 };
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Entity Component
+struct S_API IComponent
+{
+protected:
+	IEntity* m_pEntity;
+	bool m_bTrash;
+
+public:
+	IComponent() : m_pEntity(0), m_bTrash(false) {}
+	IComponent(IEntity* pEntity) : m_pEntity(pEntity), m_bTrash(false) { }
+
+	// Implement in CEntity.cpp to make this class abstract
+	virtual ~IComponent() = 0;
+
+	// We need this, because we need a standard constructor to be able
+	// to construct the components in the subsystems
+	ILINE virtual void SetEntity(IEntity* pEntity)
+	{
+		m_pEntity = pEntity;
+	}
+
+	ILINE virtual IEntity* GetEntity() const
+	{
+		return m_pEntity;
+	}
+
+	ILINE void Release()
+	{
+		m_bTrash = true;
+		OnRelease();
+		if (m_pEntity)
+		{
+			m_pEntity->ReleaseComponent(this);
+			m_pEntity = 0;
+		}
+	}
+
+	ILINE bool IsTrash() const
+	{
+		return m_bTrash;
+	}
+
+
+	// Events:
+
+	ILINE virtual void OnRelease() {};
+
+	// We let the entity call this event itself, instead of having a Transformable component that
+	// other components can register their event handlers to
+	ILINE virtual void OnEntityTransformed() {};
+};
+
+#define DEFINE_COMPONENT \
+	virtual void Release() { IComponent::Release(); } \
+	virtual bool IsTrash() const { return IComponent::IsTrash(); }
+
+
+
 
 
 SP_NMSPACE_END

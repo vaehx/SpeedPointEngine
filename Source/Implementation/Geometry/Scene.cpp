@@ -64,7 +64,14 @@ S_API SResult Scene::Initialize(IGameEngine* pGameEngine)
 // -------------------------------------------------------------------------------------------------
 S_API void Scene::AddObject(IEntity* pEntity)
 {
+	if (!pEntity)
+	{
+		CLog::Log(S_ERROR, "Tried to add nullptr entity to scene");
+		return;
+	}
+
 	m_Entities.push_back(pEntity);
+	CLog::Log(S_INFO, "Added '%s' to scene!", pEntity->GetName());
 }
 
 // -------------------------------------------------------------------------------------------------

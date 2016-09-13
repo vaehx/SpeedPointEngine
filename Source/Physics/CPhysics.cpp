@@ -58,4 +58,20 @@ S_API void CPhysics::ClearPhysObjects()
 	}
 }
 
+S_API void CPhysics::Update()
+{
+	if (!m_pObjects)
+		return;
+
+	unsigned int i;
+	CPhysObject* pObj = m_pObjects->GetFirst(i);
+	while (pObj)
+	{
+		if (pObj->IsTrash())
+			m_pObjects->Release(&pObj);
+
+		pObj = m_pObjects->GetNext(i);
+	}
+}
+
 SP_NMSPACE_END

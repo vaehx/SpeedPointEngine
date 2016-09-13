@@ -7,6 +7,7 @@
 #include <Abstract\IRenderPipeline.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IApplication.h>
+#include <Abstract\IPhysics.h>
 #include <Pipelines\FramePipeline.h>
 #include <SpeedPointEngine.h>
 #include <sstream>
@@ -235,6 +236,12 @@ S_API SResult FramePipeline::ExecuteSections(usint32 iSkippedSections)
 			m_FrameDebugInfo.renderTimer.Stop();
 		}
 	}
+
+
+	// Do physics
+	m_pEngine->GetPhysics()->Update();
+
+
 
 	StopBudgetTimer(frameBudgetTimer);
 	m_FrameDebugInfo.frameTimer.Stop();

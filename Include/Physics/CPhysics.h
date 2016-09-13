@@ -20,6 +20,7 @@ public:
 	ILINE virtual CPhysObject* CreatePhysObject(const SPhysObjectParams& params = SPhysObjectParams());
 	ILINE virtual void ReleasePhysObject(CPhysObject** pObject);
 	ILINE virtual void ClearPhysObjects();
+	ILINE virtual void Update();
 };
 
 SP_NMSPACE_END

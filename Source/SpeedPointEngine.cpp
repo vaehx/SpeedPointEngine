@@ -313,8 +313,6 @@ S_API SResult SpeedPointEngine::FinishInitialization()
 	pRenderPipeline->Init(this);
 	m_pFramePipeline->RegisterSection(pRenderPipeline);
 
-	// Hook dynamics pipeline	
-
 	CheckFinishInit();
 
 	return S_SUCCESS;

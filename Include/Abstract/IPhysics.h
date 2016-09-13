@@ -49,6 +49,8 @@ public:
 
 	ILINE virtual void ClearPhysObjects() = 0;
 
+	ILINE virtual void Update() = 0;
+
 
 	// Ideas:
 	

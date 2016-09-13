@@ -8,8 +8,7 @@
 SP_NMSPACE_BEG
 
 S_API CRenderableComponent::CRenderableComponent()
-	: IComponent(),
-	m_bTrash(false)
+	: IComponent()
 {
 }
 
@@ -18,25 +17,13 @@ S_API CRenderableComponent::~CRenderableComponent()
 	Clear();
 }
 
-S_API void CRenderableComponent::Release()
+// -----------------------------------------------------------------------------------------------------
+S_API void CRenderableComponent::OnRelease()
 {
 	Clear();
-	m_bTrash = true;
-
-	if (m_pEntity)
-	{
-		m_pEntity->ReleaseComponent(this);
-		m_pEntity = 0;
-	}
 }
 
-S_API bool CRenderableComponent::IsTrash() const
-{
-	return m_bTrash;
-}
-
-// -------------------------------------------------------------------------------------------
-
+// -----------------------------------------------------------------------------------------------------
 S_API void CRenderableComponent::OnEntityTransformed()
 {
 	if (!m_pEntity)

@@ -7,15 +7,11 @@ SP_NMSPACE_BEG
 
 class S_API CPhysicalComponent : public IComponent, public CPhysObject
 {
-private:
-	bool m_bTrash;
+	DEFINE_COMPONENT
 
 public:
 	CPhysicalComponent();
 	virtual ~CPhysicalComponent() {}
-
-	virtual void Release();
-	virtual bool IsTrash() const;
 
 	// IComponent:
 public:

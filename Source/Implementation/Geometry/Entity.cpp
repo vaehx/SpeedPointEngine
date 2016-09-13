@@ -20,6 +20,14 @@
 
 SP_NMSPACE_BEG
 
+S_API IComponent::~IComponent()
+{
+	m_pEntity = 0;
+	m_bTrash = true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+
 S_API CEntity::CEntity()
 	: m_bTransformInvalid(true),
 	m_Scale(1.0f)
@@ -28,7 +36,11 @@ S_API CEntity::CEntity()
 
 S_API void CEntity::Clear()
 {
-	for (auto itComponent = m_Components.begin(); itComponent != m_Components.end(); ++itComponent)
+	// We need to clear this first, otherwise Component::Release() will call Entity::ReleaseComponent()
+	// which will delete the element in the list during the loop
+
+	vector<IComponent*> components(m_Components.begin(), m_Components.end());
+	for (auto itComponent = components.begin(); itComponent != components.end(); ++itComponent)
 	{
 		IComponent* component = *itComponent;
 		if (component)
@@ -36,7 +48,9 @@ S_API void CEntity::Clear()
 	}
 	m_Components.clear();
 
-	for (auto itManaged = m_ManagedComponents.begin(); itManaged != m_ManagedComponents.end(); ++itManaged)
+
+	vector<IComponent*> managed(m_ManagedComponents.begin(), m_ManagedComponents.end());
+	for (auto itManaged = managed.begin(); itManaged != managed.end(); ++itManaged)
 	{
 		IComponent* pManaged = *itManaged;
 		if (pManaged)
@@ -45,7 +59,7 @@ S_API void CEntity::Clear()
 			delete pManaged;
 		}
 	}
-	m_Components.clear();
+	m_ManagedComponents.clear();
 }
 
 // ----------------------------------------------------------------------------------------------------------
@@ -209,7 +223,7 @@ S_API void CEntity::ReleaseComponent(IComponent* pComponent)
 		}
 	}
 
-	for (auto itManaged = m_ManagedComponents.begin(); itManaged != m_Components.end(); ++itManaged)
+	for (auto itManaged = m_ManagedComponents.begin(); itManaged != m_ManagedComponents.end(); ++itManaged)
 	{
 		if (*itManaged == pComponent)
 		{

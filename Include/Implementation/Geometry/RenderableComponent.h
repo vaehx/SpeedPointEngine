@@ -12,9 +12,9 @@ struct S_API IMaterialManager;
 
 class CRenderableComponent : public IComponent, public CRenderMesh
 {
-private:
-	bool m_bTrash;
+	DEFINE_COMPONENT
 
+private:
 	void ClearRenderableComponent();
 
 public:
@@ -23,13 +23,8 @@ public:
 
 	// IComponent:
 public:
+	virtual void OnRelease();
 	virtual void OnEntityTransformed();
-
-	// IComponent + CRenderMesh:
-public:
-	ILINE virtual void Release();
-	ILINE virtual bool IsTrash() const;
-
 
 
 	/*
