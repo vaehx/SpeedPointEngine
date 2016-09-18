@@ -27,15 +27,15 @@ private:
 	IGameEngine* m_pEngine;
 	DirectX11Renderer* m_pDXRenderer;
 
-	string m_BasePath;
-
 	ChunkPool<DirectX11IndexBuffer>	m_plIndexBuffers;
 	ChunkPool<DirectX11VertexBuffer> m_plVertexBuffers;
 	ChunkPool<DirectX11Shader> m_plShaders;
-	ChunkPool<DirectX11Texture> m_plTextures;	
+	ChunkPool<DirectX11Texture> m_plTextures;
+
+	inline static string GetResourcePath(const string& file);
 
 public:		
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, const string& resourceBasePath = "");
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer);
 	virtual SResult ClearAll();
 
 
@@ -52,9 +52,9 @@ public:
 
 
 
-	virtual SResult LoadTexture(const string& specification, ITexture** pTex, const string& file = "", UINT w = 0, UINT h = 0, bool bDynamic = false, bool bStaged = false);
+	virtual SResult LoadTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0, bool bDynamic = false, bool bStaged = false);
 	
-	virtual SResult LoadCubeTexture(const string& specification, ITexture** pTex, const string& file = "", UINT w = 0, UINT h = 0);
+	virtual SResult LoadCubeTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0);
 
 	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, const ETextureType& ty, const SColor& clearcolor, bool bDynamic = false, bool bStaged = false);
 

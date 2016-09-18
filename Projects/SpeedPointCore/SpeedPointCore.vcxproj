@@ -41,7 +41,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\..\..\Dependencies\DirectX\Include;$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\..\Dependencies\DirectX\Include;$(ProjectDir)\..\..\Include;$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(IncludePath)</IncludePath>
     <TargetExt>.lib</TargetExt>
     <LibraryPath>$(ProjectDir)\..\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>

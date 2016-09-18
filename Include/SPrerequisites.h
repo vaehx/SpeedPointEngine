@@ -31,6 +31,7 @@
 
 #include "Util\SWindowsSpecific.h"
 #include <vector>
+using std::vector;
 #include <cmath>
 
 #include "Util\SResult.h"	// SResult, IExceptionProxy
@@ -40,11 +41,15 @@
 //#include "Util\SString.h"
 
 #include <string>
+#include <sstream>
 using std::string;
 
-#include "Abstract\CLog.h"
-// DO NOT ADD ANY HEADER HERE if you do not know why!Many things depend on it!
+#include <algorithm>
+#include <functional>
+#include <cctype>
 
+#include "Abstract\CLog.h"
+// DO NOT ADD ANY HEADER HERE if you do not know why!
 
 
 
@@ -151,6 +156,45 @@ ILINE static bool sp_string_iequals(const string& a, const string& b)
 			return false;
 
 	return true;
+}
+
+ILINE static int sp_extended_isspace(char c)
+{
+	return std::isspace((unsigned char)c);
+}
+
+// Trims string from start
+ILINE static string& sp_ltrim(string& s)
+{
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun(sp_extended_isspace))));
+	return s;
+}
+
+// Trims string at the end
+ILINE static string& sp_rtrim(string& s)
+{
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun(sp_extended_isspace))).base(), s.end());
+	return s;
+}
+
+ILINE static string& sp_trim(string& s)
+{
+	sp_ltrim(s);
+	sp_rtrim(s);
+	return s;
+}
+
+ILINE static vector<string> sp_explode(const string& s, char delim)
+{
+	vector<string> result;
+	std::istringstream iss(s);
+
+	for (string token; std::getline(iss, token, delim); )
+	{
+		result.push_back(std::move(token));
+	}
+
+	return result;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

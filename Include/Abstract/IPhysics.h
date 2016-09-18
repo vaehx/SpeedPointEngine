@@ -41,7 +41,7 @@ public:
 		SetPhysObjectPool(new ComponentPool<CPhysObject, PhysObjImpl>());
 	}
 
-	ILINE virtual CPhysObject* CreatePhysObject(const SPhysObjectParams& params) = 0;
+	ILINE virtual CPhysObject* CreatePhysObject(const SPhysObjectParams& params = SPhysObjectParams()) = 0;
 
 	// Summary:
 	//	Releases the passed object in the pool and sets the pointer to 0

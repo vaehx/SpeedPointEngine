@@ -309,7 +309,7 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainInfo& info)
 	m_pRenderer = pRenderer;
 
 	// Check given sizes		
-	if (!IsPowerOfTwo(info.segments) || (info.segments % info.chunkSegments) > 0)
+	if (!IsPowerOfTwo(info.segments) || info.chunkSegments == 0 || (info.segments % info.chunkSegments) > 0)
 		return S_INVALIDPARAM;
 
 	if (info.chunkSegments < (int)PowerOfTwo(info.nLodLevels - 1) * 2)
@@ -323,6 +323,7 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainInfo& info)
 
 	m_fChunkStepDist = info.fChunkStepDist;
 
+	m_fBaseHeight = info.baseHeight;
 	m_fSize = info.size;
 	m_fSegSz = info.size / (float)info.segments;
 	m_fTexSz = 1.0f / (float)info.segments;
@@ -370,6 +371,19 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainInfo& info)
 }
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API STerrainInfo Terrain::GetInfo() const
+{
+	STerrainInfo info;
+	info.baseHeight		= m_fBaseHeight;
+	info.center			= m_bCenter;
+	info.chunkSegments	= m_chunkSegs;
+	info.fChunkStepDist	= m_fChunkStepDist;
+	info.nLodLevels		= m_nLodLevels;
+	info.segments		= m_nSegments;
+	info.size			= m_fSize;
+	return info;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)

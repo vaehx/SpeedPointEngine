@@ -11,6 +11,7 @@
 SP_NMSPACE_BEG
 
 struct S_API ISkyBox;
+struct S_API IGeometryManager;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,10 +54,11 @@ public:
 	virtual ~I3DEngine() {};
 
 	ILINE virtual IRenderer* GetRenderer() const = 0;
+	ILINE virtual IGeometryManager* GetGeometryManager() = 0;
 
 	template<class RenderMeshImpl>
 	ILINE void CreateRenderMeshPool() { SetRenderMeshPool(new ComponentPool<CRenderMesh, RenderMeshImpl>()); }
-	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params) = 0;
+	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params = SRenderMeshParams()) = 0;
 	ILINE virtual void ClearRenderMeshes() = 0;
 
 	template<class RenderLightImpl>

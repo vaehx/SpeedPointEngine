@@ -137,6 +137,8 @@ struct S_API SInitialSubsetGeometryDesc
 
 struct S_API SInitialGeometryDesc
 {
+	string geomFile;
+
 	EGeomUsage vertexUsage;
 	EGeomUsage indexUsage;
 
@@ -188,7 +190,7 @@ struct S_API SInitialGeometryDesc
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////////////
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -218,6 +220,8 @@ struct S_API IGeometry : public IShutdownHandler
 
 	virtual SResult Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
 	
+	virtual const string& GetGeomFile() const = 0;
+
 	virtual IRenderer* GetRenderer() = 0;
 
 	virtual SGeomSubset* GetSubsets() = 0;	
@@ -246,6 +250,23 @@ struct S_API IGeometry : public IShutdownHandler
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
+struct S_API IGeometryManager
+{
+	//TODO: Handle actual IGeometry instances, instead of initial geometry descs
+	//TODO:		However, we need to be able to initialize a RenderMesh with an existing Geometry before.
+
+	virtual ~IGeometryManager() {}
+
+	// If the geometry was loaded before, will return pointer to existing data, instead of loading it again
+	virtual SInitialGeometryDesc* LoadGeometry(const string& file) = 0;
+
+	virtual void Clear() = 0;
+};
+
 
 SP_NMSPACE_END
 #endif

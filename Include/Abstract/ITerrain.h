@@ -215,6 +215,8 @@ public:
 	// maxKTreeDepth - maximum recursion depth for the creation of the proxy mesh
 	virtual SResult Init(IRenderer* pRenderer, const STerrainInfo& info) = 0;
 
+	virtual STerrainInfo GetInfo() const = 0;
+
 	// Uses height scale to scale the sampled heights! Call SetHeightScale() before calling this function!
 	virtual void CalculateProxyMesh(unsigned int maxKTreeRecDepth = 4) = 0;
 

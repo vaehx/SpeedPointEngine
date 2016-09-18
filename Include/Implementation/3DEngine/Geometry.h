@@ -21,16 +21,19 @@
 
 #include <SPrerequisites.h>
 #include <Abstract\IGeometry.h>
+#include <map>
+
+using std::map;
 
 SP_NMSPACE_BEG
 
-// Summary:
-//	This is the raw geometry (without material)
 class S_API CGeometry : public IGeometry
 {
 protected:
 	IRenderer* m_pRenderer;
 	
+	string m_GeomFile;
+
 	SGeomSubset* m_pSubsets;
 	unsigned short m_nSubsets;
 
@@ -46,6 +49,8 @@ public:
 	virtual ~CGeometry();	
 
 	virtual SResult Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom = nullptr);
+
+	virtual const string& GetGeomFile() const { return m_GeomFile; }
 
 	virtual IRenderer* GetRenderer()
 	{
@@ -102,6 +107,21 @@ public:
 
 	virtual void CalculateBoundBox(AABB& aabb, const SMatrix& transform);
 };
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+class S_API CGeometryManager : public IGeometryManager
+{
+private:
+	map<string, SInitialGeometryDesc> m_Geometry;
+
+public:
+	virtual ~CGeometryManager();
+	virtual SInitialGeometryDesc* LoadGeometry(const string& file);
+	virtual void Clear();
+};
+
 
 
 SP_NMSPACE_END

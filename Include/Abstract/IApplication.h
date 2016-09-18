@@ -36,11 +36,10 @@ struct S_API IApplication
 
 	virtual void OnLogReport(SResult res, const SString& msg) = 0;
 
+
 	// Summary:
 	//	Called whenever the engine is going to execute dynamics stuff
 	virtual void Update(float fLastFrameTime) = 0;
-
-
 
 	
 	// Summary:

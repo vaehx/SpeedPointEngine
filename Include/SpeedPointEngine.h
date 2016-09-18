@@ -242,6 +242,9 @@ public:
 //	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
 
 	virtual string GetShaderPath(EShaderFileType shader) const;
+	virtual string GetResourcePath(const string& file = "") const;
+
+	virtual void LoadWorld(const string& file);
 };
 
 

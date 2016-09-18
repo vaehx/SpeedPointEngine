@@ -31,7 +31,7 @@ struct S_API SMaterial;
 struct S_API IResourcePool
 {
 public:
-	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer, const string& resourceBasePath = "") = 0;
+	virtual SResult Initialize(IGameEngine* pEngine, IRenderer* pRenderer) = 0;
 	virtual SResult	ClearAll(void) = 0;
 
 
@@ -61,14 +61,14 @@ public:
 	//		specification - the specification of the texture
 	//		file - the path of the file relative to the resource base directory. If you don't need an extra specification, leave this empty, so the specification will be used as the file name
 	//		w, h - desired pixel size. If w or h equals 0, the actual image size is used and no scaling is performed. If image size does not equal this size, a scale is performed.
-	virtual SResult LoadTexture(const string& specification, ITexture** pTex, const string& file = "", UINT w = 0, UINT h = 0, bool bDynamic = false, bool bStaged = false) = 0;
+	virtual SResult LoadTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0, bool bDynamic = false, bool bStaged = false) = 0;
 	
 	// Summary:
 	//		Makes sre the given cube texture is loaded from disk
 	//		If given, pTex will always be set to a valid pointer to an existing texture instance, although it may not be loaded yet.
 	// Arguments:
 	//		file - the name/path of the texture file relative to the set resource base path:   "assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp"
-	virtual SResult LoadCubeTexture(const string& specification, ITexture** pTex, const string& file = "", UINT w = 0, UINT h = 0) = 0;
+	virtual SResult LoadCubeTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0) = 0;
 
 	// Arguments:
 	//	- clearcolor: Texture gets filled with this color. If type is depth map, clearcolor.r is used.

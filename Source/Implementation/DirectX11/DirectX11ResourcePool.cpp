@@ -13,10 +13,26 @@
 #include <Implementation\DirectX11\DirectX11Texture.h>
 #include <Implementation\DirectX11\DirectX11Shader.h>
 //#include <SpeedPoint.h>
+#include <Abstract\ISettings.h>
 #include <SpeedPointEngine.h>
 
 
 SP_NMSPACE_BEG
+
+
+S_API string DirectX11ResourcePool::GetResourcePath(const string& file)
+{
+	IGameEngine* pEngine = SpeedPointEnv::GetEngine();
+	if (!pEngine)
+		return file;
+
+	ISettings* pSettings = pEngine->GetSettings();
+	if (!pSettings)
+		return file;
+
+	string& rootDir = pSettings->Get().resources.rootDir;
+	return rootDir + (rootDir.empty() ? "" : "\\") + file;
+}
 
 
 
@@ -27,14 +43,12 @@ SP_NMSPACE_BEG
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* renderer, const string& resourceBasePath)
+S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* renderer)
 {
 	if (eng == NULL || renderer == NULL) return S_ABORTED;
 
 	m_pEngine = eng;
 	m_pDXRenderer = (DirectX11Renderer*)renderer;
-
-	m_BasePath = resourceBasePath;
 
 	CoInitialize(0);
 
@@ -122,33 +136,28 @@ S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::LoadTexture(const string& specification, ITexture** ppTexture, const string& file /*=""*/, UINT w /*=0*/, UINT h /*=0*/, bool bDynamic /*=false*/, bool bStaged /*=false*/)
+S_API SResult DirectX11ResourcePool::LoadTexture(const string& file, ITexture** ppTexture, UINT w /*=0*/, UINT h /*=0*/, bool bDynamic /*=false*/, bool bStaged /*=false*/)
 {	
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
-		"Cannot load Texture (file=%s spec=%s): Resource Pool not initialized.", file.c_str(), specification.c_str());
+		"Cannot load Texture (file='%s'): Resource Pool not initialized.", file.c_str());
 
-	if (specification.empty())
-		return CLog::Log(S_ERROR, "Cannot load texture! Empty specification given!");
+	if (file.empty())
+		return CLog::Log(S_ERROR, "Cannot load texture! Empty file name given!");
 
-	string filePath = m_BasePath + (m_BasePath.empty() ? "" : "\\");
-	if (!file.empty())
-		filePath += file;
-	else
-		filePath += specification;
+	string filePath = GetResourcePath(file);
 
-
-	ITexture* pTex = GetTexture(specification);
+	ITexture* pTex = GetTexture(file);
 
 	// The texture might exist already
 	pTex->Clear();
 
-	if (Failure(pTex->Initialize(m_pEngine, specification, bDynamic, bStaged)))
+	if (Failure(pTex->Initialize(m_pEngine, file, bDynamic, bStaged)))
 		return S_ERROR;
 	
 	if (Failure(pTex->LoadFromFile(w, h, 5, filePath.c_str())))
-		return EngLog(S_ERROR, m_pEngine, "Failed load texture file='%s' spec='%s'!", filePath.c_str(), specification.c_str());
+		return EngLog(S_ERROR, m_pEngine, "Failed load texture file='%s'!", file.c_str());
 
-	CLog::Log(S_DEBUG, "Loaded Texture file='%s' spec='%s', dyn=%d, staged=%d", filePath.c_str(), specification.c_str(), bDynamic, bStaged);
+	CLog::Log(S_DEBUG, "Loaded Texture file='%s', dyn=%d, staged=%d", file.c_str(), bDynamic, bStaged);
 
 	if (IS_VALID_PTR(ppTexture))
 		*ppTexture = pTex;
@@ -158,33 +167,28 @@ S_API SResult DirectX11ResourcePool::LoadTexture(const string& specification, IT
 
 // **********************************************************************************
 
-S_API SResult DirectX11ResourcePool::LoadCubeTexture(const string& specification, ITexture** ppTexture, const string& src /*=""*/, UINT w /*=0*/, UINT h /*=0*/)
+S_API SResult DirectX11ResourcePool::LoadCubeTexture(const string& file, ITexture** ppTexture, UINT w /*=0*/, UINT h /*=0*/)
 {
 	SP_ASSERTRD(IS_VALID_PTR(m_pDXRenderer) && IS_VALID_PTR(m_pEngine), S_NOTINIT,
-		"Cannot load Cubetexture (%s): Resource Pool not initialized.", src.c_str());
+		"Cannot load Cubetexture (%s): Resource Pool not initialized.", file.c_str());
 
-	if (specification.empty())
-		return CLog::Log(S_ERROR, "Empty cubemap specification specified src='%s'!", src.c_str());
+	if (file.empty())
+		return CLog::Log(S_ERROR, "Empty cubemap specification specified!");
 
-	string filePath = m_BasePath + (m_BasePath.empty() ? "" : "\\");
-	if (!src.empty())
-		filePath += src;
-	else
-		filePath += specification;
+	string filePath = GetResourcePath(file);
 
-
-	ITexture* pTex = GetTexture(specification);
+	ITexture* pTex = GetTexture(file);
 
 	// Texture may be loaded already
 	pTex->Clear();
 
-	if (Failure(pTex->Initialize(m_pEngine, specification, false, false)))
+	if (Failure(pTex->Initialize(m_pEngine, file, false, false)))
 		return S_ERROR;
 
 	if (Failure(pTex->LoadCubemapFromFile(w, h, filePath.c_str())))
-		return EngLog(S_ERROR, m_pEngine, "Failed load cubemap file='%s' spec='%s'!", filePath.c_str(), specification.c_str());
+		return EngLog(S_ERROR, m_pEngine, "Failed load cubemap '%s'!", file.c_str());
 
-	CLog::Log(S_DEBUG, "Loaded Cubemap '%s'", specification.c_str());
+	CLog::Log(S_DEBUG, "Loaded Cubemap '%s'", file.c_str());
 
 	if (ppTexture != NULL)
 		*ppTexture = pTex;

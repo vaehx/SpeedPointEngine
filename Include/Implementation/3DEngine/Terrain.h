@@ -24,6 +24,7 @@ private:
 	bool m_bRequireCBUpdate;	
 
 	// -----
+	float m_fBaseHeight;
 	float m_HeightScale;
 	ITexture* m_pVtxHeightMap;	
 	bool m_bCustomHeightmapSet;	
@@ -80,6 +81,8 @@ public:
 	}
 	
 	virtual SResult Init(IRenderer* pRenderer, const STerrainInfo& info);
+
+	virtual STerrainInfo GetInfo() const;
 
 	virtual void CalculateProxyMesh(unsigned int maxKTreeRecDepth = 4);
 

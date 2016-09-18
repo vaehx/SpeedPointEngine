@@ -23,6 +23,11 @@ struct S_API IScene
 	virtual SResult Initialize(IGameEngine* pGameEngine) = 0;
 	virtual void Clear() = 0;
 
+	virtual void SetName(const string& name) = 0;
+	virtual const string& GetName() const = 0;
+
+	virtual const vector<IEntity*>& GetEntities() const = 0;
+
 	// Loads SPM Model from file
 	virtual IEntity* LoadObjectFromFile(const char* file, const char* objName) = 0;
 	virtual IEntity* SpawnEntity() = 0;

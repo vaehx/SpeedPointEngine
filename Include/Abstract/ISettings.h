@@ -84,6 +84,13 @@ struct S_API SApplicationSettings
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
+struct S_API SResourceSettings
+{
+	string rootDir;
+	string worldFile; // filename of loaded world, relative to rootDir
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Summary:
 //	Environmental settings
 // Description:
@@ -150,6 +157,7 @@ struct S_API SSettingsDesc
 	SApplicationSettings app; // Window / device / video mode settings
 	SEnvironmentSettings env; // Settings for Scene components and its beheaviour
 	SRenderSettings render; // Rendering settings	 
+	SResourceSettings resources;
 
 	SSettingsDesc::SSettingsDesc()
 	{
@@ -219,6 +227,10 @@ struct S_API SSettingsDesc
 		render.bRenderWireframe = o.render.bRenderWireframe;
 		render.bRenderLighting = o.render.bRenderLighting;
 		render.shadowQuality = o.render.shadowQuality;
+
+		// Resources
+		resources.rootDir = o.resources.rootDir;
+		resources.worldFile = o.resources.worldFile;
 	}
 };
 

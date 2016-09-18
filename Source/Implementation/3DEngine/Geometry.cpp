@@ -18,6 +18,7 @@
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
 #include <Abstract\BoundBox.h>
+#include <FileSPM.h>
 
 SP_NMSPACE_BEG
 
@@ -198,6 +199,7 @@ S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* 
 
 	if (IS_VALID_PTR(pInitialGeom))
 	{
+		m_GeomFile = pInitialGeom->geomFile;
 		m_PrimitiveType = pInitialGeom->primitiveType;
 
 		vbUsage = ParseVBUsage(pInitialGeom->vertexUsage);
@@ -420,5 +422,148 @@ S_API void CGeometry::CalculateBoundBox(AABB& aabb, const SMatrix& transform)
 		aabb.AddPoint(transformed.xyz());
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+S_API CGeometryManager::~CGeometryManager()
+{
+	Clear();
+}
+
+// ----------------------------------------------------------------------------------------
+S_API SInitialGeometryDesc* CGeometryManager::LoadGeometry(const string& file)
+{
+	auto found = m_Geometry.find(file);
+	if (found != m_Geometry.end())
+		return &found->second;
+
+	// Actually load the model:
+	CSPMLoader spmLoader;
+	if (!spmLoader.Load(file.c_str(), true))
+	{
+		CLog::Log(S_ERROR, "Failed to load object file '%s'", file.c_str());
+		return 0;
+	}
+
+	const std::vector<SModelMeta>& models = spmLoader.GetModels();
+
+	auto geomDescIt = m_Geometry.insert(std::pair<string, SInitialGeometryDesc>(file.c_str(), SInitialGeometryDesc()));
+	SInitialGeometryDesc& geomDesc = geomDescIt.first->second;
+
+	geomDesc.geomFile = file;
+
+	geomDesc.bRequireNormalRecalc = true;
+	geomDesc.bRequireTangentRecalc = true;
+	geomDesc.indexUsage = eGEOMUSE_STATIC;
+	geomDesc.vertexUsage = eGEOMUSE_STATIC;
+	geomDesc.primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
+
+	// Determine subset and vertex count
+	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
+	{
+		geomDesc.nSubsets += itModel->nLoadedSubsets;
+		geomDesc.nVertices += itModel->nVertices;
+	}
+
+	geomDesc.pSubsets = new SInitialSubsetGeometryDesc[geomDesc.nSubsets];
+	geomDesc.pVertices = new SVertex[geomDesc.nVertices];
+
+	// Flatten-out the subsets in all models into a single array of subsets	
+	IMaterialManager* pMatMgr = SpeedPointEnv::GetEngine()->GetMaterialManager();
+	u32 vtxOffset = 0;
+	unsigned int iSubset = 0;
+	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
+	{
+		// Copy over vertices
+		for (u32 iVtx = 0; iVtx < itModel->nVertices; ++iVtx)
+		{
+			geomDesc.pVertices[vtxOffset + iVtx] = itModel->pVertices[iVtx];
+		}
+
+		for (u16 iModelSubset = 0; iModelSubset < itModel->nLoadedSubsets; ++iModelSubset)
+		{
+			const SSubset& modelSubset = itModel->pSubsets[iModelSubset];
+			SInitialSubsetGeometryDesc& subset = geomDesc.pSubsets[iSubset];
+			subset.nIndices = modelSubset.nIndices;
+			subset.pIndices = new SIndex[subset.nIndices];
+
+			// TODO: Use SIndex in SPMFile, so we don't have to copy the indices here!
+			for (u32 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
+				subset.pIndices[iIndex] = modelSubset.pIndices[iIndex] + vtxOffset;
+
+			if (pMatMgr)
+				subset.pMaterial = pMatMgr->GetMaterial(modelSubset.materialName);
+
+			iSubset++;
+		}
+
+		vtxOffset += itModel->nVertices;
+	}
+
+	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
+	{
+		for (u16 iSubset = 0; iSubset < itModel->nSubsets; ++iSubset)
+			delete[] itModel->pSubsets[iSubset].pIndices;
+
+		delete[] itModel->pSubsets;
+		delete[] itModel->pVertices;
+	}
+
+	return &geomDesc;
+}
+
+// ----------------------------------------------------------------------------------------
+S_API void CGeometryManager::Clear()
+{
+	for (auto itGeom = m_Geometry.begin(); itGeom != m_Geometry.end(); ++itGeom)
+	{
+		SInitialGeometryDesc& geomDesc = itGeom->second;
+		
+		delete[] geomDesc.pVertices;
+		geomDesc.pVertices = 0;
+		geomDesc.nVertices = 0;
+
+		if (IS_VALID_PTR(geomDesc.pSubsets))
+		{
+			if (geomDesc.nSubsets > 0)
+			{
+				for (u16 iSubset = 0; iSubset < geomDesc.nSubsets; ++iSubset)
+					delete[] geomDesc.pSubsets[iSubset].pIndices;
+			}
+
+			delete[] geomDesc.pSubsets;
+		}
+
+		geomDesc.pSubsets = 0;
+		geomDesc.nSubsets = 0;
+	}
+
+	m_Geometry.clear();
+}
+
+
+
 
 SP_NMSPACE_END

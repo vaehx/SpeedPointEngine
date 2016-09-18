@@ -15,6 +15,7 @@ struct S_API IGameEngine;
 class S_API Scene : public IScene
 {
 private:
+	string m_Name;
 	IGameEngine* m_pEngine;
 	vector<IEntity*> m_Entities;
 
@@ -30,6 +31,14 @@ public:
 
 	virtual SResult Initialize(IGameEngine* pGameEngine);
 	virtual void Clear();
+
+	virtual const vector<IEntity*>& GetEntities() const
+	{
+		return m_Entities;
+	}
+
+	virtual void SetName(const string& name);
+	virtual const string& GetName() const;
 
 	virtual IEntity* LoadObjectFromFile(const char* file, const char* objName);
 	virtual IEntity* SpawnEntity();

@@ -94,12 +94,11 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned
 	IWICBitmapDecoder* pImgDecoder;
 	wchar_t* cWFilename = new wchar_t[50];
 	size_t nNumCharsConv;
-	unsigned short nWordSize = 60 / sizeof(unsigned short);
-	mbstowcs_s(&nNumCharsConv, cWFilename, nWordSize, cFileName, _TRUNCATE);
+	mbstowcs_s(&nNumCharsConv, cWFilename, 50, cFileName, _TRUNCATE);
 	hRes = pImgFactory->CreateDecoderFromFilename(cWFilename, 0, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pImgDecoder);
 	if (Failure(hRes))
 	{
-		EngLog(S_DEBUG, m_pEngine, "Failed Create WIC Image decoder for %s!", cFileName);
+		EngLog(S_DEBUG, m_pEngine, "Failed Create WIC Image decoder for %s (cWFilename=%S)!", cFileName, cWFilename);
 		return S_ERROR;
 	}
 

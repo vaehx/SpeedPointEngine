@@ -37,6 +37,12 @@ S_API SResult CRenderMesh::Init(const SRenderMeshParams& params)
 	_name = params._name;
 #endif
 
+	if (!params.pGeomDesc)
+	{
+		// Do not initialize yet
+		return S_SUCCESS;
+	}
+
 	m_pGeometry = new CGeometry();
 	if (Failure(m_pGeometry->Init(pRenderAPI, params.pGeomDesc)))
 	{

@@ -136,6 +136,7 @@
     <ClInclude Include="..\..\Include\Abstract\Vector4.h" />
     <ClInclude Include="..\..\Include\SPrerequisites.h" />
     <ClInclude Include="..\..\Include\Util\SColor.h" />
+    <ClInclude Include="..\..\Include\Util\SerializationTools.h" />
     <ClInclude Include="..\..\Include\Util\SResult.h" />
     <ClInclude Include="..\..\Include\Util\SString.h" />
   </ItemGroup>

@@ -4,6 +4,7 @@
 #include <Abstract\I3DEngine.h>
 #include <Abstract\ChunkedObjectPool.h>
 #include <Abstract\IRenderer.h>
+#include "Geometry.h"
 #include <vector>
 #include <map>
 
@@ -23,6 +24,7 @@ class S_API C3DEngine : public I3DEngine
 private:	
 	IRenderer* m_pRenderer;	
 	IGameEngine* m_pEngine;
+	CGeometryManager m_GeoMgr;
 
 	IComponentPool<CRenderMesh>* m_pMeshes;
 	IComponentPool<CRenderLight>* m_pLights;
@@ -62,10 +64,15 @@ public:
 		return m_pRenderer;
 	}
 	
+	ILINE virtual IGeometryManager* GetGeometryManager()
+	{
+		return &m_GeoMgr;
+	}
+	
 	ILINE virtual unsigned int CollectVisibleObjects(const SCamera* pCamera);
 
 
-	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params);
+	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params = SRenderMeshParams());
 	ILINE virtual void ClearRenderMeshes();
 
 	ILINE virtual CRenderLight* CreateLight();

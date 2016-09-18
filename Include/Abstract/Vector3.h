@@ -15,8 +15,6 @@
 #include "SAPI.h"
 #include <cmath>
 
-// use namespace here to prevent loading SPrerequisites.h unnecessarily
-
 namespace SpeedPoint
 {
 
@@ -33,10 +31,10 @@ namespace SpeedPoint
 
 	// template math functions:
 
-	ILINE float finv(const float& f) { return 1.0f / f; }
-	ILINE double finv(const double& d) { return 1.0 / d; }
-	ILINE float sqrt_t(const float& f) { return sqrtf(f); }
-	ILINE double sqrt_t(const double& d) { return sqrt(d); }
+	inline float finv(const float& f) { return 1.0f / f; }
+	inline double finv(const double& d) { return 1.0 / d; }
+	inline float sqrt_t(const float& f) { return sqrtf(f); }
+	inline double sqrt_t(const double& d) { return sqrt(d); }
 
 	// SpeedPoint 3-Dimensional Vector
 	template<typename F>
@@ -49,60 +47,60 @@ namespace SpeedPoint
 		Vec3(F xx, F yy, F zz) : x(xx), y(yy), z(zz) {}
 		Vec3(const Vec3<F>& v) : x(v.x), y(v.y), z(v.z) {}
 
-		ILINE Vec3<F> operator -() const
+		inline Vec3<F> operator -() const
 		{
 			return Vec3<F>(-x, -y, -z);
 		}
 
-		ILINE Vec3<F> operator +(const Vec3<F>& v) const { return Vec3<F>(x + v.x, y + v.y, z + v.z); }
-		ILINE Vec3<F> operator +(const F& k) const { return Vec3<F>(x + k, y + k, z + k); }
-		ILINE Vec3<F>& operator +=(const Vec3<F>& v) { x += v.x; y += v.y; z += v.z; return *this; }
-		ILINE Vec3<F>& operator +=(const F& k) { x += k; y += k; z += k; return *this; }
+		inline Vec3<F> operator +(const Vec3<F>& v) const { return Vec3<F>(x + v.x, y + v.y, z + v.z); }
+		inline Vec3<F> operator +(const F& k) const { return Vec3<F>(x + k, y + k, z + k); }
+		inline Vec3<F>& operator +=(const Vec3<F>& v) { x += v.x; y += v.y; z += v.z; return *this; }
+		inline Vec3<F>& operator +=(const F& k) { x += k; y += k; z += k; return *this; }
 
-		ILINE Vec3<F> operator -(const Vec3<F>& v) const { return Vec3<F>(x - v.x, y - v.y, z - v.z); }
-		ILINE Vec3<F> operator -(const F& k) const { return Vec3<F>(x - k, y - k, z - k); }
-		ILINE Vec3<F>& operator -=(const Vec3<F>& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
-		ILINE Vec3<F>& operator -=(const F& k) { x -= k; y -= k; z -= k; return *this; }
+		inline Vec3<F> operator -(const Vec3<F>& v) const { return Vec3<F>(x - v.x, y - v.y, z - v.z); }
+		inline Vec3<F> operator -(const F& k) const { return Vec3<F>(x - k, y - k, z - k); }
+		inline Vec3<F>& operator -=(const Vec3<F>& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
+		inline Vec3<F>& operator -=(const F& k) { x -= k; y -= k; z -= k; return *this; }
 
-		ILINE Vec3<F> operator *(const Vec3<F>& v) const { return Vec3<F>(x * v.x, y * v.y, z * v.z); }
-		ILINE Vec3<F> operator *(const F& k) const { return Vec3<F>(x * k, y * k, z * k); }
-		ILINE Vec3<F>& operator *=(const Vec3<F>& v) { x *= v.x; y *= v.y; z *= v.z; return *this; }
-		ILINE Vec3<F>& operator *=(const F& k) { x *= k; y *= k; z *= k; return *this; }
+		inline Vec3<F> operator *(const Vec3<F>& v) const { return Vec3<F>(x * v.x, y * v.y, z * v.z); }
+		inline Vec3<F> operator *(const F& k) const { return Vec3<F>(x * k, y * k, z * k); }
+		inline Vec3<F>& operator *=(const Vec3<F>& v) { x *= v.x; y *= v.y; z *= v.z; return *this; }
+		inline Vec3<F>& operator *=(const F& k) { x *= k; y *= k; z *= k; return *this; }
 
-		ILINE Vec3<F> operator /(const Vec3<F>& v) const { return Vec3<F>(x / v.x, y / v.y, z / v.z); }
-		ILINE Vec3<F> operator /(const F& k) const { F k_inv = finv(k); return Vec3<F>(x * k_inv, y * k_inv, z * k_inv); }
-		ILINE Vec3<F>& operator /=(const Vec3<F>& v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
-		ILINE Vec3<F>& operator /=(const F& k) { F k_inv = finv(k); x *= k_inv; y *= k_inv; z *= k_inv; return *this; }
+		inline Vec3<F> operator /(const Vec3<F>& v) const { return Vec3<F>(x / v.x, y / v.y, z / v.z); }
+		inline Vec3<F> operator /(const F& k) const { F k_inv = finv(k); return Vec3<F>(x * k_inv, y * k_inv, z * k_inv); }
+		inline Vec3<F>& operator /=(const Vec3<F>& v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
+		inline Vec3<F>& operator /=(const F& k) { F k_inv = finv(k); x *= k_inv; y *= k_inv; z *= k_inv; return *this; }
 
-		ILINE F Dot(const Vec3<F>& v) const
+		inline F Dot(const Vec3<F>& v) const
 		{
 			return x * v.x + y * v.y + z * v.z;
 		}
 
-		ILINE Vec3<F> Cross(const Vec3<F>& v) const
+		inline Vec3<F> Cross(const Vec3<F>& v) const
 		{
 			return Vec3<F>(y * v.z - z * v.y,
 				z * v.x - x * v.z,
 				x * v.y - y * v.x);
 		}
 
-		ILINE F Length() const
+		inline F Length() const
 		{
 			return sqrt_t(x * x + y * y + z * z);
 		}
 
-		ILINE F LengthSq() const
+		inline F LengthSq() const
 		{
 			return x * x + y * y + z * z;
 		}
 
-		ILINE Vec3<F> Normalized() const
+		inline Vec3<F> Normalized() const
 		{
 			F invLn = finv(Length());
 			return Vec3<F>(x * invLn, y * invLn, z * invLn);
 		}
 
-		ILINE Vec3<F>& CheckMin(const Vec3<F>& v)
+		inline Vec3<F>& CheckMin(const Vec3<F>& v)
 		{
 			if (v.x < x) x = v.x;
 			if (v.y < y) y = v.y;
@@ -110,7 +108,7 @@ namespace SpeedPoint
 			return *this;
 		}
 
-		ILINE Vec3<F>& CheckMax(const Vec3<F>& v)
+		inline Vec3<F>& CheckMax(const Vec3<F>& v)
 		{
 			if (v.x > x) x = v.x;
 			if (v.y > y) y = v.y;
@@ -118,7 +116,7 @@ namespace SpeedPoint
 			return *this;
 		}
 
-		ILINE operator SXYZ() const
+		inline operator SXYZ() const
 		{
 			SXYZ r;
 			r.x = x; r.y = y; r.z = z;
@@ -127,31 +125,31 @@ namespace SpeedPoint
 	};
 
 	template<typename F>
-	S_API ILINE F Vec3Dot(const Vec3<F>& v1, const Vec3<F>& v2)
+	S_API inline F Vec3Dot(const Vec3<F>& v1, const Vec3<F>& v2)
 	{
 		return v1.Dot(v2);
 	}
 
 	template<typename F>
-	S_API ILINE Vec3<F> Vec3Cross(const Vec3<F>& v1, const Vec3<F>& v2)
+	S_API inline Vec3<F> Vec3Cross(const Vec3<F>& v1, const Vec3<F>& v2)
 	{
 		return v1.Cross(v2);
 	}
 
 	template<typename F>
-	S_API ILINE Vec3<F> Vec3Normalize(const Vec3<F>& v)
+	S_API inline Vec3<F> Vec3Normalize(const Vec3<F>& v)
 	{
 		return v.Normalized();
 	}
 
 	template<typename F>
-	S_API ILINE F Vec3Length(const Vec3<F>& v)
+	S_API inline F Vec3Length(const Vec3<F>& v)
 	{
 		return v.Length();
 	}
 
 	template<typename F1, typename F2>
-	S_API ILINE Vec3<F2> operator *(F1 f, const Vec3<F2>& v) {
+	S_API inline Vec3<F2> operator *(F1 f, const Vec3<F2>& v) {
 		return v * f;
 	}
 
@@ -198,15 +196,15 @@ namespace SpeedPoint
 
 		// ---
 
-		ILINE SVector3& operator += (const SVector3& v) { this->x += v.x; this->y += v.y; this->z += v.z; return *this; }
+		inline SVector3& operator += (const SVector3& v) { this->x += v.x; this->y += v.y; this->z += v.z; return *this; }
 
-		ILINE SVector3& operator -= (const SVector3& v) { this->x -= v.x; this->y -= v.y; this->z -= v.z; return *this; }
+		inline SVector3& operator -= (const SVector3& v) { this->x -= v.x; this->y -= v.y; this->z -= v.z; return *this; }
 
-		ILINE SVector3& operator *= (const SVector3& v) { this->x *= v.x; this->y *= v.y; this->z *= v.z; return *this; }
+		inline SVector3& operator *= (const SVector3& v) { this->x *= v.x; this->y *= v.y; this->z *= v.z; return *this; }
 
-		ILINE SVector3& operator /= (const SVector3& v) { this->x /= v.x; this->y /= v.y; this->z /= v.z; return *this; }
+		inline SVector3& operator /= (const SVector3& v) { this->x /= v.x; this->y /= v.y; this->z /= v.z; return *this; }
 
-		ILINE SVector3 operator - () { return SVector3(-x, -y, -z); }
+		inline SVector3 operator - () { return SVector3(-x, -y, -z); }
 
 		// ---
 
@@ -221,7 +219,7 @@ namespace SpeedPoint
 		// ---
 
 		// Cross product with another vector
-		ILINE SVector3 Cross(const SVector3& o) const
+		inline SVector3 Cross(const SVector3& o) const
 		{
 			SVector3 res;
 			res.x = y * o.z - z * o.y;
@@ -231,31 +229,31 @@ namespace SpeedPoint
 		}
 
 		// Dot product with another vector
-		ILINE float Dot(const SVector3& o) const
+		inline float Dot(const SVector3& o) const
 		{
 			return x * o.x + y * o.y + z * o.z;
 		}
 
 		// Length of this vector
-		ILINE float Length() const
+		inline float Length() const
 		{
 			return sqrtf(x*x + y*y + z*z);
 		}
 
 		// Square of the length
-		ILINE float Square() const
+		inline float Square() const
 		{
 			return x*x + y*y + z*z;
 		}
 
-		ILINE void CheckMin(const SVector3& v)
+		inline void CheckMin(const SVector3& v)
 		{
 			if (v.x < x) x = v.x;
 			if (v.y < y) y = v.y;
 			if (v.z < z) z = v.z;
 		}
 
-		ILINE void CheckMax(const SVector3& v)
+		inline void CheckMax(const SVector3& v)
 		{
 			if (v.x > x) x = v.x;
 			if (v.y > y) y = v.y;
@@ -263,7 +261,7 @@ namespace SpeedPoint
 		}
 
 		// Get unit vector of this vector
-		ILINE SVector3& Normalize(float* pLength = 0)
+		inline SVector3& Normalize(float* pLength = 0)
 		{
 			float l = this->Length();
 			this->x /= l; this->y /= l; this->z /= l;
@@ -275,44 +273,44 @@ namespace SpeedPoint
 
 	typedef struct S_API SVector3 float3;
 
-	ILINE bool operator == (const SVector3& v1, const SVector3& v2) { return (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z); }
-	ILINE bool operator != (const SVector3& v1, const SVector3& v2) { return (v1.x != v2.x || v1.y != v2.y || v1.z != v2.z); }
-	ILINE SVector3 operator - (const SVector3& va, const SVector3& vb) { return SVector3(va.x - vb.x, va.y - vb.y, va.z - vb.z); }
-	ILINE SVector3 operator - (const SVector3& va, const float& f) { return SVector3(va.x - f, va.y - f, va.z - f); }
-	ILINE SVector3 operator - (const float& f, const SVector3& va) { return SVector3(va.x - f, va.y - f, va.z - f); }
-	ILINE SVector3 operator + (const SVector3& va, const SVector3& vb) { return SVector3(va.x + vb.x, va.y + vb.y, va.z + vb.z); }
-	ILINE SVector3 operator + (const SVector3& va, const float& f) { return SVector3(va.x + f, va.y + f, va.z + f); }
-	ILINE SVector3 operator + (const float& f, const SVector3& va) { return SVector3(va.x + f, va.y + f, va.z + f); }
-	ILINE SVector3 operator * (const SVector3& va, const SVector3& vb) { return SVector3(va.x * vb.x, va.y * vb.y, va.z * vb.z); }
-	ILINE SVector3 operator * (const SVector3& va, const float& f) { return SVector3(va.x * f, va.y * f, va.z * f); }
-	ILINE SVector3 operator * (const float& f, const SVector3& va) { return SVector3(va.x * f, va.y * f, va.z * f); }
-	ILINE SVector3 operator / (const SVector3& va, const SVector3& vb) { return SVector3(va.x / vb.x, va.y / vb.y, va.z / vb.z); }
-	ILINE SVector3 operator / (const SVector3& va, const float& f) { return SVector3(va.x / f, va.y / f, va.z / f); }
-	ILINE SVector3 operator / (const float& f, const SVector3& va) { return SVector3(va.x / f, va.y / f, va.z / f); }
+	inline bool operator == (const SVector3& v1, const SVector3& v2) { return (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z); }
+	inline bool operator != (const SVector3& v1, const SVector3& v2) { return (v1.x != v2.x || v1.y != v2.y || v1.z != v2.z); }
+	inline SVector3 operator - (const SVector3& va, const SVector3& vb) { return SVector3(va.x - vb.x, va.y - vb.y, va.z - vb.z); }
+	inline SVector3 operator - (const SVector3& va, const float& f) { return SVector3(va.x - f, va.y - f, va.z - f); }
+	inline SVector3 operator - (const float& f, const SVector3& va) { return SVector3(va.x - f, va.y - f, va.z - f); }
+	inline SVector3 operator + (const SVector3& va, const SVector3& vb) { return SVector3(va.x + vb.x, va.y + vb.y, va.z + vb.z); }
+	inline SVector3 operator + (const SVector3& va, const float& f) { return SVector3(va.x + f, va.y + f, va.z + f); }
+	inline SVector3 operator + (const float& f, const SVector3& va) { return SVector3(va.x + f, va.y + f, va.z + f); }
+	inline SVector3 operator * (const SVector3& va, const SVector3& vb) { return SVector3(va.x * vb.x, va.y * vb.y, va.z * vb.z); }
+	inline SVector3 operator * (const SVector3& va, const float& f) { return SVector3(va.x * f, va.y * f, va.z * f); }
+	inline SVector3 operator * (const float& f, const SVector3& va) { return SVector3(va.x * f, va.y * f, va.z * f); }
+	inline SVector3 operator / (const SVector3& va, const SVector3& vb) { return SVector3(va.x / vb.x, va.y / vb.y, va.z / vb.z); }
+	inline SVector3 operator / (const SVector3& va, const float& f) { return SVector3(va.x / f, va.y / f, va.z / f); }
+	inline SVector3 operator / (const float& f, const SVector3& va) { return SVector3(va.x / f, va.y / f, va.z / f); }
 
 	////////////
 	// Following vector manipulation methods were kept to prevent the rest of the source from being invalid
 	// As it takes a lot of work to change all those occurances of these functions, we'll do this later.
 
 	// TODO: Refactor all occurencies of following functions to the corresponding member functions
-	ILINE SVector3 SVector3Cross(const SVector3& va, const SVector3& vb)
+	inline SVector3 SVector3Cross(const SVector3& va, const SVector3& vb)
 	{
 		return SVector3(va.Cross(vb));
 	}
 
-	ILINE float SVector3Dot(const SVector3& va, const SVector3& vb)
+	inline float SVector3Dot(const SVector3& va, const SVector3& vb)
 	{
 		SVector3 a(va);
 		return a.Dot(vb);
 	}
 
-	ILINE float SVector3Length(const SVector3& v)
+	inline float SVector3Length(const SVector3& v)
 	{
 		SVector3 a(v);
 		return a.Length();
 	}
 
-	ILINE SVector3 SVector3Normalize(const SVector3& v)
+	inline SVector3 SVector3Normalize(const SVector3& v)
 	{
 		SVector3 a(v);
 		a.Normalize();

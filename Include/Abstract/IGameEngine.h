@@ -170,7 +170,9 @@ namespace SpeedPoint
 		ILINE virtual IMaterialManager* GetMaterialManager() const = 0;
 
 		virtual string GetShaderPath(EShaderFileType shaderFile) const = 0;
+		virtual string GetResourcePath(const string& file = "") const = 0;
 
+		virtual void LoadWorld(const string& file) = 0;
 		
 		// Summary:
 		//	Will start the framepipeline and call the Update() and Render() callback functions of IApplication impl

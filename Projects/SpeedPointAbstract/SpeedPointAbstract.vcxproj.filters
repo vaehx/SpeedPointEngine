@@ -238,6 +238,9 @@
     <ClInclude Include="..\..\Include\Abstract\PhysObject.h">
       <Filter>Headers\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Util\SerializationTools.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dummy.cpp">

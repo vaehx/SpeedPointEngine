@@ -41,6 +41,9 @@
     <ClInclude Include="..\..\Include\Implementation\GameFacilities\Scene.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\FileSPW.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\GameFacilities\Entity.cpp">
@@ -71,6 +74,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Implementation\GameFacilities\Scene.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\FileSPW.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

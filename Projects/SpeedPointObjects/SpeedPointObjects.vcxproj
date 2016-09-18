@@ -16,6 +16,7 @@
     <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationKey.h" />
     <ClInclude Include="..\..\Include\Implementation\GameFacilities\AnimationSequence.h" />
     <ClInclude Include="..\..\Include\Implementation\GameFacilities\Entity.h" />
+    <ClInclude Include="..\..\Include\Implementation\GameFacilities\FileSPW.h" />
     <ClInclude Include="..\..\Include\Implementation\GameFacilities\Octree.h" />
     <ClInclude Include="..\..\Include\Implementation\GameFacilities\OctreeNode.h" />
     <ClInclude Include="..\..\Include\Implementation\GameFacilities\PhysicalComponent.h" />
@@ -24,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Implementation\GameFacilities\Entity.cpp" />
+    <ClCompile Include="..\..\Source\Implementation\GameFacilities\FileSPW.cpp" />
     <ClCompile Include="..\..\Source\Implementation\GameFacilities\PhysicalComponent.cpp" />
     <ClCompile Include="..\..\Source\Implementation\GameFacilities\RenderableComponent.cpp" />
     <ClCompile Include="..\..\Source\Implementation\GameFacilities\SBasicAnimationBundle.cpp" />

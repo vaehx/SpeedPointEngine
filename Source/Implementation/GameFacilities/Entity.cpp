@@ -191,6 +191,9 @@ S_API void CEntity::AddComponentIntrl(IComponent* pComponent, bool managed /*=fa
 
 	if (managed)
 		m_ManagedComponents.push_back(pComponent);
+
+	// Trigger transform update
+	pComponent->OnEntityTransformed();
 }
 
 S_API bool CEntity::HasComponent(IComponent* pComponent) const

@@ -21,6 +21,7 @@
 #include <Implementation\3DEngine\C3DEngine.h>
 #include <Physics\CPhysics.h>
 #include <Abstract\SAssert_Impl.h>
+#include <Implementation\GameFacilities\FileSPW.h>
 
 SP_NMSPACE_BEG
 
@@ -147,6 +148,11 @@ m_pApplication(nullptr)
 
 	m_pSettings = new EngineSettings();
 	m_pSettings->Initialize(this);
+	
+	char execPath[200];
+	GetModuleFileName(NULL, execPath, 200);
+
+	m_pSettings->Get().resources.rootDir = execPath;
 }
 
 // ----------------------------------------------------------------------------------
@@ -437,6 +443,33 @@ S_API SResult SpeedPointEngine::InitializeScene(IScene* pScene)
 	return S_SUCCESS;
 }
 
+// ----------------------------------------------------------------------------------
+S_API void SpeedPointEngine::LoadWorld(const string& file)
+{
+	SSettingsDesc& settings = GetSettings()->Get();
+
+	size_t lastDelim = file.find_last_of('\\');
+	if (lastDelim == file.npos)
+	{
+		settings.resources.rootDir = "";
+		settings.resources.worldFile = file;
+	}
+	else
+	{
+		settings.resources.rootDir = file.substr(0, lastDelim);
+		settings.resources.worldFile = file.substr(lastDelim);
+	}
+
+	GetScene()->Clear();
+	GetScene()->Initialize(this);
+
+	Get3DEngine()->ClearRenderMeshes();
+	Get3DEngine()->ClearRenderLights();
+	Get3DEngine()->ClearTerrain();
+
+	CSPWLoader loader;
+	loader.Load(file);
+}
 
 // ----------------------------------------------------------------------------------
 S_API string SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile) const
@@ -480,6 +513,16 @@ S_API string SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile) const
 	return path;
 }
 
+// ----------------------------------------------------------------------------------
+S_API string SpeedPointEngine::GetResourcePath(const string& file) const
+{
+	ISettings* pSettings = GetSettings();
+	if (!pSettings)
+		return file;
+
+	string& rootDir = pSettings->Get().resources.rootDir;
+	return rootDir + ((rootDir.empty() || file.empty()) ? "" : "\\") + file;
+}
 
 
 

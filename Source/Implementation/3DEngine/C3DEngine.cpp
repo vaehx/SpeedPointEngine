@@ -58,6 +58,8 @@ S_API void C3DEngine::Clear()
 		delete m_pTerrain;
 
 	m_pTerrain = 0;
+
+	m_GeoMgr.Clear();
 }
 
 S_API void C3DEngine::ClearHelperPrefabs()
