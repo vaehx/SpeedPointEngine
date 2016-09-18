@@ -167,6 +167,8 @@ S_API void SpeedPointEngine::Shutdown(void)
 {
 	m_bRunning = false;
 
+	m_pApplication = 0;
+
 	// Handle all shutdown handlers first	
 	unsigned int nHandled = m_ShutdownHandlers.size();
 	for (auto itShutdownHandler = m_ShutdownHandlers.begin(); itShutdownHandler != m_ShutdownHandlers.end();)
