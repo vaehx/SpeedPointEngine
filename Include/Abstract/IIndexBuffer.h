@@ -78,7 +78,7 @@ public:
 	virtual SResult Lock( UINT iBegin, UINT iLength, void** buf ) = 0;		
 
 	// Fill the Hardware Index Buffer with an array of indices
-	virtual SResult Fill( void* indices, unsigned long nIndices_, bool append ) = 0;
+	virtual SResult Fill( const void* indices, unsigned long nIndices_, bool append ) = 0;
 
 	// Unlock the Hardware Index Buffer
 	virtual SResult Unlock( void ) = 0;

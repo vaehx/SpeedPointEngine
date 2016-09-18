@@ -268,7 +268,7 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, 
 
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Fill(void* Indices, unsigned long nIndices_, bool bAppend)
+S_API SResult DirectX11IndexBuffer::Fill(const void* Indices, unsigned long nIndices_, bool bAppend)
 {
 	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(Indices, S_INVALIDPARAM);

@@ -79,7 +79,7 @@ public:
 	virtual SResult Resize(unsigned long nNewSize);	
 	virtual SResult Lock(UINT iBegin, UINT iLength, void** buf, EIBLockType lockType);
 	virtual SResult Lock(UINT iBegin, UINT iLength, void** buf);	
-	virtual SResult Fill(void* pIndices, unsigned long nIndices, bool append);	
+	virtual SResult Fill(const void* pIndices, unsigned long nIndices, bool append);
 	virtual SResult Unlock(void);	
 	virtual void* GetShadowBuffer(void);	
 	virtual SIndex* GetIndex(unsigned long iIndex);	
