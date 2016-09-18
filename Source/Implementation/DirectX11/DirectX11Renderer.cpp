@@ -90,6 +90,8 @@ m_bInScene(false),
 m_bDumpFrame(false),
 m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
 {
+	for (int i = 0; i < NUM_SHADERPASS_TYPES; ++i)
+		m_Passes[i] = 0;
 };
 
 // --------------------------------------------------------------------
@@ -749,9 +751,12 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 	{
 		if (m_Passes[i])
 		{
-			m_Passes[i]->Clear();
-			delete m_Passes[i];
-			m_Passes[i] = 0;
+			if (m_Passes[i])
+			{
+				m_Passes[i]->Clear();
+				delete m_Passes[i];
+				m_Passes[i] = 0;
+			}
 		}
 	}
 
