@@ -209,7 +209,7 @@ S_API SResult FramePipeline::ExecuteSections(usint32 iSkippedSections)
 	m_FrameDebugInfo.frameTimer.Start();
 
 	// Application specific frame updates
-	m_pEngine->GetApplication()->Update((float)m_pdLastFrameDuration->count());
+	m_pEngine->GetApplication()->Update((float)m_FrameDebugInfo.lastFrameDuration);
 
 	m_FrameDebugInfo.budgetTimerIndent = 0;
 	unsigned int frameBudgetTimer = StartBudgetTimer("FramePipeline::ExecuteSections()");
