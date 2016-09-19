@@ -461,7 +461,7 @@ S_API SInitialGeometryDesc* CGeometryManager::LoadGeometry(const string& file)
 
 	// Actually load the model:
 	CSPMLoader spmLoader;
-	if (!spmLoader.Load(file.c_str(), true))
+	if (!spmLoader.Load(file.c_str()))
 	{
 		CLog::Log(S_ERROR, "Failed to load object file '%s'", file.c_str());
 		return 0;
