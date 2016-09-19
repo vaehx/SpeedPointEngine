@@ -57,7 +57,7 @@ struct VS_OUTPUT
     float2 TexCoord : TEXCOORD3;
 };
 
-VS_OUTPUT VS_forward(VS_INPUT IN)
+VS_OUTPUT VS_zpass(VS_INPUT IN)
 {
     VS_OUTPUT OUT;        
 
@@ -78,18 +78,6 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
     OUT.Color = IN.Color;
     
     return OUT;
-}
-
-VS_OUTPUT VS_illum(VS_INPUT IN)
-{
-	VS_OUTPUT OUT;
-	OUT.WorldPos = float3(0, 0, 0);
-	OUT.Position = float4(0, 0, 0, 0);
-	OUT.Normal = float3(0, 0, 0);
-	OUT.Tangent = float3(0, 0, 0);
-	OUT.TexCoord = float2(0, 0);
-	OUT.Color = float3(0, 0, 0);
-	return OUT;
 }
 
 // ---------------------------------------------------------
@@ -154,7 +142,7 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
 //
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-PS_OUTPUT PS_forward(PS_INPUT IN)
+PS_OUTPUT PS_zpass(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
 	//OUT.Color = textureMap.Sample(TextureMapSampler, IN.TexCoord);
@@ -198,11 +186,4 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     
     OUT.Color = float4(LOut.r, LOut.g, LOut.b, 1.0f);
     return OUT;
-}
-
-PS_OUTPUT PS_illum(PS_INPUT IN)
-{
-	PS_OUTPUT OUT;
-	OUT.Color = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	return OUT;
 }
