@@ -21,7 +21,7 @@
 #include "BoundBox.h"
 
 #include "Math.h"
-#define FLOAT_TOLERANCE FLT_EPSILON
+#define FLOAT_TOLERANCE 0.00001f
 
 #include <xmmintrin.h>
 
@@ -1200,7 +1200,7 @@ inline bool IntersectLineTriangle(const SLineSegment& line, const SMeshVertex& v
 
 // plane.n is assumed to be normalized, i.e. Vec3Length(plane) == 1.0f
 inline Vec3f GetFootOnPlane(const SPlane& plane, const SPoint& point)
-{	
+{
 	float dist = (Vec3Dot(plane.n, point) - plane.d);
 
 	return point - plane.n * dist;
@@ -2076,6 +2076,7 @@ struct SContactInfo
 
 
 	SLineSegment closestEdge; //? DEBUGGING
+	u16 faceId; //? DEBUGGING
 	std::string desc; //? DEBUGGING: Description text
 };
 
@@ -2150,8 +2151,8 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 	Vec3f foot2 = GetFootOnPlane(plane, SPoint(capsule.p2));
 	bool capInt2 = IntersectTrianglePoint(vtx1, vtx2, vtx3, foot2, 0, 0, &plane);
 	float distSq2 = (foot2 - capsule.p2).LengthSq();
-	capInt2 = (distSq2 < maxRadiusSq);
-	if (capInt2 && !(capInt1 && distSq2 < distSq1))
+	capInt2 = capInt2 && (distSq2 < maxRadiusSq);
+	if (capInt2 && !(capInt1 && distSq1 < distSq2))
 	{
 		contact.intersection = true;
 
@@ -2175,7 +2176,7 @@ inline bool IntersectTriangleCapsuleEx(const SMeshVertex& vtx1, const SMeshVerte
 
 	// Find the closest capsule-linesegment <-> edge pair
 	int minEdge = -1;
-	float minDistSq = 0.f;
+	float minDistSq = FLT_MAX;
 	Vec3f p1, p2; // closest points on the line segments
 	for (int i = 0; i < 3; ++i)
 	{
@@ -2310,9 +2311,11 @@ inline bool IntersectMeshCapsule(const SMesh& mesh, const SCapsule& capsule, vec
 		SContactInfo tmpContact;
 		if (IntersectTriangleCapsuleEx(pMeshFace->vtx[0], pMeshFace->vtx[1], pMeshFace->vtx[2], capsule, tmpContact, interpenetrationTolerance))
 		{
+			tmpContact.faceId = pMeshFace->id;
+
 			contacts.push_back(tmpContact);
 			intersection = true;
-			
+
 			if (tmpContact.interpenetration)
 				interpenetration = true;
 		}
