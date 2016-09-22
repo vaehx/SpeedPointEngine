@@ -394,6 +394,8 @@ S_API void C3DEngine::RenderMeshes()
 					CLog::Log(S_DEBUG, "Rendering %s", pMesh->_name.c_str());
 #endif
 
+				pMesh->OnRender();
+
 				SRenderDesc* rd = pMesh->GetRenderDesc();
 				m_pRenderer->Render(*rd);
 

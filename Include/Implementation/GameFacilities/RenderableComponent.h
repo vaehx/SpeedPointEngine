@@ -30,6 +30,10 @@ public:
 	virtual void OnRelease();
 	virtual void OnEntityTransformed();
 
+	// CRenderMesh:
+public:
+	virtual void OnRender();
+
 
 	/*
 	// IRenderableComponent:

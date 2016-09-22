@@ -98,8 +98,7 @@ S_API void Material::Clear()
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-S_API MaterialManager::MaterialManager(IResourcePool* pResourcePool)
-	: m_pResourcePool(pResourcePool)
+S_API MaterialManager::MaterialManager()
 {
 	SShaderResources& resources = m_DefMat.GetLayer(0)->resources;
 	//resources.textureMap = ...;
@@ -110,6 +109,8 @@ S_API void MaterialManager::LoadMaterialBank(const string& smbFile)
 {
 	vector<SSMBMaterial> loadedMaterials;
 	CSMBLoader smbLoader;
+
+	IResourcePool* pResources = SpeedPointEnv::GetEngine()->GetResources();
 	
 	smbLoader.ReadSMBFile(smbFile.c_str(), loadedMaterials);
 	for (auto& itMaterial = loadedMaterials.begin(); itMaterial != loadedMaterials.end(); ++itMaterial)
@@ -118,12 +119,12 @@ S_API void MaterialManager::LoadMaterialBank(const string& smbFile)
 		SShaderResources& resources = pNewMat->GetLayer(0)->resources;		
 		resources.roughness = itMaterial->roughness;
 		resources.diffuse = itMaterial->diffuse;
-		resources.emissive = itMaterial->emissive;		
+		resources.emissive = itMaterial->emissive;
 
-		if (IS_VALID_PTR(m_pResourcePool))
+		if (IS_VALID_PTR(pResources))
 		{			
-			resources.textureMap = m_pResourcePool->GetTexture(itMaterial->textureMap);
-			resources.normalMap = m_pResourcePool->GetTexture(itMaterial->normalMap);
+			resources.textureMap = pResources->GetTexture(itMaterial->textureMap);
+			resources.normalMap = pResources->GetTexture(itMaterial->normalMap);
 			
 			
 			// TODO: Copy further material properties and textures
@@ -131,11 +132,14 @@ S_API void MaterialManager::LoadMaterialBank(const string& smbFile)
 				
 
 		}
+
+		CLog::Log(S_DEBUG, "Loaded material '%s'", itMaterial->name.c_str());
+		CLog::Log(S_DEBUG, "  textureMap = '%s'", itMaterial->textureMap.c_str());
 	}
 
-	if (!IS_VALID_PTR(m_pResourcePool))
+	if (!IS_VALID_PTR(pResources))
 	{
-		CLog::Log(S_ERROR, "Unable to load textures for materials of material bank file '%s'! Resource pool invalid", smbFile);
+		CLog::Log(S_ERROR, "Unable to load textures for materials of material bank file '%s'! Resource pool invalid", smbFile.c_str());
 	}
 }
 

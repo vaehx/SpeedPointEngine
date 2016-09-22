@@ -66,14 +66,17 @@ S_API void CRenderableComponent::OnRelease()
 }
 
 // -----------------------------------------------------------------------------------------------------
-S_API void CRenderableComponent::OnEntityTransformed()
+S_API void CRenderableComponent::OnRender()
 {
 	if (!m_pEntity)
 		return;
 
-	//TODO: Do not update the transform here immediately to support multithreading!
-
 	m_RenderDesc.transform = m_pEntity->GetTransform();
+}
+
+// -----------------------------------------------------------------------------------------------------
+S_API void CRenderableComponent::OnEntityTransformed()
+{
 }
 
 SP_NMSPACE_END

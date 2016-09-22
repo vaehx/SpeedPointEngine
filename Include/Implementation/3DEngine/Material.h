@@ -53,13 +53,12 @@ class S_API MaterialManager : public IMaterialManager
 private:
 	ChunkedObjectPool<Material> m_Materials;
 	Material m_DefMat;
-	IResourcePool* m_pResourcePool;
 
 	// Returns 0 if not found in contrast to GetMaterial() which would return a new object
 	Material* FindMaterial(const string& name);
 
 public:
-	MaterialManager(IResourcePool* pResourcePool);
+	MaterialManager();
 
 	virtual void LoadMaterialBank(const string& smbFile);
 

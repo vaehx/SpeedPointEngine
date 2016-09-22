@@ -461,9 +461,10 @@ S_API SInitialGeometryDesc* CGeometryManager::LoadGeometry(const string& file)
 
 	// Actually load the model:
 	CSPMLoader spmLoader;
-	if (!spmLoader.Load(file.c_str()))
+	string filepath = SpeedPointEnv::GetEngine()->GetResourcePath(file);
+	if (!spmLoader.Load(filepath.c_str()))
 	{
-		CLog::Log(S_ERROR, "Failed to load object file '%s'", file.c_str());
+		CLog::Log(S_ERROR, "Failed to load object file '%s'", filepath.c_str());
 		return 0;
 	}
 

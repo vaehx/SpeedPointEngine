@@ -141,7 +141,11 @@ struct S_API IEntity
 	ILINE virtual const char* GetName() const = 0;
 	ILINE virtual void SetName(const char* name) = 0;
 
-	ILINE virtual const SMatrix& GetTransform() = 0;
+	ILINE virtual Mat44 GetTransform() = 0;
+
+	ILINE virtual Vec3f GetLeft() const = 0;
+	ILINE virtual Vec3f GetForward() const = 0;
+	ILINE virtual Vec3f GetUp() const = 0;
 
 	ILINE virtual AABB GetAABB() = 0;
 	ILINE virtual AABB GetWorldAABB() = 0;
@@ -199,6 +203,16 @@ struct S_API IEntity
 
 		return 0;
 	}
+
+
+	ILINE virtual void AddChild(IEntity* pEntity) = 0;
+	
+	// Deallocation will be handled by this entity!
+	ILINE virtual IEntity* CreateChild() = 0;
+
+	ILINE virtual void RemoveChild(IEntity* pEntity) = 0;
+	ILINE virtual IEntity* GetParent() const = 0;
+
 
 	ILINE virtual void Clear() = 0;
 

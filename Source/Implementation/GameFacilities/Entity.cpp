@@ -29,13 +29,32 @@ S_API IComponent::~IComponent()
 //////////////////////////////////////////////////////////////////////////////////
 
 S_API CEntity::CEntity()
-	: m_bTransformInvalid(true),
+	: m_pParent(0),
+	m_bTransformInvalid(true),
 	m_Scale(1.0f)
 {
 }
 
 S_API void CEntity::Clear()
 {
+	for (auto itChild = m_Childs.begin(); itChild != m_Childs.end(); ++itChild)
+	{
+		CEntity* pChild = static_cast<CEntity*>(itChild->pEntity);
+		if (pChild)
+		{
+			pChild->SetParent(0);
+			if (itChild->dealloc)
+				delete pChild;
+		}
+	}
+	m_Childs.clear();
+
+	if (m_pParent)
+		m_pParent->RemoveChild(this);
+	m_pParent = 0;
+
+
+
 	// We need to clear this first, otherwise Component::Release() will call Entity::ReleaseComponent()
 	// which will delete the element in the list during the loop
 
@@ -60,6 +79,71 @@ S_API void CEntity::Clear()
 		}
 	}
 	m_ManagedComponents.clear();
+}
+
+// ----------------------------------------------------------------------------------------------------------
+
+S_API void CEntity::SetParent(IEntity* pParent)
+{
+	m_pParent = pParent;
+}
+
+S_API IEntity* CEntity::GetParent() const
+{
+	return m_pParent;
+}
+
+S_API void CEntity::AddChild(IEntity* pEntity)
+{
+	CEntity* pEntityImpl = static_cast<CEntity*>(pEntity);
+	if (!pEntityImpl)
+		return;
+
+	for (auto itChild = m_Childs.begin(); itChild != m_Childs.end(); ++itChild)
+	{
+		if (itChild->pEntity == pEntity)
+			return;
+	}
+
+	SChildEntity child;
+	child.pEntity = pEntity;
+	child.dealloc = false;
+	m_Childs.push_back(child);
+
+	pEntityImpl->SetParent(this);
+}
+
+S_API IEntity* CEntity::CreateChild()
+{
+	CEntity* pEntity = new CEntity();
+	pEntity->SetParent(this);
+
+	SChildEntity child;
+	child.pEntity = pEntity;
+	child.dealloc = true;
+	m_Childs.push_back(child);
+
+	return pEntity;
+}
+
+S_API void CEntity::RemoveChild(IEntity* pEntity)
+{
+	CEntity* pEntityImpl = static_cast<CEntity*>(pEntity);
+	if (!pEntityImpl)
+		return;
+
+	for (auto itChild = m_Childs.begin(); itChild != m_Childs.end(); ++itChild)
+	{
+		if (itChild->pEntity == pEntity)
+		{
+			pEntityImpl->SetParent(0);
+			if (itChild->dealloc)
+				delete pEntityImpl;
+
+			m_Childs.erase(itChild);
+			return;
+		}
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------------
@@ -105,7 +189,7 @@ S_API void CEntity::SetRotation(const Quat& rotation)
 
 S_API void CEntity::Rotate(const Quat& rotate)
 {
-	SetRotation(GetRotation() * rotate);
+	SetRotation(rotate * GetRotation());
 }
 
 S_API const Vec3f& CEntity::GetScale() const
@@ -129,7 +213,7 @@ S_API void CEntity::SetPivot(const Vec3f& pivot)
 	OnEntityTransformed();
 }
 
-S_API const SMatrix& CEntity::GetTransform()
+S_API Mat44 CEntity::GetTransform()
 {
 	if (m_bTransformInvalid)
 	{
@@ -139,9 +223,29 @@ S_API const SMatrix& CEntity::GetTransform()
 		transform.scale = SMatrix::MakeScaleMatrix(m_Scale);
 		transform.preRotation = SMatrix::MakeTranslationMatrix(-m_Pivot);
 		m_Transform = transform.BuildTRS();
+
+		m_bTransformInvalid = false;
 	}
 
-	return m_Transform;
+	if (m_pParent)
+		return m_pParent->GetTransform() * m_Transform;
+	else
+		return m_Transform;
+}
+
+S_API Vec3f CEntity::GetLeft() const
+{
+	return m_Rot * Vec3f(1.0f, 0, 0);
+}
+
+S_API Vec3f CEntity::GetForward() const
+{
+	return m_Rot * Vec3f(0, 0, 1.0f);
+}
+
+S_API Vec3f CEntity::GetUp() const
+{
+	return m_Rot * Vec3f(0, 1.0f, 0);
 }
 
 // ----------------------------------------------------------------------------------------------------------

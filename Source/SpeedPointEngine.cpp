@@ -462,6 +462,8 @@ S_API void SpeedPointEngine::LoadWorld(const string& file)
 		settings.resources.worldFile = file.substr(lastDelim);
 	}
 
+	CLog::Log(S_DEBUG, "rootDir := '%s'", settings.resources.rootDir.c_str());
+
 	GetScene()->Clear();
 	GetScene()->Initialize(this);
 

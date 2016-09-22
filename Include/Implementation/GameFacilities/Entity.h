@@ -7,6 +7,12 @@ using std::vector;
 
 SP_NMSPACE_BEG
 
+struct SChildEntity
+{
+	IEntity* pEntity;
+	bool dealloc;
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -17,6 +23,8 @@ SP_NMSPACE_BEG
 class S_API CEntity : public IEntity
 {
 private:
+	IEntity* m_pParent;
+	vector<SChildEntity> m_Childs;
 	vector<IComponent*> m_Components;
 
 	// List of components that will be destructed by the entity
@@ -32,6 +40,7 @@ private:
 	SMatrix m_Transform;
 
 	void OnEntityTransformed();
+	void SetParent(IEntity* pEntity);
 
 protected:
 	ILINE virtual void AddComponentIntrl(IComponent* pComponent, bool managed = false);
@@ -58,7 +67,11 @@ public:
 	ILINE virtual const char* GetName() const;
 	ILINE virtual void SetName(const char* name);
 
-	ILINE virtual const SMatrix& GetTransform();
+	ILINE virtual Mat44 GetTransform();
+
+	ILINE virtual Vec3f GetLeft() const;
+	ILINE virtual Vec3f GetForward() const;
+	ILINE virtual Vec3f GetUp() const;
 
 	ILINE virtual AABB GetAABB();
 	ILINE virtual AABB GetWorldAABB();
@@ -67,6 +80,11 @@ public:
 	ILINE virtual void ReleaseComponent(IComponent* pComponent);
 	ILINE virtual unsigned int GetNumComponents() const;
 	ILINE virtual IComponent* GetComponentByIndex(unsigned int index) const;
+
+	ILINE virtual void AddChild(IEntity* pEntity);
+	ILINE virtual IEntity* CreateChild();
+	ILINE virtual void RemoveChild(IEntity* pEntity);
+	ILINE virtual IEntity* GetParent() const;
 };
 
 

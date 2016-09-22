@@ -314,19 +314,30 @@ ESMBReadResult CSMBLoader::ReadUntilClosingBracket(int counterStart /*= 0*/)
 //	eSMBREAD_EMPTY if the end of file was reached and no more chunk parameters where loaded.
 ESMBReadResult CSMBLoader::GetNextChunkHeader(vector<string> &chunkHeaderParams)
 {
-	vector<char> keyChars = { ' ', '{', '\t', '\n' };
-	vector<char> skipChars = { '\'', '"' };
+	vector<char> keyChars = { ' ', '\'', '{', '\t', '\n' };
+	vector<char> skipChars = {  };
 	while (!IsEOF())
 	{
 		string buf;
 		char foundChar;
 		ESMBReadResult result = ReadUntilNext(keyChars, &foundChar, &buf, &skipChars);
-		if (result == eSMBREAD_OK)
+		if (result == eSMBREAD_OK || result == eSMBREAD_EMPTY)
 		{
-			if (foundChar == ' ' || foundChar == '\t' || foundChar == '\n')
-				chunkHeaderParams.push_back(buf);
+			if (foundChar == '\'' || foundChar == '"')
+			{
+				string strbuf;
+				result = ReadUntilNext(foundChar, &strbuf);
+				if (result == eSMBREAD_OK)
+					chunkHeaderParams.push_back(strbuf);
+			}
+			else if (foundChar == ' ' || foundChar == '\t' || foundChar == '\n')
+			{
+				if (!buf.empty())
+					chunkHeaderParams.push_back(buf);
+			}
 		}
-		else if (foundChar == '{')
+		
+		if (foundChar == '{')
 		{
 			return eSMBREAD_OK;
 		}

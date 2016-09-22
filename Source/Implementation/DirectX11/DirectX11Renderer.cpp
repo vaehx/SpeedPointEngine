@@ -1966,6 +1966,13 @@ S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
 }
 
 // --------------------------------------------------------------------
+S_API void DirectX11Renderer::SetSunPosition(const Vec3f& pos)
+{
+	m_SceneConstants.GetConstants()->sunPosition = float4(pos.x, pos.y, pos.z);
+	m_SceneConstants.Update();
+}
+
+// --------------------------------------------------------------------
 S_API SResult DirectX11Renderer::UpdateRasterizerState()
 {	
 	SP_SAFE_RELEASE(m_pRSState);

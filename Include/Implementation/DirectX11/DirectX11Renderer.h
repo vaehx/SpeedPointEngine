@@ -392,7 +392,7 @@ public:
 	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false);
 
 	virtual SSceneConstants* GetSceneConstants() const;
-
+	virtual void SetSunPosition(const Vec3f& pos);
 
 
 	/*

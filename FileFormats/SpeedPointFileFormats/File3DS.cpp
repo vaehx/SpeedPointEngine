@@ -352,6 +352,7 @@ void File3DS::ReadTriangledObjectChunk(S3DSNamedObject& obj)
 			{
 				ReadFloat(obj.pVertices[i].u);
 				ReadFloat(obj.pVertices[i].v);
+				DbgMsg("  (%.2f,%.2f)", obj.pVertices[i].u, obj.pVertices[i].v);
 			}
 			DbgMsg("CHUNK3DS_UV_ARRAY (sz=%u): Read %u TexCoords!", curChnk.byte_size, nTexCoords);
 			break;
