@@ -70,19 +70,18 @@ struct S_API SLoadedCubemapSide
 };
 
 
-class S_API DirectX11Texture : ITexture
+class S_API DirectX11Texture : public ITexture
 {
 private:
 	string	m_Specification;
-	IGameEngine* m_pEngine;
 	ETextureType m_Type;
 	bool m_bDynamic;
 	bool m_bStaged;
 	ID3D11Texture2D* m_pDXTexture;
 	D3D11_TEXTURE2D_DESC m_DXTextureDesc;
-	DirectX11Renderer* m_pDXRenderer;
 	ID3D11ShaderResourceView* m_pDXSRV;
 
+	bool m_bIsCubemap;
 	bool m_bLocked;
 	void* m_pLockedData;
 	unsigned int m_nLockedBytes;
@@ -91,36 +90,39 @@ private:
 
 public:		
 	DirectX11Texture();
-	DirectX11Texture(const DirectX11Texture& o);
 
 	~DirectX11Texture();
 	
 
-	virtual SResult Initialize(IGameEngine* pEngine, const string& spec);	
-	virtual SResult Initialize(IGameEngine* pEngine, const string& spec, bool bDynamic, bool bStaged);
+	// Initialization
+public:
+	virtual SResult LoadFromFile(const string& specification, const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0);
+	virtual SResult LoadCubemapFromFile(const string& specification, const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0);
+	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
+	virtual SResult Clear(void);
 
-	virtual bool IsStaged() const { return m_bStaged; }
 
-	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const;
-	virtual SResult SampleStagedBilinear(Vec2f texcoords, void* pData) const;
-
-	virtual void* GetStagedData() { return m_pStagedData; }
-	
-	virtual SResult LoadFromFile(unsigned int w, unsigned int h, int mipLevels, const char* cFileName);
-	virtual SResult LoadCubemapFromFile(unsigned int singleW, unsigned int singleH, const char* baseName);
-	virtual SResult CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor);	
+	// Status queries
+public:
 	virtual const string& GetSpecification(void) const;
+	virtual ETextureType GetType(void);
+	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);
 
+	virtual bool IsInitialized() const;
+	virtual bool IsDynamic() const { return m_bDynamic; }
+	virtual bool IsStaged() const { return m_bStaged; }
+	virtual bool IsCubemap() const { return IsInitialized() && m_bIsCubemap; }
+
+
+	// Data access and manipulation
+public:
 	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0);
 	virtual SResult Unlock();
 
 	virtual SResult Fill(SColor color);
-
-	// ----
-	
-	virtual ETextureType GetType(void);	
-	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);	
-	virtual SResult Clear(void);
+	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const;
+	virtual SResult SampleStagedBilinear(Vec2f texcoords, void* pData) const;
+	virtual void* GetStagedData();
 
 
 	// DX
@@ -131,11 +133,11 @@ public:
 
 private:
 	static size_t BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC);
-	static void GetCubemapImageName(SString& name, ECubemapSide side);
+	static void GetCubemapImageName(string& name, ECubemapSide side);
 	static unsigned int GetDXCubemapArraySlice(ECubemapSide side);
 
 	// If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen. w and h reference values will be updated with the actual sizes
-	SResult LoadTextureImage(const char* cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedFormat);
+	SResult LoadTextureImage(const string& cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedFormat);
 };
 
 SP_NMSPACE_END

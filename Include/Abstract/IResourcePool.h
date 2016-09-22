@@ -10,6 +10,7 @@
 #pragma once
 
 #include <SPrerequisites.h>
+#include <Abstract\ITexture.h>
 #include <string>
 #include <vector>
 
@@ -21,13 +22,10 @@ using std::vector;
 struct S_API IGameEngine;
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
-struct S_API ITexture;
-enum S_API ETextureType;
 struct S_API IRenderer;
 struct S_API SColor;
 struct S_API SMaterial;
 
-// SpeedPoint Resource Pool (abstract)
 struct S_API IResourcePool
 {
 public:
@@ -53,32 +51,43 @@ public:
 
 
 	// Summary:
-	//		Makes sure the given texture file is loaded from disk
-	//		If there is already a texture loaded with the same filename, the arguments are ignored and the existing pointer is returned.
-	//		If the texture is streamed, the function will still return a pointer to an existing texture object.
-	//		If the texture is loaded immediately and the texture could not be loaded, this function returns NULL!
-	// Arguments:
-	//		specification - the specification of the texture
-	//		file - the path of the file relative to the resource base directory. If you don't need an extra specification, leave this empty, so the specification will be used as the file name
-	//		w, h - desired pixel size. If w or h equals 0, the actual image size is used and no scaling is performed. If image size does not equal this size, a scale is performed.
-	virtual SResult LoadTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0, bool bDynamic = false, bool bStaged = false) = 0;
-	
-	// Summary:
-	//		Makes sre the given cube texture is loaded from disk
-	//		If given, pTex will always be set to a valid pointer to an existing texture instance, although it may not be loaded yet.
-	// Arguments:
-	//		file - the name/path of the texture file relative to the set resource base path:   "assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp"
-	virtual SResult LoadCubeTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0) = 0;
+	//		Adds an empty (dynamic) texture to the pool that can be modified later.
+	// Parameters:
+	//		specification - The texture specification. Should not be a filename.
+	//		clearcolor - color to initialize the texture with
+	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT miplevels = 1, const ETextureType& ty = eTEXTURE_R8G8B8A8_UNORM, const SColor& clearcolor = SColor()) = 0;
 
-	// Arguments:
-	//	- clearcolor: Texture gets filled with this color. If type is depth map, clearcolor.r is used.
-	virtual SResult AddTexture(const string& spec, ITexture** pTex, UINT w, UINT h, const ETextureType& ty, const SColor& clearcolor, bool bDynamic = false, bool bStaged = false) = 0;
-	
-	// Returns the texture object with the given specification. This will always be a valid pointer.
+	// Summary:
+	//		Returns a pointer to the texture object with the given specification.
+	// Description:
+	//		If the specification is known, the pointer to the existing texture is returned.
+	//		Otherwise, the texture is attempted to be loaded from disk during this call.
+	//			- The loaded texture will then be non-dynamic and not staged.
+	//			- No scaling of the texture will happen.
+	//		If the texture could not be loaded, a pointer to a texture object is returned,
+	//		which is not loaded (cleared).
+	// Parameters:
+	//		specification - either the specification/filename of an existing texture or the filename to be loaded
 	virtual ITexture* GetTexture(const string& specification) = 0;
 
-	// *pTex gets set to nullptr if removal succeeded
+	// Summary:
+	//		Returns a pointer to the cube texture with given file name and loads
+	//		it if it wasn't loaded yet.
+	// Parameters:
+	//		file - the name/path of the texture file relative to the set resource base path:   "assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp"
+	virtual ITexture* GetCubeTexture(const string& file) = 0;
+
+	// Summary:
+	//		Removes the given texture from memory
+	//		Pointers to this texture will NOT be invalided, but the texture object will be
+	//		cleared and reused later, if the same specification will be used again.
+	virtual SResult RemoveTexture(const string& specification) = 0;
+
+	// Summary:
+	//		Removs the given texture from memory and sets *pTex to nullptr
 	virtual SResult RemoveTexture(ITexture** pTex) = 0;
+
+
 
 	// Warning: The parameter of for each Handle() points to a ptr of ITexture which is destroyed
 	// after Handle() returns.

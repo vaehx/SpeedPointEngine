@@ -224,7 +224,7 @@ ITexture* LoadRawTexture(const string& file, ETextureType type)
 	stream.read((char*)&bitsPerPixel, sizeof(unsigned int));
 
 	ITexture* pTex;
-	if (Failure(pResources->AddTexture(file, &pTex, sz[0], sz[1], type, SColor(), true, true)))
+	if (Failure(pResources->AddTexture(file, &pTex, sz[0], sz[1], 1, type, SColor())))
 	{
 		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Cannot AddTexture()", file.c_str());
 		stream.close();

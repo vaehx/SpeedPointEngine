@@ -379,8 +379,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 		m_pRenderer->EnableBackfaceCulling(false);
 
-		ITexture* pTextureMap = IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture();
-		m_pRenderer->BindTexture(pTextureMap, 0);
+		m_pRenderer->BindTexture(sr.textureMap, 0);
 		m_pRenderer->BindTexture((ITexture*)0, 1);
 	}
 	else
@@ -389,12 +388,8 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 		m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
 
-		// Bind textures
-		ITexture* pTextureMap = IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture();
-		ITexture* pNormalMap = IS_VALID_PTR(sr.normalMap) ? sr.normalMap : m_pRenderer->GetDummyTexture();
-
-		m_pRenderer->BindTexture(pTextureMap, 0);
-		m_pRenderer->BindTexture(pNormalMap, 1);
+		m_pRenderer->BindTexture(sr.textureMap, 0);
+		m_pRenderer->BindTexture(sr.normalMap, 1);
 	}
 
 

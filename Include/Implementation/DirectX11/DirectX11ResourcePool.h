@@ -50,18 +50,14 @@ public:
 
 
 
-
-
-	virtual SResult LoadTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0, bool bDynamic = false, bool bStaged = false);
-	
-	virtual SResult LoadCubeTexture(const string& file, ITexture** pTex, UINT w = 0, UINT h = 0);
-
-	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, const ETextureType& ty, const SColor& clearcolor, bool bDynamic = false, bool bStaged = false);
-
-	// is case sensitive
-	virtual ITexture* GetTexture(const string& spec);
-
+	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT miplevels = 1, const ETextureType& ty = eTEXTURE_R8G8B8A8_UNORM, const SColor& clearcolor = SColor());
+	virtual ITexture* GetTexture(const string& specification);
+	virtual ITexture* GetCubeTexture(const string& file);
+	virtual SResult RemoveTexture(const string& specification);
 	virtual SResult RemoveTexture(ITexture** pTex);
+
+
+
 	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);
 	virtual void ListTextures(vector<string>& list) const;
 };

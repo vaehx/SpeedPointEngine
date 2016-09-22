@@ -3,7 +3,7 @@
 //	This file is part of the SpeedPoint Game Engine
 //
 //	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	(c) 2011-2016, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -19,68 +19,29 @@
 
 SP_NMSPACE_BEG
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 DirectX11Texture::DirectX11Texture()
-: m_pEngine(0),
+: m_Specification("???"),
 m_bDynamic(false),
 m_pDXTexture(0),
-m_pDXRenderer(nullptr),
 m_pDXSRV(nullptr),
 m_pLockedData(nullptr),
 m_nLockedBytes(0),
 m_pStagedData(0),
 m_bStaged(false),
-m_bLocked(false)
-{
-}
-
-// -----------------------------------------------------------------------------------
-DirectX11Texture::DirectX11Texture(const DirectX11Texture& o)
-: m_pEngine(o.m_pEngine),
-m_Type(o.m_Type),
-m_bDynamic(o.m_bDynamic),
-m_pLockedData(nullptr),
-m_nLockedBytes(0),
 m_bLocked(false),
-m_pStagedData(0),
-m_bStaged(o.m_bStaged)
+m_bIsCubemap(false)
 {
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 DirectX11Texture::~DirectX11Texture()
 {
 	Clear();
 }
 
-// -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const string& spec)
-{	
-	return Initialize(pEngine, spec, false, false);
-}
-
-// -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::Initialize(IGameEngine* pEngine, const string& spec, bool bDynamic, bool bStaged)
-{
-	SP_ASSERTR(pEngine, S_INVALIDPARAM);
-
-	m_pEngine = pEngine;
-
-	IRenderer* pRenderer = pEngine->GetRenderer();
-	SP_ASSERTR(pRenderer->GetType() == S_DIRECTX11, S_INVALIDPARAM);
-
-	m_pDXRenderer = (DirectX11Renderer*)pRenderer;
-	m_Specification = spec;
-	m_bDynamic = bDynamic;
-	m_bStaged = bStaged;
-	m_bLocked = false;
-
-	return S_SUCCESS;
-}
-
-
-// -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedTextureFmt)
+//////////////////////////////////////////////////////////////////////////////////////////////////
+S_API SResult DirectX11Texture::LoadTextureImage(const string& cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedTextureFmt)
 {
 	HRESULT hRes;
 
@@ -88,17 +49,17 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned
 	hRes = CoCreateInstance(CLSID_WICImagingFactory, 0, CLSCTX_INPROC_SERVER, IID_IWICImagingFactory, (void**)&pImgFactory);
 	if (Failure(hRes))
 	{
-		return m_pEngine->LogE("Failed Create WIC Imaging Factory!");
+		return CLog::Log(S_ERROR, "Failed Create WIC Imaging Factory!");
 	}
 
 	IWICBitmapDecoder* pImgDecoder;
-	wchar_t* cWFilename = new wchar_t[50];
+	wchar_t* cWFilename = new wchar_t[cFileName.length() + 1];
 	size_t nNumCharsConv;
-	mbstowcs_s(&nNumCharsConv, cWFilename, 50, cFileName, _TRUNCATE);
+	mbstowcs_s(&nNumCharsConv, cWFilename, cFileName.length() + 1, cFileName.c_str(), _TRUNCATE);
 	hRes = pImgFactory->CreateDecoderFromFilename(cWFilename, 0, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pImgDecoder);
 	if (Failure(hRes))
 	{
-		EngLog(S_DEBUG, m_pEngine, "Failed Create WIC Image decoder for %s (cWFilename=%S)!", cFileName, cWFilename);
+		CLog::Log(S_DEBUG, "Failed Create WIC Image decoder for %s (cWFilename=%S)!", cFileName.c_str(), cWFilename);
 		return S_ERROR;
 	}
 
@@ -116,7 +77,7 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned
 	WICPixelFormatGUID pxlFmtGUID;
 	if (Failure(pBmpFrameDecode->GetPixelFormat(&pxlFmtGUID)))
 	{
-		return m_pEngine->LogE("Failed Get Pixel Format of desired frame!");
+		return CLog::Log(S_ERROR, "Failed Get Pixel Format of desired frame!");
 	}
 
 	// some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
@@ -146,7 +107,7 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned
 #endif
 	else
 	{
-		return m_pEngine->LogE("Unsupported pixel fmt of texture: Unkown format!");
+		return CLog::Log(S_ERROR, "Unsupported pixel fmt of texture: Unkown format!");
 		// m_pEngine->LogE << "Failed convert pixel fmt: Unknown format: " << pxlFmtGUID << "!";
 	}
 
@@ -165,7 +126,7 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned
 	UINT nBPP = BitsPerPixel(pxlFmtGUID, pImgFactory);
 	if (nBPP == 0)
 	{
-		return m_pEngine->LogE("Could not retrieve bits per pixel for loaded texture!");
+		return CLog::Log(S_ERROR, "Could not retrieve bits per pixel for loaded texture!");
 	}
 
 	imageStride = (w * nBPP + 7) / 8;
@@ -180,58 +141,65 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned
 	{
 		hRes = pBmpFrameDecode->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
 		if (Failure(hRes))
-			return m_pEngine->LogE("Failed to buffer texture!");
+			return CLog::Log(S_ERROR, "Failed to buffer texture!");
 	}
 	else if (nLoadedWidth != w && nLoadedHeight != h)
 	{
 		ScopedTextureLoadingObject<IWICBitmapScaler> pScaler;
 		if (Failure(pImgFactory->CreateBitmapScaler(&pScaler)))
+		{
+			CLog::Log(S_DEBUG, "Failed pImgFactory->CreateBitmapScalar()");
 			return S_ERROR;
+		}
 
 		if (Failure(pScaler->Initialize(pBmpFrameDecode, w, h,
 			WICBitmapInterpolationModeFant))) // Maybe change this someday??
 		{
+			CLog::Log(S_DEBUG, "Failed pScaler->Initialize()");
 			return S_ERROR;
 		}
 
 		WICPixelFormatGUID pfScaler;
 		if (Failure(pScaler->GetPixelFormat(&pfScaler)))
+		{
+			CLog::Log(S_DEBUG, "Failed pScaler->GetPixelFormat()");
 			return S_ERROR;
+		}
 
 		if (memcmp(&pxlFmtGUID, &pfScaler, sizeof(GUID)) == 0)
 		{
 			hRes = pScaler->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
 			if (Failure(hRes))
-				return m_pEngine->LogE("Failed to buffer scaled texture!");
+				return CLog::Log(S_ERROR, "Failed to buffer scaled texture!");
 		}
 		else
 		{
 			ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
 			if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
-				return m_pEngine->LogE("Failed to create pixel format convert (1)!");
+				return CLog::Log(S_ERROR, "Failed to create pixel format convert (1)!");
 
 			hRes = formatConverter->Initialize(pScaler.Get(), pxlFmtGUID, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
 			if (Failure(hRes))
-				return m_pEngine->LogE("Failed to initialize format converter (1)!");
+				return CLog::Log(S_ERROR, "Failed to initialize format converter (1)!");
 
 			hRes = formatConverter->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
 			if (Failure(hRes))
-				return m_pEngine->LogE("Failed to convert and copy pixels (1)!");
+				return CLog::Log(S_ERROR, "Failed to convert and copy pixels (1)!");
 		}
 	}
 	else // convert only
 	{
 		ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
 		if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
-			return m_pEngine->LogE("Failed to create pixel format convert (2)!");
+			return CLog::Log(S_ERROR, "Failed to create pixel format convert (2)!");
 
 		hRes = formatConverter->Initialize(pBmpFrameDecode, pxlFmtGUID, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
 		if (Failure(hRes))
-			return m_pEngine->LogE("Failed to initialize format converter (2)!");
+			return CLog::Log(S_ERROR, "Failed to initialize format converter (2)!");
 
 		hRes = formatConverter->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
 		if (Failure(hRes))
-			return m_pEngine->LogE("Failed to convert and copy pixels (2)!");
+			return CLog::Log(S_ERROR, "Failed to convert and copy pixels (2)!");
 	}
 
 
@@ -241,27 +209,25 @@ S_API SResult DirectX11Texture::LoadTextureImage(const char* cFileName, unsigned
 	SP_SAFE_RELEASE(pImgDecoder);
 	SP_SAFE_RELEASE(pImgFactory);
 
-
 	return S_SUCCESS;
 }
 
 
 
-// -----------------------------------------------------------------------------------
-
-S_API void DirectX11Texture::GetCubemapImageName(SString& name, ECubemapSide side)
+//////////////////////////////////////////////////////////////////////////////////////////////////
+S_API void DirectX11Texture::GetCubemapImageName(string& name, ECubemapSide side)
 {
 	// Convert side to DX array slice side
 	ECubemapSide dxSide = (ECubemapSide)GetDXCubemapArraySlice(side);
 
 	switch (dxSide)
 	{
-	case eCUBEMAP_SIDE_NEGX: name = name + "_negx"; break;
-	case eCUBEMAP_SIDE_NEGY: name = name + "_negy"; break;
-	case eCUBEMAP_SIDE_NEGZ: name = name + "_negz"; break;
-	case eCUBEMAP_SIDE_POSX: name = name + "_posx"; break;
-	case eCUBEMAP_SIDE_POSY: name = name + "_posy"; break;
-	case eCUBEMAP_SIDE_POSZ: name = name + "_posz"; break;
+	case eCUBEMAP_SIDE_NEGX: name += "_negx"; break;
+	case eCUBEMAP_SIDE_NEGY: name += "_negy"; break;
+	case eCUBEMAP_SIDE_NEGZ: name += "_negz"; break;
+	case eCUBEMAP_SIDE_POSX: name += "_posx"; break;
+	case eCUBEMAP_SIDE_POSY: name += "_posy"; break;
+	case eCUBEMAP_SIDE_POSZ: name += "_posz"; break;
 	default:
 		CLog::Log(S_ERROR, "Invalid cubmap side: %d", (unsigned int)side);
 		return;
@@ -287,9 +253,18 @@ S_API unsigned int DirectX11Texture::GetDXCubemapArraySlice(ECubemapSide side)
 }
 
 
-S_API SResult DirectX11Texture::LoadCubemapFromFile(unsigned int singleW, unsigned int singleH, const char* baseName)
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+S_API SResult DirectX11Texture::LoadCubemapFromFile(const string& specification, const string& baseName, unsigned int singleW /*=0*/, unsigned int singleH /*=0*/)
 {
-	SP_ASSERTR(m_pEngine && m_pDXRenderer, S_NOTINIT);
+	Clear();
+	m_Specification = specification;
+
+	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	if (!IS_VALID_PTR(pDXRenderer))
+		return CLog::Log(S_ERROR, "DX11Texture::LoadCubemapFromFile(): Renderer not initialized");
 
 	SResult res;
 	HRESULT hRes;
@@ -300,10 +275,10 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(unsigned int singleW, unsign
 		
 	for (unsigned int i = 0; i < 6; ++i)
 	{
-		SString filename = baseName;
+		string filename = baseName;
 		GetCubemapImageName(filename, (ECubemapSide)i);
 
-		CLog::Log(S_DEBUG, "Cubmap Side Filename: %s", filename);
+		CLog::Log(S_DEBUG, "Cubmap Side Filename: %s", filename.c_str());
 
 		SLoadedCubemapSide side;
 		DXGI_FORMAT sideFmt;
@@ -337,7 +312,7 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(unsigned int singleW, unsign
 	// Check if autogeneration of mip levels is supported
 
 	UINT fmtSupport = 0;
-	hRes = m_pDXRenderer->GetD3D11Device()->CheckFormatSupport(loadedTextureFmt, &fmtSupport);
+	hRes = pDXRenderer->GetD3D11Device()->CheckFormatSupport(loadedTextureFmt, &fmtSupport);
 	bool bMipAutoGenSupported = Success(hRes) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN);
 
 
@@ -377,11 +352,11 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(unsigned int singleW, unsign
 	m_pDXTexture = nullptr;
 
 	// Create the texture
-	hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (bMipAutoGenSupported) ? nullptr : &initData[0], &m_pDXTexture);
+	hRes = pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (bMipAutoGenSupported) ? nullptr : &initData[0], &m_pDXTexture);
 
 	if (Failure(hRes) || m_pDXTexture == nullptr)
 	{
-		return m_pEngine->LogE("Failed to create DirectX11 Texture!");
+		return CLog::Log(S_ERROR, "Failed to create DirectX11 Texture!");
 	}
 
 
@@ -396,17 +371,17 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(unsigned int singleW, unsign
 	srvDesc.TextureCube.MipLevels = (bMipAutoGenSupported) ? mipLevels : 1;
 	srvDesc.TextureCube.MostDetailedMip = 0;
 
-	hRes = m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV);
+	hRes = pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV);
 
 	if (Failure(hRes))
 	{
 		m_pDXTexture->Release();
-		return m_pEngine->LogE("Failed create shader resource view for texture!");
+		return CLog::Log(S_ERROR, "Failed create shader resource view for texture!");
 	}
 
 	if (bMipAutoGenSupported)
 	{
-		ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+		ID3D11DeviceContext* pDXDevCon = pDXRenderer->GetD3D11DeviceContext();
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			unsigned int subresource = srvDesc.TextureCube.MipLevels * i;			
@@ -431,6 +406,7 @@ S_API SResult DirectX11Texture::LoadCubemapFromFile(unsigned int singleW, unsign
 	for (auto itSide = cmSides.begin(); itSide != cmSides.end(); itSide++)
 		delete[] itSide->pBuffer;
 
+	m_bIsCubemap = true;
 	return S_SUCCESS;
 
 
@@ -489,11 +465,16 @@ assert(hr == S_OK);
 
 
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 // remember that the w and h parameters will specify the output texture size to which the image will be scaled to
-S_API SResult DirectX11Texture::LoadFromFile(unsigned int w, unsigned int h, int mipLevels, const char* cFileName)
+S_API SResult DirectX11Texture::LoadFromFile(const string& specification, const string& cFileName, unsigned int w /*=0*/, unsigned int h /*=0*/, unsigned int mipLevels /*=0*/)
 {
-	SP_ASSERTR(m_pEngine && m_pDXRenderer, S_NOTINIT);
+	Clear();
+	m_Specification = specification;
+
+	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	if (!IS_VALID_PTR(pDXRenderer))
+		return CLog::Log(S_ERROR, "DX11Texture::LoadFromFile('%s'): Renderer not initialized", cFileName.c_str());
 
 	SResult res;
 	HRESULT hRes;
@@ -506,7 +487,7 @@ S_API SResult DirectX11Texture::LoadFromFile(unsigned int w, unsigned int h, int
 	res = LoadTextureImage(cFileName, w, h, &pBuffer, imageStride, imageSize, loadedTextureFmt);
 	if (Failure(res))
 	{
-		return res;
+		return CLog::Log(S_ERROR, "DX11Texture::LoadFromFile('%s'): Failed LoadTextureImage()", cFileName.c_str());
 	}
 
 
@@ -514,10 +495,10 @@ S_API SResult DirectX11Texture::LoadFromFile(unsigned int w, unsigned int h, int
 	// Check if autogeneration of mip levels is supported
 
 	UINT fmtSupport = 0;
-	hRes = m_pDXRenderer->GetD3D11Device()->CheckFormatSupport(loadedTextureFmt, &fmtSupport);
+	hRes = pDXRenderer->GetD3D11Device()->CheckFormatSupport(loadedTextureFmt, &fmtSupport);
 	bool bMipAutoGenSupported = Success(hRes) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN);	
 
-	m_pEngine->LogD(SString("Loaded Texture ") + cFileName + "!");
+	CLog::Log(S_DEBUG, "Loaded texture %s", cFileName.c_str());
 
 
 
@@ -559,34 +540,39 @@ S_API SResult DirectX11Texture::LoadFromFile(unsigned int w, unsigned int h, int
 	m_pDXTexture = nullptr;
 
 	// Create the texture
-	hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (!m_bDynamic && bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
+	hRes = pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (!m_bDynamic && bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
 
 	if (Failure(hRes) || m_pDXTexture == nullptr)
 	{
-		return m_pEngine->LogE("Failed to create DirectX11 Texture!");
+		return CLog::Log(S_ERROR, "Failed to create DirectX11 Texture!");
 	}
 	
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Create the Shader Resource View
-	
+
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	memset(&srvDesc, 0, sizeof(srvDesc));
 	srvDesc.Format = loadedTextureFmt;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = (bMipAutoGenSupported) ? -1 : 1;
+	
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	if (bMipAutoGenSupported)
+		srvDesc.Texture2D.MipLevels = (mipLevels == 0 ? -1 : mipLevels);
+	else
+		srvDesc.Texture2D.MipLevels = 1;
 
-	hRes = m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV);
+	hRes = pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV);
 
 	if (Failure(hRes))
 	{
 		m_pDXTexture->Release();
-		return m_pEngine->LogE("Failed create shader resource view for texture!");
+		return CLog::Log(S_ERROR, "Failed create shader resource view for texture!");
 	}
 
 	if (!m_bDynamic && bMipAutoGenSupported)
 	{
-		ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+		ID3D11DeviceContext* pDXDevCon = pDXRenderer->GetD3D11DeviceContext();
 		pDXDevCon->UpdateSubresource(m_pDXTexture, 0, nullptr, pBuffer, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize));
 		pDXDevCon->GenerateMips(m_pDXSRV);
 	}
@@ -618,7 +604,7 @@ S_API SResult DirectX11Texture::LoadFromFile(unsigned int w, unsigned int h, int
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 size_t DirectX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
 {
 	if (!pWIC)
@@ -646,10 +632,20 @@ size_t DirectX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pW
 	return bpp;
 }
 
-// -----------------------------------------------------------------------------------
-S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextureType type, SColor clearcolor)
+//////////////////////////////////////////////////////////////////////////////////////////////////
+S_API SResult DirectX11Texture::CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor)
 {	
+	Clear();
+	m_Specification = specification;
+
+	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	if (!IS_VALID_PTR(pDXRenderer))
+		return CLog::Log(S_ERROR, "DX11Texture::CreateEmpty(): Renderer not initialized");
+
 	m_Type = type;
+	m_bDynamic = true;
+	m_bStaged = true;
+
 	DXGI_FORMAT newTextureFmt;
 	switch (type)
 	{	
@@ -663,7 +659,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	}	
 
 	UINT fmtSupport = 0;
-	HRESULT hRes = m_pDXRenderer->GetD3D11Device()->CheckFormatSupport(newTextureFmt, &fmtSupport);
+	HRESULT hRes = pDXRenderer->GetD3D11Device()->CheckFormatSupport(newTextureFmt, &fmtSupport);
 	bool bMipAutoGenSupported = Success(hRes) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN);
 
 	// Now create the directx texture
@@ -735,10 +731,10 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 
 	m_pDXTexture = nullptr;
 	
-	hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
+	hRes = pDXRenderer->GetD3D11Device()->CreateTexture2D(&textureDesc, (bMipAutoGenSupported) ? nullptr : &initData, &m_pDXTexture);
 
 	if (Failure(hRes) || m_pDXTexture == nullptr)
-		return m_pEngine->LogE("Failed to create empty DirectX11 Texture (CreateTexture2D failed)!");
+		return CLog::Log(S_ERROR, "Failed to create empty DirectX11 Texture (CreateTexture2D failed)!");
 
 
 
@@ -748,13 +744,13 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;	
 	srvDesc.Texture2D.MipLevels = (bMipAutoGenSupported) ? -1 : 1;
 
-	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV)))
+	if (Failure(pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV)))
 	{
 		m_pDXTexture->Release();
-		return m_pEngine->LogE("Failed create shader resource view for empty texture!");
+		return CLog::Log(S_ERROR, "Failed create shader resource view for empty texture!");
 	}
 
-	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+	ID3D11DeviceContext* pDXDevCon = pDXRenderer->GetD3D11DeviceContext();
 	if (!m_bDynamic && bMipAutoGenSupported)
 	{		
 		pDXDevCon->UpdateSubresource(m_pDXTexture, 0, nullptr, initData.pSysMem, initData.SysMemPitch, initData.SysMemSlicePitch);
@@ -780,8 +776,7 @@ S_API SResult DirectX11Texture::CreateEmpty(int w, int h, int mipLevels, ETextur
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------
-
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult DirectX11Texture::Fill(SColor color)
 {
 	unsigned int *pPixels, nPixels;
@@ -796,19 +791,25 @@ S_API SResult DirectX11Texture::Fill(SColor color)
 	return Unlock();
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
+S_API bool DirectX11Texture::IsInitialized() const
+{
+	return (IS_VALID_PTR(m_pDXTexture) && IS_VALID_PTR(m_pDXSRV));
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API const string& DirectX11Texture::GetSpecification(void) const
 {
 	return m_Specification;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API ETextureType DirectX11Texture::GetType(void)
 {
 	return m_Type;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 {
 	if (!IS_VALID_PTR(m_pDXTexture))
@@ -823,9 +824,13 @@ S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /* = 0*/)
 {
+	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	if (!IS_VALID_PTR(pDXRenderer))
+		return CLog::Log(S_ERROR, "DX11Texture::Lock(): Renderer not initialized");
+
 	if (!m_bDynamic)
 		return CLog::Log(S_ERROR, "Tried DX11Texture::Lock on non-dynamic texture (%s)", m_Specification.c_str());
 
@@ -835,10 +840,10 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 	if (!IS_VALID_PTR(pPixels) || !IS_VALID_PTR(pnPixels))
 		return S_INVALIDPARAM;
 
-	if (!IS_VALID_PTR(m_pDXTexture) || !IS_VALID_PTR(m_pDXRenderer))
+	if (!IsInitialized())
 		return S_NOTINIT;
 
-	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+	ID3D11DeviceContext* pDXDevCon = pDXRenderer->GetD3D11DeviceContext();
 	if (!IS_VALID_PTR(pDXDevCon))
 		return S_NOTINIT;
 	
@@ -862,7 +867,7 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 		memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
 		if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
 		{
-			m_pDXRenderer->FrameDump((string("Failed map texture (") + m_Specification + ") for Lock!").c_str());
+			pDXRenderer->FrameDump((string("Failed map texture (") + m_Specification + ") for Lock!").c_str());
 			return S_ERROR;
 		}
 
@@ -880,9 +885,16 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult DirectX11Texture::Unlock()
 {
+	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	if (!IS_VALID_PTR(pDXRenderer))
+		return CLog::Log(S_ERROR, "DX11Texture::Unlock(): Renderer not initialized");
+
+	if (!IsInitialized())
+		return S_NOTINIT;
+
 	if (!m_bLocked)
 		return CLog::Log(S_WARN, "Tried unlock texture (%s) which is not locked!", m_Specification.c_str());
 
@@ -891,10 +903,7 @@ S_API SResult DirectX11Texture::Unlock()
 	if (!m_bStaged && !IS_VALID_PTR(m_pLockedData))
 		return S_ERROR;
 
-	if (!IS_VALID_PTR(m_pDXRenderer) || !IS_VALID_PTR(m_pDXTexture))
-		return S_NOTINIT;	
-
-	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
+	ID3D11DeviceContext* pDXDevCon = pDXRenderer->GetD3D11DeviceContext();
 	if (!IS_VALID_PTR(pDXDevCon))
 		return S_NOTINIT;
 
@@ -929,7 +938,7 @@ S_API SResult DirectX11Texture::Unlock()
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult DirectX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pData) const
 {
 	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
@@ -1005,7 +1014,7 @@ S_API SResult DirectX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pDat
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult DirectX11Texture::SampleStaged(const Vec2f& texcoords, void* pData) const
 {
 	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
@@ -1038,12 +1047,15 @@ S_API SResult DirectX11Texture::SampleStaged(const Vec2f& texcoords, void* pData
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////////////////////////
+S_API void* DirectX11Texture::GetStagedData()
+{
+	return m_pStagedData;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 S_API SResult DirectX11Texture::Clear(void)
 {
-	m_pEngine = 0;
-	m_pDXRenderer = 0;
-
 	if (IS_VALID_PTR(m_pStagedData))
 		free(m_pStagedData);
 
@@ -1055,11 +1067,14 @@ S_API SResult DirectX11Texture::Clear(void)
 	m_pLockedData = 0;
 	m_nLockedBytes = 0;
 
+	m_Specification = "???";
+	m_Type = eTEXTURE_R8G8B8A8_UNORM;
+	m_bIsCubemap = false;
+
 	return S_SUCCESS;
 }
 
 
 
 
-// -----------------------------------------------------------------------------------
 SP_NMSPACE_END

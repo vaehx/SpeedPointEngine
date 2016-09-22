@@ -53,72 +53,85 @@ enum S_API ECubemapSide
 };
 
 
-// SpeedPoint Texture Resource (abstract)
+// SpeedPoint Texture Resource
 struct S_API ITexture
 {
+	// Initialization
 public:
-	// -- Initialize --	
+	// Summary:
+	//		Load the texture contents from a file.
+	//		If the texture is already initialized, it will clear existing texture contents!
+	// Description:
+	//		If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen
+	//		If mipLevels == 0, the full mip chain will be generated
+	virtual SResult LoadFromFile(const string& specification, const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0) = 0;
 
-	// Initialize the texture
-	virtual SResult Initialize(IGameEngine* pEngine, const string& spec) = 0;
-	
-	// Initialize the texture with extended params
-	// - Set bDynamic to true, if you want to WRITE new data into the texture after creation
-	// - Set bStaged to true, to create a RAM copy of the data, which allows you to read back data from the texture
-	virtual SResult Initialize(IGameEngine* pEngine, const string& spec, bool bDynamic, bool bStaged) = 0;
+	// Summary:
+	//		Load the texture contents from a cubemap.
+	//		If the texture is already initialized, it will clear existing texture contents!
+	// Description:
+	//		If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen
+	// Parameters:
+	//		baseName - Path and base filename of the 6 cubemap images without File extension
+	//				   ("assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp");	
+	virtual SResult LoadCubemapFromFile(const string& specification, const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0) = 0;
 
+	// Summary:
+	//		Initialize an empty texture with specified size and type and fill it with clearcolor.
+	//		If type is a depth map, then clearcolor.r is used to fill.
+	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor) = 0;
+
+	// Summary:
+	//		Clears the texture contents, such that IsInitialized() will return false
+	virtual SResult Clear(void) = 0;
+
+
+	// Status queries
+public:
+	virtual const string& GetSpecification(void) const = 0;
+	virtual ETextureType GetType(void) = 0;
+	virtual SResult GetSize(unsigned int* pW, unsigned int* pH) = 0;
+
+	virtual bool IsInitialized() const = 0;
+	virtual bool IsDynamic() const = 0;
 	virtual bool IsStaged() const = 0;
+	virtual bool IsCubemap() const = 0;
 
-	// Load a texture from file
-	// If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen
-	virtual SResult LoadFromFile(unsigned int w, unsigned int h, int mipLevels, const char* cFileName) = 0;
 
-	// baseName: Path and base filename of the 6 cubemap images without File extension
-	//		("assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp");
-	// If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen
-	virtual SResult LoadCubemapFromFile(unsigned int singleW, unsigned int singleH, const char* baseName) = 0;
-
-	// Initialize an empty texture with specified size and type and fill it with clearcolor.
-	// If type is a depth map, then clearcolor.r is used to fill.
-	virtual SResult CreateEmpty( int w, int h, int mipLevels, ETextureType type, SColor clearcolor ) = 0;
-
-	// This function fails if the texture is not dynamic.
-	// If the texture is staged, this will return the pointer to the staged data. This data is
-	// then uploaded to the GPU when calling Unlock().
-	// Note: pnRowPitch is set to the number of BYTES per row in the texture.
+	// Data access and manipulation
+public:
+	// Summary:
+	//		Locks the dynamic texture so that the pixels can be modified
+	// Description:
+	//		This function fails if the texture is not dynamic.
+	//		If the texture is staged, this will return the pointer to the staged data. This data is
+	//		then uploaded to the GPU when calling Unlock().
+	//		Note: pnRowPitch is set to the number of BYTES per row in the texture.
 	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0) = 0;
 
 	virtual SResult Unlock() = 0;
 
-	// Sets all pixels of this texture to the given color.
+	// Summary:
+	//		Sets all pixels of this dynamic texture to the given color.
+	//		Fails, if this texture is not dynamic
 	virtual SResult Fill(SColor color) = 0;
 
 	// Summary:
-	//	Does a simple nearest-neighbor filtering on the staged data with address wrapping.
-	//	If the texture is not staged, this function will fail.
+	//		Does a simple nearest-neighbor filtering on the staged data with address wrapping.
+	//		If the texture is not staged, this function will fail.
 	// Arguments:
-	//	pData is assumed to hold data for one pixel
+	//		pData - is assumed to hold data for one pixel
 	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const = 0;
 
-	// This function fails if the texture is not a floating point or unorm texture.
+	// Summary:
+	//		Samples the staged texture with a bilinear filter
+	//		This function fails if the texture is not a floating point or unorm texture.
 	virtual SResult SampleStagedBilinear(Vec2f texcoords, void* pData) const = 0;
 
-	// Be careful with it!
+	// Summary:
+	//		Gives direct access to the staged data
+	// WARNING: Use this VERY carefully!
 	virtual void* GetStagedData() = 0;
-
-	// Get the specification
-	virtual const string& GetSpecification(void) const = 0;
-
-	// ----
-
-	// Get the type of this texture
-	virtual ETextureType GetType( void ) = 0;
-
-	// Get the size of this texture
-	virtual SResult GetSize( unsigned int* pW, unsigned int* pH ) = 0;
-
-	// Clear texture buffer
-	virtual SResult Clear( void ) = 0;
 };
 
 SP_NMSPACE_END

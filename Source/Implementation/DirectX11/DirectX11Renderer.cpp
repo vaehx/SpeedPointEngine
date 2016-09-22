@@ -670,16 +670,14 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	BindShaderPass(eSHADERPASS_GBUFFER);
 
 	// Create unset texture dummy
-	m_DummyTexture.Initialize(m_pEngine, "notexture", false, false);
-	if (Failure(m_DummyTexture.CreateEmpty(64, 64, 0, eTEXTURE_R8G8B8A8_UNORM, SColor(0.0f, 1.0f, 0.0f))))
+	if (Failure(m_DummyTexture.CreateEmpty("notexture", 64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.0f, 1.0f, 0.0f))))
 	{
 		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");
 	}
 
 
 	// Create (128,128,0) replacement normal map
-	m_DummyNormalMap.Initialize(m_pEngine, "nonormalmap", false, false);
-	if (Failure(m_DummyNormalMap.CreateEmpty(64, 64, 0, eTEXTURE_R8G8B8A8_UNORM, SColor(0.5f, 0.5f, 1.0f))))
+	if (Failure(m_DummyNormalMap.CreateEmpty("normalmap", 64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.5f, 0.5f, 1.0f))))
 	{
 		m_pEngine->LogE("Could not create empty dummy normal map (nonormalmap)!");
 	}
@@ -1046,7 +1044,15 @@ S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
-	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
+	if (!pTex)
+		pTex = GetDummyTexture();
+
+	ID3D11ShaderResourceView* pSRV;
+	DirectX11Texture* pDXTexture = dynamic_cast<DirectX11Texture*>(pTex);
+	if (!pDXTexture)
+		return S_ERROR;
+
+	pSRV = pDXTexture->D3D11_GetSRV();
 
 	if (pSRV != m_BoundPSResources[lvl])
 	{

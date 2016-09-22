@@ -122,8 +122,8 @@ S_API void MaterialManager::LoadMaterialBank(const string& smbFile)
 
 		if (IS_VALID_PTR(m_pResourcePool))
 		{			
-			m_pResourcePool->LoadTexture(itMaterial->textureMap, &resources.textureMap);
-			m_pResourcePool->LoadTexture(itMaterial->normalMap, &resources.normalMap);
+			resources.textureMap = m_pResourcePool->GetTexture(itMaterial->textureMap);
+			resources.normalMap = m_pResourcePool->GetTexture(itMaterial->normalMap);
 			
 			
 			// TODO: Copy further material properties and textures
