@@ -12,6 +12,7 @@ SP_NMSPACE_BEG
 
 struct S_API ISkyBox;
 struct S_API IGeometryManager;
+struct S_API ITexture;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +36,15 @@ struct SHelperRenderObject
 		pHelper = 0;
 		releaseAfterRender = false;
 	}
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct S_API SHUDElement
+{
+	ITexture* pTexture;
+	unsigned int pos[2];
+	unsigned int size[2];
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,6 +133,10 @@ public:
 	ILINE virtual void ClearTerrain() = 0;
 
 	ILINE virtual ISkyBox* GetSkyBox() = 0;
+
+	ILINE virtual SHUDElement* CreateHUDElement() = 0;
+	ILINE virtual void RemoveHUDElement(SHUDElement** pHUDElement) = 0;
+
 
 	// Summary:
 	//	Collects Render Descs of visible objects (including terrain, skybox, ocean, ...)

@@ -37,11 +37,16 @@ private:
 	STerrainRenderDesc m_TerrainRenderDesc;
 	ITerrain* m_pTerrain;
 
+	ChunkedObjectPool<SHUDElement> m_HUDElements;
+	SRenderDesc m_HUDRenderDesc;
 
 	void ClearHelperPrefabs();
 
+	void CreateHUDRenderDesc();
+
 	void RenderMeshes();
 	void RenderHelpers();
+	void RenderHUD();
 
 protected:
 	virtual void SetRenderMeshPool(IComponentPool<CRenderMesh>* pPool);
@@ -89,6 +94,9 @@ public:
 	ILINE virtual ITerrain* CreateTerrain(const STerrainInfo& info);
 	ILINE virtual ITerrain* GetTerrain();
 	ILINE virtual void ClearTerrain();
+
+	ILINE virtual SHUDElement* CreateHUDElement();
+	ILINE virtual void RemoveHUDElement(SHUDElement** pHUDElement);
 
 	ILINE virtual void Clear();
 };

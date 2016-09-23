@@ -49,6 +49,7 @@ namespace SpeedPoint
 		eSHADERFILE_DEFERRED_ZPASS,	// ZPass for Deferred Shading
 		eSHADERFILE_DEFERRED_SHADING,	// shading pass for Deferred Shading
 		eSHADERFILE_TERRAIN,	// Deferred Shading Terrain
+		eSHADERFILE_GUI
 	};
 
 

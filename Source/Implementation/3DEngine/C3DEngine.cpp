@@ -310,6 +310,63 @@ S_API ISkyBox* C3DEngine::GetSkyBox()
 	return m_pSkyBox;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::CreateHUDRenderDesc()
+{
+	IResourcePool* pResources = m_pRenderer->GetResourcePool();
+
+	SIZE vpSz = m_pRenderer->GetTargetViewport()->GetSize();
+	SPMatrixOrthoRH(&m_HUDRenderDesc.viewProjMtx, (float)vpSz.cx, (float)vpSz.cy, 0.1f, 1000.f);
+
+	m_HUDRenderDesc.bCustomViewProjMtx = true;
+	m_HUDRenderDesc.bDepthStencilEnable = false;	
+	m_HUDRenderDesc.renderPipeline = eRENDER_FORWARD;	
+	m_HUDRenderDesc.nSubsets = 1;
+	m_HUDRenderDesc.pSubsets = new SRenderSubset[1];
+	m_HUDRenderDesc.textureSampling = eTEX_SAMPLE_POINT; // to avoid incorrect alpha test due to "mixed" edges
+
+	SRenderSubset& subset = m_HUDRenderDesc.pSubsets[0];
+	subset.bOnce = false;
+	subset.render = true;
+	subset.enableAlphaTest = true;
+	
+	vector<SVertex> vertices = {
+		SVertex(-1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0, 1.0f),
+		SVertex(-1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0, 0),
+		SVertex(1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 0),
+		SVertex(1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 1.0f)
+	};
+
+	vector<SIndex> indices = {
+		0, 2, 1,
+		0, 3, 2
+	};
+
+	pResources->AddVertexBuffer(&subset.drawCallDesc.pVertexBuffer);
+	subset.drawCallDesc.pVertexBuffer->Initialize(m_pRenderer, eVBUSAGE_STATIC, &vertices[0], vertices.size());
+	subset.drawCallDesc.iStartVBIndex = 0;
+	subset.drawCallDesc.iEndVBIndex = vertices.size() - 1;
+
+	pResources->AddIndexBuffer(&subset.drawCallDesc.pIndexBuffer);
+	subset.drawCallDesc.pIndexBuffer->Initialize(m_pRenderer, eIBUSAGE_STATIC, &indices[0], indices.size());
+	subset.drawCallDesc.iStartIBIndex = 0;
+	subset.drawCallDesc.iEndIBIndex = indices.size() - 1;
+
+	subset.drawCallDesc.primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
+}
+
+S_API SHUDElement* C3DEngine::CreateHUDElement()
+{
+	return m_HUDElements.Get();
+}
+
+S_API void C3DEngine::RemoveHUDElement(SHUDElement** pHUDElement)
+{
+	m_HUDElements.Release(pHUDElement);
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -349,6 +406,7 @@ S_API void C3DEngine::RenderCollected()
 
 		RenderHelpers();
 
+		RenderHUD();
 
 		//TODO: Implement deferred shading pass
 		/*
@@ -457,6 +515,36 @@ S_API void C3DEngine::RenderHelpers()
 		}
 
 		pHelper = m_HelperPool.GetNextUsedObject(itHelper);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::RenderHUD()
+{
+	if (!m_HUDRenderDesc.pSubsets)
+		CreateHUDRenderDesc();
+
+	if (m_HUDElements.GetUsedObjectCount() == 0)
+		return;
+
+	m_pRenderer->BindShaderPass(eSHADERPASS_GUI);
+
+	SIZE vpSz = m_pRenderer->GetTargetViewport()->GetSize();
+
+	unsigned int iHUDElement;
+	SHUDElement* pHUDElement = m_HUDElements.GetFirstUsedObject(iHUDElement);
+	while (pHUDElement)
+	{
+		m_HUDRenderDesc.transform =
+			SMatrix::MakeTranslationMatrix(Vec3f((float)pHUDElement->pos[0] - 0.5f * vpSz.cx, (float)pHUDElement->pos[1] - 0.5f * vpSz.cy, 1.0f))
+			* SMatrix::MakeScaleMatrix(Vec3f((float)pHUDElement->size[0], (float)pHUDElement->size[1], 1.0f));
+
+		m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = pHUDElement->pTexture;
+
+		m_pRenderer->Render(m_HUDRenderDesc);
+
+		pHUDElement = m_HUDElements.GetNextUsedObject(iHUDElement);
 	}
 }
 

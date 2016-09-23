@@ -494,6 +494,9 @@ S_API string SpeedPointEngine::GetShaderPath(EShaderFileType shaderFile) const
 	case eSHADERFILE_FONT:
 		relativePath = "Effects\\font.fx";
 		break;
+	case eSHADERFILE_GUI:
+		relativePath = "Effects\\gui.fx";
+		break;
 
 		// Deferred Shading:
 	case eSHADERFILE_DEFERRED_ZPASS:

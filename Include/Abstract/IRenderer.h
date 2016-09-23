@@ -196,9 +196,13 @@ struct SRenderSubset
 	SDrawCallDesc drawCallDesc;
 	bool render; // true to render, false to skip
 	bool bOnce;	// set bRender to false if drawcall passed the pipeline
+	
+	// All pure black (0,0,0) pixels will be transparent, blending enabled
+	bool enableAlphaTest;
 
 	SRenderSubset()
-		: bOnce(false)
+		: bOnce(false),
+		enableAlphaTest(false)
 	{
 	}
 };

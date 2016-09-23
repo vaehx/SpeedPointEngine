@@ -188,9 +188,8 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 	// Sample vtx Height
     float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
     
-    // Calculate lighting factor. Using a fixed light dir.
-	// Light Dir is assumed to be INCOMING directed
-    float3 lightDir = normalize(float3(0.2f, -0.3f, 0.2f));
+	// Light Dir is assumed to be OUTGING directed
+	float3 lightDir = normalize(sunPos.xyz);
 
 	float monoLightIntensity = 5.0f;
 	float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
@@ -198,7 +197,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float monoAmbient = 0.12f;
 	float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
-    float lambert = saturate(dot(normal, -lightDir));
+    float lambert = saturate(dot(normal, lightDir));
 
 	OUT.Color = lambert * (blendedDiffuse / PI) * lightIntensity + ambient * blendedDiffuse;
 

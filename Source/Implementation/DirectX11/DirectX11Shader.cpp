@@ -543,7 +543,7 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 	SShaderInfo si;
 	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_DEFERRED_SHADING);
 	si.entry = "illum";
-	si.vertexType = eSHADERVERTEX_SIMPLE;
+	si.vertexType = eSHADERVERTEX_DEFAULT;
 
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
@@ -620,6 +620,70 @@ S_API SResult ShadowmapShaderPass::Bind()
 S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
 {
 }
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				GUI Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+S_API SResult GUIShaderPass::Initialize(IRenderer* pRenderer)
+{
+	m_pRenderer = pRenderer;
+
+	SShaderInfo si;
+	si.entry = "GUI";
+	si.filename = pRenderer->GetEngine()->GetShaderPath(eSHADERFILE_GUI);
+	si.vertexType = eSHADERVERTEX_DEFAULT;
+	
+	m_pShader = pRenderer->CreateShader();
+	m_pShader->Load(pRenderer, si);
+
+	m_Constants.Initialize(pRenderer);
+	return S_SUCCESS;
+}
+
+S_API void GUIShaderPass::Clear()
+{
+	m_Constants.Clear();
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+	m_pShader = 0;
+	m_pRenderer = 0;
+}
+
+S_API SResult GUIShaderPass::Bind()
+{
+	if (!IS_VALID_PTR(m_pRenderer))
+		return S_NOTINITED;
+
+	m_pShader->Bind();
+
+	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
+
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
+
+	return S_SUCCESS;
+}
+
+S_API void GUIShaderPass::SetShaderResources(const SShaderResources& shaderResources, const Mat44& transform)
+{
+	m_pRenderer->BindTexture(shaderResources.textureMap);
+
+	SObjectConstants* constants = m_Constants.GetConstants();
+	constants->mtxWorld = transform;
+	m_Constants.Update();
+}
+
+
 
 
 

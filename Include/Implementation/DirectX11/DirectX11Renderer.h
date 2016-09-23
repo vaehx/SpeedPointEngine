@@ -97,8 +97,17 @@ private:
 	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
 	ID3D11SamplerState* m_pPointSamplerState;
 	
+
+
 	D3D11_BLEND_DESC m_DefBlendDesc;
 	ID3D11BlendState* m_pDefBlendState;
+
+	D3D11_BLEND_DESC m_AlphaTestBlendDesc;
+	ID3D11BlendState* m_pAlphaTestBlendState;
+	
+	ID3D11BlendState* m_pSetBlendState;
+
+
 
 	IDXGIFactory1* m_pDXGIFactory;
 
@@ -292,6 +301,8 @@ public:
 	SResult D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData);	
 	SResult D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB);
 	SResult InitConstantBuffers();
+
+	void D3D11_SetBlendState(ID3D11BlendState* pBlendState, const float blendFactor[4] = 0, UINT sampleMask = 0xffffffff);
 
 
 	// Draw all things schedule in the render schedule

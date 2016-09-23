@@ -187,6 +187,32 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
+class S_API GUIShaderPass : public IShaderPass
+{
+private:
+	IRenderer* m_pRenderer;
+	IShader* m_pShader;
+	ConstantsBufferHelper<SObjectConstants> m_Constants;
+
+public:
+	GUIShaderPass()
+		: m_pRenderer(0)
+	{
+	}
+
+	virtual ~GUIShaderPass()
+	{
+		Clear();
+	}
+
+	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void Clear();
+
+	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& shaderResources, const Mat44& transform);
+};
+
+///////////////////////////////////////////////////////////////////////////////////
 class S_API PosteffectShaderPass : public IShaderPass
 {
 public:

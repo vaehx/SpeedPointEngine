@@ -81,6 +81,10 @@ m_pTargetViewport(0),
 m_pDXGIFactory(0),
 m_pDSV(0),
 m_nRenderTargets(0),
+m_pDefBlendState(0),
+m_pAlphaTestBlendState(0),
+m_pTerrainBlendState(0),
+m_pSetBlendState(0),
 m_pDepthStencilState(0),
 m_pTerrainDepthState(0),
 m_pDefaultSamplerState(0),
@@ -468,6 +472,22 @@ S_API void DirectX11Renderer::InitBlendStates()
 	m_TerrainBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	hr = m_pD3DDevice->CreateBlendState(&m_TerrainBlendDesc, &m_pTerrainBlendState);
+
+
+	// Alpha test Blend Desc and Blend State
+	ZeroMemory(&m_AlphaTestBlendDesc, sizeof(m_AlphaTestBlendDesc));
+	m_AlphaTestBlendDesc.AlphaToCoverageEnable = false;
+	m_AlphaTestBlendDesc.IndependentBlendEnable = false;
+	m_AlphaTestBlendDesc.RenderTarget[0].BlendEnable = true;
+	m_AlphaTestBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	m_AlphaTestBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	m_AlphaTestBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	m_AlphaTestBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	m_AlphaTestBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	m_AlphaTestBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	m_AlphaTestBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	hr = m_pD3DDevice->CreateBlendState(&m_AlphaTestBlendDesc, &m_pAlphaTestBlendState);
 }
 
 // --------------------------------------------------------------------
@@ -715,6 +735,9 @@ S_API void DirectX11Renderer::InitShaderPasses()
 		dynamic_cast<ShadowmapShaderPass*>(m_Passes[eSHADERPASS_SHADOWMAP]));
 	m_Passes[eSHADERPASS_SHADING]->Initialize(this);
 
+	m_Passes[eSHADERPASS_GUI] = new GUIShaderPass();
+	m_Passes[eSHADERPASS_GUI]->Initialize(this);
+
 	m_Passes[eSHADERPASS_POSTEFFECT] = new PosteffectShaderPass();
 	m_Passes[eSHADERPASS_POSTEFFECT]->Initialize(this);
 }
@@ -764,7 +787,9 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 
 	m_Viewport.Clear();
 
+	m_pSetBlendState = 0;
 	SP_SAFE_RELEASE(m_pDefBlendState);
+	SP_SAFE_RELEASE(m_pAlphaTestBlendState);
 	SP_SAFE_RELEASE(m_pTerrainBlendState);
 	SP_SAFE_RELEASE(m_pDefaultSamplerState);
 	SP_SAFE_RELEASE(m_pPointSamplerState);
@@ -1420,7 +1445,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 			for (unsigned int c = 0; c < terrainRenderDesc.nDrawCallDescs; ++c)
 			{
 				// Draw first layer without alpha blend and default depth state
-				m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);
+				D3D11_SetBlendState(m_pDefBlendState);
 				m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
 
 				// For each layer
@@ -1429,7 +1454,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 					if (iLayer == 1)
 					{
 						// Draw each further layer with alpha blending and terrain depth stencil state
-						m_pD3DDeviceContext->OMSetBlendState(m_pTerrainBlendState, 0, 0xffffffff);
+						D3D11_SetBlendState(m_pTerrainBlendState);
 						m_pD3DDeviceContext->OMSetDepthStencilState(m_pTerrainDepthState, 1);
 					}
 
@@ -1450,7 +1475,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 			BindVertexShaderTexture((ITexture*)0, 0);
 		}
 
-		m_pD3DDeviceContext->OMSetBlendState(m_pDefBlendState, 0, 0xffffffff);		
+		D3D11_SetBlendState(m_pDefBlendState);
 	}
 	else
 	{
@@ -1565,10 +1590,9 @@ S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 			continue;
 		}
 
-
+		D3D11_SetBlendState(subset.enableAlphaTest ? m_pAlphaTestBlendState : m_pDefBlendState);
 
 		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, SMatrixTranspose(renderDesc.transform));
-
 
 		Draw(subset.drawCallDesc);
 
@@ -2125,5 +2149,14 @@ S_API void DirectX11Renderer::SetSamplerState(ETextureSampling sampling)
 	m_SetSamplerState = sampling;
 }
 
+// --------------------------------------------------------------------
+S_API void DirectX11Renderer::D3D11_SetBlendState(ID3D11BlendState* pBlendState, const float blendFactor[4] /*=0*/, UINT sampleMask /*=0xffffffff*/)
+{
+	if (m_pSetBlendState == pBlendState)
+		return;
+
+	m_pD3DDeviceContext->OMSetBlendState(pBlendState, blendFactor, sampleMask);
+	m_pSetBlendState = pBlendState;
+}
 
 SP_NMSPACE_END
