@@ -11,46 +11,54 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\C3DEngine.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\CHelper.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\CSkyBox.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Geometry.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Material.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\RenderMesh.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Terrain.cpp" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationBundle.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationJoint.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationKey.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationSequence.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Entity.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\GeometryManager.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Octree.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\OctreeNode.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\RenderableComponent.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Scene.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\C3DEngine.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\CSkyBox.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Geometry.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Material.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Terrain.h" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\Entity.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\RenderableComponent.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationBundle.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationJoint.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationKey.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationSequence.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctree.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctreeNode.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\Scene.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{64298E44-4CE3-47C2-9000-023FAC8F943B}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SpeedPoint3DEngine</RootNamespace>
+    <ProjectGuid>{FACEAC68-301E-41D3-AA53-EBFDE139F192}</ProjectGuid>
+    <RootNamespace>SpeedPointGameFacilities</RootNamespace>
+    <ProjectName>SpeedPointGameFacilities</ProjectName>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>SpeedPoint3DEngine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -60,40 +68,36 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\..\Dependencies\DirectX\Include;$(ProjectDir)\..\..\Include;$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(IncludePath)</IncludePath>
+    <TargetExt>.lib</TargetExt>
+    <LibraryPath>$(ProjectDir)\..\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)\..\..\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(ProjectDir)\..\..\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SOL_DIR=R"($(SolutionDir))";SP_UNITTEST;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>SP_UNITTEST;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SP_UNITTEST;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>SP_UNITTEST;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>

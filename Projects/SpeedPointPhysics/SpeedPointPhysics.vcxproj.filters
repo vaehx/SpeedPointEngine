@@ -11,15 +11,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Physics\CPhysics.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\CPhysics.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Physics\CPhysics.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\CPhysics.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Physics\PhysObject.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\PhysObject.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

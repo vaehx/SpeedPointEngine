@@ -11,81 +11,111 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11FBO.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11IndexBuffer.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11FBO.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11OutputPlane.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Font.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderEffect.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11GeometryRenderSection.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Renderer.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11IndexBuffer.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11ResourcePool.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11LightingRenderSection.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Texture.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11OutputPlane.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11VertexBuffer.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11PostRenderSection.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Viewport.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11RenderEffect.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Renderer.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11RenderPipeline.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Font.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11ResourcePool.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Shader.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Settings.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DX11ConstantsBuffer.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Shader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Texture.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Utilities.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11VertexBuffer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Viewport.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DX11ConstantsBuffer.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11FBO.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Font.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11IndexBuffer.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11GeometryRenderSection.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11OutputPlane.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11IndexBuffer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11LightingRenderSection.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11OutputPlane.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Texture.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11PostRenderSection.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11VertexBuffer.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Renderer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Font.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11RenderPipeline.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Shader.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11ResourcePool.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DX11ConstantsBuffer.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Settings.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Shader.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Texture.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11VertexBuffer.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Viewport.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DX11ConstantsBuffer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

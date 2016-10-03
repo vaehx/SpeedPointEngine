@@ -11,33 +11,43 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11FBO.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Font.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11IndexBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11OutputPlane.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11RenderEffect.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Renderer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11ResourcePool.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Shader.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Texture.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Utilities.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11VertexBuffer.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DirectX11Viewport.h" />
-    <ClInclude Include="..\..\Include\Implementation\DirectX11\DX11ConstantsBuffer.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11FBO.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Font.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11GeometryRenderSection.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11IndexBuffer.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11LightingRenderSection.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11OutputPlane.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11PostRenderSection.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11RenderEffect.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Renderer.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11RenderPipeline.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11ResourcePool.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Settings.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Shader.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Texture.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Utilities.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11VertexBuffer.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Viewport.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\DirectX11\DX11ConstantsBuffer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11FBO.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Font.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11IndexBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11OutputPlane.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Renderer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11ResourcePool.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Shader.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Texture.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11VertexBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DirectX11Viewport.cpp" />
-    <ClCompile Include="..\..\Source\Implementation\DirectX11\DX11ConstantsBuffer.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11FBO.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Font.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11GeometryRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11IndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11LightingRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11OutputPlane.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11PostRenderSection.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Renderer.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11RenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11ResourcePool.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Settings.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Shader.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Texture.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11VertexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DirectX11Viewport.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\DirectX11\DX11ConstantsBuffer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FFA8C23F-DC76-4C45-BCAB-8B7A85E20928}</ProjectGuid>

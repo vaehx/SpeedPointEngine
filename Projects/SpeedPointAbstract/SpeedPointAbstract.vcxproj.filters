@@ -5,246 +5,237 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Headers\Scene">
-      <UniqueIdentifier>{4457ae25-d761-44c3-bf40-f0fea2995fee}</UniqueIdentifier>
+    <Filter Include="Headers\3DEngine">
+      <UniqueIdentifier>{f4947351-c78a-408b-8ef4-6b93c24bd40c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Headers\Renderer">
-      <UniqueIdentifier>{7231b7fd-2adc-4a70-a963-ec002d8f9cad}</UniqueIdentifier>
+      <UniqueIdentifier>{2ea1a5a7-781d-46d3-8c98-010452938613}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Util">
-      <UniqueIdentifier>{8d72841e-9be3-4f46-870e-4d372fe50d13}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Core">
-      <UniqueIdentifier>{c5ecf33d-9254-49b7-aeb2-ecb9c72b0d35}</UniqueIdentifier>
+    <Filter Include="Headers\GameFacilities">
+      <UniqueIdentifier>{fc5ea9b4-ee7a-4c89-a7b8-e0f5fd08dada}</UniqueIdentifier>
     </Filter>
     <Filter Include="Headers\Physics">
-      <UniqueIdentifier>{0d3e69ef-ba66-4912-9e5f-b91ff66dc024}</UniqueIdentifier>
+      <UniqueIdentifier>{ebecd43a-5399-481c-b617-ae43ca5a0d71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Core">
+      <UniqueIdentifier>{2d55807b-c7af-41a7-a2e5-2da4718435c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Util">
+      <UniqueIdentifier>{5877662b-3020-43f5-820e-e868d3dbf32b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Headers\Sound">
-      <UniqueIdentifier>{3831c363-1307-427e-b102-b46195d69ca0}</UniqueIdentifier>
+      <UniqueIdentifier>{5d662427-c43b-4b3a-8076-e835724d6266}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Game Facilities">
-      <UniqueIdentifier>{bf3fd7cf-b8d0-40c1-9d36-e22b9379f884}</UniqueIdentifier>
+    <Filter Include="Headers\3DEngine\RenderObjects">
+      <UniqueIdentifier>{0602a7a3-8fe6-4a19-8d95-132ba6207921}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\AI">
-      <UniqueIdentifier>{d71950f1-d43e-4391-9510-3c9fdc826368}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Renderer\RenderAPI">
-      <UniqueIdentifier>{6aa44c19-7572-4916-b242-eb5dda05573f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source">
+    <Filter Include="Sources">
       <UniqueIdentifier>{b5fd5195-ec58-4ce1-af99-f64358835972}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Renderer\RenderObjects">
-      <UniqueIdentifier>{886bae50-d23f-4f56-b42d-3d0f43325cea}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Include\Abstract\IOutputPlane.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\I3DEngine.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\BoundBox.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Camera.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ChunkedObjectPool.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ChunkPool.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\CLog.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IFramePipeline.h">
-      <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IDynamicsPipeline.h">
-      <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IRenderPipeline.h">
-      <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IScene.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ISettings.h">
-      <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SResult.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\SAPI.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ILog.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IPhysics.h">
-      <Filter>Headers\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\SPrerequisites.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SString.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IAnimationBundle.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IAnimationJoint.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IAnimationKey.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IAnimationSequence.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ICollisionShape.h">
-      <Filter>Headers\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IOctree.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Math.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\MathGeom.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Matrix.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Quaternion.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Vector2.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Vector3.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Vector4.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Animateable.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IOcean.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\Transformable.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ISound.h">
-      <Filter>Headers\Sound</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ISoundSystem.h">
-      <Filter>Headers\Sound</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IApplication.h">
-      <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IInteractive.h">
-      <Filter>Headers\Game Facilities</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IAI.h">
-      <Filter>Headers\AI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IBot.h">
-      <Filter>Headers\AI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IOctreeNode.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IEntity.h">
-      <Filter>Headers\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ITerrain.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IConstantsBuffer.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IFBO.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IFont.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IIndexBuffer.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IRenderAPI.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IRenderer.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IResourcePool.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IShader.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ITexture.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IVertexBuffer.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IViewport.h">
-      <Filter>Headers\Renderer\RenderAPI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IGameEngine.h">
-      <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ComponentPool.h">
-      <Filter>Headers\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\CHelper.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SColor.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IRenderObject.h">
-      <Filter>Headers\Renderer\RenderObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ISkyBox.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\RenderMesh.h">
-      <Filter>Headers\Renderer\RenderObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\RenderLight.h">
-      <Filter>Headers\Renderer\RenderObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\ParticleSystem.h">
-      <Filter>Headers\Renderer\RenderObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IGeometry.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\IMaterial.h">
-      <Filter>Headers\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Abstract\PhysObject.h">
-      <Filter>Headers\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Include\Util\SerializationTools.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dummy.cpp">
-      <Filter>Source</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Animateable.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Camera.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\BoundBox.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\CHelper.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ChunkedObjectPool.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ChunkPool.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\CLog.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ComponentPool.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Entities.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\I3DEngine.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAI.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationBundle.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationJoint.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationKey.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationSequence.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IApplication.h">
+      <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IBot.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ICollisionShape.h">
+      <Filter>Headers\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IConstantsBuffer.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IDynamicsPipeline.h">
+      <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IEntity.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IFBO.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IFont.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IFramePipeline.h">
+      <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IGameEngine.h">
+      <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IGeometry.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IIndexBuffer.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IInteractive.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ilog.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IMaterial.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IOcean.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IOctree.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IOctreeNode.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IOutputPlane.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IPhysics.h">
+      <Filter>Headers\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderAPI.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderer.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRendererSettings.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderPipeline.h">
+      <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IResourcePool.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IScene.h">
+      <Filter>Headers\GameFacilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISettings.h">
+      <Filter>Headers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IShader.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISkyBox.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISound.h">
+      <Filter>Headers\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISoundSystem.h">
+      <Filter>Headers\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ITerrain.h">
+      <Filter>Headers\3DEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ITexture.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IVertexBuffer.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IViewport.h">
+      <Filter>Headers\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Math.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\MathGeom.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Matrix.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\PhysObject.h">
+      <Filter>Headers\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Quaternion.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SAPI.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SAssert_Impl.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Transformable.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Vector2.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Vector3.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Vector4.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderObject.h">
+      <Filter>Headers\3DEngine\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ParticleSystem.h">
+      <Filter>Headers\3DEngine\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\RenderLight.h">
+      <Filter>Headers\3DEngine\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\RenderMesh.h">
+      <Filter>Headers\3DEngine\RenderObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SPrerequisites.h">
+      <Filter>Headers\Util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

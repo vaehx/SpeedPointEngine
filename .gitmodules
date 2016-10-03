@@ -1,4 +1,0 @@
-[submodule "Projects/meshconv"]
-	path = Projects/meshconv
-	url = git@bitbucket.org:prosicraft/meshconv.git
-	ignore = dirty

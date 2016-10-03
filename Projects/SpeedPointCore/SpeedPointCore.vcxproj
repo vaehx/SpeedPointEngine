@@ -10,6 +10,54 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventCallbackTable.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventHandler.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameter.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameters.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SObservedObject.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\DynamicsPipeline.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\Camera.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SConfigFile.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SLogFile.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SString.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventCallbackTable.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventCallbackTableEntry.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventHandler.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameter.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameters.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SObservedObject.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\DynamicsPipeline.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SCommandBuffering.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPoint.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SAssert.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SColor.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SConfigFile.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SerializationTools.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SLogFile.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SPool.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SPoolIndex.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SPrimitive.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SQueue.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SResult.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SString.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SVertex.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SWindowsSpecific.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6A802F58-8B42-46E9-A308-87ADE350A374}</ProjectGuid>
     <RootNamespace>SpeedPointCore</RootNamespace>
@@ -76,66 +124,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Include\Abstract\SAssert_Impl.h" />
-    <ClInclude Include="..\..\Include\Lighting\SLight.h" />
-    <ClInclude Include="..\..\Include\Lighting\SLightSystem.h" />
-    <ClInclude Include="..\..\Include\Observer\SEventCallbackTable.h" />
-    <ClInclude Include="..\..\Include\Observer\SEventCallbackTableEntry.h" />
-    <ClInclude Include="..\..\Include\Observer\SEventHandler.h" />
-    <ClInclude Include="..\..\Include\Observer\SEventParameter.h" />
-    <ClInclude Include="..\..\Include\Observer\SEventParameters.h" />
-    <ClInclude Include="..\..\Include\Observer\SObservedObject.h" />
-    <ClInclude Include="..\..\Include\Pipelines\RenderPipeline.h" />
-    <ClInclude Include="..\..\Include\Pipelines\SCommandBuffering.h" />
-    <ClInclude Include="..\..\Include\Pipelines\DynamicsPipeline.h" />
-    <ClInclude Include="..\..\Include\Pipelines\FramePipeline.h" />
-    <ClInclude Include="..\..\Include\SpeedPoint.h" />
-    <ClInclude Include="..\..\Include\EngineSettings.h" />
-    <ClInclude Include="..\..\Include\SpeedPointApplication.h" />
-    <ClInclude Include="..\..\Include\SpeedPointEngine.h" />
-    <ClInclude Include="..\..\Include\SpeedPointAI.h" />
-    <ClInclude Include="..\..\Include\SpeedPointAnimations.h" />
-    <ClInclude Include="..\..\Include\SpeedPointCommon.h" />
-    <ClInclude Include="..\..\Include\SpeedPointGeometry.h" />
-    <ClInclude Include="..\..\Include\SpeedPointPhysics.h" />
-    <ClInclude Include="..\..\Include\SpeedPointRendering.h" />
-    <ClInclude Include="..\..\Include\SpeedPointScripting.h" />
-    <ClInclude Include="..\..\Include\SpeedPointSound.h" />
-    <ClInclude Include="..\..\Include\Util\SAssert.h" />
-    <ClInclude Include="..\..\Include\Util\SColor.h" />
-    <ClInclude Include="..\..\Include\Util\SConfigFile.h" />
-    <ClInclude Include="..\..\Include\Util\SLogFile.h" />
-    <ClInclude Include="..\..\Include\Util\SLogStream.h" />
-    <ClInclude Include="..\..\Include\Util\SPool.h" />
-    <ClInclude Include="..\..\Include\Util\SPoolIndex.h" />
-    <ClInclude Include="..\..\Include\Util\SPrimitive.h" />
-    <ClInclude Include="..\..\Include\Util\SQueue.h" />
-    <ClInclude Include="..\..\Include\Util\SVertex.h" />
-    <ClInclude Include="..\..\Include\Util\SWindowsSpecific.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\Source\Lighting\SLight.cpp" />
-    <ClCompile Include="..\..\Source\Lighting\SLightSystem.cpp" />
-    <ClCompile Include="..\..\Source\Observer\SEventCallbackTable.cpp" />
-    <ClCompile Include="..\..\Source\Observer\SEventHandler.cpp" />
-    <ClCompile Include="..\..\Source\Observer\SEventParameter.cpp" />
-    <ClCompile Include="..\..\Source\Observer\SEventParameters.cpp" />
-    <ClCompile Include="..\..\Source\Observer\SObservedObject.cpp" />
-    <ClCompile Include="..\..\Source\Pipelines\DynamicsPipeline.cpp" />
-    <ClCompile Include="..\..\Source\Pipelines\FramePipeline.cpp" />
-    <ClCompile Include="..\..\Source\EngineSettings.cpp" />
-    <ClCompile Include="..\..\Source\Pipelines\RenderPipeline.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointApplication.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine.cpp" />
-    <ClCompile Include="..\..\Source\Util\Camera.cpp" />
-    <ClCompile Include="..\..\Source\Util\SConfigFile.cpp" />
-    <ClCompile Include="..\..\Source\Util\SLogFile.cpp" />
-    <ClCompile Include="..\..\Source\Util\SLogStream.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
