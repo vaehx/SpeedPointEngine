@@ -1,0 +1,29 @@
+## Black Ops 3 ##
+
+Talk: "Fighting Latency on Call of Duty: Black Ops III" - Benjamin Goyette
+
+
+
+- Server is authoritive
+- Server periodically sends SNAPSHOT to clients
+	- contains world state at one frame
+	- Delta compression against last snapshot, the client acknowledged
+	- UDP
+	- rate of snapshot sending < framerate (--> more frames than snapshots)
+	- client interpolates between snapshots
+- Clients send COMMAND packets
+	- jumping, shooting, ...
+	- very small, UDP
+	- care about reliability:
+		- spam socket with commands until server acknowledges
+
+Client side prediction:
+	- On command: Client predicts result to display immediately on screen
+	- next snapshot "kinda" confirms prediction
+	- misprediction possible
+
+Improving HIT DETECTION:
+	- Server has buffer of latest snapshots it sent to client
+	- On COMMAND packet (contains frame #): Interpolate between nearest snapshots to that frame
+	
+	

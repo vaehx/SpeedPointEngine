@@ -1,0 +1,130 @@
+
+struct SVarInfo {
+    string name;
+};
+
+// Can either be a reader or a writer.
+// Can either be binary or text or whatever you need...
+struct ISerializer {
+	virtual void SerializeFloat(float* f, const SVarInfo& vi);
+	virtual void SerializeInt(int* i, const SVarInfo& vi);
+	virtual void SerializeUInt(unsigned int* u, const SVarInfo& vi);
+	virtual void SerializeVec3f(Vec3f* v, const SVarInfo& vi);
+	virtual void SerializeQuat(Quat* q, const SVarInfo& vi);
+	virtual void SerializeString(string* s, const SVarInfo& vi);
+};
+
+
+
+void CEntity::Serialize(ISerializer* ser) {
+	for (auto itComponent = m_Components.begin(); itComponent != m_Components.end(); ++itComponent)
+		itComponent->Serialize(ser);
+}
+
+void CRenderableComponent::Serialize(ISerializer* ser) {
+	ser->Serialize(&m_GeomFile, SVarInfo("geomFile"));
+	if (ser->IsDeserializing()) {
+		// Load resources
+		if (!m_pGeometry || m_pGeometry->GetFileName() != m_GeomFile)
+			LoadGeometry(m_GeomFile);
+	}
+}
+
+================================================================================================
+
+// THIS IS THE WORLD STATE THAT IS SENT FROM THE SERVER TO ALL THE CLIENTS PERIODICALLY
+
+[World] {
+	[Entity] {
+		id: 384,
+		name: 'player01',
+		pos: (X,Y,Z),
+		scale: (X,Y,Z),	
+		rot: (X,Y,Z,W),
+		[Renderable] {
+			geometry: 'res/models/soldier.spm'
+		},
+		[Physical] {
+			
+		},
+		[Actor] { // This may be the receiving client itself or another player
+			[EquippedWeapon] {
+				model: 'res/models/weapon_mp42.spm', 	// Deserialization code of Actor will handle creation of weapon entity
+				ammo: 12,
+				[WeaponAttachment] {
+					type: 'extended_mags'
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
+class ser_container {
+private:
+	map<string, string> vars;
+	map<string, ser_container> containers;
+public:
+	void set_string(const string& name, const string& s);
+	void set_float(const string& name, const float& f);
+
+	// c will be set to a pointer pointing to a ser_container instance stored in this ser_container
+	void set_container(const string& name, ser_container** c);
+
+	string get_string(const string& name);
+	float get_float(const string& name);
+	ser_container* get_container(const string& name);
+	map<string, ser_containers>* get_containers();
+};
+
+
+void CWorld::Serialize(ser_container* world) {
+	foreach (entity : m_Entities) {
+		ser_container* entityContainer;
+		world->set_container('Entity', &entityContainer);
+		entityContainer->set_ulong('id', GetEntityId(entity));
+		entity->Serialize(entityContainer);
+	}
+}
+
+void CWorld::Deserialize(ser_container* world) {
+	foreach (ser_container* entity : world->containers) {
+		unsigned long entityId = entity->get_ulong('id');
+		IEntity* pEntity = GetEntityById(entityId);
+		if (!pEntity)
+			pEntity = SpawnEntityWithId(id);
+
+		pEntity->Deserialize(entity);
+	}
+}
+
+
+void CEntity::Serialize(ser_container* entity) {
+	entity->set_string('name', m_Name);
+	entity->set_vec3('pos', m_Pos);
+	entity->set_vec3('scale', m_Scale);
+	entity->set_quat('rot', m_Rotation);
+	foreach (component : m_Components) {
+		ser_container* componentContainer;
+		entity->set_container(component->GetSerializationTypeName())
+
+		// PROBLEM: Entity can't construct components !!!!
+
+
+	}
+}
+
+void CEntity::Deserialize(ser_container* entity) {
+	
+}
+
+
+
+
+
+
+
+

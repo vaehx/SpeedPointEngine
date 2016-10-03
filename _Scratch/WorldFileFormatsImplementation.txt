@@ -1,0 +1,23 @@
+// All parsing functions assume that the INPUT value is trimmed left and right
+
+#define SPW_MAX_LINE_LENGTH
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------
+
+World name="Arena1"
+	Terrain heightmap="heightmap.bmp" colormap="colormap.bmp" segments=512 chunkSegments=16 size=512.0f baseHeight=0.0f chunkStepDist=20.0f lodLevels=4 center=true
+		Layer detailmap="textures/terrain/dirt.bmp" alphamap="layer0.bmp"
+		Layer detailmap="textures/terrain/grass.bmp" alphamap="layer1.bmp"
+	Entity name="entity1" pos=(X,Y,Z) rot=(X,Y,Z,W) scale=(X,Y,Z)
+		Renderable geomFile="..."
+
+----------------------------------------------------------------------------------------------------
+
+		

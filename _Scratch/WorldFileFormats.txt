@@ -1,0 +1,121 @@
+
+------------------------------------------------------------------------------------------
+
+		J S O N
+
+	+ Very common
+	- Hard to parse (too flexible)
+	- Very long code, not readable when minified
+
+------------------------------------------------------------------------------------------
+
+{
+	name: 'Arena1',
+	entities: [
+		{
+			name: "entity001",
+			pos: (10.0,5.0,10.0),
+			rot: (X,Y,Z,W),
+			renderable: {
+				geomFile = "models/house.spm"
+			},
+			physical: {
+				weight = 100.0
+			}
+		},
+		{
+			name: "entity002",
+			pos: (7,4,3),
+			rot: (X,Y,Z,W),
+			renderable: {
+				geomFile = "models/rock.spm"
+			}
+		}
+	]
+}
+
+
+------------------------------------------------------------------------------------------
+
+		D u n g e o n    S i e g e    S t y l e
+
+------------------------------------------------------------------------------------------
+
+[world:Arena1]
+{
+	[entity:entity001]
+	{
+		name	= "entity001";
+		pos	= (10.0,5.0,10.0);
+		rot 	= (X,Y,Z,W);
+		
+		[renderable]
+		{
+			geomFile = "models/house.spm";
+		}
+		[physical]
+		{
+			weight = 100.0;
+		}
+	}
+}
+
+
+
+
+
+------------------------------------------------------------------------------------------
+
+		X M L
+
+	+ Relatively easy to parse
+	+ Stable format
+	- < > parsing overhead
+
+------------------------------------------------------------------------------------------
+
+<World name="Arena1">
+	<Entity name="entity001" pos="10.0,5.0,10.0" rot="X,Y,Z,W">
+		<Renderable geomFile="models/house.spm" />
+		<Physical weight="100.0" />
+	</Entity>
+	<Entity name="entity002" pos="7,4,3" rot="X,Y,Z,W">
+		<Renderable geomFile="models/rock.spm" />
+	</Entity>
+</World>
+
+
+
+
+
+------------------------------------------------------------------------------------------
+
+		S i n g l e - L i n e   +   T a b   I n d e n t
+
+	+ Easy to parse
+	+ Short, almost no overhead
+	- Requires correct indentation, otherwise the world is corrupted
+
+------------------------------------------------------------------------------------------
+
+!! Loaded geometry should be cached, so we don't have to re-load it when using it multiple times !!
+
+# Lines starting with # are a comment
+Lvl name="Arena1"
+	Ter heightmap="heightmap.bmp" colormap="colormap.bmp"
+		# We could either use separate alphamaps here or we could use an
+		# integer texture that specifies the index of the layer
+		Lay detailmap="textures/dirt.bmp" alphamap="layer1.bmp"
+		Lay detailmap="textures/grass.bmp" alphamap="layer2.bmp"
+	Ent name="house" pos=(10.0,5.0,10.0) rot=(X,Y,Z,W) scale=(1,1,1)
+		Ren geomFile="models/house.spm"
+		Phy weight=100.0 shape=box:(0,0,0):(5,2.5,5)
+	Ent name="rock" pos=(7,4,3) rot=(X,Y,Z,W) scale=(1,1,1)
+		Ren geomFile="models/rock.spm"
+		# - The mesh can be loaded in this way:
+		# 	1. If an object called 'proxy_mesh' is in the mesh, this will be used
+		#	2. Otherwise, the original geometry is used (later we can try to approximate it)
+		Phy static=true shape=mesh:"models/rock.spm"
+
+
+

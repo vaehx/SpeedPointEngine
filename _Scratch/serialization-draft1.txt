@@ -1,0 +1,217 @@
+
+[World] {
+	[Entity] {
+		...
+	},
+	[Entity] {
+		
+	}
+}
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+	// CRenderableComponent.h:
+
+
+	class CRendererableComponentFactory : public IComponentFactory {
+	private:
+		I3DEngine* m_p3DEngine;
+	public:
+		CRenderableComponentFactory(I3DEngine* p3DEngine) : m_p3DEngine(p3DEngine) {}
+
+		virtual vector<string> GetServedTypenames() const {
+			return {
+				COMPONENT_TYPENAME_RENDERMESH,
+				COMPONENT_TYPENAME_RENDERLIGHT,
+				COMPONENT_TYPENAME_PARTICLEEMITTER
+			};
+		}
+
+		virtual IComponent* CreateComponent(IEntity* pEntity, cstr& typename) const {
+			if (!m_p3DEngine)
+				return 0;
+
+			IComponent* pCmp = 0;
+			if (typename == COMPONENT_TYPENAME_RENDERMESH)
+				pCmp = m_p3DEngine->CreateRenderMesh();
+			else if (typename == COMPONENT_TYPENAME_RENDERLIGHT)
+				pCmp = m_p3dEngine->CreateRenderLigth();
+			else if (typename == COMPONENT_TYPENAME_PARTICLEEMITTER)
+				pCmp = m_p3DEngine->CreateParticleEmitter();
+
+			if (pCmp && pEntity)
+				pEntity->AddComponent(pCmp);
+
+			return pCmp;
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+	// IEntity.h:
+
+
+	struct IComponentFactory {
+		virtual vector<string> GetServedTypenames() const = 0;
+		virtual IComponent* CreateComponent(IEntity* pEntity, cstr& typename) const = 0;
+	};
+
+	template<typename CmpImpl>
+	class CComponentFactory : public IComponentFactory {
+	private:
+		string m_Typename;
+	public:
+		CComponentFactory(cstr& typename) : m_Typename(typename) {}
+
+		virtual vector<string> GetServedTypenames() const {
+			return { m_Typename };
+		}
+
+		virtual IComponent* CreateComponent(IEntity* pEntity, cstr& typename) const {
+			return pEntity->CreateComponent<CmpImpl>();
+		}
+	};
+
+	class CComponentRegistry {
+	private:
+		map<string, IComponentFactor*> m_Factories;
+	public:
+		void RegisterComponentFactory(IComponentFactory* factory) {
+			if (factory) {
+				vector<string> typenames = factory->GetServedTypenames();
+				for (auto itTypename = typenames.begin(); itTypename != typenames.end(); ++itTypename) {
+					auto existing = m_Factories.find(*itTypename);
+					if (existing != m_Factories.end()) {
+						// Check if there is another entry with the same factory ptr
+						bool found = false;
+						for (auto itFactory = m_Factories.begin(); itFactory != m_Factories.end(); ++itFactory) {
+							if (itFactory->second == factory) {
+								found = true;
+								break;
+							}
+						}
+
+						// Delete if not found
+						if (!found)
+							delete existing->second;
+
+						existing->second = factory;
+					}
+					else {
+						m_Factories[*itTypename] = factory;
+					}
+				}
+			}
+		}
+
+		IComponent* CreateComponent(IEntity* pEntity, cstr& typename) {
+			auto factory = m_Factories.find(typename);
+			if (factory != m_Factories.end() && factory->second)
+				return factory->second->CreateComponent(pEntity, typename);
+			else
+				return 0;
+		}
+	}
+
+
+
+
+	SpeedPointEngine::Initialize3DEngine() {
+		...
+		m_ComponentRegistry->RegisterComponentFactory(new CRenderableComponentFactory(m_p3DEngine));
+	}
+
+	Game::OnInit() {
+		pComponentRegistry->RegisterComponentFactory(new CComponentFactory<CActor>("Actor"));
+		pComponentRegistry->RegisterComponentFactory(new CComponentFactory<CThrowable>("Throwable"));
+		...
+	}
+
+
+
+
+
+
+
+
+
+typedef const string cstr;
+
+
+
+
+class ser_container {
+public:
+	void setTypename(cstr& name);
+	cstr& getTypename() const;
+
+	// Vars:
+	void setFloat(cstr& name, float* f);
+	void setString(cstr& name, string* s);
+	...
+
+	float getFloat(cstr& name) const;
+	string getString(cstr& name) const;
+	...
+
+
+	// Containers:
+	ser_container* addContainer(cstr& typename = "Container");
+	vector<ser_container>* getContainers();
+	ser_container* getFirstContainerOfType(cstr& typename);
+	vector<ser_container*> getContainersOfType(cstr& typename);
+};
+
+
+
+
+
+
+Scene::Serialize(ser_container* worldContainer) {
+	for (entity : m_Entities) {
+		ser_container* entityContainer = worldContainer->addContainer("Entity");
+		entityContainer->setULong("id", GetEntityId(entity));
+		entity->Serialize(entityContainer);
+	}
+}
+
+Scene::Deserialize(ser_container* worldContainer) {
+	for (entityContainer : worldContainer->getContainersOfType("Entity")) {
+		unsigned long entityId = entityContainer->getULong("id");
+		IEntity* pEntity = GetEntityById(entityId);
+		if (!pEntity)
+			pEntity = SpawnEntityWithId(entityId);
+
+		pEntity->Deserialize(entityContainer);
+	}
+}
+
+
+
+Entity::Serialize(ser_container* entityContainer) {
+	for (component : m_Components) {
+		ser_container* componentContainer = entityContainer->addContainer(component->GetTypename());
+		component->Serialize(componentContainer);
+	}
+}
+
+Entity::Deserialize(ser_container* entityContainer) {
+	for (ser_container* componentContainer : entityContainer->getContainers()) {
+		IComponent* pCmp = pComponentRegistry->CreateComponent(this, componentContainer->getTypename());
+		if (pCmp)
+			pCmp->Deserialize(componentContainer);
+	}
+}

@@ -1,0 +1,66 @@
+Prototype #1:
+	- no delta compression
+	- architecture:
+		#1 IComponent::SerializeBinary()
+			(+)  may work in general (for savegames as well)
+			(+)  easier
+			(-)  netcode has to access components
+			(-)  <-> IComponent::Serialize()
+
+			==> Could be implemented via general interface
+			IEntity : public Common::ISerializable
+
+			Net::NetSystem::RegisterSerializable();
+
+		#2 NetComponent : public IComponent, public NetObject
+			In other components:
+				net = m_pEntity->GetComponent<NetComponent>()
+				net->SetData(...);
+			(+)  Net system can be decoupled from entity
+			(-)  NetComponent is a dependency, checks necessary (HasComponent<NetComponent>())
+
+------------------ Server ----------------------
+
+Server::Networking::Update() {
+	// Send a snapshot every 100 frames
+	if (numElapsedFrames == 100) {
+		SendSnapshot(client);
+		numElapsedFrames = 0;
+	}
+
+	// Listen on client commands
+	if (HasData(client)) {
+		ReceiveAndAcknowledgeCommand(client);
+	}
+}
+
+
+
+------------------ Client ----------------------
+
+Client::Networking::Update() {
+	if (ServerHasData()) {
+		packet = RecvServerPacket();
+		if (IsSnapshot(packet))
+			SetWorldState(packet);
+		else
+			AcknowledgeCommand(packet);
+	}
+
+	// Send commands each frame until acknowledged from server
+	foreach (command in commandQueue) {
+		SendCommand(command);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
