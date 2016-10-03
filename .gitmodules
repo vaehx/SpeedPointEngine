@@ -1,7 +1,3 @@
-[submodule "Projects/IOSandbox"]
-	path = Projects/IOSandbox
-	url = git@bitbucket.org:prosicraft/speedpointiosandbox.git
-	ignore = dirty
 [submodule "Projects/meshconv"]
 	path = Projects/meshconv
 	url = git@bitbucket.org:prosicraft/meshconv.git
