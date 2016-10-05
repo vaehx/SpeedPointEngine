@@ -12,9 +12,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <SPrerequisites.h>
+#include "..\SCommandBuffering.h"
 #include <Abstract\IRenderPipeline.h>
-#include <Pipelines\SCommandBuffering.h>
+#include <Abstract\SPrerequisites.h>
 
 SP_NMSPACE_BEG
 

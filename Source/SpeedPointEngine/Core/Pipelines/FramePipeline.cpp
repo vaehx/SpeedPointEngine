@@ -4,18 +4,28 @@
 
 // ******************************************************************************************
 
+#include "FramePipeline.h"
+#include "..\SpeedPointEngine.h"
 #include <Abstract\IRenderPipeline.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IApplication.h>
 #include <Abstract\IPhysics.h>
-#include <Pipelines\FramePipeline.h>
-#include <SpeedPointEngine.h>
 #include <sstream>
 
 using std::stringstream;
 
 SP_NMSPACE_BEG
 
+std::ostream& operator <<(std::ostream& ss, const Vec3f& v)
+{
+	ss << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+	return ss;
+}
+std::ostream& operator <<(std::ostream& ss, const Quat& q)
+{
+	ss << "(" << q.v.x << ", " << q.v.y << ", " << q.v.z << " w=" << q.w << ")";
+	return ss;
+};
 
 
 S_API CDebugInfo::CDebugInfo()
@@ -43,7 +53,7 @@ S_API void CDebugInfo::InitFontRenderSlot(SFontRenderSlot** ppFRS, bool bRightAl
 		pFRS->color = color;
 		pFRS->screenPos[0] = x;
 		pFRS->screenPos[1] = y;
-		pFRS->text = new char[200];
+		pFRS->text = "";
 		pFRS->fontSize = fontSize;
 	}
 }
@@ -51,37 +61,33 @@ S_API void CDebugInfo::InitFontRenderSlot(SFontRenderSlot** ppFRS, bool bRightAl
 // -----------------------------------------------------------------------------
 S_API void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SFrameDebugInfo& fdi)
 {
-	// CamStat
-	InitFontRenderSlot(&m_pCamStats, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 0);
-	Vec3f camForward = pCamera->GetForward();
-	Quat& turnQuat = pCamera->d_turnQuat;
-	SpeedPoint::SPSPrintf(m_pCamStats->text, 200, "Cam(%.2f %.2f %.f | %.2f %.2f %.2f | %.2f %.2f %.2f)",
-		pCamera->position.x, pCamera->position.y, pCamera->position.z,
-		camForward.x, camForward.y, camForward.z,
-		pCamera->d_turn.x, pCamera->d_turn.y, pCamera->d_turn.z);
+	stringstream ss;
 
-	// Cam view matrix
-	SMatrix& viewMtx = pCamera->viewMatrix;
-	for (unsigned int i = 0; i < 4; ++i)
-	{
-		InitFontRenderSlot(&m_pViewMtxRows[i], true, true, SColor(1.0f, 1.0f, 1.0f), 0, 100 + i*18);
-		SPSPrintf(m_pViewMtxRows[i]->text, 200, "( %.2f %.2f %.2f %.2f )", viewMtx.m[i][0], viewMtx.m[i][1], viewMtx.m[i][2], viewMtx.m[i][3]);
-	}
+	// Cam stats
+	InitFontRenderSlot(&m_pCamStats, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 0);
+	ss << "CAM: pos=" << pCamera->position << " fwd=" << pCamera->GetForward();
+	m_pCamStats->text = ss.str();
 
 	// Frame Timers
 	InitFontRenderSlot(&m_pFrameTimes, true, true, SpeedPoint::SColor(1.0f, 1.0f, 1.0f), 0, 18);
-	SpeedPoint::SPSPrintf(m_pFrameTimes->text, 200, "Render: %.2f Tick: %.2f Frame: %.2f",
-		fdi.renderTimer.GetDuration() * 1000.0, fdi.tickTimer.GetDuration() * 1000.0, fdi.frameTimer.GetDuration() * 1000.0);
+	ss.str("");
+	ss	<< "Render: " << fdi.renderTimer.GetDuration() * 1000.0 << "ms "
+		<< "Tick: " << fdi.tickTimer.GetDuration() * 1000.0 << "ms "
+		<< "Frame: " << fdi.frameTimer.GetDuration() * 1000.0 << "ms";
+	m_pFrameTimes->text = ss.str();
 
 	// FPS
 	InitFontRenderSlot(&m_pFPS, true, true, SpeedPoint::SColor(1.0f, 1.0f, 0.3f), 0, 37, SpeedPoint::eFONTSIZE_MEDIUM);
-	SpeedPoint::SPSPrintf(m_pFPS->text, 200, "FPS %u (%u..%u)",
-		fdi.lastFrameCounter, (unsigned int)(1.0 / fdi.lastMaxFrameTime), (unsigned int)(1.0 / fdi.lastMinFrameTime));	
+	ss.str("");
+	ss << "FPS " << fdi.lastFrameCounter << " (" << (unsigned int)(1.0 / fdi.lastMaxFrameTime) << ".." << (unsigned int)(1.0 / fdi.lastMinFrameTime);
+	m_pFPS->text = ss.str();
 
 	// Terrain info
 	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 65);
 	SpeedPoint::STerrainRenderDesc* pTerrainRenderDesc = m_pEngine->GetRenderer()->GetTerrainRenderDesc();
-	SpeedPoint::SPSPrintf(m_pTerrain->text, 200, "Terrain: %u DCs", pTerrainRenderDesc->nDrawCallDescs);
+	ss.str("");
+	ss << "Terrain: " << pTerrainRenderDesc->nDrawCallDescs << " DCs";
+	m_pTerrain->text = ss.str();
 
 
 	// Budget timers
@@ -91,7 +97,9 @@ S_API void CDebugInfo::Update(SpeedPoint::SCamera* pCamera, double fps, const SF
 	{
 		SFontRenderSlot* pFRS = 0;
 		InitFontRenderSlot(&pFRS, false, false, SColor(1.f, 1.f, 1.f), 10, 0 + i * 13);
-		SpeedPoint::SPSPrintf(pFRS->text, 200, "%.2f\t%s", itBudgetTimer->GetDuration() * 1000.0, itBudgetTimer->name.c_str());
+		ss.str("");
+		ss << itBudgetTimer->GetDuration() * 1000.0 << "\t" << itBudgetTimer->name;
+		pFRS->text = ss.str();
 	}
 }
 

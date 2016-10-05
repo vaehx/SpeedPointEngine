@@ -27,18 +27,17 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Important core headers.
 
-#include <Abstract\SAPI.h> // __declspec macro S_API
+#include "SAPI.h" // __declspec macro S_API
 
-#include "Util\SWindowsSpecific.h"
+#include "SWindowsSpecific.h"
 #include <vector>
 using std::vector;
 #include <cmath>
 
-#include "Util\SResult.h"	// SResult, IExceptionProxy
-#include "Util\SAssert.h"	// including IS_VALID_PTR
+#include "SResult.h"	// SResult, IExceptionProxy
+#include "SAssert.h"	// including IS_VALID_PTR
 
-#include "Util\SPoolIndex.h"
-//#include "Util\SString.h"
+#include "SPoolIndex.h"
 
 #include <string>
 #include <sstream>
@@ -48,7 +47,7 @@ using std::string;
 #include <functional>
 #include <cctype>
 
-#include "Abstract\CLog.h"
+#include "CLog.h"
 // DO NOT ADD ANY HEADER HERE if you do not know why!
 
 

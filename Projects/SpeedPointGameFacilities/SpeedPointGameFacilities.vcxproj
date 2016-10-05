@@ -11,13 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationBundle.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationJoint.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationKey.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationSequence.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Entity.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\GeometryManager.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Octree.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\OctreeNode.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.h" />
@@ -29,10 +24,6 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\RenderableComponent.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationBundle.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationJoint.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationKey.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationSequence.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctree.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctreeNode.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\Scene.cpp" />
@@ -68,10 +59,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\..\..\Dependencies\DirectX\Include;$(ProjectDir)\..\..\Include;$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)SpeedPointEngine\Source\SpeedPointEngine;$(SolutionDir)FileFormats\SpeedPointFileFormats\;$(IncludePath)</IncludePath>
     <TargetExt>.lib</TargetExt>
     <LibraryPath>$(ProjectDir)\..\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
-    <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(ProjectDir)\..\..\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>

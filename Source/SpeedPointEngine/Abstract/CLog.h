@@ -7,16 +7,16 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <Util\SString.h>
+#include "SPrerequisites.h"
 #include <vector>
+#include <iostream>
 
 SP_NMSPACE_BEG
 
 
 struct S_API ILogListener
 {
-	virtual void OnLog(SResult res, const SString& msg) = 0;
+	virtual void OnLog(SResult res, const string& msg) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,22 +50,16 @@ public:
 		}
 	}
 
-	SResult Log(SResult res, const SString& msg)
+	SResult LogString(SResult res, const string& msg)
 	{
-		char* resDsc = "";
+		string formatted;
 		switch (res)
 		{
-		case S_ERROR:
-			resDsc = "[ERROR] ";
-			break;
-		case S_WARN:
-			resDsc = "[Warning] ";
-			break;
+		case S_ERROR: formatted = "[ERROR] "; break;
+		case S_WARN: formatted = "[Warning] "; break;
 		}
 
-		unsigned int msgln = msg.GetLength() + 20;
-		char* msgstr = new char[msgln];
-		SPSPrintf(msgstr, msgln, "%s%s\n", resDsc, (char*)msg);
+		formatted += msg + "\n";
 
 		while (m_bLogLocked)
 		{
@@ -79,11 +73,11 @@ public:
 			for (auto itListener = m_LogListeners.begin(); itListener != m_LogListeners.end(); itListener++)
 			{
 				if (IS_VALID_PTR(*itListener))
-					(*itListener)->OnLog(res, msgstr);
+					(*itListener)->OnLog(res, formatted);
 			}
 		}
 
-		printf("%s", msgstr);
+		std::cout << formatted;
 
 		m_bLogLocked = false;
 		return res;
@@ -91,11 +85,10 @@ public:
 
 	SResult Log(SResult res, const char* fmt, va_list args)
 	{
-		char out[300];		
-		//SPSPrintf(out, 500, fmt, args);
+		static char out[300];
 		vsnprintf_s(out, 300, fmt, args);		
 
-		return Log(res, SString(out));
+		return LogString(res, out);
 	}
 
 	SResult Log(SResult res, const char* fmt, ...)
@@ -127,9 +120,9 @@ public:
 		g_LogIntrnl.UnregisterListener(pListener);
 	}
 
-	static SResult Log(SResult res, const SString& msg)
+	static SResult Log(SResult res, const string& msg)
 	{
-		return g_LogIntrnl.Log(res, msg);
+		return g_LogIntrnl.LogString(res, msg);
 	}
 
 	static SResult Log(SResult res, const char* fmt, ...)

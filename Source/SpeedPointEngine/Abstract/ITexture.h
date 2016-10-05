@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <Util\SColor.h>
+#include "SPrerequisites.h"
+#include "SColor.h"
 #include "Vector2.h"
 
 SP_NMSPACE_BEG

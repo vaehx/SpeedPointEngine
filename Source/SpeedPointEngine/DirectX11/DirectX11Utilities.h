@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include "DirectX11.h"
 #include <Abstract\ISettings.h>
+#include <Abstract\SPrerequisites.h>
+#include "DirectX11.h"
 
 SP_NMSPACE_BEG
 
@@ -25,7 +25,7 @@ static inline S_API DXGI_SAMPLE_DESC GetD3D11MSAADesc(
 	const EMSAAQuality& quality)
 {	
 	DXGI_SAMPLE_DESC out;
-	SP_ASSERT(pD3D11Device);
+	assert(pD3D11Device);
 	if (!pD3D11Device)
 	{
 		// disable MSAA

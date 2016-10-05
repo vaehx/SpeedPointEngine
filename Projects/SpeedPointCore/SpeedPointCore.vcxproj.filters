@@ -10,9 +10,6 @@
     <Filter Include="Sources\Pipelines">
       <UniqueIdentifier>{d1dcc489-e07e-4ba0-bdd3-739d0f3d9db2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Observer">
-      <UniqueIdentifier>{69aee0ef-ee34-4412-8ea2-db823b2cb77e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.cpp">
@@ -27,41 +24,14 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\Camera.cpp">
       <Filter>Sources\Util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SConfigFile.cpp">
-      <Filter>Sources\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SLogFile.cpp">
-      <Filter>Sources\Util</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.cpp">
       <Filter>Sources\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SString.cpp">
-      <Filter>Sources\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\DynamicsPipeline.cpp">
-      <Filter>Sources\Pipelines</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.cpp">
       <Filter>Sources\Pipelines</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.cpp">
       <Filter>Sources\Pipelines</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventCallbackTable.cpp">
-      <Filter>Sources\Observer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventHandler.cpp">
-      <Filter>Sources\Observer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameter.cpp">
-      <Filter>Sources\Observer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameters.cpp">
-      <Filter>Sources\Observer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Observer\SObservedObject.cpp">
-      <Filter>Sources\Observer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -71,83 +41,20 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SCommandBuffering.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPoint.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SAssert.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SColor.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SConfigFile.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SerializationTools.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SLogFile.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.h">
       <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SPool.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SPoolIndex.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SPrimitive.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SQueue.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SResult.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SString.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SVertex.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SWindowsSpecific.h">
-      <Filter>Sources\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\DynamicsPipeline.h">
-      <Filter>Sources\Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.h">
       <Filter>Sources\Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.h">
       <Filter>Sources\Pipelines</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventCallbackTable.h">
-      <Filter>Sources\Observer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventCallbackTableEntry.h">
-      <Filter>Sources\Observer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventHandler.h">
-      <Filter>Sources\Observer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameter.h">
-      <Filter>Sources\Observer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SEventParameters.h">
-      <Filter>Sources\Observer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Observer\SObservedObject.h">
-      <Filter>Sources\Observer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

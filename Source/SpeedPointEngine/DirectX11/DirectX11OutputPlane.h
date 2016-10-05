@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
 #include <Abstract\IOutputPlane.h>
 #include <Abstract\Matrix.h>
+#include <Abstract\SPrerequisites.h>
 
 SP_NMSPACE_BEG
 
@@ -28,7 +28,6 @@ class S_API DirectX11Shader;
 class DirectX11OutputPlane : public IOutputPlane
 {
 private:
-	SpeedPointEngine* m_pEngine;
 	DirectX11Renderer* m_pDXRenderer;
 	IVertexBuffer* m_pVertexBuffer;
 	IIndexBuffer* m_pIndexBuffer;
@@ -39,8 +38,7 @@ private:
 public:
 	// Default constructor
 	DirectX11OutputPlane()
-		: m_pEngine(0),
-		m_pDXRenderer(0),
+		: m_pDXRenderer(0),
 		m_pVertexBuffer(0),
 		m_pIndexBuffer(0)
 	{
@@ -53,7 +51,7 @@ public:
 
 
 	// Initialize the output plane
-	virtual SResult Initialize(SpeedPointEngine* eng, IRenderer* renderer, int nW, int nH);
+	virtual SResult Initialize(IRenderer* renderer, int nW, int nH);
 
 	virtual bool IsInitialized();
 

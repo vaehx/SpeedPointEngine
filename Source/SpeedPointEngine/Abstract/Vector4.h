@@ -6,9 +6,8 @@
 
 #pragma once
 #include "SAPI.h"
-#include <cmath>
 #include "Vector3.h"
-
+#include <cmath>
 #include <xmmintrin.h>
 
 namespace SpeedPoint

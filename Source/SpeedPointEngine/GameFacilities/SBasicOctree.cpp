@@ -1,6 +1,6 @@
 // SpeedPoint Octree
 
-#include <Implementation\GameFacilities\Octree.h>
+#include "Octree.h"
 
 namespace SpeedPoint
 {

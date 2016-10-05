@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include <Implementation\DirectX11\DirectX11Shader.h>
+#include "DirectX11Shader.h"
+#include "DirectX11Renderer.h"
 #include <Abstract\IGameEngine.h>
-#include <Implementation\DirectX11\DirectX11Renderer.h>
-#include <d3dcompiler.h>
 #include <Abstract\ISettings.h>
+#include <d3dcompiler.h>
 
 #include <fstream>
 using std::ifstream;

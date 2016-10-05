@@ -18,7 +18,7 @@
 #pragma once
 #endif
 
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 #include "ComponentPool.h"
 #include "BoundBox.h"
 #include "PhysObject.h"

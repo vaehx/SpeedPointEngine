@@ -1,7 +1,7 @@
 // Common Math functions
 
 #pragma once
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 
 SP_NMSPACE_BEG
 

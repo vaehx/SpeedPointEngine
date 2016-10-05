@@ -1,9 +1,9 @@
 #pragma once
 
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 #include "IIndexBuffer.h"
 #include "IRenderer.h"
-#include <Util\SVertex.h>
+#include "SVertex.h"
 #include <vector>
 
 using std::vector;

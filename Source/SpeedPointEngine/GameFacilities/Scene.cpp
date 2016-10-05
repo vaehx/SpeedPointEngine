@@ -1,13 +1,10 @@
+#include "Scene.h"
+#include "Entity.h"
+#include "RenderableComponent.h"
+#include "PhysicalComponent.h"
 #include <Abstract\IGeometry.h>
-#include <Implementation\GameFacilities\Scene.h>
-#include <Implementation\GameFacilities\Entity.h>
-#include <FileSPM.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IMaterial.h>
-
-#include <Implementation\GameFacilities\RenderableComponent.h>
-#include <Implementation\GameFacilities\PhysicalComponent.h>
-
 #include <Abstract\I3DEngine.h>
 #include <Abstract\IPhysics.h>
 

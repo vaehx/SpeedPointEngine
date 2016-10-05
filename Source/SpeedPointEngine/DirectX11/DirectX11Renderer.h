@@ -9,16 +9,14 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <Abstract\IRenderer.h>
-#include "DirectX11Settings.h"
 #include "DirectX11Viewport.h"
 #include "DirectX11FBO.h"
 #include "DirectX11Shader.h"
 #include "DirectX11Texture.h"
 #include "DX11ConstantsBuffer.h"
-#include <Util\SQueue.h>
 #include <Abstract\ChunkedObjectPool.h>
+#include <Abstract\IRenderer.h>
+#include <Abstract\SPrerequisites.h>
 
 // DirectX11 Specific headers
 #include "DirectX11.h"
@@ -233,37 +231,37 @@ private:
 	void ResetBudgetTimerStats();
 
 public:	
-	void FrameDump(const SString& msg)
+	void FrameDump(const string& msg)
 	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(msg);
 	}
-	void FrameDump(const SString& str, const SString& strname)
+	void FrameDump(const string& str, const string& strname)
 	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(str, strname);
 	}
-	void FrameDump(const SMatrix4& mtx, const SString& mtxname)
+	void FrameDump(const SMatrix4& mtx, const string& mtxname)
 	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(mtx, mtxname);
 	}
-	void FrameDump(const SVector3& vec, const SString& vecname)
+	void FrameDump(const SVector3& vec, const string& vecname)
 	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(vec, vecname);
 	}
-	void FrameDump(unsigned int i, const SString& intname)
+	void FrameDump(unsigned int i, const string& intname)
 	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(i, intname);
 	}
-	void FrameDump(float f, const SString& floatname)
+	void FrameDump(float f, const string& floatname)
 	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(f, floatname);
 	}
-	void FrameDump(bool b, const SString& boolname)
+	void FrameDump(bool b, const string& boolname)
 	{
 		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
 			m_pEngine->LogD(b, boolname);

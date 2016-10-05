@@ -18,7 +18,7 @@
 #pragma once
 #endif
 
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 
 SP_NMSPACE_BEG
 

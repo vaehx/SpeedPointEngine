@@ -18,9 +18,9 @@
 #pragma once
 #endif
 
-#include <SPrerequisites.h>
 #include <Abstract\IApplication.h>
 #include <Abstract\IGameEngine.h> // for SSettingsDesc
+#include <Abstract\SPrerequisites.h>
 SP_NMSPACE_BEG
 
 
@@ -42,7 +42,7 @@ public:
 	}
 
 	virtual void OnInit(IFramePipeline* pFramePipeline, IGameEngine* pGameEngine);
-	virtual void OnLogReport(SResult res, const SString& msg);	
+	virtual void OnLogReport(SResult res, const string& msg);	
 	virtual void Update(float fLastFrameTime);
 	virtual void Render();
 };

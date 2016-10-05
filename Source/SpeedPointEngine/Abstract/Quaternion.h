@@ -14,13 +14,9 @@
 #pragma once
 
 #include "SAPI.h"
-
-#ifndef ILINE
-#define ILINE inline
-#endif
-#include "../SPrerequisites.h"
 #include "Vector3.h"
 #include "Matrix.h"
+#include "SPrerequisites.h"
 
 #include <cmath>
 

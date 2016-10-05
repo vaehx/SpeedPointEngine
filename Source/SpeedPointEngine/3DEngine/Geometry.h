@@ -19,7 +19,7 @@
 #endif
 
 
-#include <SPrerequisites.h>
+#include <Abstract\SPrerequisites.h>
 #include <Abstract\IGeometry.h>
 #include <map>
 
@@ -93,9 +93,9 @@ public:
 		Clear();
 		return S_SUCCESS;
 	}
-	virtual SString GetShutdownHandlerDesc() const
+	virtual string GetShutdownHandlerDesc() const
 	{
-		return SString("Geometry");
+		return "Geometry";
 	}
 
 	virtual EPrimitiveType GetPrimitiveType() const

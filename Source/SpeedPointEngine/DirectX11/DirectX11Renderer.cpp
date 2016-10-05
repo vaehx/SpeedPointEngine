@@ -7,18 +7,18 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11Renderer.h>
-//#include <Implementation\DirectX11\DirectX11RenderPipeline.h>
-#include <Implementation\DirectX11\DirectX11ResourcePool.h>
+#include "DirectX11Renderer.h"
+#include "DirectX11ResourcePool.h"
+#include "DirectX11Utilities.h"
+#include "DirectX11VertexBuffer.h"
+#include "DirectX11IndexBuffer.h"
+#include "DirectX11Texture.h"
+#include "DirectX11FBO.h"
+#include "DirectX11Font.h"
+#include "DX11ConstantsBuffer.h"
+#include <Abstract\SVertex.h>
+#include <Abstract\SColor.h>
 #include <Abstract\IGameEngine.h>
-#include <Implementation\DirectX11\DirectX11Utilities.h>
-#include <Implementation\DirectX11\DirectX11VertexBuffer.h>
-#include <Implementation\DirectX11\DirectX11IndexBuffer.h>
-#include <Implementation\DirectX11\DirectX11Texture.h>
-#include <Implementation\DirectX11\DirectX11FBO.h>
-#include <Implementation\DirectX11\DirectX11Font.h>
-#include <Implementation\DirectX11\DX11ConstantsBuffer.h>
-#include <Util\SVertex.h>
 #include <Abstract\ISettings.h>
 //#include <xnamath.h>
 
@@ -939,7 +939,7 @@ S_API SResult DirectX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboC
 	delete[] pRTVs;
 	pRTVs = 0;
 
-	FrameDump("Bound RT Collection " + SString(dump_name ? dump_name : "") + " (" + SString::FromInteger(nRTVCounter) + " RTs)!");
+	FrameDump(string("Bound RT Collection ") + (dump_name ? dump_name : "") + " (" + std::to_string(nRTVCounter) + " RTs)!");
 
 	return S_SUCCESS;
 }
@@ -1544,10 +1544,10 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	}
 
 	FrameDump("Unleashing render schedule now...");
-	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), SString("RenderScheduleSize"));
+	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), "RenderScheduleSize");
 	
 
-	bool bDepthEnableBackup = m_depthStencilDesc.DepthEnable;
+	bool bDepthEnableBackup = (m_depthStencilDesc.DepthEnable ? true : false);
 
 	unsigned int iRSIterator;
 	SRenderSlot* pSlot = m_RenderSchedule.GetFirstUsedObject(iRSIterator);
@@ -1731,11 +1731,6 @@ S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
 
 		if (!pFRS->keep)
 		{
-			if (IS_VALID_PTR(pFRS->text))
-				delete[] pFRS->text;
-
-			pFRS->text = 0;
-
 			m_FontRenderSchedule.Release(&pFRS);			
 		}
 
@@ -2090,7 +2085,7 @@ S_API void DirectX11Renderer::EnableWireframe(bool state /*=true*/)
 // --------------------------------------------------------------------
 S_API void DirectX11Renderer::EnableDepthTest(bool state)
 {
-	if (m_depthStencilDesc.DepthEnable != state)
+	if ((m_depthStencilDesc.DepthEnable ? true : false) != state)
 	{
 		m_depthStencilDesc.DepthEnable = state;
 		UpdateDepthStencilState();

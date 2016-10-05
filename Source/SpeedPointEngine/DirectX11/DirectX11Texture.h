@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include "DirectX11.h"
 #include <Abstract\ITexture.h>
+#include <Abstract\SPrerequisites.h>
+#include "DirectX11.h"
 
 SP_NMSPACE_BEG
 

@@ -8,8 +8,8 @@
 // ******************************************************************************************
 
 #pragma once
-#include <SPrerequisites.h>
-#include <Abstract\BoundBox.h>
+#include "SPrerequisites.h"
+#include "BoundBox.h"
 
 SP_NMSPACE_BEG
 

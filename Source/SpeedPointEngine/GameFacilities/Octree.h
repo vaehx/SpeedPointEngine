@@ -5,9 +5,9 @@
 // ******************************************************************************************
 
 #pragma once
-#include <SPrerequisites.h>
-#include <Abstract\IOctree.h>
 #include "OctreeNode.h"
+#include <Abstract\IOctree.h>
+#include <Abstract\SPrerequisites.h>
 
 
 SP_NMSPACE_BEG

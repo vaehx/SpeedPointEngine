@@ -8,11 +8,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <Abstract\IResourcePool.h>
 #include "DirectX11IndexBuffer.h"
 #include "DirectX11VertexBuffer.h"
 #include "DirectX11Shader.h"
 #include "DirectX11Texture.h"
+#include <Abstract\IResourcePool.h>
 #include <Abstract\ChunkPool.h>
 
 SP_NMSPACE_BEG

@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <SPrerequisites.h>
 #include <Abstract\Vector3.h>
-#include <Util\SQueue.h>
+#include <Abstract\SQueue.h>
+#include <Abstract\SPrerequisites.h>
 
 namespace SpeedPoint
 {

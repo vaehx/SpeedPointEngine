@@ -5,8 +5,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11Font.h>
-#include <Util\SVertex.h>
+#include "DirectX11Font.h"
+#include <Abstract\SVertex.h>
+#include <Abstract\SColor.h>
 #include <Abstract\IIndexBuffer.h>
 
 SP_NMSPACE_BEG
@@ -246,7 +247,7 @@ S_API void DirectX11FontRenderer::BeginRender()
 }
 
 // ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos,
+S_API void DirectX11FontRenderer::RenderText(const string& text, const SColor& color, const SPixelPosition& pixelPos,
 	EFontSize fontSize /*=eFONTSIZE_NORMAL*/, bool alignRight /*=false*/)
 {
 	if (m_SkipFrameCounter >= 1 && m_SkipFrameCounter <= m_nKeepFrames)
@@ -279,9 +280,9 @@ S_API void DirectX11FontRenderer::RenderText(const char* text, const SColor& col
 
 
 	// Convert multibyte string to wide string
-	unsigned int wbufsz = sp_strlen(text) + 1;
+	unsigned int wbufsz = text.length() + 1;
 	wchar_t* wtext = new wchar_t[wbufsz];
-	MultiByteToWideChar(CP_UTF8, 0, text, -1, wtext, wbufsz);	
+	MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wtext, wbufsz);
 
 	// Create layout
 	IDWriteTextLayout* pTextLayout;

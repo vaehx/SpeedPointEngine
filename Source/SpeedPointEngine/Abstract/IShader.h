@@ -9,11 +9,8 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <string>
+#include "SPrerequisites.h"
 #include "Matrix.h"
-
-using std::string;
 
 SP_NMSPACE_BEG
 

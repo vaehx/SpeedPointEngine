@@ -9,15 +9,10 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <Abstract\ITexture.h>
-#include <string>
-#include <vector>
+#include "SPrerequisites.h"
+#include "ITexture.h"
 
 SP_NMSPACE_BEG
-
-using std::string;
-using std::vector;
 
 struct S_API IGameEngine;
 struct S_API IVertexBuffer;

@@ -11,7 +11,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Pipelines\RenderPipeline.h>
+#include "RenderPipeline.h"
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IApplication.h>
 #include <Abstract\IRenderer.h>

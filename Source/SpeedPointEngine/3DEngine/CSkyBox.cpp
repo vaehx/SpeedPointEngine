@@ -1,6 +1,6 @@
+#include "CSkyBox.h"
 #include <Abstract\IResourcePool.h>
-#include <Implementation\3DEngine\CSkyBox.h>
-#include <Util\SVertex.h>
+#include <Abstract\SVertex.h>
 
 SP_NMSPACE_BEG
 

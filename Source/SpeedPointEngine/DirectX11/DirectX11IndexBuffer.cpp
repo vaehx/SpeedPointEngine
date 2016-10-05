@@ -7,9 +7,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11IndexBuffer.h>
-#include <Implementation\DirectX11\DirectX11Renderer.h>
-#include <SpeedPointEngine.h>
+#include "DirectX11IndexBuffer.h"
+#include "DirectX11Renderer.h"
 
 SP_NMSPACE_BEG
 

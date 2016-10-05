@@ -7,15 +7,14 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11OutputPlane.h>
+#include "DirectX11OutputPlane.h"
+#include "DirectX11VertexBuffer.h"
+#include "DirectX11IndexBuffer.h"
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
 #include <Abstract\Matrix.h>
 #include <Abstract\Vector3.h>
-#include <SpeedPointEngine.h>
-#include <Util\SVertex.h>
-#include <Implementation\DirectX11\DirectX11VertexBuffer.h>
-#include <Implementation\DirectX11\DirectX11IndexBuffer.h>
+#include <Abstract\SVertex.h>
 
 SP_NMSPACE_BEG
 
@@ -26,14 +25,13 @@ S_API usint32 DirectX11OutputPlane::GetIndexCount()
 }
 
 // --------------------------------------------------------------------------------
-S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer* renderer, int nW, int nH)
+S_API SResult DirectX11OutputPlane::Initialize(IRenderer* renderer, int nW, int nH)
 {
-	SP_ASSERTR(eng && renderer, S_INVALIDPARAM);	
+	SP_ASSERTR(renderer, S_INVALIDPARAM);	
 
 	if (Failure(Clear()))
 		return S_ERROR;
 
-	m_pEngine = eng;
 	m_pDXRenderer = (DirectX11Renderer*)renderer;
 
 	// Initialize the matrices
@@ -91,13 +89,13 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 	m_pVertexBuffer = new DirectX11VertexBuffer();
 	if (Failure(m_pVertexBuffer->Initialize(renderer, eVBUSAGE_STATIC, pVertices, 11 * 11)))
 	{
-		return m_pEngine->LogE("Failed initialize vertex Buffer of OutputPlane!");
+		return CLog::Log(S_ERROR, "Failed initialize vertex Buffer of OutputPlane!");
 	}
 
 	m_pIndexBuffer = new DirectX11IndexBuffer();
 	if (Failure(m_pIndexBuffer->Initialize(renderer, eIBUSAGE_STATIC, pIndices, 10 * 10 * 6)))
 	{
-		return m_pEngine->LogE("Failed initialize index buffer of OutputPlane!");
+		return CLog::Log(S_ERROR,  "Failed initialize index buffer of OutputPlane!");
 	}
 
 	free(pVertices);
@@ -109,7 +107,7 @@ S_API SResult DirectX11OutputPlane::Initialize(SpeedPointEngine* eng, IRenderer*
 // --------------------------------------------------------------------------------
 S_API bool DirectX11OutputPlane::IsInitialized()
 {
-	return m_pEngine && m_pDXRenderer
+	return m_pDXRenderer
 		&& m_pVertexBuffer
 		&& m_pIndexBuffer
 		&& m_pVertexBuffer->IsInited()
@@ -128,24 +126,15 @@ S_API SResult DirectX11OutputPlane::Clear(void)
 	SResult res = S_SUCCESS;	
 
 	if (m_pIndexBuffer && Failure(m_pIndexBuffer->Clear()))
-	{
-		if (m_pEngine)
-			return m_pEngine->LogE("Failed Clear index Buffer of output plane!");
-		else
-			res = S_ERROR;
-	}
+		res = CLog::Log(S_ERROR, "Failed Clear index Buffer of output plane!");
+
 	m_pIndexBuffer = 0;
 
 	if (m_pVertexBuffer && Failure(m_pVertexBuffer->Clear()))
-	{		
-		if (m_pEngine)
-			return m_pEngine->LogE("Failed Clear vertex buffer of output plane!");
-		else
-			res = S_ERROR;
-	}	
+		res = CLog::Log(S_ERROR, "Failed Clear vertex buffer of output plane!");
+
 	m_pVertexBuffer = 0;
 
-	m_pEngine = 0;
 	m_pDXRenderer = 0;
 
 	// okay done.

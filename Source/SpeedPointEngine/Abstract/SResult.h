@@ -8,7 +8,7 @@
 // ********************************************************************************************
 
 #pragma once
-#include "../Abstract/SAPI.h"
+#include "SAPI.h"
 #include "SWindowsSpecific.h"
 #include <cstdio> // for assertion
 
@@ -143,109 +143,6 @@ namespace SpeedPoint
 			case S_NOTINIT: sprintf_s(out, 16, "S_NOTINIT"); break;
 			case S_INVALIDSTAGE: sprintf_s(out, 16, "S_INVSTAGE"); break;
 			}
-		}
-
-		// throw an exception with given parameters and output information useful for debugging
-		static void ThrowExceptionAssertion(const char* condition,
-			const char* function,
-			int line,
-			const char* file,
-			const char* msg)
-		{
-			return ThrowExceptionEng(0, SResult::eEX_ASSERTION, condition, function, line, file, msg);
-		}
-
-		// throw an exception with given parameters and output information useful for debugging
-		static void ThrowException(const SResult::SExceptionType& type,
-			const char* condition,
-			const char* function,
-			int line,
-			const char* file,
-			const char* msg)
-		{
-			return ThrowExceptionEng(0, type, condition, function, line, file, msg);
-		}		
-
-		// throw an exception with given parameters and output information useful for debugging
-		static void ThrowExceptionEng(IExceptionProxy* pExProxy,
-			const SResult::SExceptionType& type,
-			const char* condition,
-			const char* function,
-			int line,
-			const char* file,
-			const char* msg,
-			const SResultType resType = S_ERROR)
-		{
-			char* pOutput = new char[600];
-			char* pErrDesc = new char[16];
-			GetResultTypeDesc(resType, pErrDesc);
-
-			sprintf_s(pOutput, 600, "Assertion failed!\n" \
-				"  Condition: %s\n" \
-				"  File: %s\n" \
-				"  Function: %s\n" \
-				"  Line: %d\n" \
-				"  Message: %s\n" \
-				"  Return Value: %s\n",
-				condition, file, function, line, msg, pErrDesc);
-
-			if (pExProxy) pExProxy->HandleException(pOutput);
-			else
-			{
-				printf(pOutput);
-				//MessageBoxA(nullptr, pOutput, "Assertion failed", MB_ICONERROR | MB_OK);
-			}
-
-			delete[] pOutput;
-			delete[] pErrDesc;
-		}
-
-		// Throw an exception message with dump instead of msg
-		static void ThrowExceptionDump(const SResult::SExceptionType& type,
-			const char* function,
-			int line,
-			const char* file,
-			const char* dump)
-		{
-			return ThrowExceptionDumpEng(0, type, function, line, file, dump, S_ERROR);
-		}
-
-		static void ThrowExceptionDumpEng(IExceptionProxy* pExProxy,
-			const SResult::SExceptionType& type,
-			const char* function,
-			int line,
-			const char* file,
-			const char* dump)
-		{
-			return ThrowExceptionDumpEng(pExProxy, type, function, line, file, dump, S_ERROR);
-		}
-
-		// Throw an exception with dump instead of msg and put entry into log if proxy given
-		static void ThrowExceptionDumpEng(IExceptionProxy* pExProxy,			
-			const SResult::SExceptionType& type,
-			const char* function,
-			int line,
-			const char* file,
-			const char* dump,
-			const SResultType resType)
-		{
-			char* pOutput = new char[500];			
-			char* resDesc = new char[16];
-			GetResultTypeDesc(resType, resDesc);
-
-			sprintf_s(pOutput, 500, "Assertion failed!\n" \
-				"  File: %s\n" \
-				"  Function: %s\n" \
-				"  Line: %d\n" \
-				"  Dump: %s\n" \
-				"  Return Value: %s\n",
-				file, function, line, dump, resDesc);
-
-			if (pExProxy) pExProxy->HandleException(pOutput);			
-			else printf(pOutput);
-
-			delete[] pOutput;
-			delete[] resDesc;
 		}
 	};
 

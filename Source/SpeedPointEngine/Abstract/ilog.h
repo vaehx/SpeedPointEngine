@@ -13,14 +13,14 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 #include "Matrix.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IFileLogHandler
 {
-	virtual void OnLog(SResult res, const SString& formattedMsg) = 0;
+	virtual void OnLog(SResult res, const string& formattedMsg) = 0;
 };
 
 enum S_API ELogLevel
@@ -33,24 +33,24 @@ enum S_API ELogLevel
 struct S_API IFileLog
 {
 	virtual void Clear() = 0;
-	virtual SResult SetLogFile(const SString& file) = 0;
+	virtual SResult SetLogFile(const string& file) = 0;
 	virtual SResult RegisterLogHandler(IFileLogHandler* pLogHandler) = 0;
 	virtual SResult SetLogLevel(ELogLevel loglevel) = 0;
 	virtual ELogLevel GetLogLevel() const = 0;
-	virtual SResult Log(SResult res, const SString& msg) = 0;
-	virtual SResult LogE(const SString& msg)
+	virtual SResult Log(SResult res, const string& msg) = 0;
+	virtual SResult LogE(const string& msg)
 	{
 		return Log(S_ERROR, msg);
 	}
-	virtual SResult LogI(const SString& msg)
+	virtual SResult LogI(const string& msg)
 	{
 		return Log(S_INFO, msg);
 	}
-	virtual SResult LogW(const SString& msg)
+	virtual SResult LogW(const string& msg)
 	{
 		return Log(S_WARN, msg);
 	}
-	virtual SResult LogD(const SString& msg)
+	virtual SResult LogD(const string& msg)
 	{
 		return Log(S_DEBUG, msg);
 	}

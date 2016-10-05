@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include "DirectX11.h"
 #include <Abstract\IShader.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IConstantsBuffer.h>
+#include <Abstract\SPrerequisites.h>
 #include <vector>
+#include "DirectX11.h"
 
 using std::vector;
 

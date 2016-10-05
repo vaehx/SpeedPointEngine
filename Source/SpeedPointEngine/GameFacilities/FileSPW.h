@@ -1,8 +1,8 @@
 #pragma once
 
-#include <SPrerequisites.h>
 #include <Abstract\Vector3.h>
 #include <Abstract\Quaternion.h>
+#include <Abstract\SPrerequisites.h>
 #include <FileSPM.h>
 #include <fstream>
 #include <map>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Abstract\Vector3.h>
-#include <Abstract\Quaternion.h>
+#include "Vector3.h"
+#include "Quaternion.h"
 
 #include <string>
 using std::string;

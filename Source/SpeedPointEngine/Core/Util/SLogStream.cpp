@@ -1,7 +1,8 @@
 // SpeedPoint Logging Stream
 
-#include <Util\SLogStream.h>
+#include "SLogStream.h"
 #include <cstring>
+#include <iostream>
 
 namespace SpeedPoint
 {
@@ -19,7 +20,7 @@ namespace SpeedPoint
 
 	// ******************************************************************************************
 
-	S_API SResult SLogStream::Report( SResult res, SString msg )
+	S_API SResult SLogStream::Report( SResult res, const string& msg )
 	{
 		// Notify all listeners
 		bool bFoundLogHandler = false;
@@ -38,7 +39,7 @@ namespace SpeedPoint
 		if (!bFoundLogHandler)
 		{
 			// simply throw it into standard output stream
-			std::printf("%s\n", (const char*)msg);
+			std::cout << msg << std::endl;
 		}
 
 		return res;

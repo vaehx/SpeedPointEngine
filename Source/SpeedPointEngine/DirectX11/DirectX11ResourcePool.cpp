@@ -7,14 +7,13 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11ResourcePool.h>
-#include <Implementation\DirectX11\DirectX11VertexBuffer.h>
-#include <Implementation\DirectX11\DirectX11IndexBuffer.h>
-#include <Implementation\DirectX11\DirectX11Texture.h>
-#include <Implementation\DirectX11\DirectX11Shader.h>
+#include "DirectX11ResourcePool.h"
+#include "DirectX11VertexBuffer.h"
+#include "DirectX11IndexBuffer.h"
+#include "DirectX11Texture.h"
+#include "DirectX11Shader.h"
 //#include <SpeedPoint.h>
 #include <Abstract\ISettings.h>
-#include <SpeedPointEngine.h>
 
 
 SP_NMSPACE_BEG

@@ -9,8 +9,9 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
 #include <Abstract\IFramePipeline.h>
+#include <Abstract\IRenderer.h>
+#include <Abstract\SPrerequisites.h>
 #include <chrono>
 #include <vector>
 #include <string>
@@ -31,9 +32,9 @@ struct S_API SFrameDebugTimer
 	string name;
 	unsigned int id;
 	//std::chrono::high_resolution_clock::time_point tp1, tp2;	 
-	LONGLONG elapsed;
+	LONGLONG elapsed; // number of elapsed counts
 	LONGLONG startCount;
-	LONGLONG freq;	
+	LONGLONG freq; // counts per second
 	bool running;
 
 	SFrameDebugTimer() : running(false), elapsed(0), freq(0) {}
@@ -73,6 +74,7 @@ struct S_API SFrameDebugTimer
 		running = false;
 	}
 
+	// Returns the elapsed time in seconds
 	inline double GetDuration() const
 	{
 		return (double)elapsed / (double)freq;

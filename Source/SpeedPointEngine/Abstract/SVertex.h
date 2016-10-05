@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <Abstract\Vector2.h>
-#include <Abstract\Vector3.h>
+#include "SPrerequisites.h"
+#include "Vector2.h"
+#include "Vector3.h"
 
 namespace SpeedPoint
 {

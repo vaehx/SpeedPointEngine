@@ -7,11 +7,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11FBO.h>
-#include <Implementation\DirectX11\DirectX11Renderer.h>
+#include "DirectX11FBO.h"
+#include "DirectX11Renderer.h"
+#include "DirectX11Utilities.h"
 #include <Abstract\IRenderer.h>
-#include <SpeedPointEngine.h>
-#include <Implementation\DirectX11\DirectX11Utilities.h>
 #include <Abstract\ISettings.h>
 
 SP_NMSPACE_BEG

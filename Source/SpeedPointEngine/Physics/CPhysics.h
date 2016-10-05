@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SPrerequisites.h>
 #include <Abstract\IPhysics.h>
+#include <Abstract\SPrerequisites.h>
 
 SP_NMSPACE_BEG
 

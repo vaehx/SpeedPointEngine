@@ -1,14 +1,14 @@
-#include <Implementation\GameFacilities\FileSPW.h>
+#include "FileSPW.h"
 #include <Abstract\IEntity.h>
+#include <Abstract\ISettings.h>
+#include <Abstract\IGeometry.h>
+#include <Abstract\IMaterial.h>
 #include <Abstract\I3DEngine.h>
 #include <Abstract\IPhysics.h>
 #include <Abstract\IResourcePool.h>
 #include <Abstract\ITexture.h>
 #include <Abstract\IScene.h>
-#include <Abstract\IGeometry.h>
-#include <Abstract\IMaterial.h>
-#include <Abstract\ISettings.h>
-#include <Util\SerializationTools.h>
+#include <Abstract\SerializationTools.h>
 
 SP_NMSPACE_BEG
 

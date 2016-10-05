@@ -6,11 +6,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-
-#include <SPrerequisites.h>
-#include <Util\SColor.h>
 #include <Abstract\IGameEngine.h>
 #include <Abstract\ISettings.h>
+#include <Abstract\SColor.h>
+#include <Abstract\SPrerequisites.h>
 
 SP_NMSPACE_BEG
 

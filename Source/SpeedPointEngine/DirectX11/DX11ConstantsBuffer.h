@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SPrerequisites.h>
 #include <Abstract\IConstantsBuffer.h>
+#include <Abstract\SPrerequisites.h>
 
 struct ID3D11Buffer;
 

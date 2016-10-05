@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 
 namespace SpeedPoint
 {

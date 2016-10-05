@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 #include "Matrix.h" // for Matrix CB
 #include "IViewport.h"	// for SViewportDescription
 #include "IGameEngine.h"
@@ -357,7 +357,7 @@ struct S_API SRenderSlot
 // in the UI passes.
 struct S_API SFontRenderSlot
 {
-	char* text; // only pass a charbuffer that is created with new[]!
+	string text;
 	SColor color;
 	unsigned int screenPos[2];
 	bool alignRight;
@@ -365,8 +365,7 @@ struct S_API SFontRenderSlot
 	EFontSize fontSize;
 
 	SFontRenderSlot()
-		: text(0),
-		color(1.0f, 1.0f, 1.0f),
+		: color(1.0f, 1.0f, 1.0f),
 		keep(false),
 		alignRight(false),
 		fontSize(eFONTSIZE_NORMAL)
@@ -387,24 +386,13 @@ struct S_API SFontRenderSlot
 
 	void copy_from(const SFontRenderSlot& frs)
 	{
-		text = 0;
-		if (IS_VALID_PTR(frs.text))
-			sp_strcpy(&text, frs.text);
-
+		text = frs.text;
 		color = frs.color;
 		screenPos[0] = frs.screenPos[0];
 		screenPos[1] = frs.screenPos[1];
 		keep = frs.keep;
 		alignRight = frs.alignRight;
 		fontSize = frs.fontSize;
-	}
-
-	~SFontRenderSlot()
-	{
-		if (IS_VALID_PTR(text))
-			delete[] text;
-
-		text = 0;
 	}
 };
 

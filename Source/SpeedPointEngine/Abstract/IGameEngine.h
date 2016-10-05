@@ -8,10 +8,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <SPrerequisites.h>
-#include <Util\SColor.h>
-#include "Abstract\IFramePipeline.h"	// for default skipsections
-#include <Util\SLogStream.h>
+#include "SPrerequisites.h"
+#include "SColor.h"
+#include "IFramePipeline.h"	// for default skipsections
 #include "Matrix.h"
 #include "Vector3.h"
 
@@ -106,7 +105,7 @@ namespace SpeedPoint
 	struct S_API IShutdownHandler
 	{
 		virtual SResult HandleShutdown() = 0;
-		virtual SString GetShutdownHandlerDesc() const { return SString("unknown"); }
+		virtual string GetShutdownHandlerDesc() const { return "unknown"; }
 	};
 
 
@@ -197,17 +196,17 @@ namespace SpeedPoint
 		virtual SResult FinishInitialization() = 0;
 		virtual SResult Start() { return FinishInitialization(); }
 
-		virtual SResult LogReport(const SResult& res, const SString& msg) = 0;
-		virtual SResult LogI(const SString& msg) = 0;
-		virtual SResult LogE(const SString& msg) = 0;
-		virtual SResult LogD(const SString& msg, SResultType defRetVal = S_DEBUG) = 0;
-		virtual void LogD(const SMatrix4& mtx, const SString& mtxname) = 0;
-		virtual void LogD(const SVector3& vec, const SString& vecname) = 0;
-		virtual void LogD(bool b, const SString& boolname) = 0;
-		virtual void LogD(unsigned int i, const SString& intname) = 0;
-		virtual void LogD(float f, const SString& floatname) = 0;
-		virtual void LogD(const SString& str, const SString& strname) = 0;
-		virtual SResult LogW(const SString& msg) = 0;
+		virtual SResult LogReport(const SResult& res, const string& msg) = 0;
+		virtual SResult LogI(const string& msg) = 0;
+		virtual SResult LogE(const string& msg) = 0;
+		virtual SResult LogD(const string& msg, SResultType defRetVal = S_DEBUG) = 0;
+		virtual void LogD(const SMatrix4& mtx, const string& mtxname) = 0;
+		virtual void LogD(const SVector3& vec, const string& vecname) = 0;
+		virtual void LogD(bool b, const string& boolname) = 0;
+		virtual void LogD(unsigned int i, const string& intname) = 0;
+		virtual void LogD(float f, const string& floatname) = 0;
+		virtual void LogD(const string& str, const string& strname) = 0;
+		virtual SResult LogW(const string& msg) = 0;
 	};	
 
 

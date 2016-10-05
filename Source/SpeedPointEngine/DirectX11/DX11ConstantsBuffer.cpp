@@ -1,5 +1,5 @@
-#include <Implementation\DirectX11\DX11ConstantsBuffer.h>
-#include <Implementation\DirectX11\DirectX11Renderer.h>
+#include "DX11ConstantsBuffer.h"
+#include "DirectX11Renderer.h"
 
 SP_NMSPACE_BEG
 

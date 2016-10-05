@@ -11,9 +11,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\GameFacilities\Entity.h>
-#include <Implementation\GameFacilities\RenderableComponent.h>
-#include <Implementation\GameFacilities\PhysicalComponent.h>
+#include "Entity.h"
+#include "RenderableComponent.h"
+#include "PhysicalComponent.h"
 #include <Abstract\IGameEngine.h>
 #include <Abstract\I3DEngine.h>
 #include <Abstract\IVertexBuffer.h>

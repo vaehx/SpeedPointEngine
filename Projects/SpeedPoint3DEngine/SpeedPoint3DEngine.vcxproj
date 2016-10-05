@@ -60,8 +60,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\..\..\FileFormats\SpeedPointFileFormats\;$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
-    <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
+    <IncludePath>$(SolutionDir)FileFormats\SpeedPointFileFormats;$(SolutionDir)SpeedPointEngine\Source\SpeedPointEngine;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(ProjectDir)\..\..\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>

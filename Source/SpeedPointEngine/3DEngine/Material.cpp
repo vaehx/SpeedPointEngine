@@ -11,13 +11,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\3DEngine\Material.h>
+#include "Material.h"
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IGeometry.h>
 #include <FileSMB.h>
-#include <vector>
-
-using std::vector;
 
 SP_NMSPACE_BEG
 

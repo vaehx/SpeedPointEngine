@@ -7,10 +7,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11Texture.h>
-#include <Implementation\DirectX11\DirectX11Renderer.h>
-#include <Implementation\DirectX11\DirectX11.h>
-#include <SpeedPointEngine.h>
+#include "DirectX11Texture.h"
+#include "DirectX11Renderer.h"
 #include <Abstract\IRenderer.h>
 
 #include <d2d1.h>

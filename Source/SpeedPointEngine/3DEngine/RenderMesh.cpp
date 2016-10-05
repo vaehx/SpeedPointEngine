@@ -1,5 +1,5 @@
+#include "Geometry.h"
 #include <Abstract\RenderMesh.h>
-#include <Implementation\3DEngine\Geometry.h>
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IMaterial.h>
 

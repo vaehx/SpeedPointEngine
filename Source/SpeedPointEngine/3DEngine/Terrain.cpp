@@ -1,6 +1,6 @@
 // SpeedPoint Basic Terrain
 
-#include <Implementation\3DEngine\Terrain.h>
+#include "Terrain.h"
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IVertexBuffer.h>
@@ -8,7 +8,7 @@
 #include <Abstract\IResourcePool.h>
 #include <Abstract\ITexture.h>
 #include <Abstract\ISettings.h>
-#include <Util\SVertex.h>
+#include <Abstract\SVertex.h>
 
 SP_NMSPACE_BEG
 

@@ -1,10 +1,10 @@
-#include <Implementation\GameFacilities\RenderableComponent.h>
+#include "RenderableComponent.h"
 #include <Abstract\I3DEngine.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IMaterial.h>
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
-#include <Util\SerializationTools.h>
+#include <Abstract\SerializationTools.h>
 
 SP_NMSPACE_BEG
 

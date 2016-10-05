@@ -19,9 +19,9 @@
 #endif
 
 
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 #include "IIndexBuffer.h"	// because we cannot forward-declare SIndex (due to delete command)
-#include <Util\SVertex.h>	// because we cannot forward-declare SVertex (due to delete command)
+#include "SVertex.h"	// because we cannot forward-declare SVertex (due to delete command)
 #include "Matrix.h"
 //#include "Material.h"
 #include "IRenderAPI.h" // for EPrimitiveType

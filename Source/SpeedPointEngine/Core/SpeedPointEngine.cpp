@@ -7,21 +7,21 @@
 
 // *******************************************************************************************************
 
-#include <SpeedPointEngine.h>
-#include <Abstract\IRenderer.h>
-#include <Abstract\IRenderPipeline.h>
-#include <Pipelines\FramePipeline.h>
-#include <Util\SLogStream.h>
-#include <EngineSettings.h>
-#include <Abstract\IApplication.h>
-#include <Pipelines\RenderPipeline.h>
-#include <fstream>
-#include <Abstract\IScene.h>
-#include <Implementation\3DEngine\Material.h>
-#include <Implementation\3DEngine\C3DEngine.h>
+#include "SpeedPointEngine.h"
+#include "EngineSettings.h"
+#include "Util\SLogStream.h"
+#include "Pipelines\FramePipeline.h"
+#include "Pipelines\RenderPipeline.h"
+#include <GameFacilities\FileSPW.h>
+#include <3DEngine\Material.h>
+#include <3DEngine\C3DEngine.h>
 #include <Physics\CPhysics.h>
 #include <Abstract\SAssert_Impl.h>
-#include <Implementation\GameFacilities\FileSPW.h>
+#include <Abstract\IRenderer.h>
+#include <Abstract\IRenderPipeline.h>
+#include <Abstract\IApplication.h>
+#include <Abstract\IScene.h>
+#include <fstream>
 
 SP_NMSPACE_BEG
 
@@ -36,7 +36,7 @@ S_API void EngineFileLog::Clear()
 		m_LogFile.close();
 }
 
-S_API SResult EngineFileLog::SetLogFile(const SString& file)
+S_API SResult EngineFileLog::SetLogFile(const string& file)
 {
 	if (m_LogFile.is_open())
 		m_LogFile.close();
@@ -45,7 +45,7 @@ S_API SResult EngineFileLog::SetLogFile(const SString& file)
 	if (!m_LogFile.is_open())
 		return S_ERROR;
 
-	CLog::Log(S_DEBUG, "Opened %s as log file!", (char*)file);
+	CLog::Log(S_DEBUG, "Opened %s as log file!", file.c_str());
 
 	return S_SUCCESS;
 }
@@ -76,37 +76,8 @@ S_API ELogLevel EngineFileLog::GetLogLevel() const
 	return m_LogLevel;
 }
 
-S_API SResult EngineFileLog::Log(SResult res, const SString& msg)
+S_API SResult EngineFileLog::Log(SResult res, const string& msg)
 {
-	SString formattedMsg;
-	/*
-	switch (res.result)
-	{
-	case S_INFO:
-	case S_SUCCESS:	
-		formattedMsg = SString("INFO: ") + msg;
-		break;
-	case S_ERROR:
-	case S_ABORTED:
-		formattedMsg = SString("ERR: ") + msg;
-		break;
-	case S_WARN:
-		if (m_LogLevel < ELOGLEVEL_WARN)
-			return res;
-		formattedMsg = SString("WARN: ") + msg;
-		break;
-	case S_DEBUG:
-		if (m_LogLevel < ELOGLEVEL_DEBUG)
-			return res;
-		formattedMsg = SString("DEBG: ") + msg;
-		break;
-	default:
-		formattedMsg = SString("INFO: ") + msg;
-		break;
-	}
-	*/
-
-	//formattedMsg += "\n";
 	if (m_LogHandlers.size() > 0)
 	{
 		for (auto itLH = m_LogHandlers.begin(); itLH != m_LogHandlers.end(); itLH++)
@@ -617,7 +588,7 @@ S_API void SpeedPointEngine::StopBudgetTimer(unsigned int id)
 
 
 // ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& msg )
+S_API SResult SpeedPointEngine::LogReport( const SResult& res, const string& msg )
 {
 	// --> CLog --> SpeedPointEngine::OnLog()
 	return m_LogWrapper.Log(res, msg);
@@ -649,18 +620,18 @@ S_API SResult SpeedPointEngine::LogReport( const SResult& res, const SString& ms
 }
 
 // ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::LogE(const SString& msg) { return LogReport(S_ERROR, msg); }
-S_API SResult SpeedPointEngine::LogW(const SString& msg) { return LogReport(S_WARN, msg); }
-S_API SResult SpeedPointEngine::LogI(const SString& msg) { return LogReport(S_INFO, msg); }
-S_API SResult SpeedPointEngine::LogD(const SString& msg, SResultType defRetVal /* = S_DEBUG */)
+S_API SResult SpeedPointEngine::LogE(const string& msg) { return LogReport(S_ERROR, msg); }
+S_API SResult SpeedPointEngine::LogW(const string& msg) { return LogReport(S_WARN, msg); }
+S_API SResult SpeedPointEngine::LogI(const string& msg) { return LogReport(S_INFO, msg); }
+S_API SResult SpeedPointEngine::LogD(const string& msg, SResultType defRetVal /* = S_DEBUG */)
 {
 	LogReport(S_DEBUG, msg);
 	return defRetVal;
 }
 
-S_API void SpeedPointEngine::LogD(const SMatrix4& mtx, const SString& mtxname)
+S_API void SpeedPointEngine::LogD(const SMatrix4& mtx, const string& mtxname)
 {
-	LogD(SString("Dump matrix ") + mtxname);
+	LogD(string("Dump matrix ") + mtxname);
 
 	char* cDumpLn = new char[256];
 
@@ -675,42 +646,42 @@ S_API void SpeedPointEngine::LogD(const SMatrix4& mtx, const SString& mtxname)
 
 	delete[] cDumpLn;
 }
-S_API void SpeedPointEngine::LogD(const SVector3& vec, const SString& vecname)
+S_API void SpeedPointEngine::LogD(const SVector3& vec, const string& vecname)
 {
-	LogD(SString("Dump vector ") + vecname);
+	LogD(string("Dump vector ") + vecname);
 	char* cDumpLn = new char[256];
 	memset(cDumpLn, 0, 256);
 	sprintf_s(cDumpLn, 256, "( %f  %f  %f )", vec.x, vec.y, vec.z);
 	LogD(cDumpLn);
 	delete[] cDumpLn;
 }
-S_API void SpeedPointEngine::LogD(bool b, const SString& boolname)
+S_API void SpeedPointEngine::LogD(bool b, const string& boolname)
 {
-	LogD(SString("Dump: ") + boolname + (b ? " = true" : " = false"));
+	LogD(string("Dump: ") + boolname + (b ? " = true" : " = false"));
 }
-S_API void SpeedPointEngine::LogD(unsigned int i, const SString& intname)
+S_API void SpeedPointEngine::LogD(unsigned int i, const string& intname)
 {
 	char* cDump = new char[60];
 	memset(cDump, 0, 60);
 	sprintf_s(cDump, 60, "%d", i);
-	LogD(SString("Dump: ") + intname + " = " + cDump);
+	LogD(string("Dump: ") + intname + " = " + cDump);
 	delete[] cDump;
 }
-S_API void SpeedPointEngine::LogD(float f, const SString& floatname)
+S_API void SpeedPointEngine::LogD(float f, const string& floatname)
 {
 	char* cDump = new char[60];
 	memset(cDump, 0, 60);
 	sprintf_s(cDump, 60, "%f", f);
-	LogD(SString("Dump: ") + floatname + " = " + cDump);
+	LogD(string("Dump: ") + floatname + " = " + cDump);
 	delete[] cDump;
 }
-S_API void SpeedPointEngine::LogD(const SString& str, const SString& strname)
+S_API void SpeedPointEngine::LogD(const string& str, const string& strname)
 {
-	LogD(SString("Dump: ") + strname + " = \"" + str + "\"");	
+	LogD(string("Dump: ") + strname + " = \"" + str + "\"");	
 }
 
 // ----------------------------------------------------------------------------------
-S_API void SpeedPointEngine::OnLog(SResult res, const SString& msg)
+S_API void SpeedPointEngine::OnLog(SResult res, const string& msg)
 {
 	// console output is done in CLog, which calls this function
 

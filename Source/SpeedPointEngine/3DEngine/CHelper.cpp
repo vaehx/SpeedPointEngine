@@ -2,9 +2,8 @@
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
-
-#include <Util\SVertex.h>
-#include <Util\SColor.h>
+#include <Abstract\SVertex.h>
+#include <Abstract\SColor.h>
 
 SP_NMSPACE_BEG
 

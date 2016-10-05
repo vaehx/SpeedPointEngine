@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <Util\SPool.h>
+#include "SPrerequisites.h"
+#include "SPool.h"
 #include "IFramePipeline.h"
 
 

@@ -13,8 +13,7 @@
 
 #pragma once
 
-#include <vector>
-#include <SPrerequisites.h>
+#include "SPrerequisites.h"
 #include "Vector3.h"
 #include "Matrix.h"
 #include "Quaternion.h"
@@ -23,6 +22,7 @@
 #include "Math.h"
 #define FLOAT_TOLERANCE 0.00001f
 
+#include <vector>
 #include <xmmintrin.h>
 
 #ifdef _DEBUG

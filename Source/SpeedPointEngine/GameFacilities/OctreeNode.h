@@ -5,9 +5,9 @@
 // ********************************************************************************************
 
 #pragma once
-#include <SPrerequisites.h>
 #include <Abstract\IOctreeNode.h>
 #include <Abstract\BoundBox.h>
+#include <Abstract\SPrerequisites.h>
 
 
 SP_NMSPACE_BEG

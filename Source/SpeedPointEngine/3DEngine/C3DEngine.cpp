@@ -1,6 +1,6 @@
-#include <Implementation\3DEngine\Terrain.h>
-#include <Implementation\3DEngine\CSkyBox.h>
-#include <Implementation\3DEngine\C3DEngine.h>
+#include "Terrain.h"
+#include "CSkyBox.h"
+#include "C3DEngine.h"
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IEntity.h>
 #include <Abstract\IScene.h>

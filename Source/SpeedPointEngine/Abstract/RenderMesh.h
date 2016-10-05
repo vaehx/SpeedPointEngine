@@ -2,7 +2,7 @@
 
 #include "IRenderObject.h"
 #include "IRenderer.h"
-#include <Util\SVertex.h>
+#include "SVertex.h"
 #include "IIndexBuffer.h"
 #include "IGeometry.h"
 

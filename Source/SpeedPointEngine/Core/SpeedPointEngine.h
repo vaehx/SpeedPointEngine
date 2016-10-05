@@ -10,14 +10,13 @@
 
 #pragma once
 
-#include "SPrerequisites.h"
-#include "Abstract\ILog.h"
-
-#include "Abstract\IGameEngine.h"
-#include "Abstract\IResourcePool.h"
-#include "Abstract\IRenderer.h"
-#include "Abstract\IFont.h"
-#include "Abstract\I3DEngine.h"
+#include <Abstract\IGameEngine.h>
+#include <Abstract\IResourcePool.h>
+#include <Abstract\IRenderer.h>
+#include <Abstract\IFont.h>
+#include <Abstract\I3DEngine.h>
+#include <Abstract\ILog.h>
+#include <Abstract\SPrerequisites.h>
 #include <fstream>
 #include <deque>
 
@@ -52,25 +51,25 @@ public:
 	~EngineFileLog() {}
 
 	virtual void Clear();
-	virtual SResult SetLogFile(const SString& file);
+	virtual SResult SetLogFile(const string& file);
 	virtual SResult RegisterLogHandler(IFileLogHandler* pLogHandler);
 	virtual SResult SetLogLevel(ELogLevel loglevel);
 	virtual ELogLevel GetLogLevel() const;
-	virtual SResult Log(SResult res, const SString& msg);
+	virtual SResult Log(SResult res, const string& msg);
 	virtual void ReleaseIOQueue();
 };
 
 class CLogWrapper
 {
 public:
-	SResult Log(SResult res, const SString& msg)
+	SResult Log(SResult res, const string& msg)
 	{
 		return CLog::Log(res, msg);
 	}
-	SResult LogE(const SString& msg) { return Log(S_ERROR, msg); }
-	SResult LogI(const SString& msg) { return Log(S_INFO, msg); }
-	SResult LogW(const SString& msg) { return Log(S_WARN, msg); }
-	SResult LogD(const SString& msg) { return Log(S_DEBUG, msg); }
+	SResult LogE(const string& msg) { return Log(S_ERROR, msg); }
+	SResult LogI(const string& msg) { return Log(S_INFO, msg); }
+	SResult LogW(const string& msg) { return Log(S_WARN, msg); }
+	SResult LogD(const string& msg) { return Log(S_DEBUG, msg); }
 
 	SResult SetLogLevel(ELogLevel logLevel)
 	{
@@ -202,23 +201,23 @@ public:
 
 // Logging methods
 public:	
-	virtual SResult LogReport(const SResult& res, const SString& msg);
-	virtual SResult LogE(const SString& msg);
-	virtual SResult LogW(const SString& msg);
-	virtual SResult LogI(const SString& msg);
-	virtual SResult LogD(const SString& msg, SResultType defRetVal = S_DEBUG);
-	virtual void LogD(const SMatrix4& mtx, const SString& mtxname);
-	virtual void LogD(const SVector3& vec, const SString& vecname);
-	virtual void LogD(bool b, const SString& boolname);
-	virtual void LogD(unsigned int i, const SString& intname);
-	virtual void LogD(float f, const SString& floatname);
-	virtual void LogD(const SString& str, const SString& strname);
+	virtual SResult LogReport(const SResult& res, const string& msg);
+	virtual SResult LogE(const string& msg);
+	virtual SResult LogW(const string& msg);
+	virtual SResult LogI(const string& msg);
+	virtual SResult LogD(const string& msg, SResultType defRetVal = S_DEBUG);
+	virtual void LogD(const SMatrix4& mtx, const string& mtxname);
+	virtual void LogD(const SVector3& vec, const string& vecname);
+	virtual void LogD(bool b, const string& boolname);
+	virtual void LogD(unsigned int i, const string& intname);
+	virtual void LogD(float f, const string& floatname);
+	virtual void LogD(const string& str, const string& strname);
 
 	// Implement IExceptionProxy methods
 	virtual void HandleException(char* msg);	
 
 	// Implement ILogListener
-	virtual void OnLog(SResult res, const SString& msg);
+	virtual void OnLog(SResult res, const string& msg);
 
 public:
 	virtual bool IsRunning() const

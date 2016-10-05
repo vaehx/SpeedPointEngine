@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <SPrerequisites.h>
-#include <Util\SColor.h>
+#include "SPrerequisites.h"
+#include "SColor.h"
 
 
 SP_NMSPACE_BEG
@@ -42,7 +42,7 @@ struct IFontRenderer
 	virtual SResult Init(IRenderer* pRenderer) = 0;
 
 	virtual void BeginRender() = 0;
-	virtual void RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos,
+	virtual void RenderText(const string& text, const SColor& color, const SPixelPosition& pixelPos,
 		EFontSize fontSize = eFONTSIZE_NORMAL, bool alignRight = false) = 0;
 
 	virtual void EndRender() = 0;

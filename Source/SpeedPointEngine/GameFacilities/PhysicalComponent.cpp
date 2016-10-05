@@ -1,5 +1,5 @@
-#include <Implementation\GameFacilities\PhysicalComponent.h>
-#include <Util\SerializationTools.h>
+#include "PhysicalComponent.h"
+#include <Abstract\SerializationTools.h>
 
 SP_NMSPACE_BEG
 

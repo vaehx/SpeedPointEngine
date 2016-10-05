@@ -1,11 +1,10 @@
 #pragma once
 
-#include <SPrerequisites.h>
+#include <Abstract\SPrerequisites.h>
 #include <Abstract\I3DEngine.h>
 #include <Abstract\ChunkedObjectPool.h>
 #include <Abstract\IRenderer.h>
 #include "Geometry.h"
-#include <vector>
 #include <map>
 
 using std::map;

@@ -11,8 +11,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\3DEngine\Geometry.h>
-#include <Implementation\3DEngine\Material.h>
+#include "Geometry.h"
+#include "Material.h"
 #include <Abstract\IResourcePool.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\IVertexBuffer.h>

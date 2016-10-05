@@ -19,8 +19,8 @@
 #endif
 
 
-#include <SPrerequisites.h>
-#include <Abstract\IGameEngine.h>
+#include "SPrerequisites.h"
+#include "IGameEngine.h"
 
 
 SP_NMSPACE_BEG
@@ -34,7 +34,7 @@ struct S_API IApplication
 
 	virtual void OnInit(IFramePipeline* pFramePipeline, IGameEngine* pGameEngine) = 0;	
 
-	virtual void OnLogReport(SResult res, const SString& msg) = 0;
+	virtual void OnLogReport(SResult res, const string& msg) = 0;
 
 
 	// Summary:

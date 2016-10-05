@@ -11,25 +11,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationBundle.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationJoint.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationKey.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\AnimationSequence.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Entity.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\GeometryManager.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Octree.h">
@@ -49,12 +34,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationKey.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationSequence.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctree.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -74,12 +53,6 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\RenderableComponent.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationBundle.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicAnimationJoint.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

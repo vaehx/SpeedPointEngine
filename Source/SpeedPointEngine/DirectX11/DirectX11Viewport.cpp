@@ -7,14 +7,14 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11Viewport.h>
-#include <Implementation\DirectX11\DirectX11Renderer.h>
-#include <Implementation\DirectX11\DirectX11FBO.h>
-#include <Implementation\DirectX11\DirectX11Utilities.h>
-#include <Abstract\Matrix.h>
+#include "DirectX11Viewport.h"
+#include "DirectX11Renderer.h"
+#include "DirectX11FBO.h"
+#include "DirectX11Utilities.h"
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\ISettings.h>
+#include <Abstract\Matrix.h>
 
 #ifdef _DEBUG
 #include <dxgi1_3.h>
@@ -283,7 +283,7 @@ S_API SIZE DirectX11Viewport::GetSize(void)
 S_API SResult DirectX11Viewport::SetSize(int nX, int nY)
 {
 	SP_ASSERTR(m_pSwapChain && m_pEngine && m_nBackBuffers > 0, S_NOTINIT);
-	SP_ASSERT(nX > 640 && nY > 480, S_INVALIDPARAM);
+	SP_ASSERTR(nX > 640 && nY > 480, S_INVALIDPARAM);
 
 	m_Desc.width = nX;
 	m_Desc.height = nY;

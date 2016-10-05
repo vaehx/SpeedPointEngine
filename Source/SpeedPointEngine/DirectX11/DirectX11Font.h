@@ -5,8 +5,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Abstract\IFont.h>
 #include "DirectX11Renderer.h"
+#include <Abstract\IFont.h>
 #include <d3d10_1.h>
 #include <dxgi.h>
 #include <d2d1.h>
@@ -88,7 +88,7 @@ public:
 	virtual SResult Init(IRenderer* pRenderer);
 
 	virtual void BeginRender();
-	virtual void RenderText(const char* text, const SColor& color, const SPixelPosition& pixelPos,
+	virtual void RenderText(const string& text, const SColor& color, const SPixelPosition& pixelPos,
 		EFontSize fontSize = eFONTSIZE_NORMAL, bool alignRight = false);
 
 	virtual void EndRender();

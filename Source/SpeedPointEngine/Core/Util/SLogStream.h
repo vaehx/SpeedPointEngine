@@ -10,7 +10,7 @@
 // ******************************************************************************************
 
 #pragma once
-#include <SPrerequisites.h>
+#include <Abstract\SPrerequisites.h>
 //#include "SResult.h"
 //#include "SString.h"
 
@@ -22,7 +22,7 @@ namespace SpeedPoint
 
 	// Use this to point to a function that shall be called when log entry was added to the stream
 
-	typedef S_API void(*PLogHandler)(SResult, SString);
+	typedef S_API void(*PLogHandler)(SResult, const string&);
 
 	// ******************************************************************************************	
 
@@ -45,7 +45,7 @@ namespace SpeedPoint
 
 		// Add a new char buffer to the stream and notify listeners
 		// will return the result given as a parameter
-		SResult Report(SResult res, SString str);
+		SResult Report(SResult res, const string& str);
 
 		// Register a listener function
 		void RegisterHandler(PLogHandler pHandler);

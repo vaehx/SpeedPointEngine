@@ -1,6 +1,6 @@
 // SpeedPoint Engine Settings
 
-#include <EngineSettings.h>
+#include "EngineSettings.h"
 #include <Abstract\IScene.h>
 #include <Abstract\ITerrain.h>
 #include <Abstract\IRenderer.h>

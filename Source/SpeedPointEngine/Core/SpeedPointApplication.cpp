@@ -11,7 +11,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <SpeedPointApplication.h>
+#include "SpeedPointApplication.h"
 
 SP_NMSPACE_BEG
 
@@ -41,10 +41,10 @@ S_API void SpeedPointApplication::OnInit(IFramePipeline* pFramePipeline, IGameEn
 }
 
 // ---------------------------------------------------------------------------------------------
-S_API void SpeedPointApplication::OnLogReport(SResult res, const SString& msg)
+S_API void SpeedPointApplication::OnLogReport(SResult res, const string& msg)
 {
 #ifdef _DEBUG
-	OutputDebugString(msg);
+	OutputDebugString(msg.c_str());
 	OutputDebugString("\n");
 #endif
 }

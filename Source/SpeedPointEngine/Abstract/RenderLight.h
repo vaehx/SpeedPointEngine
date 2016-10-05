@@ -14,7 +14,7 @@
 #pragma once
 
 #include "IRenderObject.h"
-#include <Util\SColor.h>
+#include "SColor.h"
 
 SP_NMSPACE_BEG
 

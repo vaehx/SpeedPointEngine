@@ -41,7 +41,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\..\..\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)SpeedPointEngine\Source\SpeedPointEngine;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
@@ -75,7 +75,6 @@
     <ClCompile Include="dummy.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Animateable.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\BoundBox.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Camera.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\CHelper.h" />
@@ -83,15 +82,8 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ChunkPool.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\CLog.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ComponentPool.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Entities.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\I3DEngine.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAI.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationBundle.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationJoint.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationKey.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IAnimationSequence.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IApplication.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IBot.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ICollisionShape.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IConstantsBuffer.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IDynamicsPipeline.h" />
@@ -102,7 +94,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IGameEngine.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IGeometry.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IIndexBuffer.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IInteractive.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ilog.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IMaterial.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IOcean.h" />
@@ -112,7 +103,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IPhysics.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderAPI.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderer.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRendererSettings.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderObject.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IRenderPipeline.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IResourcePool.h" />
@@ -120,8 +110,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISettings.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IShader.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISkyBox.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISound.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ISoundSystem.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ITerrain.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ITexture.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IVertexBuffer.h" />
@@ -135,12 +123,24 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\RenderLight.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\RenderMesh.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SAPI.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SAssert.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SAssert_Impl.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SColor.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SerializationTools.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SPool.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SPoolIndex.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SPrerequisites.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SPrimitive.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SQueue.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SResult.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SString.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SVertex.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\SWindowsSpecific.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Transformable.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Vector2.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Vector3.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\Vector4.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\SpeedPoint.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

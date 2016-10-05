@@ -7,10 +7,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include <Implementation\DirectX11\DirectX11VertexBuffer.h>
-#include <Implementation\DirectX11\DirectX11Renderer.h>
-#include <Util\SVertex.h>
-#include <Abstract\IGameEngine.h>
+#include "DirectX11VertexBuffer.h"
+#include "DirectX11Renderer.h"
+#include <Abstract\SVertex.h>
 
 SP_NMSPACE_BEG
 
