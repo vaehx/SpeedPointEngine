@@ -1,9 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11,7 +9,7 @@
 
 #include <Abstract\ISettings.h>
 #include <Abstract\SPrerequisites.h>
-#include "DirectX11.h"
+#include "DX11.h"
 
 SP_NMSPACE_BEG
 

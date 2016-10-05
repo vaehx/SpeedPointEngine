@@ -1,19 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11VertexBuffer.h"
-#include "DirectX11Renderer.h"
+#include "DX11VertexBuffer.h"
+#include "DX11Renderer.h"
 #include <Abstract\SVertex.h>
 
 SP_NMSPACE_BEG
 
-S_API DirectX11VertexBuffer::DirectX11VertexBuffer()
+S_API DX11VertexBuffer::DX11VertexBuffer()
 : m_pRenderer(NULL),
 m_pHWVertexBuffer(NULL),
 m_pShadowBuffer(NULL),
@@ -23,7 +21,7 @@ m_Usage(eVBUSAGE_STATIC)
 }
 
 
-S_API DirectX11VertexBuffer::DirectX11VertexBuffer(const DirectX11VertexBuffer& o)
+S_API DX11VertexBuffer::DX11VertexBuffer(const DX11VertexBuffer& o)
 : m_pRenderer(o.m_pRenderer),
 m_pHWVertexBuffer(o.m_pHWVertexBuffer),
 m_pShadowBuffer(o.m_pShadowBuffer),
@@ -32,22 +30,21 @@ m_Usage(o.m_Usage)
 {
 }
 
-
-// --------------------------------------------------------------------------------
-S_API DirectX11VertexBuffer::~DirectX11VertexBuffer()
+// -----------------------------------------------------------------------------------------------
+S_API DX11VertexBuffer::~DX11VertexBuffer()
 {
 	// Make sure resources are freed
 	Clear();
 }
 
-// --------------------------------------------------------------------------------
-S_API bool DirectX11VertexBuffer::IsInited(void)
+// -----------------------------------------------------------------------------------------------
+S_API bool DX11VertexBuffer::IsInited(void)
 {
 	return m_pRenderer && m_pHWVertexBuffer && m_pShadowBuffer;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Initialize(
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11VertexBuffer::Initialize(
 						IRenderer* renderer,
 						EVBUsage usage,																						
 						const SVertex* pInitialData /* = nullptr */,
@@ -58,7 +55,7 @@ S_API SResult DirectX11VertexBuffer::Initialize(
 
 	if (!IS_VALID_PTR((m_pRenderer = renderer)))
 	{
-		return CLog::Log(S_ERROR, "Invalid ptr to renderer given in DirectX11VertexBuffer::Initialize!");		
+		return CLog::Log(S_ERROR, "Invalid ptr to renderer given in DX11VertexBuffer::Initialize!");		
 	}
 
 	m_Usage = usage;
@@ -75,13 +72,13 @@ S_API SResult DirectX11VertexBuffer::Initialize(
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SDirectX11VBCreateFlags DirectX11VertexBuffer::GetCreateFlags()
+// -----------------------------------------------------------------------------------------------
+S_API SDX11VBCreateFlags DX11VertexBuffer::GetCreateFlags()
 {
 	switch (m_Usage)
 	{
 	case eVBUSAGE_STATIC:
-		return SDirectX11VBCreateFlags(
+		return SDX11VBCreateFlags(
 			D3D11_USAGE_DEFAULT,
 			D3D11_BIND_VERTEX_BUFFER,
 			0);
@@ -91,25 +88,25 @@ S_API SDirectX11VBCreateFlags DirectX11VertexBuffer::GetCreateFlags()
 		//	Create and use D3D11_USAGE_STAGING for a second buffer.
 		//	Fill the second buffer with Map() and Unmap().
 		//	Use ID3D11DeviceContext::CopyResource to copy from second buffer to actual buffer.
-		return SDirectX11VBCreateFlags(
+		return SDX11VBCreateFlags(
 			D3D11_USAGE_DYNAMIC,
 			D3D11_BIND_VERTEX_BUFFER,
 			D3D11_CPU_ACCESS_WRITE);
 
 	case eVBUSAGE_DYNAMIC_FREQUENT:		
-		return SDirectX11VBCreateFlags(
+		return SDX11VBCreateFlags(
 			D3D11_USAGE_DYNAMIC,
 			D3D11_BIND_VERTEX_BUFFER,
 			D3D11_CPU_ACCESS_WRITE);
 
 	default:
 		CLog::Log(S_WARN, "Tried to retrieve vb create flags for u-nsupported vb usage!");
-		return SDirectX11VBCreateFlags();
+		return SDX11VBCreateFlags();
 	}
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Create(const SVertex* pInitialData, const unsigned long nInitialDataCount)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11VertexBuffer::Create(const SVertex* pInitialData, const unsigned long nInitialDataCount)
 {
 	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 
@@ -123,7 +120,8 @@ S_API SResult DirectX11VertexBuffer::Create(const SVertex* pInitialData, const u
 		return CLog::Log(S_ERROR, "Cannot Create DX11 Vertex Buffer: Already created.");
 
 	
-	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(m_pRenderer);
+	SP_ASSERTR(pDXRenderer, S_NOTINIT);
 
 	m_nVertices = nInitialDataCount;
 	m_pShadowBuffer = (SVertex*)(malloc(m_nVertices * sizeof(SVertex)));	
@@ -135,7 +133,7 @@ S_API SResult DirectX11VertexBuffer::Create(const SVertex* pInitialData, const u
 	// Create Hardware Buffer:
 
 	D3D11_BUFFER_DESC bufferDesc;
-	SDirectX11VBCreateFlags createFlags = GetCreateFlags();
+	SDX11VBCreateFlags createFlags = GetCreateFlags();
 	bufferDesc.BindFlags = createFlags.bindFlags;	
 	bufferDesc.CPUAccessFlags = createFlags.cpuAccessFlags;
 	bufferDesc.Usage = createFlags.usage;
@@ -156,108 +154,8 @@ S_API SResult DirectX11VertexBuffer::Create(const SVertex* pInitialData, const u
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-/*
-S_API SResult DirectX11VertexBuffer::Resize(unsigned long nVertices_)
-{
-	if (nVertices_ == m_nVertices)
-		return S_SUCCESS;
-	
-	if (m_Usage == eVBUSAGE_STATIC)
-		return m_pEngine->LogE("Tried to resize static VB!");
-
-	SP_ASSERTR(m_pEngine && m_pRenderer, S_NOTINIT);	
-
-	int nVerticesOld = m_nVertices;
-	usint32 nVerticesWrittenOld = m_nVerticesWritten;
-	m_nVertices = nVertices_; // total size
-
-	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
-
-
-	// check whether we acutally resize or create a new buffer
-	bool bResize = nVerticesOld > 0 && m_pShadowBuffer && m_pHWVertexBuffer;
-
-	// Resize Sys memory or create if not existing
-	SVertex* vBackup = m_pShadowBuffer;
-	m_pShadowBuffer = 0;
-
-	// Clear the old HW buffer
-	SP_SAFE_RELEASE(m_pHWVertexBuffer);
-	m_pHWVertexBuffer = 0;
-	
-	// Create the new buffer
-	Create(m_nVertices, vBackup, nVerticesWrittenOld);
-	
-	// delete old shadow buffer
-	if (vBackup)
-		delete[] vBackup;
-
-	return S_SUCCESS;
-}
-*/
-
-// --------------------------------------------------------------------------------
-/*
-S_API SResult DirectX11VertexBuffer::Lock(UINT iBegin, UINT iLength, SVertex** buf)
-{
-	return Lock(iBegin, iLength, buf, eVBLOCK_NOOVERWRITE);
-}
-*/
-
-// --------------------------------------------------------------------------------
-/*
-S_API SResult DirectX11VertexBuffer::Lock(UINT iBegin, UINT iLength, SVertex** buf, EVBLockType locktype)
-{
-	SP_ASSERTR(m_pEngine, S_NOTINIT);
-	SP_ASSERTR(buf, S_INVALIDPARAM);
-
-	// just don't allow any lock if not dynamic
-	if (m_Usage == eVBUSAGE_STATIC)
-	{
-		m_pEngine->LogW("Tried to lock static VB!");
-		return S_ABORTED;
-	}
-
-	SP_ASSERTR(IsInited() && m_pHWVertexBuffer != NULL && !m_bLocked, S_NOTINITED);
-
-	// Update the HW buffer data
-	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
-
-	// cast the Lock type
-	D3D11_MAP mapType;
-	switch (locktype)
-	{
-	case eVBLOCK_DISCARD:
-		mapType = D3D11_MAP_WRITE_DISCARD;
-		break;
-	case eVBLOCK_NOOVERWRITE:
-		mapType = D3D11_MAP_WRITE_NO_OVERWRITE;		
-		break;
-	case eVBLOCK_KEEP:
-		mapType = D3D11_MAP_READ_WRITE;
-		break;
-	default:
-		mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
-	}
-
-	D3D11_MAPPED_SUBRESOURCE mappedVBResource;
-	if (Failure(pDXRenderer->GetD3D11DeviceContext()->Map(m_pHWVertexBuffer, 0, mapType, 0, &mappedVBResource)))
-	{
-		return m_pEngine->LogE("Failed lock mapped HW-VB resource!");
-	}
-	m_bLocked = true;
-
-	*buf = (SVertex*)mappedVBResource.pData;	
-
-	// everything went well
-	return S_SUCCESS;	
-}
-*/
-
-
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigned long nVertices_)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11VertexBuffer::Fill(const SVertex* vertices, const unsigned long nVertices_)
 {
 	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(vertices, S_INVALIDPARAM, "Invalid buffer of vertices given");	
@@ -294,7 +192,7 @@ S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigne
 
 
 		// upload vertices
-		DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
+		DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(m_pRenderer);
 		if (!IS_VALID_PTR(pDXRenderer))
 			return CLog::Log(S_ERROR, "Cannot upload vertex data after fill: Renderer is invalid (not a DX11 one?)!");
 
@@ -310,8 +208,8 @@ S_API SResult DirectX11VertexBuffer::Fill(const SVertex* vertices, const unsigne
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /* = 0 */, unsigned long nVertices /* = 0 */)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /* = 0 */, unsigned long nVertices /* = 0 */)
 {
 	if (!IS_VALID_PTR(m_pHWVertexBuffer) || !IS_VALID_PTR(m_pShadowBuffer) || !IS_VALID_PTR(m_pRenderer) || m_Usage == eVBUSAGE_STATIC)
 		return S_NOTINITED;
@@ -320,7 +218,7 @@ S_API SResult DirectX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /*
 		return S_INVALIDPARAM;
 
 	
-	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(m_pRenderer);
 	if (!IS_VALID_PTR(pDXRenderer))
 		return CLog::Log(S_ERROR, "Cannot upload vertex data: Renderer is invalid (not a DX11 one?)!");
 
@@ -341,22 +239,8 @@ S_API SResult DirectX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /*
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-/*
-S_API SResult DirectX11VertexBuffer::Unlock(void)
-{
-	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(m_bLocked, S_ABORTED);
-	
-	((DirectX11Renderer*)m_pRenderer)->GetD3D11DeviceContext()->Unmap(m_pHWVertexBuffer, 0);
-	
-	m_bLocked = false;
-	return S_SUCCESS;
-}
-*/
-
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11VertexBuffer::Clear(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11VertexBuffer::Clear(void)
 {
 	if (IsInited())
 	{
@@ -371,8 +255,8 @@ S_API SResult DirectX11VertexBuffer::Clear(void)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SVertex* DirectX11VertexBuffer::GetShadowBuffer(void)
+// -----------------------------------------------------------------------------------------------
+S_API SVertex* DX11VertexBuffer::GetShadowBuffer(void)
 {
 	if (IsInited())
 	{
@@ -382,8 +266,8 @@ S_API SVertex* DirectX11VertexBuffer::GetShadowBuffer(void)
 	return NULL;
 }
 
-// --------------------------------------------------------------------------------
-S_API SVertex* DirectX11VertexBuffer::GetVertex(unsigned long iIndex)
+// -----------------------------------------------------------------------------------------------
+S_API SVertex* DX11VertexBuffer::GetVertex(unsigned long iIndex)
 {
 	if (IsInited() && m_nVertices > iIndex && iIndex >= 0)
 	{
@@ -393,8 +277,8 @@ S_API SVertex* DirectX11VertexBuffer::GetVertex(unsigned long iIndex)
 	return NULL;
 }
 
-// --------------------------------------------------------------------------------
-S_API unsigned long DirectX11VertexBuffer::GetVertexCount(void) const
+// -----------------------------------------------------------------------------------------------
+S_API unsigned long DX11VertexBuffer::GetVertexCount(void) const
 {
 	return m_nVertices;
 }

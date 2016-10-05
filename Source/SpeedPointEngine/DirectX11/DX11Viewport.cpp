@@ -1,16 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11Viewport.h"
-#include "DirectX11Renderer.h"
-#include "DirectX11FBO.h"
-#include "DirectX11Utilities.h"
+#include "DX11Viewport.h"
+#include "DX11Renderer.h"
+#include "DX11FBO.h"
+#include "DX11Utilities.h"
 #include <Abstract\IGameEngine.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\ISettings.h>
@@ -22,8 +20,8 @@
 
 SP_NMSPACE_BEG
 
-// -------------------------------------------------------------------
-S_API DirectX11Viewport::DirectX11Viewport()
+// -----------------------------------------------------------------------------------------------
+S_API DX11Viewport::DX11Viewport()
 : m_pEngine(0),
 m_pRenderer(0),
 m_pRenderTarget(0),	
@@ -33,19 +31,19 @@ m_pDepthStencilView(0),
 m_pSwapChain(0),
 m_nBackBuffers(0)
 {
-	m_pFBO = new DirectX11FBO();
+	m_pFBO = new DX11FBO();
 	m_pCamera = &m_OwnCamera;
 }
 
-// -------------------------------------------------------------------
-S_API DirectX11Viewport::~DirectX11Viewport()
+// -----------------------------------------------------------------------------------------------
+S_API DX11Viewport::~DX11Viewport()
 {
 	// make sure to clear
 	Clear();
 }
 
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Viewport::Initialize(IGameEngine* pEngine, const SViewportDescription& desc, bool bIsAdditional)
 {
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);
 	SP_ASSERTR(desc.width > 640 && desc.height > 480, S_INVALIDPARAM);	
@@ -55,7 +53,7 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 
 	// make sure the FBO instance is instanciated, because we might have deleted it in Clear()
 	if (!m_pFBO)
-		m_pFBO = new DirectX11FBO();	
+		m_pFBO = new DX11FBO();	
 
 	m_pEngine = pEngine;
 	SSettingsDesc& engineSet = m_pEngine->GetSettings()->Get();
@@ -63,7 +61,7 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	IRenderer* pRenderer = pEngine->GetRenderer();
 	SP_ASSERTR(pRenderer->GetType() == S_DIRECTX11, S_INVALIDPARAM);
 
-	m_pRenderer = dynamic_cast<DirectX11Renderer*>(pRenderer);
+	m_pRenderer = dynamic_cast<DX11Renderer*>(pRenderer);
 	SP_ASSERTR(IS_VALID_PTR(m_pRenderer), S_INVALIDPARAM);
 
 	m_bIsAdditional = bIsAdditional;
@@ -115,7 +113,7 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 		return m_pEngine->LogE("Failed create swap chain!");
 	}
 #ifdef _DEBUG
-	const char nm[] = "DirectX11Viewport::SwapChain";
+	const char nm[] = "DX11Viewport::SwapChain";
 	m_pSwapChain->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(nm) - 1, nm);
 #endif
 
@@ -162,8 +160,8 @@ S_API SResult DirectX11Viewport::Initialize(IGameEngine* pEngine, const SViewpor
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::InitializeDepthStencilBuffer()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Viewport::InitializeDepthStencilBuffer()
 {
 	SP_ASSERTR(m_pEngine && m_pRenderer && m_pSwapChain, S_NOTINIT);
 
@@ -221,8 +219,8 @@ S_API SResult DirectX11Viewport::InitializeDepthStencilBuffer()
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::Clear(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Viewport::Clear(void)
 {		
 	if (IS_VALID_PTR(m_pDepthStencilView))
 	{
@@ -263,14 +261,14 @@ S_API SResult DirectX11Viewport::Clear(void)
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------
-S_API bool DirectX11Viewport::IsAdditional()
+// -----------------------------------------------------------------------------------------------
+S_API bool DX11Viewport::IsAdditional()
 {
 	return m_bIsAdditional;
 }
 
-// -------------------------------------------------------------------
-S_API SIZE DirectX11Viewport::GetSize(void)
+// -----------------------------------------------------------------------------------------------
+S_API SIZE DX11Viewport::GetSize(void)
 {
 	SIZE size;
 	size.cx = (LONG)m_DXViewportDesc.Width;
@@ -279,8 +277,8 @@ S_API SIZE DirectX11Viewport::GetSize(void)
 	return size;
 }
 
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::SetSize(int nX, int nY)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Viewport::SetSize(int nX, int nY)
 {
 	SP_ASSERTR(m_pSwapChain && m_pEngine && m_nBackBuffers > 0, S_NOTINIT);
 	SP_ASSERTR(nX > 640 && nY > 480, S_INVALIDPARAM);
@@ -296,14 +294,14 @@ S_API SResult DirectX11Viewport::SetSize(int nX, int nY)
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::EnableVSync(bool enable)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Viewport::EnableVSync(bool enable)
 {
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------
-S_API SVector2 DirectX11Viewport::GetOrthographicVolume(void)
+// -----------------------------------------------------------------------------------------------
+S_API SVector2 DX11Viewport::GetOrthographicVolume(void)
 {
 
 
@@ -318,14 +316,14 @@ S_API SVector2 DirectX11Viewport::GetOrthographicVolume(void)
 
 }
 
-// -------------------------------------------------------------------
-S_API unsigned int DirectX11Viewport::GetPerspectiveFOV(void)
+// -----------------------------------------------------------------------------------------------
+S_API unsigned int DX11Viewport::GetPerspectiveFOV(void)
 {
 	return m_Desc.projectionDesc.fov;
 }
 
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::SetProjectionByDesc(const SProjectionDesc& desc)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Viewport::SetProjectionByDesc(const SProjectionDesc& desc)
 {
 	if (!IS_VALID_PTR(m_pEngine))
 		return S_NOTINIT;
@@ -360,7 +358,7 @@ S_API SResult DirectX11Viewport::SetProjectionByDesc(const SProjectionDesc& desc
 
 	default:
 		char logMsg[512];
-		sprintf_s(logMsg, "Invalid projection type (value = %d) given in DirectX11Viewport::SetProjectionByDesc()", desc.projectionType);
+		sprintf_s(logMsg, "Invalid projection type (value = %d) given in DX11Viewport::SetProjectionByDesc()", desc.projectionType);
 		m_pEngine->LogE(logMsg);
 		return S_INVALIDPARAM;
 	}
@@ -373,33 +371,33 @@ S_API SResult DirectX11Viewport::SetProjectionByDesc(const SProjectionDesc& desc
 }
 
 
-// -------------------------------------------------------------------
-S_API SProjectionDesc DirectX11Viewport::GetProjectionDesc() const
+// -----------------------------------------------------------------------------------------------
+S_API SProjectionDesc DX11Viewport::GetProjectionDesc() const
 {
 	return m_Desc.projectionDesc;
 }
 
-// -------------------------------------------------------------------
-S_API const SMatrix4& DirectX11Viewport::GetProjectionMatrix() const
+// -----------------------------------------------------------------------------------------------
+S_API const SMatrix4& DX11Viewport::GetProjectionMatrix() const
 {
 	return m_ProjectionMtx;
 }
 
-// -------------------------------------------------------------------
-S_API SMatrix& DirectX11Viewport::GetCameraViewMatrix()
+// -----------------------------------------------------------------------------------------------
+S_API SMatrix& DX11Viewport::GetCameraViewMatrix()
 {
 	return m_pCamera->viewMatrix;
 }
 
-// -------------------------------------------------------------------
-S_API SResult DirectX11Viewport::RecalculateCameraViewMatrix()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Viewport::RecalculateCameraViewMatrix()
 {
 	m_pCamera->RecalculateViewMatrix();
 	return S_SUCCESS;
 }
 
-// -------------------------------------------------------------------
-S_API IFBO* DirectX11Viewport::GetBackBuffer(void)
+// -----------------------------------------------------------------------------------------------
+S_API IFBO* DX11Viewport::GetBackBuffer(void)
 {
 	return (IFBO*)m_pFBO;
 }

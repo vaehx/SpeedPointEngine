@@ -1,9 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11,13 +9,13 @@
 
 #include <Abstract\ITexture.h>
 #include <Abstract\SPrerequisites.h>
-#include "DirectX11.h"
+#include "DX11.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 struct S_API IRenderer;
-class S_API DirectX11Renderer;
+class S_API DX11Renderer;
 
 // IWICImagineFactory must not be forward declared in SpeedPoint NameSpace!
 SP_NMSPACE_END
@@ -70,7 +68,7 @@ struct S_API SLoadedCubemapSide
 };
 
 
-class S_API DirectX11Texture : public ITexture
+class S_API DX11Texture : public ITexture
 {
 private:
 	string	m_Specification;
@@ -89,9 +87,9 @@ private:
 	void* m_pStagedData;
 
 public:		
-	DirectX11Texture();
+	DX11Texture();
 
-	~DirectX11Texture();
+	~DX11Texture();
 	
 
 	// Initialization

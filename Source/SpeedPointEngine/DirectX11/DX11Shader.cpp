@@ -1,16 +1,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#include "DirectX11Shader.h"
-#include "DirectX11Renderer.h"
+#include "DX11Shader.h"
+#include "DX11Renderer.h"
 #include <Abstract\IGameEngine.h>
 #include <Abstract\ISettings.h>
 #include <d3dcompiler.h>
@@ -20,8 +16,8 @@ using std::ifstream;
 
 SP_NMSPACE_BEG
 
-// -------------------------------------------------------------------------
-DirectX11Shader::DirectX11Shader()
+// -----------------------------------------------------------------------------------------------
+DX11Shader::DX11Shader()
 : m_pDXRenderer(0),
 m_pEngine(0),
 m_pPixelShader(0),
@@ -30,21 +26,22 @@ m_pVSInputLayout(0)
 {
 }
 
-// -------------------------------------------------------------------------
-DirectX11Shader::~DirectX11Shader()
+// -----------------------------------------------------------------------------------------------
+DX11Shader::~DX11Shader()
 {
 	Clear();
 }
 
-// -------------------------------------------------------------------------
-S_API SResult DirectX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 {
 	assert(IS_VALID_PTR(pRenderer));
 	assert(pRenderer->GetType() == S_DIRECTX11);
 
 	Clear();
 
-	m_pDXRenderer = (DirectX11Renderer*)pRenderer;
+	m_pDXRenderer = dynamic_cast<DX11Renderer*>(pRenderer);
+	assert(IS_VALID_PTR(m_pDXRenderer));
 
 
 	//
@@ -232,8 +229,8 @@ S_API SResult DirectX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& inf
 	return Failure(hRes) ? S_ERROR : S_SUCCESS;
 }
 
-// -------------------------------------------------------------------------
-S_API void DirectX11Shader::Clear()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Shader::Clear()
 {
 	if (IS_VALID_PTR(m_pPixelShader))
 		m_pPixelShader->Release();
@@ -253,8 +250,8 @@ S_API void DirectX11Shader::Clear()
 	m_pEngine = 0;
 }
 
-// -------------------------------------------------------------------------
-S_API SResult DirectX11Shader::Bind()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Shader::Bind()
 {
 	if (!IS_VALID_PTR(m_pDXRenderer) || !IS_VALID_PTR(m_pPixelShader) || !IS_VALID_PTR(m_pVertexShader) || !IS_VALID_PTR(m_pVSInputLayout))
 		return S_NOTINIT;	

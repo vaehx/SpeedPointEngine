@@ -1,9 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11,21 +9,21 @@
 
 #include <Abstract\IFBO.h>
 #include <Abstract\SPrerequisites.h>
-#include "DirectX11.h"
+#include "DX11.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
-class S_API DirectX11Renderer;
+class S_API DX11Renderer;
 struct S_API IRenderer;
 
 
 
 
-class S_API DirectX11FBO : public IFBO
+class S_API DX11FBO : public IFBO
 {
 private:	
-	DirectX11Renderer* m_pDXRenderer;
+	DX11Renderer* m_pDXRenderer;
 
 	D3D11_TEXTURE2D_DESC m_texDesc;
 	ID3D11Texture2D* m_pTexture;
@@ -44,8 +42,8 @@ private:
 
 
 public:
-	DirectX11FBO();
-	~DirectX11FBO();	
+	DX11FBO();
+	~DX11FBO();
 
 	// Summary:
 	//	Initialize with given renderer

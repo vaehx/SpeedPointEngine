@@ -1,18 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11IndexBuffer.h"
-#include "DirectX11Renderer.h"
+#include "DX11IndexBuffer.h"
+#include "DX11Renderer.h"
 
 SP_NMSPACE_BEG
 
-S_API DirectX11IndexBuffer::DirectX11IndexBuffer()
+S_API DX11IndexBuffer::DX11IndexBuffer()
 : m_pRenderer(NULL),
 m_pHWIndexBuffer(NULL),
 m_pShadowBuffer(NULL),
@@ -25,7 +23,7 @@ m_bLocked(false)
 }
 
 
-S_API DirectX11IndexBuffer::DirectX11IndexBuffer(const DirectX11IndexBuffer& o)
+S_API DX11IndexBuffer::DX11IndexBuffer(const DX11IndexBuffer& o)
 	: m_pRenderer(o.m_pRenderer),
 	m_pHWIndexBuffer(o.m_pHWIndexBuffer),
 	m_pShadowBuffer(o.m_pShadowBuffer),
@@ -38,15 +36,15 @@ S_API DirectX11IndexBuffer::DirectX11IndexBuffer(const DirectX11IndexBuffer& o)
 }
 
 
-// --------------------------------------------------------------------------------
-S_API DirectX11IndexBuffer::~DirectX11IndexBuffer()
+// -----------------------------------------------------------------------------------------------
+S_API DX11IndexBuffer::~DX11IndexBuffer()
 {
 	// Make sure resources are freed
 	Clear();
 }
 
-// --------------------------------------------------------------------------------
-S_API BOOL DirectX11IndexBuffer::IsInited(void)
+// -----------------------------------------------------------------------------------------------
+S_API BOOL DX11IndexBuffer::IsInited(void)
 {
 	return		
 		m_pRenderer &&
@@ -54,8 +52,8 @@ S_API BOOL DirectX11IndexBuffer::IsInited(void)
 		m_pShadowBuffer;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Initialize(
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Initialize(
 						IRenderer* renderer,
 						EIBUsage usage,						
 						S_INDEXBUFFER_FORMAT format,
@@ -90,25 +88,25 @@ S_API SResult DirectX11IndexBuffer::Initialize(
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SDirectX11IBCreateFlags DirectX11IndexBuffer::GetCreateFlags()
+// -----------------------------------------------------------------------------------------------
+S_API SDX11IBCreateFlags DX11IndexBuffer::GetCreateFlags()
 {
 	switch (m_Usage)
 	{
 	case eIBUSAGE_STATIC:
-		return SDirectX11IBCreateFlags(
+		return SDX11IBCreateFlags(
 			D3D11_USAGE_DEFAULT,
 			D3D11_BIND_INDEX_BUFFER,
 			0);
 
 	default:
 		CLog::Log(S_WARN, "Tried to retrieve ib create flags for unsupported vb usage!");
-		return SDirectX11IBCreateFlags();
+		return SDX11IBCreateFlags();
 	}
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, const void* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Create(unsigned long nIndices_, const void* pInitialData /* = 0 */, usint32 nInitialDataCount /* = 0 */)
 {
 	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(nIndices_ > 0, S_INVALIDPARAM);
@@ -121,7 +119,7 @@ S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, const void* 
 		return CLog::Log(S_ERROR, "Cannot create static IB without given initial Data!");
 
 
-	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(m_pRenderer);
 
 	unsigned int formatByteSz = sizeof(SIndex);
 	if (m_Format == S_INDEXBUFFER_32)
@@ -152,7 +150,7 @@ S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, const void* 
 	}
 
 	D3D11_BUFFER_DESC bufferDesc;
-	SDirectX11IBCreateFlags createFlags = GetCreateFlags();
+	SDX11IBCreateFlags createFlags = GetCreateFlags();
 	bufferDesc.BindFlags = createFlags.bindFlags;
 	bufferDesc.CPUAccessFlags = createFlags.cpuAccessFlags;
 	bufferDesc.Usage = createFlags.usage;
@@ -175,8 +173,8 @@ S_API SResult DirectX11IndexBuffer::Create(unsigned long nIndices_, const void* 
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Resize(unsigned long nIndices_)
 {
 	if (nIndices_ == m_nIndices)
 		return S_SUCCESS;
@@ -190,7 +188,7 @@ S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
 	usint32 nIndicesWrittenOld = m_nIndicesWritten;
 	m_nIndices = nIndices_; // total size
 
-	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(m_pRenderer);
 
 
 	// check whether we acutally resize or create a new buffer
@@ -214,14 +212,14 @@ S_API SResult DirectX11IndexBuffer::Resize(unsigned long nIndices_)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf)
 {
 	return Lock(iBegin, iLength, buf, eIBLOCK_NOOVERWRITE);
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, EIBLockType locktype)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, EIBLockType locktype)
 {
 	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(buf, S_INVALIDPARAM);
@@ -236,7 +234,7 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, 
 	SP_ASSERTR(IsInited() && m_pHWIndexBuffer != NULL && !m_bLocked, S_NOTINITED);
 
 	// Update the HW buffer data
-	DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)m_pRenderer;
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(m_pRenderer);
 
 	// cast the Lock type
 	D3D11_MAP mapType;
@@ -266,8 +264,8 @@ S_API SResult DirectX11IndexBuffer::Lock(UINT iBegin, UINT iLength, void** buf, 
 }
 
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Fill(const void* Indices, unsigned long nIndices_, bool bAppend)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Fill(const void* Indices, unsigned long nIndices_, bool bAppend)
 {
 	SP_ASSERTR(m_pRenderer, S_NOTINIT);
 	SP_ASSERTR(Indices, S_INVALIDPARAM);
@@ -363,20 +361,24 @@ S_API SResult DirectX11IndexBuffer::Fill(const void* Indices, unsigned long nInd
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Unlock(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Unlock(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 	SP_ASSERTR(m_bLocked, S_ABORTED);
 
-	((DirectX11Renderer*)m_pRenderer)->GetD3D11DeviceContext()->Unmap(m_pHWIndexBuffer, 0);
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(m_pRenderer);
+	if (!pDXRenderer)
+		return S_ERROR;
+
+	pDXRenderer->GetD3D11DeviceContext()->Unmap(m_pHWIndexBuffer, 0);
 
 	m_bLocked = false;
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11IndexBuffer::Clear(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11IndexBuffer::Clear(void)
 {
 	if (IsInited())
 	{
@@ -392,8 +394,8 @@ S_API SResult DirectX11IndexBuffer::Clear(void)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API void* DirectX11IndexBuffer::GetShadowBuffer(void)
+// -----------------------------------------------------------------------------------------------
+S_API void* DX11IndexBuffer::GetShadowBuffer(void)
 {
 	if (IsInited())
 	{
@@ -403,8 +405,8 @@ S_API void* DirectX11IndexBuffer::GetShadowBuffer(void)
 	return NULL;
 }
 
-// --------------------------------------------------------------------------------
-S_API SIndex* DirectX11IndexBuffer::GetIndex(unsigned long iIndex)
+// -----------------------------------------------------------------------------------------------
+S_API SIndex* DX11IndexBuffer::GetIndex(unsigned long iIndex)
 {
 	if (IsInited() && m_nIndices > iIndex && iIndex >= 0)
 	{
@@ -417,8 +419,8 @@ S_API SIndex* DirectX11IndexBuffer::GetIndex(unsigned long iIndex)
 	return NULL;
 }
 
-// --------------------------------------------------------------------------------
-S_API SLargeIndex* DirectX11IndexBuffer::GetLargeIndex(unsigned long iIndex)
+// -----------------------------------------------------------------------------------------------
+S_API SLargeIndex* DX11IndexBuffer::GetLargeIndex(unsigned long iIndex)
 {
 	if (IsInited() && m_nIndices > iIndex && iIndex >= 0)
 	{
@@ -431,8 +433,8 @@ S_API SLargeIndex* DirectX11IndexBuffer::GetLargeIndex(unsigned long iIndex)
 	return NULL;
 }
 
-// --------------------------------------------------------------------------------
-S_API unsigned long DirectX11IndexBuffer::GetIndexCount(void) const
+// -----------------------------------------------------------------------------------------------
+S_API unsigned long DX11IndexBuffer::GetIndexCount(void) const
 {
 	return m_nIndices;
 }

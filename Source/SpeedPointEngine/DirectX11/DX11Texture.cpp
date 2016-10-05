@@ -1,14 +1,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2016, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11Texture.h"
-#include "DirectX11Renderer.h"
+#include "DX11Texture.h"
+#include "DX11Renderer.h"
 #include <Abstract\IRenderer.h>
 
 #include <d2d1.h>
@@ -17,8 +15,8 @@
 
 SP_NMSPACE_BEG
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-DirectX11Texture::DirectX11Texture()
+// -----------------------------------------------------------------------------------------------
+DX11Texture::DX11Texture()
 : m_Specification("???"),
 m_bDynamic(false),
 m_pDXTexture(0),
@@ -32,14 +30,14 @@ m_bIsCubemap(false)
 {
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-DirectX11Texture::~DirectX11Texture()
+// -----------------------------------------------------------------------------------------------
+DX11Texture::~DX11Texture()
 {
 	Clear();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::LoadTextureImage(const string& cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedTextureFmt)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedTextureFmt)
 {
 	HRESULT hRes;
 
@@ -212,8 +210,8 @@ S_API SResult DirectX11Texture::LoadTextureImage(const string& cFileName, unsign
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API void DirectX11Texture::GetCubemapImageName(string& name, ECubemapSide side)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Texture::GetCubemapImageName(string& name, ECubemapSide side)
 {
 	// Convert side to DX array slice side
 	ECubemapSide dxSide = (ECubemapSide)GetDXCubemapArraySlice(side);
@@ -234,7 +232,7 @@ S_API void DirectX11Texture::GetCubemapImageName(string& name, ECubemapSide side
 	name = name + ".bmp";
 }
 
-S_API unsigned int DirectX11Texture::GetDXCubemapArraySlice(ECubemapSide side)
+S_API unsigned int DX11Texture::GetDXCubemapArraySlice(ECubemapSide side)
 {
 	// Visit msdn at https://msdn.microsoft.com/en-us/library/windows/desktop/ff476906(v=vs.85).aspx	
 	switch (side)
@@ -254,13 +252,13 @@ S_API unsigned int DirectX11Texture::GetDXCubemapArraySlice(ECubemapSide side)
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::LoadCubemapFromFile(const string& specification, const string& baseName, unsigned int singleW /*=0*/, unsigned int singleH /*=0*/)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::LoadCubemapFromFile(const string& specification, const string& baseName, unsigned int singleW /*=0*/, unsigned int singleH /*=0*/)
 {
 	Clear();
 	m_Specification = specification;
 
-	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
 	if (!IS_VALID_PTR(pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::LoadCubemapFromFile(): Renderer not initialized");
 
@@ -463,14 +461,14 @@ assert(hr == S_OK);
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------------------------
 // remember that the w and h parameters will specify the output texture size to which the image will be scaled to
-S_API SResult DirectX11Texture::LoadFromFile(const string& specification, const string& cFileName, unsigned int w /*=0*/, unsigned int h /*=0*/, unsigned int mipLevels /*=0*/)
+S_API SResult DX11Texture::LoadFromFile(const string& specification, const string& cFileName, unsigned int w /*=0*/, unsigned int h /*=0*/, unsigned int mipLevels /*=0*/)
 {
 	Clear();
 	m_Specification = specification;
 
-	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
 	if (!IS_VALID_PTR(pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::LoadFromFile('%s'): Renderer not initialized", cFileName.c_str());
 
@@ -602,8 +600,8 @@ S_API SResult DirectX11Texture::LoadFromFile(const string& specification, const 
 	return S_SUCCESS;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-size_t DirectX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
+// -----------------------------------------------------------------------------------------------
+size_t DX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
 {
 	if (!pWIC)
 		return 0;
@@ -630,13 +628,13 @@ size_t DirectX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pW
 	return bpp;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor)
 {	
 	Clear();
 	m_Specification = specification;
 
-	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
 	if (!IS_VALID_PTR(pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::CreateEmpty(): Renderer not initialized");
 
@@ -774,8 +772,8 @@ S_API SResult DirectX11Texture::CreateEmpty(const string& specification, unsigne
 	return S_SUCCESS;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::Fill(SColor color)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::Fill(SColor color)
 {
 	unsigned int *pPixels, nPixels;
 	if (Failure(Lock((void**)&pPixels, &nPixels)))
@@ -789,26 +787,26 @@ S_API SResult DirectX11Texture::Fill(SColor color)
 	return Unlock();
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API bool DirectX11Texture::IsInitialized() const
+// -----------------------------------------------------------------------------------------------
+S_API bool DX11Texture::IsInitialized() const
 {
 	return (IS_VALID_PTR(m_pDXTexture) && IS_VALID_PTR(m_pDXSRV));
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API const string& DirectX11Texture::GetSpecification(void) const
+// -----------------------------------------------------------------------------------------------
+S_API const string& DX11Texture::GetSpecification(void) const
 {
 	return m_Specification;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API ETextureType DirectX11Texture::GetType(void)
+// -----------------------------------------------------------------------------------------------
+S_API ETextureType DX11Texture::GetType(void)
 {
 	return m_Type;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 {
 	if (!IS_VALID_PTR(m_pDXTexture))
 		return S_NOTINIT;
@@ -822,10 +820,10 @@ S_API SResult DirectX11Texture::GetSize(unsigned int* pW, unsigned int* pH)
 	return S_SUCCESS;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /* = 0*/)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /* = 0*/)
 {
-	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
 	if (!IS_VALID_PTR(pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::Lock(): Renderer not initialized");
 
@@ -883,10 +881,10 @@ S_API SResult DirectX11Texture::Lock(void **pPixels, unsigned int* pnPixels, uns
 	return S_SUCCESS;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::Unlock()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::Unlock()
 {
-	DirectX11Renderer* pDXRenderer = dynamic_cast<DirectX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
+	DX11Renderer* pDXRenderer = dynamic_cast<DX11Renderer*>(SpeedPointEnv::GetEngine()->GetRenderer());
 	if (!IS_VALID_PTR(pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::Unlock(): Renderer not initialized");
 
@@ -936,8 +934,8 @@ S_API SResult DirectX11Texture::Unlock()
 	return S_SUCCESS;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pData) const
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pData) const
 {
 	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
 		return S_NOTINIT;
@@ -1012,8 +1010,8 @@ S_API SResult DirectX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pDat
 	return S_SUCCESS;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::SampleStaged(const Vec2f& texcoords, void* pData) const
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::SampleStaged(const Vec2f& texcoords, void* pData) const
 {
 	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
 		return S_NOTINIT;
@@ -1045,14 +1043,14 @@ S_API SResult DirectX11Texture::SampleStaged(const Vec2f& texcoords, void* pData
 	return S_SUCCESS;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API void* DirectX11Texture::GetStagedData()
+// -----------------------------------------------------------------------------------------------
+S_API void* DX11Texture::GetStagedData()
 {
 	return m_pStagedData;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SResult DirectX11Texture::Clear(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::Clear(void)
 {
 	if (IS_VALID_PTR(m_pStagedData))
 		free(m_pStagedData);

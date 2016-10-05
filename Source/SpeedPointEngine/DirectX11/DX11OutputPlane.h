@@ -1,9 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,20 +13,20 @@
 
 SP_NMSPACE_BEG
 
-class S_API DirectX11Renderer;
+class S_API DX11Renderer;
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
-class S_API DirectX11Shader;
+class S_API DX11Shader;
 
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class DirectX11OutputPlane : public IOutputPlane
+class DX11OutputPlane : public IOutputPlane
 {
 private:
-	DirectX11Renderer* m_pDXRenderer;
+	DX11Renderer* m_pDXRenderer;
 	IVertexBuffer* m_pVertexBuffer;
 	IIndexBuffer* m_pIndexBuffer;
 
@@ -37,14 +35,14 @@ private:
 
 public:
 	// Default constructor
-	DirectX11OutputPlane()
+	DX11OutputPlane()
 		: m_pDXRenderer(0),
 		m_pVertexBuffer(0),
 		m_pIndexBuffer(0)
 	{
 	}
 
-	~DirectX11OutputPlane()
+	~DX11OutputPlane()
 	{
 		Clear();
 	}

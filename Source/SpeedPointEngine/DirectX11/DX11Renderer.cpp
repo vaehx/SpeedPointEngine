@@ -1,20 +1,18 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2015, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11Renderer.h"
-#include "DirectX11ResourcePool.h"
-#include "DirectX11Utilities.h"
-#include "DirectX11VertexBuffer.h"
-#include "DirectX11IndexBuffer.h"
-#include "DirectX11Texture.h"
-#include "DirectX11FBO.h"
-#include "DirectX11Font.h"
+#include "DX11Renderer.h"
+#include "DX11ResourcePool.h"
+#include "DX11Utilities.h"
+#include "DX11VertexBuffer.h"
+#include "DX11IndexBuffer.h"
+#include "DX11Texture.h"
+#include "DX11FBO.h"
+#include "DX11Font.h"
 #include "DX11ConstantsBuffer.h"
 #include <Abstract\SVertex.h>
 #include <Abstract\SColor.h>
@@ -35,16 +33,16 @@ SP_NMSPACE_BEG
 using ::std::vector;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-// DirectX11RenderDeviceCaps
+// DX11RenderDeviceCaps
 
-// --------------------------------------------------------------------
-S_API DirectX11RenderDeviceCaps::DirectX11RenderDeviceCaps()
+// -----------------------------------------------------------------------------------------------
+S_API DX11RenderDeviceCaps::DX11RenderDeviceCaps()
 	: m_MaxMSQuality(1) // lowest quality
 {
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11RenderDeviceCaps::Collect(IRenderer* pRenderer)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11RenderDeviceCaps::Collect(IRenderer* pRenderer)
 {
 	SP_ASSERTR(pRenderer && pRenderer->GetType() == S_DIRECTX11, S_INVALIDPARAM);
 
@@ -53,7 +51,7 @@ S_API SResult DirectX11RenderDeviceCaps::Collect(IRenderer* pRenderer)
 
 
 
-	//DirectX11Renderer* pDXRenderer = (DirectX11Renderer*)pRenderer;		
+	//DX11Renderer* pDXRenderer = (DX11Renderer*)pRenderer;		
 
 	return S_NOTIMPLEMENTED;		
 
@@ -67,9 +65,9 @@ S_API SResult DirectX11RenderDeviceCaps::Collect(IRenderer* pRenderer)
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-// DirectX11Renderer
+// DX11Renderer
 
-S_API DirectX11Renderer::DirectX11Renderer()
+S_API DX11Renderer::DX11Renderer()
 : m_pEngine(0),
 m_pSettings(0),
 m_pResourcePool(0),
@@ -98,26 +96,26 @@ m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
 		m_Passes[i] = 0;
 };
 
-// --------------------------------------------------------------------
-S_API DirectX11Renderer::~DirectX11Renderer()
+// -----------------------------------------------------------------------------------------------
+S_API DX11Renderer::~DX11Renderer()
 {
 	Shutdown();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::DumpFrameOnce()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::DumpFrameOnce()
 {
 	m_bDumpFrame = true;
 }
 
-// --------------------------------------------------------------------
-S_API bool DirectX11Renderer::DumpingThisFrame() const
+// -----------------------------------------------------------------------------------------------
+S_API bool DX11Renderer::DumpingThisFrame() const
 {
 	return m_bDumpFrame;
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::StartOrResumeBudgetTimer(unsigned int timer, const char* name)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::StartOrResumeBudgetTimer(unsigned int timer, const char* name)
 {
 	if (timer >= NUM_DIRECTX11_BUDGET_TIMERS)
 		return;
@@ -131,8 +129,8 @@ S_API void DirectX11Renderer::StartOrResumeBudgetTimer(unsigned int timer, const
 	renderBudgetTimer.numUsed++;
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::StopBudgetTimer(unsigned int timer)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::StopBudgetTimer(unsigned int timer)
 {
 	if (timer >= NUM_DIRECTX11_BUDGET_TIMERS)
 		return;
@@ -140,8 +138,8 @@ S_API void DirectX11Renderer::StopBudgetTimer(unsigned int timer)
 	m_pEngine->StopBudgetTimer(m_BudgetTimers[timer].timerId);
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::ResetBudgetTimerStats()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::ResetBudgetTimerStats()
 {
 	memset(m_BudgetTimers, 0, NUM_DIRECTX11_BUDGET_TIMERS * sizeof(SRenderBudgetTimer));
 	/*for (unsigned int i = 0; i < NUM_DIRECTX11_BUDGET_TIMERS; ++i)
@@ -151,20 +149,20 @@ S_API void DirectX11Renderer::ResetBudgetTimerStats()
 }
 
 
-// --------------------------------------------------------------------
-S_API IResourcePool* DirectX11Renderer::GetResourcePool()
+// -----------------------------------------------------------------------------------------------
+S_API IResourcePool* DX11Renderer::GetResourcePool()
 {
 	if (m_pResourcePool == 0)
 	{
-		m_pResourcePool = new DirectX11ResourcePool();
+		m_pResourcePool = new DX11ResourcePool();
 		m_pResourcePool->Initialize(m_pEngine, this);
 	}
 	
 	return m_pResourcePool;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::AutoSelectAdapter()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::AutoSelectAdapter()
 {
 	HRESULT hRes = S_OK;
 
@@ -283,8 +281,8 @@ S_API SResult DirectX11Renderer::AutoSelectAdapter()
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-SResult DirectX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pDesc)
+// -----------------------------------------------------------------------------------------------
+SResult DX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pDesc)
 {
 	if (pDesc)
 	{
@@ -310,8 +308,8 @@ SResult DirectX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescriptio
 	return S_INVALIDPARAM;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
@@ -437,8 +435,8 @@ S_API SResult DirectX11Renderer::SetRenderStateDefaults(void)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::InitBlendStates()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::InitBlendStates()
 {
 	HRESULT hr;
 
@@ -490,8 +488,8 @@ S_API void DirectX11Renderer::InitBlendStates()
 	hr = m_pD3DDevice->CreateBlendState(&m_AlphaTestBlendDesc, &m_pAlphaTestBlendState);
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 {
 	SP_ASSERTR(m_pEngine && m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);	
 	SP_ASSERTR(hWnd, S_INVALIDPARAM);
@@ -518,8 +516,8 @@ S_API SResult DirectX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::CreateDX11Device()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::CreateDX11Device()
 {
 	SP_ASSERTR(m_pEngine && m_pAutoSelectedAdapter, S_NOTINIT);
 
@@ -578,8 +576,8 @@ S_API SResult DirectX11Renderer::CreateDX11Device()
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDesc, IDXGISwapChain** ppSwapChain)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDesc, IDXGISwapChain** ppSwapChain)
 {
 	SP_ASSERTR(ppSwapChain && pDesc, S_INVALIDPARAM);
 	SP_ASSERTR(m_pDXGIFactory, S_NOTINIT);
@@ -589,8 +587,8 @@ S_API SResult DirectX11Renderer::D3D11_CreateSwapChain(DXGI_SWAP_CHAIN_DESC* pDe
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::D3D11_CreateRTV(ID3D11Resource* pBBResource, D3D11_RENDER_TARGET_VIEW_DESC* pDesc, ID3D11RenderTargetView** ppRTV)
 {
 	SP_ASSERTR(pBBResource && ppRTV, S_INVALIDPARAM);
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
@@ -601,14 +599,14 @@ S_API SResult DirectX11Renderer::D3D11_CreateRTV(ID3D11Resource* pBBResource, D3
 		return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API S_RENDERER_TYPE DirectX11Renderer::GetType(void)
+// -----------------------------------------------------------------------------------------------
+S_API S_RENDERER_TYPE DX11Renderer::GetType(void)
 {
 	return S_DIRECTX11;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter)
 {		
 	SP_ASSERTR(pEngine, S_INVALIDPARAM);	
 
@@ -663,7 +661,7 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	// initialize the render target collections
 	// WARNING: Needs to be done before initialization of the render pipeline, beacuse the sections
 	// might add FBO collections in order to initialize!	
-	ZeroMemory(m_pRenderTargets, sizeof(DirectX11FBO*) * MAX_BOUND_RTS);
+	ZeroMemory(m_pRenderTargets, sizeof(DX11FBO*) * MAX_BOUND_RTS);
 
 	if (Failure(SetTargetViewport((IViewport*)&m_Viewport)))
 	{
@@ -712,14 +710,14 @@ S_API SResult DirectX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAd
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API bool DirectX11Renderer::IsInited(void)
+// -----------------------------------------------------------------------------------------------
+S_API bool DX11Renderer::IsInited(void)
 {
 	return (m_pDXGIFactory && m_pD3DDevice && m_pD3DDeviceContext);
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::InitShaderPasses()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::InitShaderPasses()
 {
 	m_Passes[eSHADERPASS_FORWARD] = new ForwardShaderPass();
 	m_Passes[eSHADERPASS_FORWARD]->Initialize(this);
@@ -742,17 +740,17 @@ S_API void DirectX11Renderer::InitShaderPasses()
 	m_Passes[eSHADERPASS_POSTEFFECT]->Initialize(this);
 }
 
-// --------------------------------------------------------------------
-S_API IFontRenderer* DirectX11Renderer::InitFontRenderer()
+// -----------------------------------------------------------------------------------------------
+S_API IFontRenderer* DX11Renderer::InitFontRenderer()
 {
-	IFontRenderer* pFontRenderer = (IFontRenderer*)new DirectX11FontRenderer();
+	IFontRenderer* pFontRenderer = new DX11FontRenderer();
 	pFontRenderer->Init((IRenderer*)this);
 
 	return pFontRenderer;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::Shutdown(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::Shutdown(void)
 {
 	m_DummyTexture.Clear();
 
@@ -832,15 +830,14 @@ S_API SResult DirectX11Renderer::Shutdown(void)
 
 
 
-// --------------------------------------------------------------------
-S_API IShader* DirectX11Renderer::CreateShader() const
+// -----------------------------------------------------------------------------------------------
+S_API IShader* DX11Renderer::CreateShader() const
 {
-	return new DirectX11Shader();
+	return new DX11Shader();
 }
 
-
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::BindShaderPass(EShaderPassType type)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::BindShaderPass(EShaderPassType type)
 {
 	if (IS_VALID_PTR(m_Passes[type]))
 	{
@@ -850,55 +847,16 @@ S_API void DirectX11Renderer::BindShaderPass(EShaderPassType type)
 }
 
 
-// --------------------------------------------------------------------
-S_API IShaderPass* DirectX11Renderer::GetCurrentShaderPass() const
+
+
+// -----------------------------------------------------------------------------------------------
+S_API IShaderPass* DX11Renderer::GetCurrentShaderPass() const
 {
 	return m_Passes[m_CurrentPass];
 }
 
-
-
-// --------------------------------------------------------------------
-/*
-S_API SResult DirectX11Renderer::AddRTCollectionFBO(usint32 index, IFBO* pFBO)
-{
-	SP_ASSERTR(m_pD3DDevice && m_pRenderTargetCollections && m_CurrentRenderTargetCollection.pvRenderTargets, S_NOTINIT);
-	SP_ASSERTR(pFBO && pFBO->IsInitialized(), S_INVALIDPARAM);	
-
-	// check if this FBO is not already in the current collection
-	for (auto iFBO = m_CurrentRenderTargetCollection.pvRenderTargets->begin();
-		iFBO != m_CurrentRenderTargetCollection.pvRenderTargets->end();
-		++iFBO)
-	{
-		if (iFBO->pFBO == pFBO && iFBO->iIndex == index)
-			return S_SUCCESS;
-	}
-
-	m_CurrentRenderTargetCollection.pvRenderTargets->push_back(SRenderTarget(pFBO, index));
-
-	return S_SUCCESS;
-}
-*/
-// --------------------------------------------------------------------
-/*
-S_API SResult DirectX11Renderer::StoreRTCollection(ERenderTargetCollectionID asId)
-{
-	SP_ASSERTR(m_pRenderTargetCollections, S_NOTINIT);
-
-	// check if already there
-	auto foundRTCollection = m_pRenderTargetCollections->find(asId);
-	if (foundRTCollection != m_pRenderTargetCollections->end())
-		m_pRenderTargetCollections->erase(foundRTCollection);
-
-	// add to map
-	m_pRenderTargetCollections->insert(std::pair<ERenderTargetCollectionID, SRenderTargetCollection>(asId, m_CurrentRenderTargetCollection));
-
-	return S_SUCCESS;
-}
-*/
-
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name /*= 0*/)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name /*= 0*/)
 {
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
 
@@ -909,7 +867,7 @@ S_API SResult DirectX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboC
 	ID3D11DepthStencilView* pDSV = 0;
 	if (IS_VALID_PTR(depthFBO))
 	{
-		DirectX11FBO* pDXDepthFBO = dynamic_cast<DirectX11FBO*>(depthFBO);
+		DX11FBO* pDXDepthFBO = dynamic_cast<DX11FBO*>(depthFBO);
 		if (IS_VALID_PTR(pDXDepthFBO))	
 			pDSV = pDXDepthFBO->GetDSV();
 	}	
@@ -920,7 +878,7 @@ S_API SResult DirectX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboC
 	unsigned int nRTVCounter = 0;
 	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); itFBO++)
 	{
-		DirectX11FBO* pDXFBO = dynamic_cast<DirectX11FBO*>(*itFBO);
+		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(*itFBO);
 		if (!IS_VALID_PTR(pDXFBO))
 			continue;
 
@@ -944,8 +902,8 @@ S_API SResult DirectX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboC
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindSingleRT(IFBO* pFBO)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BindSingleRT(IFBO* pFBO)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 	SP_ASSERTR(IS_VALID_PTR(pFBO), S_INVALIDPARAM);	
@@ -959,7 +917,7 @@ S_API SResult DirectX11Renderer::BindSingleRT(IFBO* pFBO)
 	if (!BoundMultipleRTs() && GetBoundSingleRT() == pFBO)
 		return S_SUCCESS;
 
-	DirectX11FBO* pSPDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);
+	DX11FBO* pSPDXFBO = dynamic_cast<DX11FBO*>(pFBO);
 	if (!IS_VALID_PTR(pSPDXFBO))
 		return S_INVALIDPARAM;
 
@@ -981,8 +939,8 @@ S_API SResult DirectX11Renderer::BindSingleRT(IFBO* pFBO)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindSingleRT(IViewport* pViewport)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BindSingleRT(IViewport* pViewport)
 {
 	IFBO* pBackBuffer = 0;
 	SP_ASSERTR(pViewport && (pBackBuffer = pViewport->GetBackBuffer()), S_INVALIDPARAM);
@@ -998,8 +956,8 @@ S_API SResult DirectX11Renderer::BindSingleRT(IViewport* pViewport)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API IFBO* DirectX11Renderer::GetBoundSingleRT()
+// -----------------------------------------------------------------------------------------------
+S_API IFBO* DX11Renderer::GetBoundSingleRT()
 {
 	if (BoundMultipleRTs())
 		FrameDump("Warning: Tried query Bound Single RT, but multiple RTs bound!");
@@ -1007,23 +965,27 @@ S_API IFBO* DirectX11Renderer::GetBoundSingleRT()
 	return (IFBO*)m_pRenderTargets[0];
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int index)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int index)
 {
 	if (!IsInited()) return S_NOTINIT;
 	if (!IS_VALID_PTR(pVB)) return S_INVALIDPARAM;
 
-	ID3D11Buffer* pDXVB = ((DirectX11VertexBuffer*)pVB)->D3D11_GetBuffer();
+	DX11VertexBuffer* pDXVB = dynamic_cast<DX11VertexBuffer*>(pVB);
+	if (!pDXVB)
+		return S_INVALIDPARAM;
+
+	ID3D11Buffer* pD3DVB = pDXVB->D3D11_GetBuffer();
 	usint32 stride = sizeof(SVertex);
 	usint32 offset = 0;
 
-	m_pD3DDeviceContext->IASetVertexBuffers(index, 1, &pDXVB, &stride, &offset);
+	m_pD3DDeviceContext->IASetVertexBuffers(index, 1, &pD3DVB, &stride, &offset);
 
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::SetIBStream(IIndexBuffer* pIB)
 {
 	if (!IsInited())
 		return S_NOTINIT;	
@@ -1040,7 +1002,11 @@ S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 		return S_ERROR;
 		}
 
-		m_pD3DDeviceContext->IASetIndexBuffer(((DirectX11IndexBuffer*)pIB)->D3D11_GetBuffer(), ibFmtDX, 0);
+		DX11IndexBuffer* pDXIB = dynamic_cast<DX11IndexBuffer*>(pIB);
+		if (!pDXIB)
+			return S_INVALIDPARAM;
+
+		m_pD3DDeviceContext->IASetIndexBuffer(pDXIB->D3D11_GetBuffer(), ibFmtDX, 0);
 	}
 	else
 	{		
@@ -1050,10 +1016,14 @@ S_API SResult DirectX11Renderer::SetIBStream(IIndexBuffer* pIB)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl /*= 0*/)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl /*= 0*/)
 {
-	ID3D11ShaderResourceView* pSRV = (pTex) ? ((DirectX11Texture*)pTex)->D3D11_GetSRV() : 0;
+	DX11Texture* pDXTex = dynamic_cast<DX11Texture*>(pTex);
+	if (!pDXTex)
+		return S_INVALIDPARAM;
+
+	ID3D11ShaderResourceView* pSRV = (pDXTex ? pDXTex->D3D11_GetSRV() : 0);
 
 	if (pSRV != m_BoundVSResources[lvl])
 	{
@@ -1064,8 +1034,8 @@ S_API SResult DirectX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
@@ -1073,7 +1043,7 @@ S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 		pTex = GetDummyTexture();
 
 	ID3D11ShaderResourceView* pSRV;
-	DirectX11Texture* pDXTexture = dynamic_cast<DirectX11Texture*>(pTex);
+	DX11Texture* pDXTexture = dynamic_cast<DX11Texture*>(pTex);
 	if (!pDXTexture)
 		return S_ERROR;
 
@@ -1088,15 +1058,15 @@ S_API SResult DirectX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
 	ID3D11ShaderResourceView* pSRV = 0;
 	if (IS_VALID_PTR(pFBO))
 	{
-		DirectX11FBO* pDXFBO = dynamic_cast<DirectX11FBO*>(pFBO);
+		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
 		SP_ASSERTR(pDXFBO, S_INVALIDPARAM);
 
 		pSRV = pDXFBO->GetSRV();
@@ -1112,23 +1082,23 @@ S_API SResult DirectX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API ITexture* DirectX11Renderer::GetDummyTexture() const
+// -----------------------------------------------------------------------------------------------
+S_API ITexture* DX11Renderer::GetDummyTexture() const
 {
 	return (ITexture*)&m_DummyTexture;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc)
 {
 	SP_ASSERTR(m_pEngine && m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);
 	SP_ASSERTR(pViewport, S_INVALIDPARAM);		
 
 
 	// instanciate the viewport first and initialize it
-	DirectX11Viewport* pDXViewport = (DirectX11Viewport*)(*pViewport);
-	pDXViewport = new DirectX11Viewport();
+	DX11Viewport* pDXViewport = new DX11Viewport();
 	pDXViewport->Initialize(m_pEngine, desc, true);
+	*pViewport = pDXViewport;
 
 	SSettingsDesc& engineSet = m_pEngine->GetSettings()->Get();
 
@@ -1164,8 +1134,8 @@ S_API SResult DirectX11Renderer::CreateAdditionalViewport(IViewport** pViewport,
 
 
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::BeginScene(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BeginScene(void)
 {
 	if (m_bInScene)
 		return S_ERROR;
@@ -1184,41 +1154,8 @@ S_API SResult DirectX11Renderer::BeginScene(void)
 	return S_SUCCESS;
 }
 
-
-// --------------------------------------------------------------------
-/*
-S_API SResult DirectX11Renderer::RenderGeometry(const SRenderDesc& dsc)
-{
-	if (!m_bInScene)
-		return S_INVALIDSTAGE;	
-
-	SRenderSlot* pSlot = m_RenderSchedule.Get();
-	pSlot->keep = false;
-	pSlot->renderDesc = dsc;	
-
-	if (IS_VALID_PTR(dsc.material.textureMap))
-		dsc.material.textureMap->GetType();
-
-	return S_SUCCESS;
-}
-*/
-
-// --------------------------------------------------------------------
-/*
-S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& tdsc)
-{
-	if (!m_bInScene)
-		return EngLog(S_INVALIDSTAGE, m_pEngine, "Failed DirectX11Renderer::RenderTerrain(): Scene rendering not started!");
-
-	memcpy(&m_TerrainRenderDesc, &tdsc, sizeof(STerrainRenderDesc));
-	FrameDump("Set terrain Render Desc.");
-
-	return S_SUCCESS;
-}
-*/
-
-// --------------------------------------------------------------------
-S_API SRenderSlot* DirectX11Renderer::GetRenderSlot()
+// -----------------------------------------------------------------------------------------------
+S_API SRenderSlot* DX11Renderer::GetRenderSlot()
 {
 	if (!m_bInScene)
 		return 0;
@@ -1226,22 +1163,22 @@ S_API SRenderSlot* DirectX11Renderer::GetRenderSlot()
 	return m_RenderSchedule.Get();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::ReleaseRenderSlot(SRenderSlot** pSlot)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::ReleaseRenderSlot(SRenderSlot** pSlot)
 {
 	m_RenderSchedule.Release(pSlot);
 }
 
-// --------------------------------------------------------------------
-S_API STerrainRenderDesc* DirectX11Renderer::GetTerrainRenderDesc()
+// -----------------------------------------------------------------------------------------------
+S_API STerrainRenderDesc* DX11Renderer::GetTerrainRenderDesc()
 {
 	return &m_TerrainRenderDesc;
 }
 
 
 
-// --------------------------------------------------------------------
-S_API SFontRenderSlot* DirectX11Renderer::GetFontRenderSlot()
+// -----------------------------------------------------------------------------------------------
+S_API SFontRenderSlot* DX11Renderer::GetFontRenderSlot()
 {
 	if (!m_bInScene)
 		return 0;
@@ -1249,16 +1186,16 @@ S_API SFontRenderSlot* DirectX11Renderer::GetFontRenderSlot()
 	return m_FontRenderSchedule.Get();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::ReleaseFontRenderSlot(SFontRenderSlot** pFRS)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::ReleaseFontRenderSlot(SFontRenderSlot** pFRS)
 {
 	m_FontRenderSchedule.Release(pFRS);
 }
 
 
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::EndScene(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::EndScene(void)
 {
 	if (!m_bInScene)
 		return S_ERROR;
@@ -1312,8 +1249,8 @@ S_API SResult DirectX11Renderer::EndScene(void)
 
 
 
-
-S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 {
 	if (!m_bInScene)
 	{
@@ -1389,8 +1326,8 @@ S_API SResult DirectX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 
-
-S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRenderDesc)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRenderDesc)
 {
 	if (!m_bInScene)
 	{
@@ -1488,7 +1425,7 @@ S_API SResult DirectX11Renderer::RenderTerrain(const STerrainRenderDesc& terrain
 
 
 
-S_API SResult DirectX11Renderer::RenderDeferredLight(const SLightDesc& light)
+S_API SResult DX11Renderer::RenderDeferredLight(const SLightDesc& light)
 {
 
 	// TODO
@@ -1527,7 +1464,7 @@ S_API SResult DirectX11Renderer::RenderDeferredLight(const SLightDesc& light)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-S_API SResult DirectX11Renderer::UnleashRenderSchedule()
+S_API SResult DX11Renderer::UnleashRenderSchedule()
 {
 	return S_SUCCESS;
 
@@ -1571,8 +1508,8 @@ S_API SResult DirectX11Renderer::UnleashRenderSchedule()
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 {
 	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
 	{
@@ -1608,10 +1545,10 @@ S_API SResult DirectX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::Draw(const SDrawCallDesc& desc)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::Draw(const SDrawCallDesc& desc)
 {		
-	FrameDump("DirectX11Renderer::Draw()");	
+	FrameDump("DX11Renderer::Draw()");	
 
 	// bind vertex data stream
 	if (Failure(SetVBStream(desc.pVertexBuffer)))
@@ -1659,8 +1596,8 @@ S_API SResult DirectX11Renderer::Draw(const SDrawCallDesc& desc)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
 {
 	if (!dcd.bRender)
 		return S_SUCCESS;
@@ -1682,27 +1619,27 @@ S_API SResult DirectX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& d
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawDeferred(const SDrawCallDesc& desc)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::DrawDeferred(const SDrawCallDesc& desc)
 {
 	return S_ERROR; // not supported yet
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::DrawDeferredLighting()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::DrawDeferredLighting()
 {
 	return S_ERROR; // not supported yet
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::MergeDeferred()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::MergeDeferred()
 {
 	return S_ERROR; // not supported yet
 }
 
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::UnleashFontRenderSchedule()
 {	
 	if (m_FontRenderSchedule.GetUsedObjectCount() == 0)
 		return S_SUCCESS;
@@ -1714,7 +1651,7 @@ S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
 	if (!IS_VALID_PTR(pFontRenderer))
 		return S_NOTINIT;
 
-	StartOrResumeBudgetTimer(eDX11_BUDGET_UNLEASH_FONT_SCHEDULE, "DirectX11Renderer::UnleashFontRenderSchedule()");
+	StartOrResumeBudgetTimer(eDX11_BUDGET_UNLEASH_FONT_SCHEDULE, "DX11Renderer::UnleashFontRenderSchedule()");
 
 	BindSingleRT(m_pTargetViewport);
 
@@ -1762,12 +1699,12 @@ S_API SResult DirectX11Renderer::UnleashFontRenderSchedule()
 
 
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::PresentTargetViewport(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::PresentTargetViewport(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
-	DirectX11Viewport* pDXTargetViewport = (DirectX11Viewport*)m_pTargetViewport;
+	DX11Viewport* pDXTargetViewport = dynamic_cast<DX11Viewport*>(m_pTargetViewport);
 	SP_ASSERTR(pDXTargetViewport, S_ERROR);
 
 	IDXGISwapChain* pSwapChain = *pDXTargetViewport->GetSwapChainPtr();
@@ -1783,8 +1720,8 @@ S_API SResult DirectX11Renderer::PresentTargetViewport(void)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::ClearBoundRTs(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::ClearBoundRTs(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
@@ -1811,8 +1748,8 @@ S_API SResult DirectX11Renderer::ClearBoundRTs(void)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::SetTargetViewport(IViewport* pViewport)
 {
 	SP_ASSERTR(pViewport, S_INVALIDPARAM);
 
@@ -1820,7 +1757,7 @@ S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
 	SetViewProjMatrix(pViewport);
 	if (m_pD3DDeviceContext)
 	{
-		DirectX11Viewport* pDXViewport = dynamic_cast<DirectX11Viewport*>(pViewport);
+		DX11Viewport* pDXViewport = dynamic_cast<DX11Viewport*>(pViewport);
 		if (!IS_VALID_PTR(pDXViewport))
 			return S_INVALIDPARAM;
 
@@ -1832,20 +1769,20 @@ S_API SResult DirectX11Renderer::SetTargetViewport(IViewport* pViewport)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API IViewport* DirectX11Renderer::GetTargetViewport(void)
+// -----------------------------------------------------------------------------------------------
+S_API IViewport* DX11Renderer::GetTargetViewport(void)
 {
 	return m_pTargetViewport;
 }
 
-// --------------------------------------------------------------------
-S_API IViewport* DirectX11Renderer::GetDefaultViewport(void)
+// -----------------------------------------------------------------------------------------------
+S_API IViewport* DX11Renderer::GetDefaultViewport(void)
 {
 	return (IViewport*)&m_Viewport;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::InitConstantBuffers()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::InitConstantBuffers()
 {
 	// Per-Object constants	
 	if (Failure(m_SceneConstants.Initialize(this)))
@@ -1862,14 +1799,14 @@ S_API SResult DirectX11Renderer::InitConstantBuffers()
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API IConstantsBuffer* DirectX11Renderer::CreateConstantsBuffer() const
+// -----------------------------------------------------------------------------------------------
+S_API IConstantsBuffer* DX11Renderer::CreateConstantsBuffer() const
 {
 	return new DX11ConstantsBuffer();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::BindConstantsBuffer(const IConstantsBuffer* cb, bool vs /*=false*/)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::BindConstantsBuffer(const IConstantsBuffer* cb, bool vs /*=false*/)
 {
 	const DX11ConstantsBuffer* dxcb = dynamic_cast<const DX11ConstantsBuffer*>(cb);
 	ID3D11Buffer* pBuffer = dxcb->GetBuffer();
@@ -1883,8 +1820,8 @@ S_API void DirectX11Renderer::BindConstantsBuffer(const IConstantsBuffer* cb, bo
 	}
 }
 
-// --------------------------------------------------------------------
-void DirectX11Renderer::BindSceneCB(const IConstantsBuffer* cb)
+// -----------------------------------------------------------------------------------------------
+void DX11Renderer::BindSceneCB(const IConstantsBuffer* cb)
 {
 	const DX11ConstantsBuffer* pSceneDXCB = dynamic_cast<const DX11ConstantsBuffer*>(cb);
 	ID3D11Buffer* pBuffer = pSceneDXCB->GetBuffer();
@@ -1892,14 +1829,14 @@ void DirectX11Renderer::BindSceneCB(const IConstantsBuffer* cb)
 	m_pD3DDeviceContext->VSSetConstantBuffers(0, 1, &pBuffer);
 }
 
-// --------------------------------------------------------------------
-S_API SSceneConstants* DirectX11Renderer::GetSceneConstants() const
+// -----------------------------------------------------------------------------------------------
+S_API SSceneConstants* DX11Renderer::GetSceneConstants() const
 {
 	return m_SceneConstants.GetConstants();
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 byteSize)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 byteSize)
 {
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
 	SP_ASSERTR(ppCB, S_INVALIDPARAM);
@@ -1920,8 +1857,8 @@ S_API SResult DirectX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** pData)
 {
 	SP_ASSERTR(m_pD3DDeviceContext, S_NOTINIT);
 	SP_ASSERTR(pCB && pData, S_INVALIDPARAM);
@@ -1935,8 +1872,8 @@ S_API SResult DirectX11Renderer::D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, vo
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB)
 {
 	SP_ASSERTR(m_pD3DDeviceContext, S_NOTINIT);
 	SP_ASSERTR(pCB, S_INVALIDPARAM);
@@ -1946,8 +1883,8 @@ S_API SResult DirectX11Renderer::D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::SetViewProjMatrix(IViewport* pViewport)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 {	
 	IViewport* pV = (pViewport) ? pViewport : GetTargetViewport();
 
@@ -1961,22 +1898,22 @@ S_API void DirectX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 	m_SceneConstants.Update();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
 	m_SceneConstants.GetConstants()->mtxViewProj = mtxView * mtxProj;		
 	m_SceneConstants.Update();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
 {
 	m_SceneConstants.GetConstants()->mtxViewProj = mtxViewProj;
 	m_SceneConstants.Update();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::SetEyePosition(const Vec3f& eyePos)
 {
 	m_SceneConstants.GetConstants()->eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
 	//FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
@@ -1984,15 +1921,15 @@ S_API void DirectX11Renderer::SetEyePosition(const Vec3f& eyePos)
 	m_SceneConstants.Update();
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::SetSunPosition(const Vec3f& pos)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::SetSunPosition(const Vec3f& pos)
 {
 	m_SceneConstants.GetConstants()->sunPosition = float4(pos.x, pos.y, pos.z);
 	m_SceneConstants.Update();
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdateRasterizerState()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::UpdateRasterizerState()
 {	
 	SP_SAFE_RELEASE(m_pRSState);
 	if (Failure(m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
@@ -2002,8 +1939,8 @@ S_API SResult DirectX11Renderer::UpdateRasterizerState()
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdateDepthStencilState()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::UpdateDepthStencilState()
 {
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_depthStencilDesc, &m_pDepthStencilState)))
@@ -2014,8 +1951,8 @@ S_API SResult DirectX11Renderer::UpdateDepthStencilState()
 }
 
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdateCullMode(EFrontFace ff)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::UpdateCullMode(EFrontFace ff)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);	
 
@@ -2030,8 +1967,8 @@ S_API SResult DirectX11Renderer::UpdateCullMode(EFrontFace ff)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::EnableBackfaceCulling(bool state)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::EnableBackfaceCulling(bool state)
 {	
 	assert(IsInited());
 
@@ -2047,8 +1984,8 @@ S_API SResult DirectX11Renderer::EnableBackfaceCulling(bool state)
 	return UpdateRasterizerState();
 }
 
-// --------------------------------------------------------------------
-S_API SResult DirectX11Renderer::UpdatePolygonType(S_PRIMITIVE_TYPE type)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::UpdatePolygonType(S_PRIMITIVE_TYPE type)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
@@ -2071,8 +2008,8 @@ S_API SResult DirectX11Renderer::UpdatePolygonType(S_PRIMITIVE_TYPE type)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::EnableWireframe(bool state /*=true*/)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::EnableWireframe(bool state /*=true*/)
 {
 	D3D11_FILL_MODE wireframeMode = state ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 	if (m_rsDesc.FillMode != wireframeMode)
@@ -2082,8 +2019,8 @@ S_API void DirectX11Renderer::EnableWireframe(bool state /*=true*/)
 	}
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::EnableDepthTest(bool state)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::EnableDepthTest(bool state)
 {
 	if ((m_depthStencilDesc.DepthEnable ? true : false) != state)
 	{
@@ -2092,8 +2029,8 @@ S_API void DirectX11Renderer::EnableDepthTest(bool state)
 	}
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestFunc)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestFunc)
 {
 	D3D11_COMPARISON_FUNC d3dFunc;
 
@@ -2115,14 +2052,14 @@ S_API void DirectX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestF
 }
 
 
-// --------------------------------------------------------------------
-S_API SRenderSettings* DirectX11Renderer::GetSettings() const
+// -----------------------------------------------------------------------------------------------
+S_API SRenderSettings* DX11Renderer::GetSettings() const
 {
 	return m_pSettings;
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::SetSamplerState(ETextureSampling sampling)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::SetSamplerState(ETextureSampling sampling)
 {
 	if (m_SetSamplerState == sampling)
 		return;
@@ -2144,8 +2081,8 @@ S_API void DirectX11Renderer::SetSamplerState(ETextureSampling sampling)
 	m_SetSamplerState = sampling;
 }
 
-// --------------------------------------------------------------------
-S_API void DirectX11Renderer::D3D11_SetBlendState(ID3D11BlendState* pBlendState, const float blendFactor[4] /*=0*/, UINT sampleMask /*=0xffffffff*/)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::D3D11_SetBlendState(ID3D11BlendState* pBlendState, const float blendFactor[4] /*=0*/, UINT sampleMask /*=0xffffffff*/)
 {
 	if (m_pSetBlendState == pBlendState)
 		return;

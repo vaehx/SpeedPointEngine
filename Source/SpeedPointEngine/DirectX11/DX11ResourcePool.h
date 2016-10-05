@@ -1,17 +1,15 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "DirectX11IndexBuffer.h"
-#include "DirectX11VertexBuffer.h"
-#include "DirectX11Shader.h"
-#include "DirectX11Texture.h"
+#include "DX11IndexBuffer.h"
+#include "DX11VertexBuffer.h"
+#include "DX11Shader.h"
+#include "DX11Texture.h"
 #include <Abstract\IResourcePool.h>
 #include <Abstract\ChunkPool.h>
 
@@ -21,16 +19,16 @@ SP_NMSPACE_BEG
 struct S_API IGameEngine;
 
 // SpeedPoint DirectX11 Resource Pool
-class S_API DirectX11ResourcePool : public IResourcePool
+class S_API DX11ResourcePool : public IResourcePool
 {
 private:
 	IGameEngine* m_pEngine;
-	DirectX11Renderer* m_pDXRenderer;
+	DX11Renderer* m_pDXRenderer;
 
-	ChunkPool<DirectX11IndexBuffer>	m_plIndexBuffers;
-	ChunkPool<DirectX11VertexBuffer> m_plVertexBuffers;
-	ChunkPool<DirectX11Shader> m_plShaders;
-	ChunkPool<DirectX11Texture> m_plTextures;
+	ChunkPool<DX11IndexBuffer>	m_plIndexBuffers;
+	ChunkPool<DX11VertexBuffer> m_plVertexBuffers;
+	ChunkPool<DX11Shader> m_plShaders;
+	ChunkPool<DX11Texture> m_plTextures;
 
 	inline static string GetResourcePath(const string& file);
 

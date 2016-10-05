@@ -1,9 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -14,23 +12,23 @@
 #include <Abstract\IConstantsBuffer.h>
 #include <Abstract\SPrerequisites.h>
 #include <vector>
-#include "DirectX11.h"
+#include "DX11.h"
 
 using std::vector;
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
-class S_API DirectX11Renderer;
+class S_API DX11Renderer;
 struct S_API IRenderer;
 struct S_API IFBO;
 
 // DX11 implementation of a shader (PS + VS)
-class S_API DirectX11Shader : public IShader
+class S_API DX11Shader : public IShader
 {
 private:
 	IGameEngine* m_pEngine;
-	DirectX11Renderer* m_pDXRenderer;
+	DX11Renderer* m_pDXRenderer;
 
 	ID3D11InputLayout* m_pVSInputLayout;
 
@@ -38,8 +36,8 @@ private:
 	ID3D11VertexShader* m_pVertexShader;
 
 public:
-	DirectX11Shader();
-	virtual ~DirectX11Shader();
+	DX11Shader();
+	virtual ~DX11Shader();
 
 	virtual SResult Load(IRenderer* pRenderer, const SShaderInfo& info);	
 	virtual void Clear();

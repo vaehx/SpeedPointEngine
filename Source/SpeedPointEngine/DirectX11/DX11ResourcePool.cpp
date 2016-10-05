@@ -1,17 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2016, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11ResourcePool.h"
-#include "DirectX11VertexBuffer.h"
-#include "DirectX11IndexBuffer.h"
-#include "DirectX11Texture.h"
-#include "DirectX11Shader.h"
+#include "DX11ResourcePool.h"
+#include "DX11VertexBuffer.h"
+#include "DX11IndexBuffer.h"
+#include "DX11Texture.h"
+#include "DX11Shader.h"
+#include "DX11Renderer.h"
 //#include <SpeedPoint.h>
 #include <Abstract\ISettings.h>
 
@@ -19,7 +18,7 @@
 SP_NMSPACE_BEG
 
 
-S_API string DirectX11ResourcePool::GetResourcePath(const string& file)
+S_API string DX11ResourcePool::GetResourcePath(const string& file)
 {
 	IGameEngine* pEngine = SpeedPointEnv::GetEngine();
 	if (!pEngine)
@@ -35,14 +34,13 @@ S_API string DirectX11ResourcePool::GetResourcePath(const string& file)
 //				GENERAL
 // **************************************************************************	
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* renderer)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* renderer)
 {
 	if (eng == NULL || renderer == NULL) return S_ABORTED;
 
 	m_pEngine = eng;
-	m_pDXRenderer = (DirectX11Renderer*)renderer;
+	m_pDXRenderer = dynamic_cast<DX11Renderer*>(renderer);
 
 	CoInitialize(0);
 
@@ -53,16 +51,14 @@ S_API SResult DirectX11ResourcePool::Initialize(IGameEngine* eng, IRenderer* ren
 //				VertexBuffer
 // **************************************************************************
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
+S_API SResult DX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
 {
 	if (m_pEngine == NULL) return S_ABORTED;
 
 	if (m_pDXRenderer == NULL)
 		return m_pEngine->LogReport(S_ABORTED, "Cannot add Vertex Buffer Resource: Renderer not initialized!");
 
-	DirectX11VertexBuffer* pdxVertexBuffer;
+	DX11VertexBuffer* pdxVertexBuffer;
 
 	if (Failure(m_plVertexBuffers.AddItem(&pdxVertexBuffer)))
 		return S_ERROR;
@@ -75,29 +71,33 @@ S_API SResult DirectX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
 	return S_SUCCESS;
 }
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::RemoveVertexBuffer(IVertexBuffer** pVB)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11ResourcePool::RemoveVertexBuffer(IVertexBuffer** pVB)
 {
 	SP_ASSERTR(IS_VALID_PTR(pVB), S_INVALIDPARAM);
 
 	if (IS_VALID_PTR(*pVB))
+	{
 		(*pVB)->Clear();
+		DX11VertexBuffer* pDXVB = dynamic_cast<DX11VertexBuffer*>(*pVB);
+		if (pDXVB && !m_plVertexBuffers.Delete(&pDXVB))
+			return S_ERROR;
 
-	return m_plVertexBuffers.Delete((DirectX11VertexBuffer**)pVB);		
+		*pVB = 0;
+	}
+
+	return S_SUCCESS;
 }
 
 // **************************************************************************
 //				IndexBuffer
 // **************************************************************************
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer)
+S_API SResult DX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer)
 {
 	if (m_pEngine == NULL) return S_ABORTED;
 	
-	DirectX11IndexBuffer* pdxIndexBuffer;
+	DX11IndexBuffer* pdxIndexBuffer;
 
 	if (Failure(m_plIndexBuffers.AddItem(&pdxIndexBuffer)))
 		return S_ERROR;
@@ -110,16 +110,20 @@ S_API SResult DirectX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer)
 	return S_SUCCESS;
 }
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 {
 	SP_ASSERTR(IS_VALID_PTR(pIB), S_INVALIDPARAM);
 
 	if (IS_VALID_PTR(*pIB))
+	{
 		(*pIB)->Clear();
+		DX11IndexBuffer* pDXIB = dynamic_cast<DX11IndexBuffer*>(*pIB);
+		if (pDXIB && !m_plIndexBuffers.Delete(&pDXIB))
+			return S_ERROR;
 
-	m_plIndexBuffers.Delete((DirectX11IndexBuffer**)pIB);
+		*pIB = 0;
+	}
 
 	return S_SUCCESS;
 }
@@ -129,7 +133,7 @@ S_API SResult DirectX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 // **************************************************************************
 
 
-S_API SResult DirectX11ResourcePool::AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT mipLevels, const ETextureType& ty, const SColor& clearcolor)
+S_API SResult DX11ResourcePool::AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT mipLevels, const ETextureType& ty, const SColor& clearcolor)
 {
 	if (specification.empty())
 		return CLog::Log(S_INVALIDPARAM, "DX11ResourcePool::AddTexture(): Empty specification");
@@ -137,7 +141,7 @@ S_API SResult DirectX11ResourcePool::AddTexture(const string& specification, ITe
 	if (w == 0 || h == 0)
 		return CLog::Log(S_INVALIDPARAM, "DX11ResourcePool::AddTexture(): width or height is 0");
 
-	DirectX11Texture* pTexture = m_plTextures.GetBySpecification(specification);
+	DX11Texture* pTexture = m_plTextures.GetBySpecification(specification);
 	if (!pTexture)
 		m_plTextures.AddItem(&pTexture, specification);
 
@@ -150,14 +154,13 @@ S_API SResult DirectX11ResourcePool::AddTexture(const string& specification, ITe
 	return S_SUCCESS;
 }
 
-// **********************************************************************************
-
-S_API ITexture* DirectX11ResourcePool::GetTexture(const string& specification)
+// -----------------------------------------------------------------------------------------------
+S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 {
 	if (specification.empty())
 		return 0;
 
-	DirectX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
+	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
 	if (!pDXTexture)
 		m_plTextures.AddItem(&pDXTexture, specification);
 
@@ -171,14 +174,13 @@ S_API ITexture* DirectX11ResourcePool::GetTexture(const string& specification)
 	return pTexture;
 }
 
-// **********************************************************************************
-
-S_API ITexture* DirectX11ResourcePool::GetCubeTexture(const string& file)
+// -----------------------------------------------------------------------------------------------
+S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 {
 	if (file.empty())
 		return 0;
 
-	DirectX11Texture* pDXTexture = m_plTextures.GetBySpecification(file);
+	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(file);
 	if (!pDXTexture)
 		m_plTextures.AddItem(&pDXTexture, file);
 
@@ -192,14 +194,13 @@ S_API ITexture* DirectX11ResourcePool::GetCubeTexture(const string& file)
 	return pTexture;
 }
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::RemoveTexture(const string& specification)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11ResourcePool::RemoveTexture(const string& specification)
 {
 	if (specification.empty())
 		return CLog::Log(S_INVALIDPARAM, "DX11ResourcePool::RemoveTexture(): Given specification empty");
 
-	DirectX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
+	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
 	if (pDXTexture)
 	{
 		pDXTexture->Clear();
@@ -211,18 +212,17 @@ S_API SResult DirectX11ResourcePool::RemoveTexture(const string& specification)
 	}
 }
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::RemoveTexture(ITexture** pTex)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11ResourcePool::RemoveTexture(ITexture** pTex)
 {
 	if (!pTex)
 		return S_INVALIDPARAM;
 
-	DirectX11Texture* pDXTexture = dynamic_cast<DirectX11Texture*>(*pTex);
+	DX11Texture* pDXTexture = dynamic_cast<DX11Texture*>(*pTex);
 	if (pDXTexture)
 	{
 		// Make sure the texture is in the pool
-		ChunkSlot<DirectX11Texture>* pSlot = m_plTextures.GetSlot(pDXTexture);
+		ChunkSlot<DX11Texture>* pSlot = m_plTextures.GetSlot(pDXTexture);
 		if (pSlot)
 			pDXTexture->Clear();
 	}
@@ -232,9 +232,8 @@ S_API SResult DirectX11ResourcePool::RemoveTexture(ITexture** pTex)
 	return S_SUCCESS;
 }
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler)
 {
 	if (!IS_VALID_PTR(pForEachHandler))
 		return S_INVALIDPARAM;
@@ -253,7 +252,7 @@ S_API SResult DirectX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* 
 
 		for (unsigned int iSlot = 0; iSlot < pChnk->nSlots; ++iSlot)
 		{
-			ChunkSlot<DirectX11Texture>* pSlot = &pChnk->pSlots[iSlot];
+			ChunkSlot<DX11Texture>* pSlot = &pChnk->pSlots[iSlot];
 			if (!pSlot->bUsed) continue;
 			
 			ITexture* pTex = (ITexture*)&pSlot->instance;
@@ -268,9 +267,8 @@ S_API SResult DirectX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* 
 	return S_SUCCESS;
 }
 
-// **********************************************************************************
-
-S_API void DirectX11ResourcePool::ListTextures(vector<string>& list) const
+// -----------------------------------------------------------------------------------------------
+S_API void DX11ResourcePool::ListTextures(vector<string>& list) const
 {
 	auto pChunks = m_plTextures.GetChunks();
 	unsigned int nChunks = m_plTextures.GetChunkCount();
@@ -281,7 +279,7 @@ S_API void DirectX11ResourcePool::ListTextures(vector<string>& list) const
 
 		for (unsigned int iSlot = 0; iSlot < pChnk->nSlots; ++iSlot)
 		{
-			ChunkSlot<DirectX11Texture>* pSlot = &pChnk->pSlots[iSlot];
+			ChunkSlot<DX11Texture>* pSlot = &pChnk->pSlots[iSlot];
 			if (!pSlot->bUsed) continue;
 
 			ITexture* pTex = (ITexture*)&pSlot->instance;
@@ -296,9 +294,7 @@ S_API void DirectX11ResourcePool::ListTextures(vector<string>& list) const
 //				All
 // **************************************************************************
 
-// **********************************************************************************
-
-S_API SResult DirectX11ResourcePool::ClearAll(VOID)
+S_API SResult DX11ResourcePool::ClearAll(VOID)
 {
 	SResult res = S_SUCCESS;
 

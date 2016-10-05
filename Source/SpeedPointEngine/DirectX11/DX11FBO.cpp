@@ -1,22 +1,20 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11FBO.h"
-#include "DirectX11Renderer.h"
-#include "DirectX11Utilities.h"
+#include "DX11FBO.h"
+#include "DX11Renderer.h"
+#include "DX11Utilities.h"
 #include <Abstract\IRenderer.h>
 #include <Abstract\ISettings.h>
 
 SP_NMSPACE_BEG
 
-// -----------------------------------------------------------------------
-S_API DirectX11FBO::DirectX11FBO()
+// -----------------------------------------------------------------------------------------------
+S_API DX11FBO::DX11FBO()
 	: m_pDXRenderer(0),	
 	m_pTexture(0),
 	m_pRTV(0),
@@ -26,21 +24,21 @@ S_API DirectX11FBO::DirectX11FBO()
 {
 }
 
-// -----------------------------------------------------------------------
-S_API DirectX11FBO::~DirectX11FBO()
+// -----------------------------------------------------------------------------------------------
+S_API DX11FBO::~DX11FBO()
 {
 	Clear();
 }
 
-// -----------------------------------------------------------------------
-S_API SResult DirectX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
 {
 	Clear(); // make sure to clear before initialize again
 	
 	if (!IS_VALID_PTR(pRenderer) || pRenderer->GetType() != S_DIRECTX11)
 		return S_INVALIDPARAM;
 
-	m_pDXRenderer = (DirectX11Renderer*)pRenderer;
+	m_pDXRenderer = dynamic_cast<DX11Renderer*>(pRenderer);
 	m_FBOType = type;
 	m_nBufferWidth = nW;
 	m_nBufferHeight = nH;
@@ -101,8 +99,8 @@ S_API SResult DirectX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsi
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------
-S_API SResult DirectX11FBO::InitializeDSV()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11FBO::InitializeDSV()
 {
 	SP_ASSERTR(IsInitialized(), S_NOTINIT);
 
@@ -158,8 +156,8 @@ S_API SResult DirectX11FBO::InitializeDSV()
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------
-S_API SResult DirectX11FBO::InitializeSRV()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11FBO::InitializeSRV()
 {
 	SP_ASSERTR(m_pTexture, S_NOTINIT);
 
@@ -175,8 +173,8 @@ S_API SResult DirectX11FBO::InitializeSRV()
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------
-S_API bool DirectX11FBO::IsInitialized()
+// -----------------------------------------------------------------------------------------------
+S_API bool DX11FBO::IsInitialized()
 {
 	if (m_bSwapChainFBO)
 		return m_pRTV != nullptr; // note: DSV does not need to be initialized
@@ -184,8 +182,8 @@ S_API bool DirectX11FBO::IsInitialized()
 		return (m_pTexture && m_pDXRenderer && m_nBufferWidth > 0 && m_nBufferHeight > 0);
 }
 
-// -----------------------------------------------------------------------
-S_API void DirectX11FBO::Clear(void)
+// -----------------------------------------------------------------------------------------------
+S_API void DX11FBO::Clear(void)
 {
 	if (!m_bSwapChainFBO)
 	{

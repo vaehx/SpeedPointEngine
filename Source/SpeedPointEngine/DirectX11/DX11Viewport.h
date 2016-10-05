@@ -1,9 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -12,23 +10,23 @@
 #include <Abstract\IViewport.h>
 #include <Abstract\Matrix.h>
 #include <Abstract\SPrerequisites.h>
-#include "DirectX11.h"
+#include "DX11.h"
 
 SP_NMSPACE_BEG
 
 // forward declarations
 struct S_API IGameEngine;
-class S_API DirectX11Renderer;
-class S_API DirectX11FBO;
+class S_API DX11Renderer;
+class S_API DX11FBO;
 
 // DirectX11 implementation of the viewport interface
-class S_API DirectX11Viewport : public IViewport
+class S_API DX11Viewport : public IViewport
 {
 private:
 	IGameEngine* m_pEngine;
-	DirectX11Renderer* m_pRenderer;	// the handling rendering
+	DX11Renderer* m_pRenderer;	// the handling rendering
 	
-	DirectX11FBO* m_pFBO;
+	DX11FBO* m_pFBO;
 
 	IDXGISwapChain* m_pSwapChain;	// the corresponding swap chain		
 	ID3D11RenderTargetView* m_pRenderTarget;		
@@ -48,8 +46,8 @@ private:
 	SCamera* m_pCamera;
 
 public:		
-	DirectX11Viewport();
-	~DirectX11Viewport();
+	DX11Viewport();
+	~DX11Viewport();
 
 	// DirectX11 Specific:
 

@@ -1,3 +1,10 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 #include <Abstract\IConstantsBuffer.h>
@@ -7,13 +14,13 @@ struct ID3D11Buffer;
 
 SP_NMSPACE_BEG
 
-class S_API DirectX11Renderer;
+class S_API DX11Renderer;
 
 class S_API DX11ConstantsBuffer : public IConstantsBuffer
 {
 private:
 	ID3D11Buffer* m_pBuffer;
-	DirectX11Renderer* m_pDXRenderer;
+	DX11Renderer* m_pDXRenderer;
 	void* m_pData;
 	unsigned int m_Size; // num bytes in m_pData
 

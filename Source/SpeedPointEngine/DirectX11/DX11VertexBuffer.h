@@ -1,44 +1,41 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 #pragma once
 
 #include <Abstract\IVertexBuffer.h>
-#include "DirectX11.h"
+#include "DX11.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 
 
-struct S_API SDirectX11VBCreateFlags
+struct S_API SDX11VBCreateFlags
 {
 	D3D11_USAGE usage;
 	unsigned int bindFlags;
 	unsigned int cpuAccessFlags;
 
-	SDirectX11VBCreateFlags()
+	SDX11VBCreateFlags()
 		: usage(D3D11_USAGE_DEFAULT),
 		bindFlags(D3D11_BIND_VERTEX_BUFFER),
 		cpuAccessFlags(0)
 	{
 	}
 
-	SDirectX11VBCreateFlags(const SDirectX11VBCreateFlags& o)
+	SDX11VBCreateFlags(const SDX11VBCreateFlags& o)
 		: usage(o.usage),
 		bindFlags(o.bindFlags),
 		cpuAccessFlags(o.cpuAccessFlags)
 	{
 	}
 
-	SDirectX11VBCreateFlags(D3D11_USAGE pUsage, unsigned int pBindFlags, unsigned int pCpuAccessFlags)
+	SDX11VBCreateFlags(D3D11_USAGE pUsage, unsigned int pBindFlags, unsigned int pCpuAccessFlags)
 		: usage(pUsage),
 		bindFlags(pBindFlags),
 		cpuAccessFlags(pCpuAccessFlags)
@@ -48,7 +45,7 @@ struct S_API SDirectX11VBCreateFlags
 
 
 // SpeedPoint VertexBuffer Resource
-class S_API DirectX11VertexBuffer : public IVertexBuffer
+class S_API DX11VertexBuffer : public IVertexBuffer
 {
 private:	
 	IRenderer*			m_pRenderer;
@@ -61,9 +58,9 @@ private:
 
 
 public:	
-	DirectX11VertexBuffer();	
-	DirectX11VertexBuffer(const DirectX11VertexBuffer& o);		
-	~DirectX11VertexBuffer();
+	DX11VertexBuffer();	
+	DX11VertexBuffer(const DX11VertexBuffer& o);		
+	~DX11VertexBuffer();
 		
 	virtual SResult Initialize(IRenderer* renderer, EVBUsage usage,
 		const SVertex* pInitialData = nullptr, const unsigned long nInitialVertices = 0);
@@ -89,7 +86,7 @@ public:
 		return m_pHWVertexBuffer;
 	}
 
-	SDirectX11VBCreateFlags GetCreateFlags();
+	SDX11VBCreateFlags GetCreateFlags();
 };
 
 

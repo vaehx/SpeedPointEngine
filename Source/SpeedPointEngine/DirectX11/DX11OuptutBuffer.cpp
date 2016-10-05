@@ -1,15 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11OutputPlane.h"
-#include "DirectX11VertexBuffer.h"
-#include "DirectX11IndexBuffer.h"
+#include "DX11OutputPlane.h"
+#include "DX11VertexBuffer.h"
+#include "DX11IndexBuffer.h"
+#include "DX11Renderer.h"
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IIndexBuffer.h>
 #include <Abstract\Matrix.h>
@@ -18,21 +17,23 @@
 
 SP_NMSPACE_BEG
 
-// --------------------------------------------------------------------------------
-S_API usint32 DirectX11OutputPlane::GetIndexCount()
+// -----------------------------------------------------------------------------------------------
+S_API usint32 DX11OutputPlane::GetIndexCount()
 {
 	return 600; // 10 * 10 * 6;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11OutputPlane::Initialize(IRenderer* renderer, int nW, int nH)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11OutputPlane::Initialize(IRenderer* renderer, int nW, int nH)
 {
 	SP_ASSERTR(renderer, S_INVALIDPARAM);	
 
 	if (Failure(Clear()))
 		return S_ERROR;
 
-	m_pDXRenderer = (DirectX11Renderer*)renderer;
+	m_pDXRenderer = dynamic_cast<DX11Renderer*>(renderer);
+	if (!m_pDXRenderer)
+		return S_INVALIDPARAM;
 
 	// Initialize the matrices
 	float fWidth = (float)nW * 0.1f;
@@ -86,13 +87,13 @@ S_API SResult DirectX11OutputPlane::Initialize(IRenderer* renderer, int nW, int 
 
 
 	// Create the geometry with plane of 10 * 10 fields
-	m_pVertexBuffer = new DirectX11VertexBuffer();
+	m_pVertexBuffer = new DX11VertexBuffer();
 	if (Failure(m_pVertexBuffer->Initialize(renderer, eVBUSAGE_STATIC, pVertices, 11 * 11)))
 	{
 		return CLog::Log(S_ERROR, "Failed initialize vertex Buffer of OutputPlane!");
 	}
 
-	m_pIndexBuffer = new DirectX11IndexBuffer();
+	m_pIndexBuffer = new DX11IndexBuffer();
 	if (Failure(m_pIndexBuffer->Initialize(renderer, eIBUSAGE_STATIC, pIndices, 10 * 10 * 6)))
 	{
 		return CLog::Log(S_ERROR,  "Failed initialize index buffer of OutputPlane!");
@@ -104,8 +105,8 @@ S_API SResult DirectX11OutputPlane::Initialize(IRenderer* renderer, int nW, int 
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------
-S_API bool DirectX11OutputPlane::IsInitialized()
+// -----------------------------------------------------------------------------------------------
+S_API bool DX11OutputPlane::IsInitialized()
 {
 	return m_pDXRenderer
 		&& m_pVertexBuffer
@@ -114,14 +115,14 @@ S_API bool DirectX11OutputPlane::IsInitialized()
 		&& m_pIndexBuffer->IsInited();
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11OutputPlane::Render(IFBO* pGBufferAlbedo, IFBO* pLightingBuffer)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11OutputPlane::Render(IFBO* pGBufferAlbedo, IFBO* pLightingBuffer)
 {
 	return S_NOTIMPLEMENTED;
 }
 
-// --------------------------------------------------------------------------------
-S_API SResult DirectX11OutputPlane::Clear(void)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11OutputPlane::Clear(void)
 {
 	SResult res = S_SUCCESS;	
 

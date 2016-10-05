@@ -9,17 +9,17 @@
 
 #pragma once
 
-#include "DirectX11Viewport.h"
-#include "DirectX11FBO.h"
-#include "DirectX11Shader.h"
-#include "DirectX11Texture.h"
+#include "DX11Viewport.h"
+#include "DX11FBO.h"
+#include "DX11Shader.h"
+#include "DX11Texture.h"
 #include "DX11ConstantsBuffer.h"
 #include <Abstract\ChunkedObjectPool.h>
 #include <Abstract\IRenderer.h>
 #include <Abstract\SPrerequisites.h>
 
 // DirectX11 Specific headers
-#include "DirectX11.h"
+#include "DX11.h"
 
 #include <map>
 
@@ -40,7 +40,7 @@ struct S_API IResourcePool;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-enum EDirectX11RenderBudgetTimer
+enum EDX11RenderBudgetTimer
 {
 	eDX11_BUDGET_DRAW_FORWARD_SUBSETS = 0,
 	eDX11_BUDGET_UNLEASH_FONT_SCHEDULE,
@@ -52,10 +52,10 @@ enum EDirectX11RenderBudgetTimer
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // DirectX11 implementation of the device capabilities interface
-class S_API DirectX11RenderDeviceCaps : public IRenderDeviceCapabilities
+class S_API DX11RenderDeviceCaps : public IRenderDeviceCapabilities
 {
 public:
-	DirectX11RenderDeviceCaps();
+	DX11RenderDeviceCaps();
 
 	virtual SResult Collect(IRenderer* pRenderer);
 	virtual unsigned int GetMaximumMSQuality()
@@ -76,7 +76,7 @@ enum EDepthTestFunction
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SpeedPoint DirectX 11 Renderer Implementation
 
-class S_API DirectX11Renderer : public IRenderer
+class S_API DX11Renderer : public IRenderer
 {
 private:
 	IGameEngine* m_pEngine;
@@ -117,10 +117,10 @@ private:
 	bool m_bFullscreen;
 
 
-	DirectX11Viewport m_Viewport;	// Default Viewport?
+	DX11Viewport m_Viewport;	// Default Viewport?
 	IViewport* m_pTargetViewport;
 
-	DirectX11FBO* m_pRenderTargets[MAX_BOUND_RTS];
+	DX11FBO* m_pRenderTargets[MAX_BOUND_RTS];
 	ID3D11DepthStencilView* m_pDSV;	// the bound DSV
 	unsigned int m_nRenderTargets;
 
@@ -153,33 +153,20 @@ private:
 	ID3D11ShaderResourceView* m_BoundVSResources[8];
 	ID3D11ShaderResourceView* m_BoundPSResources[8];
 
-	DirectX11Texture m_DummyTexture;
-	DirectX11Texture m_DummyNormalMap;	// contains pure (128,128,0) color.
+	DX11Texture m_DummyTexture;
+	DX11Texture m_DummyNormalMap;	// contains pure (128,128,0) color.
 
 	// The Frame Buffer objects
 
-	DirectX11FBO m_GBuffer1; // (RGBA8) RGB: Normals, A: Roughness
-	DirectX11FBO m_GBuffer2; // (D24S8) D24: Depth, S: ???
+	DX11FBO m_GBuffer1; // (RGBA8) RGB: Normals, A: Roughness
+	DX11FBO m_GBuffer2; // (D24S8) D24: Depth, S: ???
 
-	DirectX11FBO m_LightAccumulation;
+	DX11FBO m_LightAccumulation;
 
 
-/*	// The required shaders
 
-	DirectX11Effect m_SkyBoxEffect;
 
-	DirectX11Effect m_ForwardEffect;
-	DirectX11Effect m_HelperEffect;
-
-	DirectX11Effect m_ZPassEffect;
-	DirectX11Effect m_DeferredShadingEffect;	
-	DirectX11Effect m_TerrainEffect;
-
-	DirectX11Effect m_DLZPassEffect;
-	DirectX11Effect m_DLLightEffect;
-	DirectX11Effect m_DLCompositeEffect;*/
-
-	DirectX11Shader m_TerrainShader;
+	DX11Shader m_TerrainShader;
 
 	IShaderPass* m_Passes[NUM_SHADERPASS_TYPES];
 	EShaderPassType m_CurrentPass;
@@ -269,8 +256,8 @@ public:
 
 
 
-	DirectX11Renderer();
-	~DirectX11Renderer();
+	DX11Renderer();
+	~DX11Renderer();
 
 	////////////////////////////////////////////////////////////////////////////
 	// Specific to the DirectX Implementation
@@ -336,15 +323,9 @@ public:
 		return false;
 	}
 
-	/*
-	virtual SResult AddRTCollectionFBO(usint32 index, IFBO* pFBO);
-	virtual SResult StoreRTCollection(ERenderTargetCollectionID asId);
-	virtual SResult BindRTCollection(ERenderTargetCollectionID collcetionID);
-	*/
-
 	virtual IFBO* CreateRT() const
 	{
-		return new DirectX11FBO();
+		return new DX11FBO();
 	}
 	
 	virtual SResult BindSingleRT(IFBO* pFBO);
@@ -403,11 +384,6 @@ public:
 	virtual SSceneConstants* GetSceneConstants() const;
 	virtual void SetSunPosition(const Vec3f& pos);
 
-
-	/*
-	virtual SResult RenderGeometry(const SRenderDesc& dsc);
-	virtual SResult RenderTerrain(const STerrainRenderDesc& tdsc);	
-	*/
 	
 	virtual SRenderSlot* GetRenderSlot();
 	virtual void ReleaseRenderSlot(SRenderSlot** pSlot);
@@ -448,7 +424,7 @@ public:
 	//	Used to completely encapsulate the SpeedPoint Engine Core from the DirectX11 Implementation
 	static IRenderer* GetInstance()
 	{
-		return new DirectX11Renderer();
+		return new DX11Renderer();
 	}
 
 protected:

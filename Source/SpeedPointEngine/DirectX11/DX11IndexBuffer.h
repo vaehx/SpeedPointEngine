@@ -1,9 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Game Engine
-//
-//	written by Pascal R. aka iSmokiieZz
-//	(c) 2011-2014, All rights reserved.
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -11,34 +9,34 @@
 #pragma once
 
 #include <Abstract\IIndexBuffer.h>
-#include "DirectX11.h"
+#include "DX11.h"
 
 SP_NMSPACE_BEG
 
 struct S_API IGameEngine;
 struct S_API IRenderer;
 
-struct S_API SDirectX11IBCreateFlags
+struct S_API SDX11IBCreateFlags
 {
 	D3D11_USAGE usage;
 	unsigned int bindFlags;
 	unsigned int cpuAccessFlags;
 
-	SDirectX11IBCreateFlags()
+	SDX11IBCreateFlags()
 		: usage(D3D11_USAGE_DEFAULT),
 		bindFlags(D3D11_BIND_VERTEX_BUFFER),
 		cpuAccessFlags(0)
 	{
 	}
 
-	SDirectX11IBCreateFlags(const SDirectX11IBCreateFlags& o)
+	SDX11IBCreateFlags(const SDX11IBCreateFlags& o)
 		: usage(o.usage),
 		bindFlags(o.bindFlags),
 		cpuAccessFlags(o.cpuAccessFlags)
 	{
 	}
 
-	SDirectX11IBCreateFlags(D3D11_USAGE pUsage, unsigned int pBindFlags, unsigned int pCpuAccessFlags)
+	SDX11IBCreateFlags(D3D11_USAGE pUsage, unsigned int pBindFlags, unsigned int pCpuAccessFlags)
 		: usage(pUsage),
 		bindFlags(pBindFlags),
 		cpuAccessFlags(pCpuAccessFlags)
@@ -48,7 +46,7 @@ struct S_API SDirectX11IBCreateFlags
 
 
 // SpeedPoint IndexBuffer Resource
-class S_API DirectX11IndexBuffer : public IIndexBuffer
+class S_API DX11IndexBuffer : public IIndexBuffer
 {
 private:	
 	IRenderer*			m_pRenderer;
@@ -62,9 +60,9 @@ private:
 	S_INDEXBUFFER_FORMAT m_Format;
 
 public:
-	DirectX11IndexBuffer();
-	DirectX11IndexBuffer(const DirectX11IndexBuffer& o);
-	~DirectX11IndexBuffer();
+	DX11IndexBuffer();
+	DX11IndexBuffer(const DX11IndexBuffer& o);
+	~DX11IndexBuffer();
 	
 	virtual SResult Initialize(IRenderer* pRenderer, EIBUsage usage, S_INDEXBUFFER_FORMAT format, const void* pInitialData = nullptr, unsigned long nInitialIndices = 0);
 
@@ -97,7 +95,7 @@ public:
 		return m_pHWIndexBuffer;
 	}
 
-	SDirectX11IBCreateFlags GetCreateFlags();
+	SDX11IBCreateFlags GetCreateFlags();
 };
 
 

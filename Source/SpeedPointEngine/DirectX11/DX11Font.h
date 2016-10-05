@@ -1,11 +1,11 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Engine.
-//	Copyright (c) 2011-2015 Pascal Rosenkranz
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11Renderer.h"
+#include "DX11Renderer.h"
 #include <Abstract\IFont.h>
 #include <d3d10_1.h>
 #include <dxgi.h>
@@ -14,10 +14,10 @@
 
 SP_NMSPACE_BEG
 
-class S_API DirectX11FontRenderer : public IFontRenderer
+class S_API DX11FontRenderer : public IFontRenderer
 {
 private:
-	DirectX11Renderer* m_pDXRenderer; // D3D11 Renderer
+	DX11Renderer* m_pDXRenderer; // D3D11 Renderer
 
 	ID3D10Device1* m_pD3D101Device;	
 
@@ -46,7 +46,7 @@ private:
 
 	unsigned int m_TexSz[2];
 
-	DirectX11Shader m_FontShader;
+	DX11Shader m_FontShader;
 
 	ID3D11Buffer* m_pConstantsBuffer;
 
@@ -60,7 +60,7 @@ private:
 	void InitConstantsBuffer();
 
 public:
-	DirectX11FontRenderer()
+	DX11FontRenderer()
 		: m_pDXRenderer(0),
 		m_pD3D101Device(0),
 		m_pKeyedMutex10(0),
@@ -80,7 +80,7 @@ public:
 	{
 	}
 
-	virtual ~DirectX11FontRenderer()
+	virtual ~DX11FontRenderer()
 	{
 		Clear();
 	}

@@ -1,24 +1,24 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//	This file is part of the SpeedPoint Engine.
-//	Copyright (c) 2011-2015 Pascal Rosenkranz
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
 //
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "DirectX11Font.h"
+#include "DX11Font.h"
 #include <Abstract\SVertex.h>
 #include <Abstract\SColor.h>
 #include <Abstract\IIndexBuffer.h>
 
 SP_NMSPACE_BEG
 
-// ------------------------------------------------------------------------------------------------------------
-S_API SResult DirectX11FontRenderer::Init(IRenderer* pRenderer)
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11FontRenderer::Init(IRenderer* pRenderer)
 {
 	if (!IS_VALID_PTR(pRenderer) || pRenderer->GetType() != S_DIRECTX11)
 		return S_INVALIDPARAM;
 
-	m_pDXRenderer = (DirectX11Renderer*)pRenderer;	
+	m_pDXRenderer = dynamic_cast<DX11Renderer*>(pRenderer);
 	IDXGIAdapter1* pAdapter = m_pDXRenderer->GetAutoSelectedAdapter();
 	ID3D11Device* pD3D11Device = m_pDXRenderer->GetD3D11Device();
 
@@ -145,8 +145,8 @@ S_API SResult DirectX11FontRenderer::Init(IRenderer* pRenderer)
 }
 
 
-// ------------------------------------------------------------------------------------------------------------
-S_API SResult DirectX11FontRenderer::InitD2DScreenTexture()
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11FontRenderer::InitD2DScreenTexture()
 {
 	HRESULT hr;
 	ID3D11Device* pD3D11Device = m_pDXRenderer->GetD3D11Device();	
@@ -195,8 +195,8 @@ S_API SResult DirectX11FontRenderer::InitD2DScreenTexture()
 	return SUCCEEDED(hr) ? S_SUCCESS : S_ERROR;
 }
 
-// ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::InitBlendDesc()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11FontRenderer::InitBlendDesc()
 {
 	ZeroMemory(&m_BlendDesc, sizeof(m_BlendDesc));
 
@@ -215,8 +215,8 @@ S_API void DirectX11FontRenderer::InitBlendDesc()
 	HRESULT hr = pD3D11Device->CreateBlendState(&m_BlendDesc, &m_pBlendState);
 }
 
-// ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::InitConstantsBuffer()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11FontRenderer::InitConstantsBuffer()
 {
 	m_pDXRenderer->D3D11_CreateConstantsBuffer(&m_pConstantsBuffer, sizeof(SFontConstantsBuffer));
 	
@@ -233,8 +233,8 @@ S_API void DirectX11FontRenderer::InitConstantsBuffer()
 	m_pDXRenderer->D3D11_UnlockConstantsBuffer(m_pConstantsBuffer);
 }
 
-// ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::BeginRender()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11FontRenderer::BeginRender()
 {
 	if (m_SkipFrameCounter >= 1 && m_SkipFrameCounter <= m_nKeepFrames)
 		return; // iteration is done in EndRender()
@@ -246,8 +246,8 @@ S_API void DirectX11FontRenderer::BeginRender()
 	m_pD2DRenderTarget->Clear(D2D1::ColorF(0, 0, 0, 0.0f));
 }
 
-// ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::RenderText(const string& text, const SColor& color, const SPixelPosition& pixelPos,
+// -----------------------------------------------------------------------------------------------
+S_API void DX11FontRenderer::RenderText(const string& text, const SColor& color, const SPixelPosition& pixelPos,
 	EFontSize fontSize /*=eFONTSIZE_NORMAL*/, bool alignRight /*=false*/)
 {
 	if (m_SkipFrameCounter >= 1 && m_SkipFrameCounter <= m_nKeepFrames)
@@ -316,8 +316,8 @@ S_API void DirectX11FontRenderer::RenderText(const string& text, const SColor& c
 	delete[] wtext;		
 }
 
-// ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::EndRender()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11FontRenderer::EndRender()
 {
 	if (m_SkipFrameCounter == 0)
 	{
@@ -353,8 +353,8 @@ S_API void DirectX11FontRenderer::EndRender()
 	//pD3D11DeviceContext->PSSetConstantBuffers(0, 0, 0);
 }
 
-// ------------------------------------------------------------------------------------------------------------
-S_API void DirectX11FontRenderer::Clear()
+// -----------------------------------------------------------------------------------------------
+S_API void DX11FontRenderer::Clear()
 {
 	SP_SAFE_RELEASE(m_pConstantsBuffer);
 	SP_SAFE_RELEASE(m_pD2DVtxBuffer);
