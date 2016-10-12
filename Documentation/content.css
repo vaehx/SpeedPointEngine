@@ -1,10 +1,10 @@
 @font-face {
-    src: url(DroidSans.ttf);
+    src: url("font/DroidSans.ttf");
     font-family: DroidSans;    
 }
 
 @font-face {
-  src: url(lmroman12-italic.otf);
+  src: url("font/lmroman12-italic.otf");
   font-family: latinmodernmath;
 }
 
@@ -15,10 +15,12 @@ h1 {
 
 body {
   font-family: DroidSans;
+  font-size: 12px;
+  line-height: 18px;
 }
 
 ul li {
-  padding-bottom: 8px;
+  padding-bottom: 3px;
 }
 
 ul ul {
@@ -41,17 +43,19 @@ span.tab {
   padding-left: 5em;
 }
 
-.inline-code code {
+code {
   display: inline-block;
   margin: 0px;
-  padding: 3px;
+  padding: 0px 3px;
+  border: 1px dotted #cfcfcf;
+  background-color: #f6f6ff;
 }
 
-.inline-code code.break-inline {
+code.break-inline {
   display: inline-block;    
 }
 
-code {
+pre {
   display: block;
   border: 1px dotted #bbb;
   background-color: #f6f6ff;

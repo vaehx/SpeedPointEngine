@@ -5,30 +5,10 @@
 <body>
 
 
-<h1>Geometry management</h1>
-<h2>Object architecture</h2>
-<code>
-struct IObject;<br />
-struct IRenderableObject : public IObject, public STransformable;
-</code>
-<ul>
-    <li>Main Interface: IObject</li>
-    <li>Sub-Interfaces (inherit from IObject): IRenderableObject</li>
-    <li>Implementations: StaticObject, Terrain, (AnimatableObject, VegetationObject, WaterSurface, Ocean, ...)</li>    
-</ul>
-<h2>Existing object implementations</h2>
-<h3>Static Object</h3>
-<code>class StaticObject : public IRenderableObject;</code>
-<ul>
-    <li>use to render objects, that are not animated, scripted or something else</li>
-    <li>Examples: Rock, Cliff, House, ...</li>
-    <li>Not: Tree, Water, Car, ...</li>
-    <li>Contains single Geometry instance</li>
-    <li>Can be inherited from to create extended implementations of IObject</li>
-</ul>
-
-<h2>Adding new objects</h2>
-...
+<h1>Objects</h1>
+<p>In SpeedPoint Engine, everything that has a position is represented as an <code>IEntity</code>.<br />
+Entities can either own high-level components (<code>ent->CreateComponent<MyWeapon>()</code>) or have a low-level components
+(<code>ent->AddComponent(p3DEngine->CreateMesh())</code>).</p>
 
 </body>
 </html>

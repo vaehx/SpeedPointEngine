@@ -23,10 +23,10 @@
     <span class="math">R = </span><br />
     <span class="math">I<sub>o</sub> = k<sub>d</sub>(&#936;&#0183;N) + k<sub>s</sub>(R&#0183;&#1012;)<sup>&alpha;</sup></span>
     
-    <code>    
-    specular = pow(dot(reflectedDir, dirToEye), alpha);<br />
-    intensity_out.rgb = diffuseFactor * dot(dirToLight, dirToEye) + specularFactor * specular;
-    </code>    
+<pre>
+specular = pow(dot(reflectedDir, dirToEye), alpha);
+intensity_out.rgb = diffuseFactor * dot(dirToLight, dirToEye) + specularFactor * specular;
+</pre>
     </li>
     <li>Blinn-Phong:<br />
     

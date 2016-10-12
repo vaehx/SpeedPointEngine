@@ -12,17 +12,15 @@
     <li>Goal: One common material pool</li>
 </ul>
 <h2>Structure</h2>
-<code>
-class Geometry : public IGeometry<br />
-{ <br />
-    <span class="tab">
-    IVertexBuffer* m_pVertexBuffer;<br />
-    IIndexBuffer** m_pIndexBuffers;<br />
-    unsigned short m_nIndexBuffers;<br />
+<pre>
+class Geometry : public IGeometry
+{
+    IVertexBuffer* m_pVertexBuffer;
+    IIndexBuffer** m_pIndexBuffers;
+    unsigned short m_nIndexBuffers;
     EPrimitiveType m_PrimitiveType;
-    </span>
 }
-</code>
+</pre>
 <ul>    
     <li>One VB per Object, multiple IB per Geometry (one per material)</li>
     <li>Geometry can be handled any arbitrary way, no fixed usage. Depends on IObject implementation</li>
@@ -55,42 +53,28 @@ class Geometry : public IGeometry<br />
                 <ul>                    
                     <li>merge vertices that share the same position AND normal (relatively rare case)</li>
                     <li>replace indices</li>
-                    <li>
-                    <code>
-                    void merge_vertices(Vertex** pOutVerts, uint* pnOutVerts,
-                    Index** pOutIndices, uint* pnOutIndices,<br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const Vertex* pVertices, const uint nVertices,
-                    const Index* pIndices, const uint nIndices)<br />
-                    { <br />
-                    <span class="tab">                    
-                    for each vertex in pVertices do<br />                        
-                        <span class="tab">
-                        found = false<br />
-                        for each outVertex in pOutVerts do<br />
-                            <span class="tab">
-                            if vertex.position == outVertex.position && vertex.normal == outVertex.normal then<br />
-                            <span class="tab">
-                                add index of outVertex to pOutIndices<br />
-                                increase (*pnOutIndices)<br />
-                                found = true<br />
-                                break                            
-                            </span>
-                            endif<br />                        
-                            </span>
-                        endfor<br />
-                        if !found then<br />
-                        <span class="tab">
-                            add vertex to pOutVerts with index newVertIndex<br />
-                            add newVertIndex to pOutIndices<br />
-                            increase (*pnOutVertices) and (*pnOutIndices)                            
-                        </span>
-                        endif
-                        </span>
-                    endfor
-                    </span>
-                    }                    
-                    </code>
-                    </li>
+                    <li><pre>
+void merge_vertices(Vertex** pOutVerts, uint* pnOutVerts, Index** pOutIndices, uint* pnOutIndices,
+	const Vertex* pVertices, const uint nVertices, const Index* pIndices, const uint nIndices)
+{
+	for each vertex in pVertices do
+		found = false
+		for each outVertex in pOutVerts do
+			if vertex.position == outVertex.position && vertex.normal == outVertex.normal then
+				add index of outVertex to pOutIndices
+				increase (*pnOutIndices)
+				found = true
+				break
+			endif
+		endfor
+		if !found then
+			add vertex to pOutVerts with index newVertIndex
+			add newVertIndex to pOutIndices
+			increase (*pnOutVertices) and (*pnOutIndices)
+		endif
+	endfor
+}</pre>
+					</li>
                 </ul>
             </li>
             <li>if there are smoothing groups:

@@ -9,9 +9,12 @@
 
 <h2>Texture management</h2>
 
-Textures are managed in an object pool. Each texture object is identified by its specification.<br />
-When you call <code>ResourcePool::GetTexture(specification)</code> it will always return a valid pointer to an existing object with the given specification. <br />
-To load the texture, you can call <code>ResourcePool::LoadTexture()</code>. To add a new texture without existing resource, you can call <code>ResourcePool::AddTexture()</code>.
+<p>Textures are managed in an object pool. Each texture object is identified by its specification.</p>
+<p>When you call <code>ResourcePool::GetTexture(specification)</code> it will always return a valid pointer to an existing object with the given specification.<br />
+If there was no texture object with the given specification yet, the resource pool will attempt to load the texture from disk. This may not happen immediately, but
+the texture will be streamed in a separate thread.<br />
+You cannot modify textures retrieved by <code>GetTexture()</code>.</p>
+<p>To create a new empty Texture that can be modified, you can use <code>ResourcePool::AddTexture()</code></p>
 
 
 </body>

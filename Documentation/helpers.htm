@@ -5,7 +5,7 @@
 <body>
 
 
-<h1>Renderer: Helper objects</h1>
+<h1>3DEngine: Helper objects</h1>
 
 In many cases you may want to render helper geometry to debug your algorithms.<br />
 In SpeedPoint, you can do this very easily:
@@ -16,7 +16,7 @@ CBoxHelper* pBox = p3DEngine->AddHelper&lt;CBoxHelper&gt;(CBoxHelper::Params(vMi
 </pre>
 
 <p>
-To delete a helper, use `pBox->Release()`. The helper will be marked as trash and will
+To delete a helper, use <code>pBox->Release()</code>. The helper will be marked as trash and will
 be removed during the garbage collection phase of the renderer.<br />
 <b>DO NOT access the pointer to the helper after releasing it!</b>
 </p>
