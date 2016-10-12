@@ -16,6 +16,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\CSkyBox.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Geometry.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Material.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\RenderLight.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\RenderMesh.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Terrain.cpp" />
   </ItemGroup>

@@ -1,81 +1,47 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
-#include <Abstract\RenderMesh.h>
-#include <Abstract\IEntity.h>
 #include <Abstract\I3DEngine.h>
+#include <Abstract\IEntity.h>
 #include <Abstract\Transformable.h>
 
 SP_NMSPACE_BEG
 
-struct S_API I3DEngine;
-struct S_API IMaterialManager;
-
-class CRenderableComponent : public IComponent, public CRenderMesh
+template<class RenderObjImpl>
+class S_API CRenderObjectComponent : public IComponent, public RenderObjImpl
 {
 	DEFINE_COMPONENT
 
-private:
-	void ClearRenderableComponent();
-
-public:
-	CRenderableComponent();
-	virtual ~CRenderableComponent();
+protected:
+	typedef typename RenderObjImpl::IsDerivedFromIRenderObject IRenderObjectGuard;
 
 	// IComponent:
 public:
-	ILINE virtual const char* GetSerializationType() const { return "Renderable"; };
-	ILINE virtual void Serialize(map<string, string>& params) const;
-	ILINE virtual void Deserialize(const map<string, string>& params);
-
-	virtual void OnRelease();
-	virtual void OnEntityTransformed();
-
-	// CRenderMesh:
-public:
-	virtual void OnRender();
-
-
-	/*
-	// IRenderableComponent:
-public:
-	ILINE virtual void Init(const SInitialGeometryDesc* geomDesc = nullptr, IMaterialManager* pMatMgr = nullptr);
-
-	virtual void SetVisible(bool visible);
-
-	ILINE virtual IRenderObject* GetRenderObject()
+	virtual void OnRelease()
 	{
-		return (IRenderObject*)this;
+		RenderObjImpl::Clear();
 	}
 
-	virtual IGeometry* GetGeometry();
-
-	virtual SGeomSubset* GetSubset(unsigned int i);
-	virtual unsigned int GetSubsetCount() const;
-
-	virtual IMaterial* GetSubsetMaterial(unsigned int subset = 0);
-
-	virtual void SetViewProjMatrix(const SMatrix& mtx);
-	virtual void UnsetViewProjMatrix();
-
-	// IRenderObject:
+	// IProxyRenderObject:
 public:
-	virtual void OnRelease();
-	virtual void SetRenderer(I3DEngine* p3DEngine);
-
-	virtual SRenderDesc* GetRenderDesc();
-	virtual void SetTransform(const SMatrix& transform);
-
-	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj);
-
-	// Called by the Renderer System
-	virtual void Update();
-
-	// IRenderableComponent + IRenderObject:
-public:
-	virtual AABB GetAABB();
-	virtual IVertexBuffer* GetVertexBuffer();
-	virtual IIndexBuffer* GetIndexBuffer(unsigned int subset = 0);
-	*/
+	virtual void OnRender()
+	{
+		if (m_pEntity)
+		{
+			if (SRenderDesc* pRenderDesc = RenderObjImpl::GetRenderDesc())
+				pRenderDesc->transform = m_pEntity->GetTransform();
+		}
+	}
 };
+
+
+typedef S_API class CRenderObjectComponent<CRenderMesh> CRenderMeshComponent;
+typedef S_API class CRenderObjectComponent<CRenderLight> CRenderLightComponent;
 
 SP_NMSPACE_END

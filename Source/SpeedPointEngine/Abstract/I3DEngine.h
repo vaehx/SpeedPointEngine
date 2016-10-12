@@ -66,13 +66,11 @@ public:
 	ILINE virtual IRenderer* GetRenderer() const = 0;
 	ILINE virtual IGeometryManager* GetGeometryManager() = 0;
 
-	template<class RenderMeshImpl>
-	ILINE void CreateRenderMeshPool() { SetRenderMeshPool(new ComponentPool<CRenderMesh, RenderMeshImpl>()); }
+	template<class RenderMeshImpl> void SetRenderMeshImplementation() { SetRenderMeshPool(new ComponentPool<CRenderMesh, RenderMeshImpl>()); }
 	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params = SRenderMeshParams()) = 0;
 	ILINE virtual void ClearRenderMeshes() = 0;
 
-	template<class RenderLightImpl>
-	ILINE void CreateRenderLightPool() { SetRenderLightPool(new ComponentPool<CRenderLight, RenderLightImpl>()); }
+	template<class RenderLightImpl> void SetRenderLightImplementation() { SetRenderLightPool(new ComponentPool<CRenderLight, RenderLightImpl>()); }
 	ILINE virtual CRenderLight* CreateLight() = 0;
 	ILINE virtual void ClearRenderLights() = 0;
 

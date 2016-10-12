@@ -15,9 +15,6 @@ public:
 
 	// IComponent:
 public:
-	ILINE virtual const char* GetSerializationType() const { return "Physical"; }
-	ILINE virtual void Serialize(map<string, string>& params) const;
-	ILINE virtual void Deserialize(const map<string, string>& params);
 	
 	virtual void OnEntityTransformed();
 };

@@ -23,7 +23,6 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\Entity.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\RenderableComponent.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctree.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctreeNode.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\Scene.cpp" />

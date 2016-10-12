@@ -44,9 +44,14 @@ S_API SResult Scene::Initialize(IGameEngine* pGameEngine)
 
 	I3DEngine* p3DEngine = m_pEngine->Get3DEngine();
 	if (p3DEngine)
-		p3DEngine->CreateRenderMeshPool<CRenderableComponent>();
+	{
+		p3DEngine->SetRenderMeshImplementation<CRenderMeshComponent>();
+		p3DEngine->SetRenderLightImplementation<CRenderLightComponent>();
+	}
 	else
-		CLog::Log(S_ERROR, "Cannot create render mesh pool: 3DEngine not initialized");
+	{
+		CLog::Log(S_ERROR, "Cannot create render object pools: 3DEngine not initialized");
+	}
 
 
 	IPhysics* pPhysics = m_pEngine->GetPhysics();
@@ -106,7 +111,7 @@ S_API IEntity* Scene::LoadObjectFromFile(const char* filename, const char* objNa
 #ifdef _DEBUG
 	meshParams._name = objName;
 #endif
-	pEntity->AddComponent(m_pEngine->Get3DEngine()->CreateMesh(meshParams));
+	pEntity->AddComponent(p3DEngine->CreateMesh(meshParams));
 
 	return pEntity;
 }

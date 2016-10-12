@@ -37,13 +37,11 @@ S_API void C3DEngine::Clear()
 	ClearHelperRenderObjects();
 
 	ClearRenderMeshes();
-	if (IS_VALID_PTR(m_pMeshes))
-		delete m_pMeshes;
-	m_pMeshes = 0;
-
 	ClearRenderLights();
-	if (IS_VALID_PTR(m_pLights))
-		delete m_pLights;
+
+	delete m_pMeshes;
+	delete m_pLights;
+	m_pMeshes = 0;
 	m_pLights = 0;
 
 	m_pRenderer = 0;
@@ -101,32 +99,30 @@ S_API void C3DEngine::SetRenderMeshPool(IComponentPool<CRenderMesh>* pPool)
 
 S_API void C3DEngine::ClearRenderMeshes()
 {
-	if (!IS_VALID_PTR(m_pMeshes))
-		return;
-
-	unsigned int iterator;	
-	CRenderMesh* pMesh = m_pMeshes->GetFirst(iterator);
-	while (pMesh)
+	if (m_pMeshes)
 	{
-		pMesh->Release();
-		pMesh = m_pMeshes->GetNext(iterator);
-	}
+		unsigned int iterator;
+		CRenderMesh* pMesh = m_pMeshes->GetFirst(iterator);
+		while (pMesh)
+		{
+			pMesh->Release();
+			pMesh = m_pMeshes->GetNext(iterator);
+		}
 
-	m_pMeshes->ReleaseAll();
+		m_pMeshes->ReleaseAll();
+	}
 }
 
 S_API CRenderMesh* C3DEngine::CreateMesh(const SRenderMeshParams& params)
 {
-	if (m_pMeshes)
-	{
-		CRenderMesh* mesh = m_pMeshes->Get();
-		if (Failure(mesh->Init(params)))
-			CLog::Log(S_ERROR, "Failed init RenderMesh");
-
-		return mesh;
-	}
-	else
+	if (!m_pMeshes)
 		return 0;
+
+	CRenderMesh* mesh = m_pMeshes->Get();
+	if (Failure(mesh->Init(params)))
+		CLog::Log(S_ERROR, "Failed init RenderMesh");
+
+	return mesh;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,26 +139,26 @@ S_API void C3DEngine::SetRenderLightPool(IComponentPool<CRenderLight>* pPool)
 
 S_API void C3DEngine::ClearRenderLights()
 {
-	if (!IS_VALID_PTR(m_pLights))
-		return;
-
-	unsigned int iterator;
-	CRenderLight* pLight = m_pLights->GetFirst(iterator);
-	while (pLight)
+	if (m_pLights)
 	{
-		pLight->Release();
-		pLight = m_pLights->GetNext(iterator);
-	}
+		unsigned int iterator;
+		CRenderLight* pLight = m_pLights->GetFirst(iterator);
+		while (pLight)
+		{
+			pLight->Release();
+			pLight = m_pLights->GetNext(iterator);
+		}
 
-	m_pLights->ReleaseAll();
+		m_pLights->ReleaseAll();
+	}
 }
 
 S_API CRenderLight* C3DEngine::CreateLight()
 {
-	if (m_pLights)
-		return m_pLights->Get();
-	else
+	if (!m_pLights)
 		return 0;
+
+	return m_pLights->Get();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -425,44 +421,44 @@ S_API void C3DEngine::RenderCollected()
 
 S_API void C3DEngine::RenderMeshes()
 {
-	if (IS_VALID_PTR(m_pMeshes))
-	{
-		stringstream objectsTimerName;
-		objectsTimerName << "C3DEngine::RenderCollected() - Render RenderObjects (" << m_pMeshes->GetNumObjects() << ")";
+	if (!m_pMeshes)
+		return;
 
-		unsigned int renderObjectsTimer = m_pEngine->StartBudgetTimer(objectsTimerName.str().c_str());
+	stringstream objectsTimerName;
+	objectsTimerName << "C3DEngine::RenderCollected() - Render RenderObjects (" << m_pMeshes->GetNumObjects() << ")";
+
+	unsigned int renderObjectsTimer = m_pEngine->StartBudgetTimer(objectsTimerName.str().c_str());
+	{
+
+
+		//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
+		//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
+		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+
+
+
+
+
+		unsigned int itMesh;
+		CRenderMesh* pMesh = m_pMeshes->GetFirst(itMesh);
+		while (pMesh)
 		{
 
-
-			//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
-			//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
-			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-
-
-
-
-			unsigned int itMesh;
-			CRenderMesh* pMesh = m_pMeshes->GetFirst(itMesh);
-			while (pMesh)
-			{
-
 #ifdef _DEBUG		
-				if (m_pRenderer->DumpingThisFrame())
-					CLog::Log(S_DEBUG, "Rendering %s", pMesh->_name.c_str());
+			if (m_pRenderer->DumpingThisFrame())
+				CLog::Log(S_DEBUG, "Rendering %s", pMesh->_name.c_str());
 #endif
 
-				pMesh->OnRender();
+			pMesh->OnRender();
 
-				SRenderDesc* rd = pMesh->GetRenderDesc();
-				m_pRenderer->Render(*rd);
+			SRenderDesc* rd = pMesh->GetRenderDesc();
+			m_pRenderer->Render(*rd);
 
-				pMesh = m_pMeshes->GetNext(itMesh);
+			pMesh = m_pMeshes->GetNext(itMesh);
 
-			}
-
-			m_pEngine->StopBudgetTimer(renderObjectsTimer);
 		}
+
+		m_pEngine->StopBudgetTimer(renderObjectsTimer);
 	}
 }
 

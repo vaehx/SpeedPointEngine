@@ -15,6 +15,7 @@
 
 #include "IRenderObject.h"
 #include "SColor.h"
+#include "IRenderer.h"
 
 SP_NMSPACE_BEG
 
@@ -22,6 +23,11 @@ class S_API CRenderLight : public IRenderObject
 {
 private:
 	SLightDesc m_LightDesc;
+
+public:
+	virtual AABB GetAABB();
+	virtual SRenderDesc* GetRenderDesc();
+	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj);
 };
 
 SP_NMSPACE_END

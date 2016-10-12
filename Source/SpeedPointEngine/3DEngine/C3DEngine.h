@@ -15,9 +15,6 @@ using std::map;
 
 SP_NMSPACE_BEG
 
-struct S_API IScene;
-struct S_API IRenderableObject;
-
 class S_API C3DEngine : public I3DEngine
 {
 private:	
@@ -74,7 +71,6 @@ public:
 	}
 	
 	ILINE virtual unsigned int CollectVisibleObjects(const SCamera* pCamera);
-
 
 	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params = SRenderMeshParams());
 	ILINE virtual void ClearRenderMeshes();

@@ -52,8 +52,5 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\RenderableComponent.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

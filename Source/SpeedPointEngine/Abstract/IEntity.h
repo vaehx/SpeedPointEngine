@@ -151,14 +151,20 @@ struct S_API IEntity
 	ILINE virtual AABB GetWorldAABB() = 0;
 
 	// If the component is already added to the entity, will not add again
-	// Will not add if the given component cannot be cast to an IComponent ptr
+	// Will not add if the given component cannot be cast to an IComponent ptr (will return 0 then)
 	template<typename ComponentImpl>
-	ILINE IComponent* AddComponent(ComponentImpl* pComponentImpl)
+	ILINE ComponentImpl* AddComponent(ComponentImpl* pComponentImpl)
 	{
 		IComponent* pComponent = dynamic_cast<IComponent*>(pComponentImpl);
 		if (pComponent)
+		{
 			AddComponentIntrl(pComponent, false);
-		return pComponent;
+			return pComponentImpl;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 
 	// Adds and manages ownership of a new component of the given type
@@ -276,11 +282,6 @@ public:
 	{
 		return m_bTrash;
 	}
-
-	// Return empty string to skip this component when serializing
-	ILINE virtual const char* GetSerializationType() const { return ""; };
-	ILINE virtual void Serialize(map<string, string>& params) const {};
-	ILINE virtual void Deserialize(const map<string, string>& params) {};
 
 
 

@@ -252,7 +252,7 @@ S_API Vec3f CEntity::GetUp() const
 
 S_API AABB CEntity::GetAABB()
 {
-	CRenderableComponent* pRenderable = GetComponent<CRenderableComponent>();
+	IRenderObject* pRenderable = GetComponent<IRenderObject>();
 	if (pRenderable)
 		return pRenderable->GetAABB();
 

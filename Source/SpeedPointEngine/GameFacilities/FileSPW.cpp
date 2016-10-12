@@ -156,7 +156,7 @@ S_API void CSPWLoader::SkipSubBlocks(unsigned int blockIndent, unsigned int& tra
 
 S_API void CSPWLoader::DeserializeComponent(const map<string, string>& params, IComponent* pComponent) const
 {
-	pComponent->Deserialize(params);
+	//pComponent->Deserialize(params);
 }
 
 S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity* pEntity, const string& paramsExpr, unsigned int& trailingIndent)
@@ -185,9 +185,15 @@ S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity
 		ParseParams(nextBlockParamsExpr, nextBlockParams);
 
 		unsigned int nextBlockTrailingIndent = 0;
-		if (nextBlockType == "Renderable") DeserializeComponent(nextBlockParams, pEntity->AddComponent(pEngine->Get3DEngine()->CreateMesh()));
+
+
+		//TODO: Use generic DeSerialization code
+
+		/*if (nextBlockType == "Renderable") DeserializeComponent(nextBlockParams, pEntity->AddComponent(pEngine->Get3DEngine()->CreateMesh()));
 		else if (nextBlockType == "Physical") DeserializeComponent(nextBlockParams, pEntity->AddComponent(pEngine->GetPhysics()->CreatePhysObject()));
-		else SkipSubBlocks(nextBlockIndent, nextBlockTrailingIndent);
+		else SkipSubBlocks(nextBlockIndent, nextBlockTrailingIndent);*/
+
+		SkipSubBlocks(nextBlockIndent, nextBlockTrailingIndent);
 
 		nextBlockIndent = ReadIndent() + nextBlockTrailingIndent;
 	}

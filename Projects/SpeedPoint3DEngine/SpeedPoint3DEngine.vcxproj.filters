@@ -27,6 +27,9 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Terrain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\RenderLight.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\C3DEngine.h">

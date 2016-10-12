@@ -28,22 +28,23 @@ protected:
 	AABB m_AABB;
 	bool m_bBoundBoxInvalid;
 
+	virtual void Clear();
+
 public:
 	CRenderMesh();
 	virtual ~CRenderMesh() {}
 
 	SResult Init(const SRenderMeshParams& params);
-	void Clear();
 
 	virtual SRenderDesc* GetRenderDesc();
 	IGeometry* GetGeometry();
+	IVertexBuffer* GetVertexBuffer();
+	IIndexBuffer* GetIndexBuffer(unsigned int subset = 0);
 
 	// IRenderObject
 public:
 	virtual AABB GetAABB();
-	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj);
-	virtual IVertexBuffer* GetVertexBuffer();
-	virtual IIndexBuffer* GetIndexBuffer(unsigned int subset = 0);
+	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj);	
 
 	// Events:
 public:
