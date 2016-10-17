@@ -57,6 +57,8 @@ enum S_API ECubemapSide
 struct S_API ITexture
 {
 public:
+	virtual ~ITexture() {}
+
 	virtual void AddRef() = 0;
 	virtual void Release() = 0;
 

@@ -93,7 +93,7 @@ private:
 public:		
 	DX11Texture();
 
-	~DX11Texture();
+	virtual ~DX11Texture();
 	
 	virtual void AddRef() { m_RefCount++; }
 	virtual void Release()

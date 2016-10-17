@@ -143,19 +143,15 @@ S_API SResult DX11ResourcePool::AddTexture(const string& specification, ITexture
 
 	DX11Texture* pTexture = m_plTextures.GetBySpecification(specification);
 	if (!pTexture)
-	{
 		m_plTextures.AddItem(&pTexture, specification);
+	else
 		pTexture->AddRef();
-	}
 
 	if (Failure(pTexture->CreateEmpty(specification, w, h, mipLevels, ty, clearcolor)))
 		return CLog::Log(S_ERROR, "DX11ResourcePool::AddTexture(): Failed DX11Texture::CreateEmpty()");
 
 	if (pTex)
-	{
 		*pTex = pTexture;
-		pTexture->AddRef();
-	}
 
 	return S_SUCCESS;
 }
@@ -169,6 +165,8 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
 	if (!pDXTexture)
 		m_plTextures.AddItem(&pDXTexture, specification);
+	else
+		pDXTexture->AddRef();
 
 	ITexture* pTexture = pDXTexture;
 	if (!pTexture->IsInitialized())
@@ -177,7 +175,6 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 		pTexture->LoadFromFile(specification, GetResourcePath(specification));
 	}
 
-	pTexture->AddRef();
 	return pTexture;
 }
 
@@ -190,6 +187,8 @@ S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(file);
 	if (!pDXTexture)
 		m_plTextures.AddItem(&pDXTexture, file);
+	else
+		pDXTexture->AddRef();
 
 	ITexture* pTexture = pDXTexture;
 	if (!pTexture->IsCubemap())
@@ -198,7 +197,6 @@ S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 			CLog::Log(S_ERROR, "DX11ResourcePool::GetCubeTexture(): Failed DX11Texture::LoadCubemapFromFile()");
 	}
 
-	pTexture->AddRef();
 	return pTexture;
 }
 

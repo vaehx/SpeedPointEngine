@@ -17,7 +17,7 @@ SP_NMSPACE_BEG
 
 // -----------------------------------------------------------------------------------------------
 DX11Texture::DX11Texture()
-: m_Specification("???"),
+: m_Specification("?notinitialized?"),
 m_bDynamic(false),
 m_pDXTexture(0),
 m_pDXSRV(nullptr),
@@ -26,7 +26,8 @@ m_nLockedBytes(0),
 m_pStagedData(0),
 m_bStaged(false),
 m_bLocked(false),
-m_bIsCubemap(false)
+m_bIsCubemap(false),
+m_RefCount(1)
 {
 }
 
@@ -542,7 +543,12 @@ S_API SResult DX11Texture::LoadFromFile(const string& specification, const strin
 	{
 		return CLog::Log(S_ERROR, "Failed to create DirectX11 Texture!");
 	}
-	
+
+#ifdef _DEBUG
+	const string& nm = specification;
+	m_pDXTexture->SetPrivateData(WKPDID_D3DDebugObjectName, nm.length(), nm.c_str());
+#endif
+
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Create the Shader Resource View
@@ -732,7 +738,10 @@ S_API SResult DX11Texture::CreateEmpty(const string& specification, unsigned int
 	if (Failure(hRes) || m_pDXTexture == nullptr)
 		return CLog::Log(S_ERROR, "Failed to create empty DirectX11 Texture (CreateTexture2D failed)!");
 
-
+#ifdef _DEBUG
+	const string& nm = specification;
+	m_pDXTexture->SetPrivateData(WKPDID_D3DDebugObjectName, nm.length(), nm.c_str());
+#endif
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	memset(&srvDesc, 0, sizeof(srvDesc));
@@ -1052,6 +1061,8 @@ S_API void* DX11Texture::GetStagedData()
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Texture::Clear(void)
 {
+	CLog::Log(S_DEBUG, "Tex(%s)::Clear()", m_Specification.c_str());
+
 	if (IS_VALID_PTR(m_pStagedData))
 		free(m_pStagedData);
 
@@ -1064,7 +1075,7 @@ S_API void DX11Texture::Clear(void)
 	m_nLockedBytes = 0;
 	m_bLocked = false;
 
-	m_Specification = "???";
+	m_Specification = "?cleared?";
 	m_Type = eTEXTURE_R8G8B8A8_UNORM;
 	m_bIsCubemap = false;
 }

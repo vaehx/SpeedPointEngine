@@ -968,7 +968,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 	}
 
 	pTerrainRenderDesc->bRender = false;	
-	if (!m_bRequireRender)
+	if (!m_bRequireRender || m_nLodLevels == 0 || !m_pLodLevels)
 	{
 		return;
 	}

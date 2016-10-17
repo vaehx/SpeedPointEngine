@@ -169,9 +169,9 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(const SCamera* pCamera)
 
 	// TERRAIN	
 	if (IS_VALID_PTR(m_pTerrain) && m_pTerrain->IsInited())
-	{
-		m_pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);	
-	}
+		m_pTerrain->UpdateRenderDesc(&m_TerrainRenderDesc);
+	else
+		m_TerrainRenderDesc.bRender = false;
 
 
 	// SKYBOX
