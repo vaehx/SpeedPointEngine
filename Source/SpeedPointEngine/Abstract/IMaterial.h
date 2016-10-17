@@ -30,17 +30,10 @@ struct S_API SInitialGeometryDesc;
 // Material Layer
 struct S_API SMaterialLayer
 {
-	SShaderResources resources;
-
-	SMaterialLayer() {}
-	SMaterialLayer(const SMaterialLayer& layer)
-		: resources(layer.resources) {}
-
-	SMaterialLayer& operator =(const SMaterialLayer& layer)
-	{
-		resources = layer.resources;
-		return *this;
-	}
+	string textureMap;
+	string normalMap;
+	string roughnessMap;
+	float roughness; // ignored if roughnessMap valid
 };
 
 
@@ -60,6 +53,8 @@ struct S_API IMaterial
 	
 	// Initially, the material has 1 layer
 	virtual void SetLayerCount(unsigned int layers) = 0;
+
+	virtual unsigned int GetLayerCount() const = 0;
 
 	// returns 0 if index > layer count. Initially, the material has 1 layer
 	virtual SMaterialLayer* GetLayer(unsigned int index) = 0;	

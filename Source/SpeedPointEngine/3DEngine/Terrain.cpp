@@ -585,8 +585,7 @@ S_API void Terrain::SetHeightmap(ITexture* heightmap)
 
 	if (!m_bCustomHeightmapSet && IS_VALID_PTR(m_pVtxHeightMap) && IS_VALID_PTR(m_pRenderer))
 	{
-		IResourcePool* pResources = m_pRenderer->GetResourcePool();
-		pResources->RemoveTexture(m_pVtxHeightMap->GetSpecification());
+		m_pVtxHeightMap->Release();
 	}
 
 	m_pVtxHeightMap = heightmap;
@@ -708,7 +707,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 
 	// Remove old texture, if there was one
 	if (IS_VALID_PTR(m_pVtxHeightMap) && !m_bCustomHeightmapSet)
-		pRes->RemoveTexture(m_pVtxHeightMap->GetSpecification());
+		m_pVtxHeightMap->Release();
 
 	m_bCustomHeightmapSet = false;
 
@@ -1198,8 +1197,8 @@ S_API void Terrain::Clear(void)
 	m_Layers.clear();
 
 
-	if (IS_VALID_PTR(pResources) && IS_VALID_PTR(m_pVtxHeightMap))
-		pResources->RemoveTexture(m_pVtxHeightMap->GetSpecification());
+	if (m_pVtxHeightMap)
+		m_pVtxHeightMap->Release();
 
 	m_pVtxHeightMap = 0;
 }

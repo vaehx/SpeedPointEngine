@@ -1050,7 +1050,7 @@ S_API void* DX11Texture::GetStagedData()
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::Clear(void)
+S_API void DX11Texture::Clear(void)
 {
 	if (IS_VALID_PTR(m_pStagedData))
 		free(m_pStagedData);
@@ -1062,12 +1062,11 @@ S_API SResult DX11Texture::Clear(void)
 
 	m_pLockedData = 0;
 	m_nLockedBytes = 0;
+	m_bLocked = false;
 
 	m_Specification = "???";
 	m_Type = eTEXTURE_R8G8B8A8_UNORM;
 	m_bIsCubemap = false;
-
-	return S_SUCCESS;
 }
 
 

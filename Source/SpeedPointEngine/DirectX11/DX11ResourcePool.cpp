@@ -143,13 +143,19 @@ S_API SResult DX11ResourcePool::AddTexture(const string& specification, ITexture
 
 	DX11Texture* pTexture = m_plTextures.GetBySpecification(specification);
 	if (!pTexture)
+	{
 		m_plTextures.AddItem(&pTexture, specification);
+		pTexture->AddRef();
+	}
 
 	if (Failure(pTexture->CreateEmpty(specification, w, h, mipLevels, ty, clearcolor)))
 		return CLog::Log(S_ERROR, "DX11ResourcePool::AddTexture(): Failed DX11Texture::CreateEmpty()");
 
 	if (pTex)
+	{
 		*pTex = pTexture;
+		pTexture->AddRef();
+	}
 
 	return S_SUCCESS;
 }
@@ -171,6 +177,7 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 		pTexture->LoadFromFile(specification, GetResourcePath(specification));
 	}
 
+	pTexture->AddRef();
 	return pTexture;
 }
 
@@ -191,45 +198,8 @@ S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 			CLog::Log(S_ERROR, "DX11ResourcePool::GetCubeTexture(): Failed DX11Texture::LoadCubemapFromFile()");
 	}
 
+	pTexture->AddRef();
 	return pTexture;
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11ResourcePool::RemoveTexture(const string& specification)
-{
-	if (specification.empty())
-		return CLog::Log(S_INVALIDPARAM, "DX11ResourcePool::RemoveTexture(): Given specification empty");
-
-	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
-	if (pDXTexture)
-	{
-		pDXTexture->Clear();
-		return S_SUCCESS;
-	}
-	else
-	{
-		return S_NOTFOUND;
-	}
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11ResourcePool::RemoveTexture(ITexture** pTex)
-{
-	if (!pTex)
-		return S_INVALIDPARAM;
-
-	DX11Texture* pDXTexture = dynamic_cast<DX11Texture*>(*pTex);
-	if (pDXTexture)
-	{
-		// Make sure the texture is in the pool
-		ChunkSlot<DX11Texture>* pSlot = m_plTextures.GetSlot(pDXTexture);
-		if (pSlot)
-			pDXTexture->Clear();
-	}
-
-	*pTex = 0;
-
-	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------

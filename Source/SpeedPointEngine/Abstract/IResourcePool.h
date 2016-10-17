@@ -28,7 +28,6 @@ public:
 	virtual SResult	ClearAll(void) = 0;
 
 
-
 	virtual SResult	AddVertexBuffer(IVertexBuffer** pVBuffer) = 0;
 
 	// Remove VB by given ptr. After deletion the ptr is set to 0
@@ -71,16 +70,6 @@ public:
 	// Parameters:
 	//		file - the name/path of the texture file relative to the set resource base path:   "assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp"
 	virtual ITexture* GetCubeTexture(const string& file) = 0;
-
-	// Summary:
-	//		Removes the given texture from memory
-	//		Pointers to this texture will NOT be invalided, but the texture object will be
-	//		cleared and reused later, if the same specification will be used again.
-	virtual SResult RemoveTexture(const string& specification) = 0;
-
-	// Summary:
-	//		Removs the given texture from memory and sets *pTex to nullptr
-	virtual SResult RemoveTexture(ITexture** pTex) = 0;
 
 
 

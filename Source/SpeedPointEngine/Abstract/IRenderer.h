@@ -282,7 +282,7 @@ struct S_API SRenderDesc
 	void Clear()
 	{
 		if (IS_VALID_PTR(pSubsets))
-			delete[] pSubsets;	
+			delete[] pSubsets;
 
 		pSubsets = 0;
 		nSubsets = 0;

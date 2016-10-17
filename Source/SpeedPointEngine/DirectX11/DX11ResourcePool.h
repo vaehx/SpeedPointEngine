@@ -37,7 +37,6 @@ public:
 	virtual SResult ClearAll();
 
 
-
 	virtual SResult AddVertexBuffer(IVertexBuffer** pVBuffer);	
 	virtual SResult RemoveVertexBuffer(IVertexBuffer** pVB);
 
@@ -51,11 +50,6 @@ public:
 	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT miplevels = 1, const ETextureType& ty = eTEXTURE_R8G8B8A8_UNORM, const SColor& clearcolor = SColor());
 	virtual ITexture* GetTexture(const string& specification);
 	virtual ITexture* GetCubeTexture(const string& file);
-	virtual SResult RemoveTexture(const string& specification);
-	virtual SResult RemoveTexture(ITexture** pTex);
-
-
-
 	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);
 	virtual void ListTextures(vector<string>& list) const;
 };

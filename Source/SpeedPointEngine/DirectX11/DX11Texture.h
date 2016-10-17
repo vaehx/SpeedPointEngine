@@ -86,18 +86,32 @@ private:
 
 	void* m_pStagedData;
 
+	unsigned int m_RefCount;
+
+	void Clear();
+
 public:		
 	DX11Texture();
 
 	~DX11Texture();
 	
+	virtual void AddRef() { m_RefCount++; }
+	virtual void Release()
+	{
+		if (m_RefCount > 0 && !IsLocked())
+		{
+			m_RefCount--;
+			if (m_RefCount == 0)
+				Clear();
+		}
+	}
+
 
 	// Initialization
 public:
 	virtual SResult LoadFromFile(const string& specification, const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0);
 	virtual SResult LoadCubemapFromFile(const string& specification, const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0);
 	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
-	virtual SResult Clear(void);
 
 
 	// Status queries
@@ -116,6 +130,7 @@ public:
 public:
 	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0);
 	virtual SResult Unlock();
+	virtual bool IsLocked() const { return m_bLocked; }
 
 	virtual SResult Fill(SColor color);
 	virtual SResult SampleStaged(const Vec2f& texcoords, void* pData) const;

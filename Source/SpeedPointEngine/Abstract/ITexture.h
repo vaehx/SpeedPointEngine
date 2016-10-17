@@ -56,8 +56,10 @@ enum S_API ECubemapSide
 // SpeedPoint Texture Resource
 struct S_API ITexture
 {
-	// Initialization
 public:
+	virtual void AddRef() = 0;
+	virtual void Release() = 0;
+
 	// Summary:
 	//		Load the texture contents from a file.
 	//		If the texture is already initialized, it will clear existing texture contents!
@@ -80,10 +82,6 @@ public:
 	//		Initialize an empty texture with specified size and type and fill it with clearcolor.
 	//		If type is a depth map, then clearcolor.r is used to fill.
 	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor) = 0;
-
-	// Summary:
-	//		Clears the texture contents, such that IsInitialized() will return false
-	virtual SResult Clear(void) = 0;
 
 
 	// Status queries

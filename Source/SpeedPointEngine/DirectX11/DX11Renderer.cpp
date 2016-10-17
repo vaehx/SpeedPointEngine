@@ -752,7 +752,7 @@ S_API IFontRenderer* DX11Renderer::InitFontRenderer()
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::Shutdown(void)
 {
-	m_DummyTexture.Clear();
+	m_DummyTexture.Release();
 
 	if (IS_VALID_PTR(m_pResourcePool))
 	{
@@ -798,8 +798,8 @@ S_API SResult DX11Renderer::Shutdown(void)
 	m_SceneConstants.Clear();
 	m_TerrainConstants.Clear();
 
-	m_DummyTexture.Clear();
-	m_DummyNormalMap.Clear();
+	m_DummyTexture.Release();
+	m_DummyNormalMap.Release();
 
 	// Reset bound-resources cache
 	memset(m_BoundVSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);

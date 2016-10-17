@@ -78,27 +78,9 @@ S_API void Material::Clear()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 S_API MaterialManager::MaterialManager()
 {
-	SShaderResources& resources = m_DefMat.GetLayer(0)->resources;
-	//resources.textureMap = ...;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -106,37 +88,24 @@ S_API void MaterialManager::LoadMaterialBank(const string& smbFile)
 {
 	vector<SSMBMaterial> loadedMaterials;
 	CSMBLoader smbLoader;
-
-	IResourcePool* pResources = SpeedPointEnv::GetEngine()->GetResources();
-	
 	smbLoader.ReadSMBFile(smbFile.c_str(), loadedMaterials);
 	for (auto& itMaterial = loadedMaterials.begin(); itMaterial != loadedMaterials.end(); ++itMaterial)
 	{		
 		IMaterial* pNewMat = GetMaterial(itMaterial->name.c_str());
-		SShaderResources& resources = pNewMat->GetLayer(0)->resources;		
-		resources.roughness = itMaterial->roughness;
-		resources.diffuse = itMaterial->diffuse;
-		resources.emissive = itMaterial->emissive;
+		
+		SMaterialLayer* layer = pNewMat->GetLayer(0);
+		layer->roughness = itMaterial->roughness;
+		layer->textureMap = itMaterial->textureMap;
+		layer->normalMap = itMaterial->normalMap;
+		layer->roughnessMap = itMaterial->roughnessMap;
+		// ...
 
-		if (IS_VALID_PTR(pResources))
-		{			
-			resources.textureMap = pResources->GetTexture(itMaterial->textureMap);
-			resources.normalMap = pResources->GetTexture(itMaterial->normalMap);
-			
-			
-			// TODO: Copy further material properties and textures
-			// ...
-				
-
-		}
-
-		CLog::Log(S_DEBUG, "Loaded material '%s'", itMaterial->name.c_str());
-		CLog::Log(S_DEBUG, "  textureMap = '%s'", itMaterial->textureMap.c_str());
-	}
-
-	if (!IS_VALID_PTR(pResources))
-	{
-		CLog::Log(S_ERROR, "Unable to load textures for materials of material bank file '%s'! Resource pool invalid", smbFile.c_str());
+		CLog::Log(S_DEBUG, "Loaded mat '%s' (tm='%s',nm='%s',rm='%s',roughness=%.2f)",
+			itMaterial->name.c_str(),
+			layer->textureMap.c_str(),
+			layer->normalMap.c_str(),
+			layer->roughnessMap.c_str(),
+			layer->roughness);
 	}
 }
 
@@ -182,10 +151,8 @@ S_API IMaterial* MaterialManager::GetMaterial(const string& name)
 ///////////////////////////////////////////////////////////////////////////////////////////
 S_API void MaterialManager::RemoveMaterial(const string& name)
 {
-	Material* pMat = dynamic_cast<Material*>(FindMaterial(name));
-	
-	if (IS_VALID_PTR(pMat))
-		m_Materials.Release(&pMat);
+	IMaterial* pMat = FindMaterial(name);
+	RemoveMaterial(&pMat);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -225,7 +192,5 @@ S_API void MaterialManager::Clear()
 {
 	m_Materials.Clear();
 }
-
-
 
 SP_NMSPACE_END

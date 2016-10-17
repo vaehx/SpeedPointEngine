@@ -2,6 +2,7 @@
 #include <Abstract\RenderMesh.h>
 #include <Abstract\IVertexBuffer.h>
 #include <Abstract\IMaterial.h>
+#include <Abstract\IResourcePool.h>
 
 SP_NMSPACE_BEG
 
@@ -21,6 +22,17 @@ S_API void CRenderMesh::Clear()
 
 	m_pGeometry = 0;
 
+	if (m_RenderDesc.nSubsets > 0 && m_RenderDesc.pSubsets)
+	{
+		for (unsigned int i = 0; i < m_RenderDesc.nSubsets; ++i)
+		{
+			SShaderResources& sr = m_RenderDesc.pSubsets[i].shaderResources;
+			if (sr.textureMap) sr.textureMap->Release();
+			if (sr.normalMap) sr.normalMap->Release();
+			if (sr.roughnessMap) sr.roughnessMap->Release();
+		}
+	}
+
 	m_RenderDesc.Clear();
 }
 
@@ -30,6 +42,8 @@ S_API SResult CRenderMesh::Init(const SRenderMeshParams& params)
 {
 	IRenderer* pRenderAPI = SpeedPointEnv::GetEngine()->GetRenderer();
 	SP_ASSERTR(IS_VALID_PTR(pRenderAPI), S_ERROR, "RenderAPI not initialized");
+
+	IResourcePool* pRes = pRenderAPI->GetResourcePool();
 
 	Clear();
 
@@ -98,20 +112,30 @@ S_API SResult CRenderMesh::Init(const SRenderMeshParams& params)
 			renderSubset.drawCallDesc.iEndVBIndex = renderSubset.drawCallDesc.pVertexBuffer->GetVertexCount() - 1;
 		}
 
-		// Material is copied over. Warning: Avoid modifying the material during rendering.
-		//TODO: To update a material, implement a method to flag a subset material to be updated,
-		//TODO:		then do it below when updating the transform.
-		if (subset->pMaterial)
+		// Load material or use default
+		IMaterial* mat = subset->pMaterial;
+		if (!mat)
 		{
-			renderSubset.shaderResources = subset->pMaterial->GetLayer(0)->resources;
-		}
-		else
-		{
+			// try to get default material, may still result 0
 			IMaterialManager* pMatMgr = SpeedPointEnv::GetEngine()->GetMaterialManager();
 			if (IS_VALID_PTR(pMatMgr))
+				mat = pMatMgr->GetDefaultMaterial();
+		}
+
+		if (mat)
+		{
+			// Material is copied over. Warning: Avoid modifying the material during rendering.
+			//TODO: To update a material, implement a method to flag a subset material to be updated,
+			//TODO:		then do it below when updating the transform.
+
+			SMaterialLayer* matLayer = mat->GetLayer(0);
+			renderSubset.shaderResources.roughness = matLayer->roughness;
+
+			if (pRes)
 			{
-				IMaterial* pDefMat = pMatMgr->GetDefaultMaterial();
-				renderSubset.shaderResources = pDefMat->GetLayer(0)->resources;
+				renderSubset.shaderResources.textureMap = pRes->GetTexture(matLayer->textureMap);
+				renderSubset.shaderResources.normalMap = pRes->GetTexture(matLayer->normalMap);
+				renderSubset.shaderResources.roughnessMap = pRes->GetTexture(matLayer->textureMap);
 			}
 		}
 	}

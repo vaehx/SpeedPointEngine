@@ -39,6 +39,7 @@ public:
 	virtual const string& GetName() const;
 	
 	virtual void SetLayerCount(unsigned int layers);
+	virtual unsigned int GetLayerCount() const { return m_nLayers; }
 	virtual SMaterialLayer* GetLayer(unsigned int index);
 
 	virtual void Clear();
