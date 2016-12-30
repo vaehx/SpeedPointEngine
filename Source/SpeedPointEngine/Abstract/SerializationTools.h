@@ -6,6 +6,11 @@
 #include <string>
 using std::string;
 
+#include <map>
+using std::map;
+
+#include <climits>
+
 namespace SpeedPoint
 {
 	// --------------------------------------------------------------------------------------------
@@ -19,15 +24,15 @@ namespace SpeedPoint
 		return (b ? "true" : "false");
 	}
 
-	inline static string SerializeUInt(unsigned int u)
-	{
-		return std::to_string(u);
-	}
+#define SerializeShort(s) std::to_string(s)
+#define SerializeUShort(us) std::to_string(us)
+#define SerializeInt(i) std::to_string(i)
+#define SerializeUInt(ui) std::to_string(ui)
+#define SerializeLong(l) std::to_string(l)
+#define SerializeULong(ul) std::to_string(ul)
 
-	inline static string SerializeFloat(float f)
-	{
-		return std::to_string(f);
-	}
+#define SerializeFloat(f) std::to_string(f)
+#define SerializeDouble(d) std::to_string(d)
 
 	inline static string SerializeString(const string& str)
 	{
@@ -40,7 +45,7 @@ namespace SpeedPoint
 		return expr;
 	}
 
-	inline static string SerializeVector(const Vec3f& v)
+	inline static string SerializeVec3f(const Vec3f& v)
 	{
 		static string expr;
 		expr = "(";
@@ -52,6 +57,7 @@ namespace SpeedPoint
 		expr += ")";
 		return expr;
 	}
+#define SerializeVector SerializeVec3f
 
 	inline static string SerializeQuaternion(const Quat& q)
 	{
@@ -80,14 +86,24 @@ namespace SpeedPoint
 		return (expr == "true");
 	}
 
-	inline static unsigned int DeserializeUInt(const string& expr)
-	{
-		return (unsigned int)strtoul(expr.c_str(), 0, 10);
-	}
+// expr - a std::string
+#define DeserializeNumeric(type, expr) ((unsigned int)strtoul(expr.c_str(), 0, 10))
+
+#define DeserializeShort(expr) DeserializeNumeric(short, expr)
+#define DeserializeUShort(expr) DeserializeNumeric(unsigned short, expr)
+#define DeserializeInt(expr) DeserializeNumeric(int, expr)
+#define DeserializeUInt(expr) DeserializeNumeric(unsigned int, expr)
+#define DeserializeLong(expr) DeserializeNumeric(long, expr)
+#define DeserializeULong(expr) DeserializeNumeric(unsigned long, expr)
 
 	inline static float DeserializeFloat(const string& expr)
 	{
 		return (float)atof(expr.c_str());
+	}
+
+	inline static double DeserializeDouble(const string& expr)
+	{
+		return atof(expr.c_str());
 	}
 
 	inline static string DeserializeString(const string& expr)
@@ -98,7 +114,7 @@ namespace SpeedPoint
 			return expr.substr(1, expr.length() - 2);
 	}
 
-	inline static Vec3f DeserializeVector(const string& expr)
+	inline static Vec3f DeserializeVec3f(const string& expr)
 	{
 		// Minimal vector: (0,0,0)
 		if (expr.length() < 7 || expr[0] != '(' || expr[expr.length() - 1] != ')')
@@ -132,6 +148,7 @@ namespace SpeedPoint
 
 		return v;
 	}
+#define DeserializeVector DeserializeVec3f
 
 	inline static Quat DeserializeQuaternion(const string& expr)
 	{
@@ -174,4 +191,48 @@ namespace SpeedPoint
 
 		return q;
 	}
+
+
+
+	// --------------------------------------------------------------------------------------------
+	//
+	// Container
+	//
+	// --------------------------------------------------------------------------------------------
+
+	class S_API ISerContainer
+	{
+	protected:
+		string m_Name;
+
+	public:
+		ISerContainer(const string& name)
+			: m_Name(name)
+		{
+		}
+
+		virtual ~ISerContainer() {}
+
+		virtual const string& GetName() const { return m_Name; }
+		virtual void SetName(const string& name) { m_Name = name; }
+
+		virtual ISerContainer* CreateChildContainer(const string& name) = 0;
+		virtual const vector<ISerContainer*>& GetChildContainers() const = 0;
+		virtual unsigned short GetNumChildren() const = 0;
+		virtual void DestroyChildContainer(const string& name) = 0;
+
+		virtual unsigned short GetNumAttributes() const = 0;
+
+		virtual int GetInt(const string& attrname, int def = INT_MAX) = 0;
+		virtual unsigned int GetUInt(const string& attrname, unsigned int def = UINT_MAX) = 0;
+		virtual float GetFloat(const string& attrname, float def = FLT_MAX) = 0;
+		virtual string GetString(const string& attrname, const string& def = "???") = 0;
+		virtual Vec3f GetVec3f(const string& attrname, const Vec3f& def = Vec3f()) = 0;
+
+		virtual void SetInt(const string& attrname, int val) = 0;
+		virtual void SetUInt(const string& attrname, unsigned int val) = 0;
+		virtual void SetFloat(const string& attrname, float val) = 0;
+		virtual void SetString(const string& attrname, const string& val) = 0;
+		virtual void SetVec3f(const string& attrname, const Vec3f& val) = 0;
+	};
 }

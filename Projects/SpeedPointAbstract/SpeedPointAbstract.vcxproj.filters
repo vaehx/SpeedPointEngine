@@ -29,6 +29,9 @@
     <Filter Include="Sources">
       <UniqueIdentifier>{b5fd5195-ec58-4ce1-af99-f64358835972}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Network">
+      <UniqueIdentifier>{eaa01c5f-352e-492d-8f4c-04cb0f741679}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dummy.cpp">
