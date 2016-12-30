@@ -33,6 +33,9 @@ S_API CEntity::CEntity()
 	m_bTransformInvalid(true),
 	m_Scale(1.0f)
 {
+	RegisterProperty("pos", &m_Pos);
+	RegisterProperty("rot", &m_Rot);
+	RegisterProperty("scale", &m_Scale);
 }
 
 S_API void CEntity::Clear()

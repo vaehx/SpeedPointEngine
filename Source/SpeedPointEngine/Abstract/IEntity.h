@@ -111,6 +111,254 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+enum EEntityPropertyType
+{
+	EP_TYPE_UNDEFINED = 0,
+	EP_TYPE_SIGNED,
+	EP_TYPE_UNSIGNED,
+	EP_TYPE_FLOAT,
+	EP_TYPE_STRING,
+	EP_TYPE_VEC3,
+	EP_TYPE_QUATERNION
+};
+
+
+class EntityProperty
+{
+private:
+	string m_Name;
+	struct {
+		string str;
+		Vec3f vec3;
+		Quat quat;
+		union {
+			long s;
+			unsigned long us;
+			float f;
+		};
+	} m_Value;
+	EEntityPropertyType m_Type;
+	bool m_bPtr;
+	void* m_Ptr;
+
+public:
+	EntityProperty(const string& name)
+		: m_Name(name),
+		m_Type(EP_TYPE_UNDEFINED),
+		m_bPtr(false),
+		m_Ptr(0)
+	{
+	}
+
+	EntityProperty(const string& name, void* ptr, EEntityPropertyType ptrType)
+		: m_Name(name),
+		m_Type(ptrType),
+		m_bPtr(true),
+		m_Ptr(ptr)
+	{
+	}
+
+	EntityProperty(const EntityProperty& prop)
+		: m_Name(prop.m_Name),
+		m_Value(prop.m_Value),
+		m_Type(prop.m_Type),
+		m_bPtr(prop.m_bPtr),
+		m_Ptr(prop.m_Ptr)
+	{
+	}
+
+	const string& GetName() const
+	{
+		return m_Name;
+	}
+
+	EEntityPropertyType GetType() const
+	{
+		return m_Type;
+	}
+
+	void Reset()
+	{
+		m_Type = EP_TYPE_UNDEFINED;
+		m_bPtr = false;
+		m_Ptr = 0;
+	}
+
+	template<typename T>
+	void Set(const T& val);
+
+	// Makes the entity point to the given pointer.
+	// If this property was previously set, this method will do nothing.
+	template<typename T>
+	void Set(T* ptr);
+
+	void Set(const char* val);
+	void Set(float x, float y, float z);
+
+	template<typename T>
+	T Get() const;
+
+	const string& GetString() const
+	{
+		static const string _default = "???";
+		if (m_Type != EP_TYPE_STRING)
+			return _default;
+		if (!m_bPtr)
+			return m_Value.str;
+
+		string* str = reinterpret_cast<string*>(m_Ptr);
+		return (str ? *str : _default);
+	}
+
+	const Vec3f& GetVec3() const
+	{
+		static const Vec3f _default;
+		if (m_Type != EP_TYPE_VEC3)
+			return _default;
+		if (!m_bPtr)
+			return m_Value.vec3;
+
+		Vec3f* vec3 = reinterpret_cast<Vec3f*>(m_Ptr);
+		return (vec3 ? *vec3 : _default);
+	}
+};
+
+
+#define ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
+	template<> void EntityProperty::Set<type>(const type& val) \
+	{ \
+		if (m_Type == EP_TYPE_UNDEFINED || m_Type == typenm) { \
+			if (m_bPtr) { \
+				type* ptr = reinterpret_cast<type*>(m_Ptr); \
+				if (ptr) *ptr = val; \
+			} \
+			else { \
+				m_Value.valnm = val; \
+			} \
+			m_Type = typenm; \
+		} \
+	}
+
+#define ENTITY_PROPERTY_SET_PTR_IMPL(type, typenm) \
+	template<> void EntityProperty::Set<type>(type* ptr) \
+	{ \
+		if (m_Type != EP_TYPE_UNDEFINED) \
+			return; \
+		m_bPtr = true; \
+		m_Ptr = (void*)ptr; \
+		m_Type = typenm; \
+	}
+
+#define ENTITY_PROPERTY_GET_IMPL(type, typenm, valnm, defval) \
+	template<> type EntityProperty::Get<type>() const \
+	{ \
+		static const type _default = defval; \
+		if (m_Type != typenm) \
+			return _default; \
+		if (!m_bPtr) \
+			return (type)m_Value.valnm; \
+		\
+		type* ptr = reinterpret_cast<type*>(m_Ptr); \
+		return (ptr ? *ptr : _default); \
+	}
+
+#define ENTITY_PROPERTY_IMPL(type, typenm, valnm, defval) \
+	ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
+	ENTITY_PROPERTY_SET_PTR_IMPL(type, typenm) \
+	ENTITY_PROPERTY_GET_IMPL(type, typenm, valnm, defval)
+
+
+ENTITY_PROPERTY_IMPL(short, EP_TYPE_SIGNED, s, SHRT_MAX)
+ENTITY_PROPERTY_IMPL(unsigned short, EP_TYPE_UNSIGNED, us, USHRT_MAX)
+ENTITY_PROPERTY_IMPL(int, EP_TYPE_SIGNED, s, INT_MAX)
+ENTITY_PROPERTY_IMPL(unsigned int, EP_TYPE_UNSIGNED, us, UINT_MAX)
+ENTITY_PROPERTY_IMPL(long, EP_TYPE_SIGNED, s, LONG_MAX)
+ENTITY_PROPERTY_IMPL(unsigned long, EP_TYPE_UNSIGNED, us, ULONG_MAX)
+
+ENTITY_PROPERTY_IMPL(float, EP_TYPE_FLOAT, f, FLT_MAX)
+
+ENTITY_PROPERTY_IMPL(std::string, EP_TYPE_STRING, str, "???")
+void EntityProperty::Set(const char* val)
+{
+	Set(std::string(val));
+}
+
+ENTITY_PROPERTY_IMPL(SpeedPoint::Vec3f, EP_TYPE_VEC3, vec3, SpeedPoint::Vec3f())
+void EntityProperty::Set(float x, float y, float z)
+{
+	Set(Vec3f(x, y, z));
+}
+
+ENTITY_PROPERTY_IMPL(SpeedPoint::Quat, EP_TYPE_QUATERNION, quat, SpeedPoint::Quat())
+
+
+class EntityPropertyContainer
+{
+private:
+	map<string, EntityProperty> m_Properties;
+
+	EntityProperty& AddProperty(const string& name)
+	{
+		auto inserted = m_Properties.insert(std::pair<string, EntityProperty>(name, EntityProperty(name)));
+		return inserted.first->second;
+	}
+
+public:
+	const map<string, EntityProperty>* GetProperties() const
+	{
+		return &m_Properties;
+	}
+
+	template<typename T>
+	T GetProperty(const string& name, bool* found = 0) const
+	{
+		auto itFound = m_Properties.find(name);
+		if (itFound == m_Properties.end())
+		{
+			if (found)
+				*found = false;
+			return T();
+		}
+
+		if (found)
+			*found = true;
+		return itFound->second.Get<T>();
+	}
+
+	template<typename T>
+	void SetProperty(const string& name, const T& val)
+	{
+		AddProperty(name).Set(val);
+	}
+
+	template<typename T>
+	void RegisterProperty(const string& name, T* ptr)
+	{
+		AddProperty(name).Set(ptr);
+	}
+
+	void SetProperty(const string& name, const char* val)
+	{
+		AddProperty(name).Set(val);
+	}
+
+	void SetProperty(const string& name, float x, float y, float z)
+	{
+		AddProperty(name).Set(x, y, z);
+	}
+
+	void DeleteProperty(const string& name)
+	{
+		m_Properties.erase(name);
+	}
+
+	bool HasProperty(const string& name) const
+	{
+		return m_Properties.find(name) != m_Properties.end();
+	}
+};
+
+
 
 
 
@@ -120,7 +368,7 @@ public:
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct S_API IEntity
+struct S_API IEntity : public EntityPropertyContainer
 {
 	virtual ~IEntity() {}
 
