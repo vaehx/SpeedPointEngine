@@ -357,4 +357,79 @@ S_API IComponent* CEntity::GetComponentByIndex(unsigned int index) const
 		return 0;
 }
 
+
+
+
+// ----------------------------------------------------------------------------------------------------------
+
+#define ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
+	template<> void EntityProperty::Set<type>(const type& val) \
+	{ \
+		if (m_Type == EP_TYPE_UNDEFINED || m_Type == typenm) { \
+			if (m_bPtr) { \
+				type* ptr = reinterpret_cast<type*>(m_Ptr); \
+				if (ptr) *ptr = val; \
+			} \
+			else { \
+				m_Value.valnm = val; \
+			} \
+			m_Type = typenm; \
+		} \
+	}
+
+#define ENTITY_PROPERTY_SET_PTR_IMPL(type, typenm) \
+	template<> void EntityProperty::Set<type>(type* ptr) \
+	{ \
+		if (m_Type != EP_TYPE_UNDEFINED) \
+			return; \
+		m_bPtr = true; \
+		m_Ptr = (void*)ptr; \
+		m_Type = typenm; \
+	}
+
+#define ENTITY_PROPERTY_GET_IMPL(type, typenm, valnm, defval) \
+	template<> type EntityProperty::Get<type>() const \
+	{ \
+		static const type _default = defval; \
+		if (m_Type != typenm) \
+			return _default; \
+		if (!m_bPtr) \
+			return (type)m_Value.valnm; \
+		\
+		type* ptr = reinterpret_cast<type*>(m_Ptr); \
+		return (ptr ? *ptr : _default); \
+	}
+
+#define ENTITY_PROPERTY_IMPL(type, typenm, valnm, defval) \
+	ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
+	ENTITY_PROPERTY_SET_PTR_IMPL(type, typenm) \
+	ENTITY_PROPERTY_GET_IMPL(type, typenm, valnm, defval)
+
+
+ENTITY_PROPERTY_IMPL(short, EP_TYPE_SIGNED, s, SHRT_MAX)
+ENTITY_PROPERTY_IMPL(unsigned short, EP_TYPE_UNSIGNED, us, USHRT_MAX)
+ENTITY_PROPERTY_IMPL(int, EP_TYPE_SIGNED, s, INT_MAX)
+ENTITY_PROPERTY_IMPL(unsigned int, EP_TYPE_UNSIGNED, us, UINT_MAX)
+ENTITY_PROPERTY_IMPL(long, EP_TYPE_SIGNED, s, LONG_MAX)
+ENTITY_PROPERTY_IMPL(unsigned long, EP_TYPE_UNSIGNED, us, ULONG_MAX)
+
+ENTITY_PROPERTY_IMPL(float, EP_TYPE_FLOAT, f, FLT_MAX)
+
+ENTITY_PROPERTY_IMPL(std::string, EP_TYPE_STRING, str, "???")
+void EntityProperty::Set(const char* val)
+{
+	Set(std::string(val));
+}
+
+ENTITY_PROPERTY_IMPL(SpeedPoint::Vec3f, EP_TYPE_VEC3, vec3, SpeedPoint::Vec3f())
+void EntityProperty::Set(float x, float y, float z)
+{
+	Set(Vec3f(x, y, z));
+}
+
+ENTITY_PROPERTY_IMPL(SpeedPoint::Quat, EP_TYPE_QUATERNION, quat, SpeedPoint::Quat())
+
+
+
+
 SP_NMSPACE_END
