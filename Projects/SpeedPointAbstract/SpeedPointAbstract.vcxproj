@@ -88,6 +88,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IConstantsBuffer.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IDynamicsPipeline.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IEntity.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IEntityClass.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IFBO.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IFont.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IFramePipeline.h" />
