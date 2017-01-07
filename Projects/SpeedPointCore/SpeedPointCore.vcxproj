@@ -17,6 +17,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\Camera.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\MathGeom.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.cpp" />
   </ItemGroup>
   <ItemGroup>
