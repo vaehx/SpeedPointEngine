@@ -33,7 +33,7 @@ namespace SpeedPoint
 	struct S_API IMaterial;
 	struct S_API IMaterialManager;
 	struct S_API ISettings;
-	struct S_API IEntitySystem;
+	struct S_API IEntityReceiptManager;
 	struct S_API IPhysics;
 
 	enum EShaderFileType
@@ -167,6 +167,7 @@ namespace SpeedPoint
 		ILINE virtual IFileLog* GetFileLog() = 0;
 		ILINE virtual ISettings* GetSettings() const = 0;	
 		ILINE virtual IScene* GetScene() const = 0;
+		ILINE virtual IEntityReceiptManager* GetEntityReceiptManager() const = 0;
 		ILINE virtual IMaterialManager* GetMaterialManager() const = 0;
 
 		virtual string GetShaderPath(EShaderFileType shaderFile) const = 0;

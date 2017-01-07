@@ -152,6 +152,7 @@ private:
 	EngineComponent<IMaterialManager> m_pMaterialManager;
 	EngineComponent<I3DEngine> m_p3DEngine;
 	EngineComponent<IPhysics> m_pPhysics;
+	EngineComponent<IEntityReceiptManager> m_pEntityReceiptManager;
 	EngineFileLog m_FileLog;
 	CLogWrapper m_LogWrapper;
 
@@ -236,6 +237,7 @@ public:
 	ILINE virtual CLogWrapper* GetLog() { return &m_LogWrapper; }	
 	ILINE virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 	ILINE virtual IScene* GetScene() const { return m_pScene; }
+	ILINE virtual IEntityReceiptManager* GetEntityReceiptManager() const { return m_pEntityReceiptManager; }
 	ILINE virtual IMaterialManager* GetMaterialManager() const { return m_pMaterialManager; }
 
 //	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }

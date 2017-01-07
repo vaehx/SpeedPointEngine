@@ -13,6 +13,7 @@
 #include "Pipelines\FramePipeline.h"
 #include "Pipelines\RenderPipeline.h"
 #include <GameFacilities\FileSPW.h>
+#include <GameFacilities\EntityReceipt.h>
 #include <3DEngine\Material.h>
 #include <3DEngine\C3DEngine.h>
 #include <Physics\CPhysics.h>
@@ -284,6 +285,8 @@ S_API void SpeedPointEngine::CheckFinishInit()
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::FinishInitialization()
 {
+	m_pEntityReceiptManager.SetOwn(new EntityReceiptManager());
+
 	// Register the framepipeline sections
 	if (!IS_VALID_PTR(m_pRenderer.pComponent)) return S_ERROR;
 	
