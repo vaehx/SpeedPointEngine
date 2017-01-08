@@ -8,12 +8,13 @@
 #include "EntityReceipt.h"
 #include "PhysicalComponent.h"
 #include "RenderableComponent.h"
+#include <Abstract\IPhysics.h>
 
 SP_NMSPACE_BEG
 
 S_API void EntityReceiptManager::AddReceipt(IEntityReceipt* receipt)
 {
-	if (!receipt || receipt->GetName().length() == 0)
+	if (!receipt)
 		return;
 
 	m_Receipts[receipt->GetName()] = receipt;
@@ -77,22 +78,44 @@ namespace EntityReceipts
 
 	// ----------------------------------------------------------------------------------------
 
-	S_API bool Physical::Apply(IEntity* entity) const
+	S_API bool Physical::Apply(IEntity* entity)
 	{
-		entity->CreateComponent<CPhysicalComponent>();
+		if (!entity)
+			return false;
 
-		//TODO: Register properties (using getter & setter)
-
+		IPhysics* pPhysics = SpeedPointEnv::GetEngine()->GetPhysics();
+		CPhysObject* physical = entity->AddComponent(pPhysics->CreatePhysObject());
+		
+		entity->RegisterProperty("mass", physical, &CPhysObject::GetMass);
+		return true;
 	}
 
 
 	// ----------------------------------------------------------------------------------------
 
-	S_API bool Renderable::Apply(IEntity* entity) const
+	S_API bool Renderable::Apply(IEntity* entity)
 	{
-		entity->CreateComponent<CRenderMesh>();
+		if (!entity)
+			return false;
 
-		//TODO: Register properties (using getter & setter)
+		I3DEngine* p3DEngine = SpeedPointEnv::GetEngine()->Get3DEngine();
+		CRenderMesh* renderable = entity->AddComponent(p3DEngine->CreateMesh());
+
+		entity->RegisterProperty("geomFile", this, &Renderable::GetGeomFile, &Renderable::SetGeomFile, renderable);
+		return true;
+	}
+
+	S_API const string& Renderable::GetGeomFile(CRenderMesh* mesh) const
+	{
+		return mesh->GetGeometry()->GetGeomFile();
+	}
+
+	S_API void Renderable::SetGeomFile(const string& geomFile, CRenderMesh* mesh) const
+	{
+
+
+		//TODO: Geometry is currently not yet easily exchangable!
+
 
 	}
 
@@ -105,16 +128,10 @@ namespace EntityReceipts
 		Inherit<Physical>();
 	}
 
-	S_API bool RigidBody::Apply(IEntity* entity) const
+	S_API bool RigidBody::Apply(IEntity* entity)
 	{
-		for (auto itReceipt = m_InheritedReceipts.begin(); itReceipt != m_InheritedReceipts.end(); ++itReceipt)
-		{
-			IEntityReceipt* inheritedReceipt = *itReceipt;
-			if (!inheritedReceipt)
-				continue;
-
-			inheritedReceipt->Apply(entity);
-		}
+		// Apply inherited receipts
+		return IEntityReceipt::Apply(entity);
 	}
 }
 

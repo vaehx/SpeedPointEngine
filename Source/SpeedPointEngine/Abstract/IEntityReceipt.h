@@ -7,10 +7,11 @@
 
 #pragma once
 
-#include "IEntity.h"
 #include "SerializationTools.h"
 
 SP_NMSPACE_BEG
+
+struct S_API IEntity;
 
 /*
 
@@ -55,9 +56,23 @@ public:
 	// Registers properties and creates the necessary components.
 	// This call is propagated recursively to the inherited receipts.
 	// Returns true on success, false on failure.
-	virtual bool Apply(IEntity* entity) const = 0;
+	virtual bool Apply(IEntity* entity)
+	{
+		bool success = true;
+		for (auto itReceipt = m_InheritedReceipts.begin(); itReceipt != m_InheritedReceipts.end(); ++itReceipt)
+		{
+			IEntityReceipt* inheritedReceipt = *itReceipt;
+			if (!inheritedReceipt)
+				continue;
 
-	virtual const string& GetName() const = 0;
+			if (!inheritedReceipt->Apply(entity))
+				success = false;
+		}
+
+		return success;
+	}
+
+	virtual const char* GetName() const = 0;
 
 	virtual const vector<IEntityReceipt*>& GetInheritedReceipts() const
 	{

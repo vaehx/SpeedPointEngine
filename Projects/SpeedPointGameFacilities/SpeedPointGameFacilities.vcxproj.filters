@@ -32,6 +32,9 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Scene.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\EntityReceipt.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctree.cpp">
@@ -50,6 +53,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\EntityReceipt.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

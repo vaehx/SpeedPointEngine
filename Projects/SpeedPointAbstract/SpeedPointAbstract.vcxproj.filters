@@ -237,7 +237,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\SpeedPoint.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IEntityClass.h">
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IEntityReceipt.h">
       <Filter>Headers\GameFacilities</Filter>
     </ClInclude>
   </ItemGroup>

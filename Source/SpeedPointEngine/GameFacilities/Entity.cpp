@@ -36,6 +36,8 @@ S_API CEntity::CEntity()
 	RegisterProperty("pos", &m_Pos);
 	RegisterProperty("rot", &m_Rot);
 	RegisterProperty("scale", &m_Scale);
+	RegisterProperty("aabb", this, &CEntity::GetAABB);
+	RegisterProperty("name", &m_Name);
 }
 
 S_API void CEntity::Clear()
@@ -359,51 +361,174 @@ S_API IComponent* CEntity::GetComponentByIndex(unsigned int index) const
 
 
 
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
-// ----------------------------------------------------------------------------------------------------------
+S_API EntityProperty::EntityProperty(const string& name)
+	: m_Name(name),
+	m_Type(EP_TYPE_UNDEFINED),
+	m_StoreType(EP_STORE_TYPE_PROPERTY),
+	m_Ptr(0),
+	m_pExternal(0)
+{
+}
 
-#define ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
-	template<> void EntityProperty::Set<type>(const type& val) \
-	{ \
-		if (m_Type == EP_TYPE_UNDEFINED || m_Type == typenm) { \
-			if (m_bPtr) { \
-				type* ptr = reinterpret_cast<type*>(m_Ptr); \
-				if (ptr) *ptr = val; \
-			} \
-			else { \
-				m_Value.valnm = val; \
-			} \
-			m_Type = typenm; \
-		} \
-	}
+S_API EntityProperty::EntityProperty(const string& name, void* ptr, EEntityPropertyType ptrType)
+	: m_Name(name),
+	m_Type(ptrType),
+	m_StoreType(EP_STORE_TYPE_REFERENCE),
+	m_Ptr(ptr),
+	m_pExternal(0)
+{
+}
+
+S_API EntityProperty::EntityProperty(const string& name, IExternalEntityProperty* pExternal)
+	: m_Name(name),
+	m_Type(EP_TYPE_UNDEFINED),
+	m_StoreType(EP_STORE_TYPE_EXTERNAL),
+	m_Ptr(0),
+	m_pExternal(pExternal)
+{
+}
+
+S_API EntityProperty::EntityProperty(const EntityProperty& prop)
+	: m_Name(prop.m_Name),
+	m_Value(prop.m_Value),
+	m_Type(prop.m_Type),
+	m_StoreType(prop.m_StoreType),
+	m_Ptr(prop.m_Ptr),
+	m_pExternal(prop.m_pExternal)
+{
+}
+
+S_API EntityProperty::~EntityProperty()
+{
+	Reset();
+}
+
+S_API const string& EntityProperty::GetName() const
+{
+	return m_Name;
+}
+
+S_API EEntityPropertyType EntityProperty::GetType() const
+{
+	return m_Type;
+}
+
+S_API EEntityPropertyStoreType EntityProperty::GetStoreType() const
+{
+	return m_StoreType;
+}
+
+S_API void EntityProperty::Reset()
+{
+	m_Type = EP_TYPE_UNDEFINED;
+	m_StoreType = EP_STORE_TYPE_PROPERTY;
+
+	if (m_pExternal)
+		delete m_pExternal;
+
+	m_pExternal = 0;
+	m_Ptr = 0;
+	m_Value.str = "";
+	m_Value.quat = Quat();
+	m_Value.vec3 = Vec3f();
+	m_Value.us = 0;
+}
+
+
+S_API void EntityProperty::SetExternal(IExternalEntityProperty* external)
+{
+	if (!external)
+		return;
+	if (m_StoreType != EP_STORE_TYPE_PROPERTY)
+		return;
+	m_Type = EP_TYPE_UNDEFINED;
+	m_StoreType = EP_STORE_TYPE_EXTERNAL;
+	m_pExternal = external;
+}
+
 
 #define ENTITY_PROPERTY_SET_PTR_IMPL(type, typenm) \
 	template<> void EntityProperty::Set<type>(type* ptr) \
 	{ \
-		if (m_Type != EP_TYPE_UNDEFINED) \
+		if (m_Type != EP_TYPE_UNDEFINED && m_Type != typenm) \
 			return; \
-		m_bPtr = true; \
-		m_Ptr = (void*)ptr; \
+		if (m_StoreType != EP_STORE_TYPE_PROPERTY) \
+			return; \
 		m_Type = typenm; \
+		m_StoreType = EP_STORE_TYPE_REFERENCE; \
+		m_Ptr = (void*)ptr; \
 	}
 
-#define ENTITY_PROPERTY_GET_IMPL(type, typenm, valnm, defval) \
-	template<> type EntityProperty::Get<type>() const \
+#define ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
+	ENTITY_PROPERTY_SET_PTR_IMPL(type, typenm) \
+	template<> void EntityProperty::Set<type>(const type& val) \
+	{ \
+		if (m_StoreType == EP_STORE_TYPE_EXTERNAL) { \
+			if (m_pExternal) { \
+				/* Type check is done via dynamic_cast here */ \
+				ExternalEntityProperty<type>* extprop = \
+					dynamic_cast<ExternalEntityProperty<type>*>(m_pExternal); \
+				if (extprop) \
+					extprop->Set(val); \
+			} \
+		} \
+		else if (m_Type == EP_TYPE_UNDEFINED || m_Type == typenm) { \
+			m_Type = typenm; \
+			switch (m_StoreType) { \
+				case EP_STORE_TYPE_PROPERTY: \
+					m_Value.valnm = val; \
+					break; \
+				case EP_STORE_TYPE_REFERENCE: { \
+						type* ptr = reinterpret_cast<type*>(m_Ptr); \
+						if (ptr) \
+							*ptr = val; \
+						break; \
+					} \
+				default: \
+					break; \
+			} \
+		} \
+	}
+
+#define ENTITY_PROPERTY_GET_IMPL_BODY(type, typenm, valnm, defval, ExtGetFn) \
 	{ \
 		static const type _default = defval; \
-		if (m_Type != typenm) \
-			return _default; \
-		if (!m_bPtr) \
-			return (type)m_Value.valnm; \
-		\
-		type* ptr = reinterpret_cast<type*>(m_Ptr); \
-		return (ptr ? *ptr : _default); \
+		if (m_StoreType == EP_STORE_TYPE_EXTERNAL) { \
+			if (m_pExternal) { \
+				/* Type check is done via dynamic_cast here */ \
+				ExternalEntityProperty<type>* extprop = \
+					dynamic_cast<ExternalEntityProperty<type>*>(m_pExternal); \
+				if (extprop) \
+					return extprop->ExtGetFn(); \
+			} \
+		} \
+		else if (m_Type == typenm) { \
+			switch (m_StoreType) { \
+				case EP_STORE_TYPE_PROPERTY: \
+					return m_Value.valnm; \
+				case EP_STORE_TYPE_REFERENCE: \
+					return (m_Ptr ? *reinterpret_cast<type*>(m_Ptr) : _default); \
+				default: \
+					break; \
+			} \
+		} \
+		return _default; \
 	}
 
 #define ENTITY_PROPERTY_IMPL(type, typenm, valnm, defval) \
 	ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
-	ENTITY_PROPERTY_SET_PTR_IMPL(type, typenm) \
-	ENTITY_PROPERTY_GET_IMPL(type, typenm, valnm, defval)
+	template<> type EntityProperty::Get<type>() const \
+		ENTITY_PROPERTY_GET_IMPL_BODY(type, typenm, valnm, defval, Get)
+
+#define ENTITY_PROPERTY_IMPL_CREF(type, typenm, valnm, defval, GetFnName) \
+	ENTITY_PROPERTY_SET_IMPL(type, typenm, valnm) \
+	const type& EntityProperty::GetFnName() const \
+		ENTITY_PROPERTY_GET_IMPL_BODY(type, typenm, valnm, defval, GetRef)
+
 
 
 ENTITY_PROPERTY_IMPL(short, EP_TYPE_SIGNED, s, SHRT_MAX)
@@ -412,22 +537,20 @@ ENTITY_PROPERTY_IMPL(int, EP_TYPE_SIGNED, s, INT_MAX)
 ENTITY_PROPERTY_IMPL(unsigned int, EP_TYPE_UNSIGNED, us, UINT_MAX)
 ENTITY_PROPERTY_IMPL(long, EP_TYPE_SIGNED, s, LONG_MAX)
 ENTITY_PROPERTY_IMPL(unsigned long, EP_TYPE_UNSIGNED, us, ULONG_MAX)
-
 ENTITY_PROPERTY_IMPL(float, EP_TYPE_FLOAT, f, FLT_MAX)
+ENTITY_PROPERTY_IMPL(SpeedPoint::Quat, EP_TYPE_QUATERNION, quat, SpeedPoint::Quat())
 
-ENTITY_PROPERTY_IMPL(std::string, EP_TYPE_STRING, str, "???")
+ENTITY_PROPERTY_IMPL_CREF(string, EP_TYPE_STRING, str, "???", GetString)
 void EntityProperty::Set(const char* val)
 {
 	Set(std::string(val));
 }
 
-ENTITY_PROPERTY_IMPL(SpeedPoint::Vec3f, EP_TYPE_VEC3, vec3, SpeedPoint::Vec3f())
+ENTITY_PROPERTY_IMPL_CREF(Vec3f, EP_TYPE_VEC3, vec3, Vec3f(), GetVec3)
 void EntityProperty::Set(float x, float y, float z)
 {
 	Set(Vec3f(x, y, z));
 }
-
-ENTITY_PROPERTY_IMPL(SpeedPoint::Quat, EP_TYPE_QUATERNION, quat, SpeedPoint::Quat())
 
 
 
