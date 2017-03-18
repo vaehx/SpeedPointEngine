@@ -40,7 +40,11 @@ protected:
 		for (auto itReceipt = m_InheritedReceipts.begin(); itReceipt != m_InheritedReceipts.end(); ++itReceipt)
 		{
 			if (*itReceipt && (*itReceipt)->GetName() == receipt->GetName())
+			{
+				// Already inherited, do not add a new one
+				delete receipt;
 				return;
+			}
 		}
 
 		m_InheritedReceipts.push_back(receipt);
