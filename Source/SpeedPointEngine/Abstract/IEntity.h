@@ -499,13 +499,17 @@ protected:
 
 public:
 	IComponent() : m_pEntity(0), m_bTrash(false) {}
-	IComponent(IEntity* pEntity) : m_pEntity(pEntity), m_bTrash(false) { }
+	IComponent(IEntity* pEntity)
+		: m_bTrash(false)
+	{
+		SetEntity(pEntity);
+	}
 
 	// Implement in CEntity.cpp to make this class abstract
 	virtual ~IComponent() = 0;
 
-	// We need this, because we need a standard constructor to be able
-	// to construct the components in the subsystems
+	// This method can be overriden by the component implementation to add
+	// properties to the entity.
 	ILINE virtual void SetEntity(IEntity* pEntity)
 	{
 		m_pEntity = pEntity;
