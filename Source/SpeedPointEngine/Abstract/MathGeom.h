@@ -575,7 +575,7 @@ struct SMeshEdge
 struct SMeshFace
 {
 	SMeshVertex vtx[3];
-	u16 id;	// max 65,536 faces
+	u32 id;
 
 	SMeshFace() {}
 	SMeshFace(const SMeshFace& face) : id(face.id)
@@ -627,259 +627,30 @@ struct SMeshKTree
 		Clear();
 	}
 
-	void Clear()
-	{
-		if (IS_VALID_PTR(pChilds))
-		{
-			for (unsigned int i = 0; i < nChilds; ++i)
-				pChilds[i].Clear();
-
-			delete[] pChilds;
-		}
-
-		pChilds = 0;
-		nChilds = 0;
-	}
+	void Clear();
 
 	// Fills the kTree with Faces.
 	// Will clear previous data
 	// maxDepth - 0 means, this kTree is a leaf, i.e. no childs are added. 	
 	// pFaceIndices - List of indices of faces in the insertFaces array that intersect with aabb
-	inline void Init(const vector<SMeshFace>& insertFaces, const AABB& _aabb, const vector<u16>& faceIndices, EMeshKTreeType _type = eMESH_KTREE_OCTREE, unsigned int maxDepth = 0)
-	{
-		Clear();
-		faces.clear();
-		aabb = _aabb;
+	void Init(const vector<SMeshFace>& insertFaces, const AABB& _aabb, const vector<u32>& faceIndices, EMeshKTreeType _type = eMESH_KTREE_OCTREE, unsigned int maxDepth = 0);
 
-		type = _type;				
-
-		if (maxDepth > 0)
-		{
-			Vec3f vMin = aabb.vMin;
-			Vec3f vMax = aabb.vMax;
-			Vec3f vCenter = vMin + (vMax - vMin) * 0.5f;			
-
-			unsigned int k = MESH_KTREE_CHILDS_COUNT(type);
-
-			//
-			//
-			// TODO: Check if stack overflow is possible !!!!! - Stack is much faster though!
-			//
-			//
-			AABB *pChildAABBs = new AABB[MESH_KTREE_MAX_CHILDS];
-
-			switch (type)
-			{
-			case eMESH_KTREE_QUADTREE:
-				pChildAABBs[0] = AABB(vMin, Vec3f(vCenter.x, vMax.y, vCenter.z));
-				pChildAABBs[1] = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
-				pChildAABBs[2] = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
-				pChildAABBs[3] = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
-				break;
-
-			case eMESH_KTREE_OCTREE:
-				pChildAABBs[0] = AABB(vMin, vCenter);
-				pChildAABBs[1] = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vCenter.y, vMax.z));
-				pChildAABBs[2] = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vCenter.y, vMax.z));
-				pChildAABBs[3] = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vCenter.y, vCenter.z));
-				pChildAABBs[4] = AABB(Vec3f(vMin.x, vCenter.y, vMin.z), Vec3f(vCenter.x, vMax.y, vCenter.z));
-				pChildAABBs[5] = AABB(Vec3f(vMin.x, vCenter.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
-				pChildAABBs[6] = AABB(Vec3f(vCenter.x, vCenter.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
-				pChildAABBs[7] = AABB(Vec3f(vCenter.x, vCenter.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
-				break;
-			}			
-
-			// Determine faces per child first. This way, we only create those childs with any face in it.
-
-			//
-			//
-			// TODO: Check if stack overflow is possible !!!! - Stack is much faster though!
-			//
-			//
-			vector<u16> pChildFaces[MESH_KTREE_MAX_CHILDS];
-
-			unsigned long numIntersections = 0;
-
-			int numFilledChilds = 0;
-			for (auto itFaceIndex = faceIndices.begin(); itFaceIndex != faceIndices.end(); ++itFaceIndex)
-			{
-				const SMeshFace& face = insertFaces[*itFaceIndex];
-
-				// For each child
-				for (unsigned int i = 0; i < k; ++i)
-				{
-					Vec3f v0 = MESHVERTEX_TO_VEC3F(face.vtx[0]);
-					Vec3f v1 = MESHVERTEX_TO_VEC3F(face.vtx[1]);
-					Vec3f v2 = MESHVERTEX_TO_VEC3F(face.vtx[2]);
-
-					if (pChildAABBs[i].HitsLineSegment(v0, v1) || pChildAABBs[i].HitsLineSegment(v1, v2) || pChildAABBs[i].HitsLineSegment(v2, v0))
-					{
-						numIntersections++;
-
-						// This is the first face we found, that intersects with this child. So we have another child to create.
-						if (pChildFaces[i].size() == 0)
-							++numFilledChilds;
-
-						pChildFaces[i].push_back(*itFaceIndex);
-					}
-				}
-			}			
-
-			if (numFilledChilds > 0)
-			{
-				pChilds = new SMeshKTree[numFilledChilds];
-				nChilds = 0; // will be set to the actual number of childs
-
-				for (unsigned int i = 0; i < k; ++i)
-				{
-					// Do not create the child if there are no faces in it
-					if (pChildFaces[i].size() == 0)
-						continue;
-
-					pChilds[nChilds].Init(insertFaces, pChildAABBs[i], pChildFaces[i], type, maxDepth - 1);
-					nChilds++;
-				}
-			}
-
-			delete[] pChildAABBs;
-			//delete[] pChildFaces;
-		}
-		else
-		{
-			faces.reserve(faceIndices.size());			
-
-			// Insert faces
-			for (auto itFaceIndex = faceIndices.begin(); itFaceIndex != faceIndices.end(); itFaceIndex++)
-			{
-				faces.push_back(insertFaces[*itFaceIndex]);
-				faces.back().id = *itFaceIndex;
-			}
-		}
-	}
-
-	inline void GetIntersectingLeafs(const AABB& operand, vector<SMeshKTree*>& leafs)
-	{
-		// Cancel search early, as this is definitely not a subtree in interest
-		if (!aabb.Intersects(operand))
-			return;
-
-		if (IsLeaf())
-		{
-			leafs.push_back(this);
-			return;
-		}
-
-		for (unsigned int i = 0; i < nChilds; ++i)
-		{
-			pChilds[i].GetIntersectingLeafs(operand, leafs);
-		}
-	}
+	void GetIntersectingLeafs(const AABB& operand, vector<SMeshKTree*>& leafs);
 
 	// Fills array with possibly intersecting faces.
 	// This is an object-level broadphase algorithm to increase intersection performance between a mesh
 	// and any other collision shape.
 	//
 	// Warning: This function assumes that the id's of the faces are set correctly and are unique!
-	inline void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const SMatrix& transform = SMatrix(), vector<u16>& foundIntersecting = vector<u16>()) const
-	{
-		if (!aabb.Intersects(operand))
-			return;
+	void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const SMatrix& transform = SMatrix(), vector<u16>& foundIntersecting = vector<u16>()) const;
 
-		if (IsLeaf())
-		{
-			// Assuming 1/4th is intersecting
-			foundIntersecting.reserve(foundIntersecting.size() + (unsigned int)((float)faces.size() * 0.25f));
-
-			// Add all new faces to the intersecting array
-			vector<SMeshFace>::const_iterator faceEnd = faces.end();
-			for (auto& itFace = faces.begin(); itFace != faceEnd; itFace++)
-			{
-				bool alreadyFound = false;
-				vector<u16>::iterator foundEnd = foundIntersecting.end();
-				for (auto& itFound = foundIntersecting.begin(); itFound != foundEnd; ++itFound)
-				{
-					if (*itFound == itFace->id)
-					{
-						alreadyFound = true;
-						break;
-					}
-				}
-
-				// Add the face if not yet in the intersecting array
-				if (!alreadyFound)
-				{
-
-
-					// TODO:
-					//
-					//	Try if the following approach speeds up the search:
-					//		Determine simple AABB from the face and check if it intersects the operand (this check should be fast enough)
-					//		If they these AABBs do definitely not intersect, we can avoid copying the face!
-
-
-
-					intersecting.push_back(&(*itFace));
-					foundIntersecting.push_back(itFace->id);
-				}
-			}
-		}
-		else
-		{
-			for (unsigned int i = 0; i < nChilds; ++i)
-			{
-				pChilds[i].GetIntersectingFaces(operand, intersecting, transform, foundIntersecting);
-			}
-		}
-	}
-
-	inline bool IsLeaf() const
-	{
-		return nChilds == 0 || !IS_VALID_PTR(pChilds);
-	}
+	bool IsLeaf() const;
 
 	// Multiplies each vertex with this matrix
-	inline void TransformVertices(const SMatrix& matrix)
-	{
-		if (IsLeaf())
-		{
-			for (auto itFace = faces.begin(); itFace != faces.end(); ++itFace)
-			{
-				for (int i = 0; i < 3; ++i)
-				{
-					Vec4f vec(itFace->vtx[i].x, itFace->vtx[i].y, itFace->vtx[i].z, 1.f);
-					vec = matrix * vec;
-					itFace->vtx[i].x = vec.x;
-					itFace->vtx[i].y = vec.y;
-					itFace->vtx[i].z = vec.z;
-				}
-			}
-		}
-		else
-		{
-			if (!IS_VALID_PTR(pChilds))
-				return;
-
-			for (unsigned int iChild = 0; iChild < nChilds; ++iChild)
-			{
-				pChilds[iChild].TransformVertices(matrix);
-			}
-		}
-	}
+	void TransformVertices(const SMatrix& matrix);
 
 	// Sets the given minY and maxY as the min/max values for ALL aabb's in the kTree
-	inline void UpdateAABBHeights(float minY, float maxY)
-	{
-		aabb.vMin.y = minY;
-		aabb.vMax.y = maxY;
-
-		if (!IsLeaf())
-		{
-			for (unsigned int iChild = 0; iChild < nChilds; ++iChild)
-			{
-				pChilds[iChild].UpdateAABBHeights(minY, maxY);
-			}
-		}
-	}
+	void UpdateAABBHeights(float minY, float maxY);
 };
 
 // Provides a structure to store a general-purpose mesh.
@@ -890,20 +661,20 @@ struct SMesh
 	vector<SMeshFace> faces;
 
 	// maxDepth - 0 means that the root kTree is a single leaf
-	void Init(const vector<SMeshFace>& faces, const AABB& aabb, EMeshKTreeType kTreeType = eMESH_KTREE_OCTREE, unsigned int maxDepth = 3)
+	void Init(const vector<SMeshFace>& meshFaces, const AABB& aabb, EMeshKTreeType kTreeType = eMESH_KTREE_OCTREE, unsigned int maxDepth = 3)
 	{
 		// Save all faces for later access
 		// TODO: Remove this again - this was just for debugging purposes
-		this->faces.insert(this->faces.end(), faces.begin(), faces.end());
+		//this->faces.insert(this->faces.end(), faces.begin(), faces.end());
 
 
-		vector<u16> faceIndices;
-		faceIndices.resize(faces.size());
-		for (u16 i = 0; i < (u16)faces.size(); ++i)
+		vector<u32> faceIndices;
+		faceIndices.resize(meshFaces.size());
+		for (u32 i = 0; i < (u32)meshFaces.size(); ++i)
 			faceIndices[i] = i;
 
-		CLog::Log(S_DEBUG, "Initializing kTree with %u faces,  maxDepth = %u", faces.size(), maxDepth);
-		kTree.Init(faces, aabb, faceIndices, kTreeType, maxDepth);
+		CLog::Log(S_DEBUG, "Initializing kTree with %u faces,  maxDepth = %u", meshFaces.size(), maxDepth);
+		kTree.Init(meshFaces, aabb, faceIndices, kTreeType, maxDepth);
 
 		CLog::Log(S_DEBUG, "Done. kTree.nChilds = %u    kTree.faces.size() = %u", kTree.nChilds, kTree.faces.size());
 	}

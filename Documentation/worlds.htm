@@ -1,0 +1,30 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+<h1>Worlds</h1>
+<p>
+	SpeedPoint stores worlds in the .spw file format, which is implemented in the GameFacilities/FileSPW module.<br />
+	To load a world:
+<pre>
+// This call will automatically clear all existing objects in the world
+engine->LoadWorld("F:\\CallOfDoody\\Workspace\\terminal.spw");
+</pre>
+</p>
+
+<h1>Workspaces</h1>
+<p>
+	Handosn works with Workspaces, which can be seen as a directory scope of a project.<br />
+	All pathes to resources/assets will be relative to the workspace root.
+</p>
+<p>
+	<b>World files MUST be stored directly inside the workspace root directory</b><br />
+	This is because <code>SpeedPointEngine::LoadWorld(const string& file)</code> determines the root directory for
+	resources by finding the last occurence of a backslash (\) in the given world path.
+	<div class="todo">TODO: Fix this, this is terrible!</div>
+</p>
+
+</body>
+</html>

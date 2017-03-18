@@ -10,5 +10,37 @@
 Entities can either own high-level components (<code>ent->CreateComponent<MyWeapon>()</code>) or have a low-level components
 (<code>ent->AddComponent(p3DEngine->CreateMesh())</code>).</p>
 
+<p>
+This is an example of the structure for the RenderMesh component:<br />
+<img src="img/cd_render_mesh.png" /><br />
+</p>
+
+<p>
+To create an entity with a RenderMesh from existing geometry in code:<br />
+<pre>
+SInitialGeometryDesc geom;
+// Setup geom here...
+
+IEntity* entity = scene->SpawnEntity();
+entity->AddComponent(engine->Get3DEngine()->CreateMesh(SRenderMeshParams(&geom)));
+</pre>
+</p>
+
+<p>
+To load a model and spawn a new entity for it:<br />
+<pre>
+IEntity* entity = scene->LoadObjectFromFile("weapon.spm", "player-weapon");
+</pre>
+</p>
+
+<p>
+You can attach entities to other entities as a child:<br />
+<pre>
+IEntity *playerEntity, *weapon;
+...
+playerEntity->AddChild(weapon);
+</pre>
+</p>
+
 </body>
 </html>

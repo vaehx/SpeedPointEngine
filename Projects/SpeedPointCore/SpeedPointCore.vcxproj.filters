@@ -33,6 +33,9 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.cpp">
       <Filter>Sources\Pipelines</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\MathGeom.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.h">
