@@ -285,7 +285,11 @@ S_API void SpeedPointEngine::CheckFinishInit()
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::FinishInitialization()
 {
+	// Initialize entity receipts
 	m_pEntityReceiptManager.SetOwn(new EntityReceiptManager());
+	m_pEntityReceiptManager->RegisterReceipt<EntityReceipts::Renderable>();
+	m_pEntityReceiptManager->RegisterReceipt<EntityReceipts::Physical>();
+	m_pEntityReceiptManager->RegisterReceipt<EntityReceipts::RigidBody>();
 
 	// Register the framepipeline sections
 	if (!IS_VALID_PTR(m_pRenderer.pComponent)) return S_ERROR;
