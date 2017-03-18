@@ -1,10 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	SpeedPoint Game Engine
-//	This file is part of the SpeedPoint Game Engine
-//
-//	(c) 2011-2014 Pascal R. aka iSmokiieZz
-//	All rights reserved.
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15,70 +12,17 @@
 #include <Abstract\IRenderer.h>
 #include <Abstract\IFont.h>
 #include <Abstract\I3DEngine.h>
-#include <Abstract\ILog.h>
 #include <Abstract\SPrerequisites.h>
-#include <fstream>
-#include <deque>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
-
-using std::deque;
 
 SP_NMSPACE_BEG
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// forward declarations
-
 struct S_API IViewport;
 struct S_API IRenderer;
+class S_API FileLogListener;
 
-
-
-class S_API EngineFileLog : public IFileLog
-{
-private:
-	struct Line
-	{
-		string text;
-	};
-
-	ELogLevel m_LogLevel;	
-	std::ofstream m_LogFile;
-	std::vector<IFileLogHandler*> m_LogHandlers;
-	deque<Line> m_IOQueue;
-
-public:
-	~EngineFileLog() {}
-
-	virtual void Clear();
-	virtual SResult SetLogFile(const string& file);
-	virtual SResult RegisterLogHandler(IFileLogHandler* pLogHandler);
-	virtual SResult SetLogLevel(ELogLevel loglevel);
-	virtual ELogLevel GetLogLevel() const;
-	virtual SResult Log(SResult res, const string& msg);
-	virtual void ReleaseIOQueue();
-};
-
-class CLogWrapper
-{
-public:
-	SResult Log(SResult res, const string& msg)
-	{
-		return CLog::Log(res, msg);
-	}
-	SResult LogE(const string& msg) { return Log(S_ERROR, msg); }
-	SResult LogI(const string& msg) { return Log(S_INFO, msg); }
-	SResult LogW(const string& msg) { return Log(S_WARN, msg); }
-	SResult LogD(const string& msg) { return Log(S_DEBUG, msg); }
-
-	SResult SetLogLevel(ELogLevel logLevel)
-	{
-		return S_SUCCESS;
-	}
-};
-
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T> struct S_API EngineComponent
 {
@@ -133,9 +77,11 @@ template<typename T> struct S_API EngineComponent
 	ILINE T* operator ->() const { return pComponent; }
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 // SpeedPoint Game Engine contains all parts of the default SpeedPoint Engine components (Frame, Physics, Rendering, ...)
 // If you want to use custom components you can either hook your components into the other components
-class S_API SpeedPointEngine : public IExceptionProxy, public IGameEngine, public ILogListener
+class S_API SpeedPointEngine : public IGameEngine
 {
 private:	
 	IApplication*		m_pApplication;
@@ -153,15 +99,15 @@ private:
 	EngineComponent<I3DEngine> m_p3DEngine;
 	EngineComponent<IPhysics> m_pPhysics;
 	EngineComponent<IEntityReceiptManager> m_pEntityReceiptManager;
-	EngineFileLog m_FileLog;
-	CLogWrapper m_LogWrapper;
+	EngineComponent<FileLogListener> m_pFileLogListener;
 
 	std::vector<IShutdownHandler*> m_ShutdownHandlers;	
 
 	void CheckFinishInit();
 
-public:
-	SpeedPointEngine();
+public:	
+	SpeedPointEngine(const char* logFileName);
+	SpeedPointEngine() : SpeedPointEngine("SpeedPoint.log") {}
 	virtual ~SpeedPointEngine();
 
 
@@ -185,7 +131,6 @@ public:
 	virtual SResult Initialize3DEngine(I3DEngine* p3DEngine, bool bManageDealloc = true);
 	virtual SResult InitializeFontRenderer();
 	virtual SResult InitializeResourcePool(IMaterialManager* pMatMgr, bool bManageDealloc = true);
-	virtual SResult InitializeLogger(IFileLogHandler* pCustomLogHandler = 0);
 	virtual SResult InitializePhysics();
 	virtual SResult InitializeScene(IScene* pScene);
 
@@ -200,26 +145,6 @@ public:
 	virtual void ResumeBudgetTimer(unsigned int id);
 	virtual void StopBudgetTimer(unsigned int id);
 
-// Logging methods
-public:	
-	virtual SResult LogReport(const SResult& res, const string& msg);
-	virtual SResult LogE(const string& msg);
-	virtual SResult LogW(const string& msg);
-	virtual SResult LogI(const string& msg);
-	virtual SResult LogD(const string& msg, SResultType defRetVal = S_DEBUG);
-	virtual void LogD(const SMatrix4& mtx, const string& mtxname);
-	virtual void LogD(const SVector3& vec, const string& vecname);
-	virtual void LogD(bool b, const string& boolname);
-	virtual void LogD(unsigned int i, const string& intname);
-	virtual void LogD(float f, const string& floatname);
-	virtual void LogD(const string& str, const string& strname);
-
-	// Implement IExceptionProxy methods
-	virtual void HandleException(char* msg);	
-
-	// Implement ILogListener
-	virtual void OnLog(SResult res, const string& msg);
-
 public:
 	virtual bool IsRunning() const
 	{
@@ -233,8 +158,6 @@ public:
 	ILINE virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
 	ILINE virtual IFontRenderer* GetFontRenderer() const { return m_pFontRenderer; }
 	ILINE virtual IResourcePool* GetResources() const { return m_pResourcePool; }
-	ILINE virtual IFileLog* GetFileLog() { return &m_FileLog; }	
-	ILINE virtual CLogWrapper* GetLog() { return &m_LogWrapper; }	
 	ILINE virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 	ILINE virtual IScene* GetScene() const { return m_pScene; }
 	ILINE virtual IEntityReceiptManager* GetEntityReceiptManager() const { return m_pEntityReceiptManager; }
@@ -247,6 +170,5 @@ public:
 
 	virtual void LoadWorld(const string& file);
 };
-
 
 SP_NMSPACE_END

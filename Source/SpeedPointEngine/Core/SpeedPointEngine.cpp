@@ -1,17 +1,12 @@
-// *******************************************************************************************************
-
-//	This file is part of the SpeedPoint Game Engine
-
-//	(c) 2011-2015 Pascal Rosenkranz aka iSmokiieZz
-//	All rights reserved.
-
-// *******************************************************************************************************
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "SpeedPointEngine.h"
 #include "EngineSettings.h"
-#include "Util\SLogStream.h"
-#include "Pipelines\FramePipeline.h"
-#include "Pipelines\RenderPipeline.h"
 #include <GameFacilities\FileSPW.h>
 #include <GameFacilities\EntityReceipt.h>
 #include <3DEngine\Material.h>
@@ -22,101 +17,25 @@
 #include <Abstract\IRenderPipeline.h>
 #include <Abstract\IApplication.h>
 #include <Abstract\IScene.h>
+#include "Pipelines\FramePipeline.h"
+#include "Pipelines\RenderPipeline.h"
+#include "Util\FileLogListener.h"
 #include <fstream>
 
 SP_NMSPACE_BEG
 
-CLogIntrnl g_LogIntrnl;
-
 IGameEngine* SpeedPointEnv::m_pEngine;
 
-
-S_API void EngineFileLog::Clear()
-{
-	if (m_LogFile.is_open())
-		m_LogFile.close();
-}
-
-S_API SResult EngineFileLog::SetLogFile(const string& file)
-{
-	if (m_LogFile.is_open())
-		m_LogFile.close();
-
-	m_LogFile.open(file, std::ofstream::trunc);
-	if (!m_LogFile.is_open())
-		return S_ERROR;
-
-	CLog::Log(S_DEBUG, "Opened %s as log file!", file.c_str());
-
-	return S_SUCCESS;
-}
-
-S_API SResult EngineFileLog::RegisterLogHandler(IFileLogHandler* pLogHandler)
-{
-	assert(IS_VALID_PTR(pLogHandler));
-
-	// check if already registered
-	for (auto itLH = m_LogHandlers.begin(); itLH != m_LogHandlers.end(); itLH++)
-	{
-		if (*itLH == pLogHandler)
-			return S_SUCCESS;
-	}
-
-	m_LogHandlers.push_back(pLogHandler);
-	return S_SUCCESS;
-}
-
-S_API SResult EngineFileLog::SetLogLevel(ELogLevel loglevel)
-{
-	m_LogLevel = loglevel;
-	return S_SUCCESS;
-}
-
-S_API ELogLevel EngineFileLog::GetLogLevel() const
-{
-	return m_LogLevel;
-}
-
-S_API SResult EngineFileLog::Log(SResult res, const string& msg)
-{
-	if (m_LogHandlers.size() > 0)
-	{
-		for (auto itLH = m_LogHandlers.begin(); itLH != m_LogHandlers.end(); itLH++)
-			(*itLH)->OnLog(res, msg);
-	}
-
-	Line line;
-	line.text = msg;
-	m_IOQueue.push_back(line);
-
-	return res;
-}
-
-void EngineFileLog::ReleaseIOQueue()
-{
-	if (m_IOQueue.size() > 0 && m_LogFile.is_open())
-	{
-		unsigned int nLines = m_IOQueue.size();
-		for (unsigned int i = 0; i < nLines; ++i)
-		{
-			const Line& line = m_IOQueue.front();
-			m_LogFile << line.text;
-			m_IOQueue.pop_front();
-		}
-	}
-}
-
-
-
-
-
 // ----------------------------------------------------------------------------------
-S_API SpeedPointEngine::SpeedPointEngine()
+S_API SpeedPointEngine::SpeedPointEngine(const char* logFileName)
 : m_bRunning(false),
 m_bLoggedSkipstages(false),
 m_pApplication(nullptr)
 {
 	SpeedPointEnv::SetEngine(this);
+
+	m_pFileLogListener.SetOwn(new FileLogListener(logFileName));
+	CLog::RegisterListener(m_pFileLogListener);
 
 	m_pSettings = new EngineSettings();
 	m_pSettings->Initialize(this);
@@ -151,17 +70,11 @@ S_API void SpeedPointEngine::Shutdown(void)
 		itShutdownHandler = UnregisterShutdownHandlerIntrnl(pSH, itShutdownHandler);
 
 		if (Failure(pSH->HandleShutdown()))
-			LogD("Shutdown-Handler failed: " + (*itShutdownHandler)->GetShutdownHandlerDesc() + "!");
+			CLog::Log(S_ERROR, "Shutdown-Handler failed: " + (*itShutdownHandler)->GetShutdownHandlerDesc() + "!");
 	}
 	
 	if (nHandled > 0)
-	{
-		char* pWarnStr = new char[200];
-		memset(pWarnStr, 0, 200);
-		sprintf_s(pWarnStr, 200, "Cleared %d objects via shutdown handler!", nHandled);
-		LogW(pWarnStr);
-		delete[] pWarnStr;
-	}
+		CLog::Log(S_WARN, "Cleared %d objects via shutdown handler!", nHandled);
 
 	m_ShutdownHandlers.clear();
 
@@ -190,7 +103,13 @@ S_API void SpeedPointEngine::Shutdown(void)
 	}
 
 	CLog::Log(S_INFO, "Engine shut down");
-	m_FileLog.Clear();
+
+	if (m_pFileLogListener)
+	{
+		m_pFileLogListener->ReleaseQueue();
+		m_pFileLogListener->Clear();
+		m_pFileLogListener.Clear();
+	}
 }
 
 // ----------------------------------------------------------------------------------
@@ -275,7 +194,7 @@ S_API void SpeedPointEngine::CheckFinishInit()
 		&& IS_VALID_PTR(m_pRenderer.pComponent)
 		&& IS_VALID_PTR(m_pResourcePool.pComponent))
 	{		
-		m_pApplication->OnInit(m_pFramePipeline, this);
+		m_pApplication->OnInit(this);
 
 		if (!IS_VALID_PTR(m_pFontRenderer.pComponent))
 			CLog::Log(S_ERROR, "Font Renderer is not initialized!");
@@ -314,7 +233,7 @@ S_API SResult SpeedPointEngine::InitializeFramePipeline(IFramePipeline* pCustomF
 
 	m_pFramePipeline->Initialize(this);
 
-	LogD("Initialized Frame pipeline.");
+	CLog::Log(S_INFO, "Initialized Frame pipeline.");
 
 	return S_SUCCESS;
 }
@@ -337,7 +256,7 @@ S_API SResult SpeedPointEngine::InitializeRenderer(const S_RENDERER_TYPE& type, 
 	}
 
 
-	LogD("Initialized Renderer.");
+	CLog::Log(S_INFO, "Initialized Renderer.");
 
 	return S_SUCCESS;
 }
@@ -347,7 +266,7 @@ S_API SResult SpeedPointEngine::Initialize3DEngine(I3DEngine* p3DEngine, bool bM
 {
 	if (!IS_VALID_PTR(m_pRenderer.pComponent))
 	{
-		return LogE("Failed Initialize 3DEngine: Renderer must be initialized first!");		
+		return CLog::Log(S_ERROR, "Failed Initialize 3DEngine: Renderer must be initialized first!");
 	}
 
 	if (bManageDealloc)
@@ -355,7 +274,7 @@ S_API SResult SpeedPointEngine::Initialize3DEngine(I3DEngine* p3DEngine, bool bM
 	else
 		m_p3DEngine.SetCustom(p3DEngine);
 
-	LogD("Initialized 3DEngine.");
+	CLog::Log(S_INFO, "Initialized 3DEngine.");
 	return S_SUCCESS;
 }
 
@@ -372,7 +291,7 @@ S_API SResult SpeedPointEngine::InitializeFontRenderer()
 
 	m_pFontRenderer.SetOwn(pFontRenderer);
 
-	LogD("Initialized Font Renderer");
+	CLog::Log(S_INFO, "Initialized Font Renderer");
 	return S_SUCCESS;
 }
 
@@ -382,26 +301,12 @@ S_API SResult SpeedPointEngine::InitializeResourcePool(IMaterialManager* pMatMgr
 	assert(IS_VALID_PTR(m_pRenderer.pComponent));
 	m_pResourcePool.SetCustom(m_pRenderer->GetResourcePool());
 
-	LogD("Initialized Resource pool!");
+	CLog::Log(S_INFO, "Initialized Resource pool!");
 
 	if (bManageDealloc)
 		m_pMaterialManager.SetOwn(pMatMgr);
 	else
 		m_pMaterialManager.SetCustom(pMatMgr);
-
-	return S_SUCCESS;
-}
-
-// ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::InitializeLogger(IFileLogHandler* pCustomFileLogHandler /* = 0 */)
-{
-	if (IS_VALID_PTR(pCustomFileLogHandler))
-		m_FileLog.RegisterLogHandler(pCustomFileLogHandler);
-
-	CLog::RegisterListener((ILogListener*)this);
-
-	LogD("Initialized File Logger!");
-
 
 	return S_SUCCESS;
 }
@@ -525,11 +430,11 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 	// NOTIFY FOR SKIPPED SECTIONS	
 	if (!m_bLoggedSkipstages && iSkippedSections)
 	{		
-		if (iSkippedSections & eFPSEC_AI) LogD("AI calculation will be skipped (Skipped Section)!");
-		if (iSkippedSections & eFPSEC_ANIMATION) LogD("Animation calculation will be skipped (Skipped Section)!");
-		if (iSkippedSections & eFPSEC_PHYSICS) LogD("Physics calculation will be skipped (Skipped Section)!");
-		if (iSkippedSections & eFPSEC_SCRIPT) LogD("Script execution will be skipped (Skipped Section)!");
-		if (iSkippedSections & eFPSEC_RENDERING) LogD("Rendering will be skipped  (Skipped Section)!");
+		if (iSkippedSections & eFPSEC_AI) CLog::Log(S_DEBUG, "AI calculation will be skipped (Skipped Section)!");
+		if (iSkippedSections & eFPSEC_ANIMATION) CLog::Log(S_DEBUG, "Animation calculation will be skipped (Skipped Section)!");
+		if (iSkippedSections & eFPSEC_PHYSICS) CLog::Log(S_DEBUG, "Physics calculation will be skipped (Skipped Section)!");
+		if (iSkippedSections & eFPSEC_SCRIPT) CLog::Log(S_DEBUG, "Script execution will be skipped (Skipped Section)!");
+		if (iSkippedSections & eFPSEC_RENDERING) CLog::Log(S_DEBUG, "Rendering will be skipped  (Skipped Section)!");
 		m_bLoggedSkipstages = true;
 	}
 
@@ -543,9 +448,8 @@ S_API SResult SpeedPointEngine::ExecuteFramePipeline(usint32 iSkippedSections /*
 
 	unsigned int ioReleaseTimer = StartBudgetTimer("SpeedPointEngine::ExecuteFramePipeline() - Release log io queue");
 	
-	IFileLog* pFileLog = GetFileLog();
-	if (IS_VALID_PTR(pFileLog))
-		pFileLog->ReleaseIOQueue();
+	if (m_pFileLogListener)
+		m_pFileLogListener->ReleaseQueue();
 
 	StopBudgetTimer(ioReleaseTimer);
 
@@ -582,132 +486,5 @@ S_API void SpeedPointEngine::StopBudgetTimer(unsigned int id)
 	if (IS_VALID_PTR((IFramePipeline*)m_pFramePipeline))
 		m_pFramePipeline->StopBudgetTimer(id);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-// ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::LogReport( const SResult& res, const string& msg )
-{
-	// --> CLog --> SpeedPointEngine::OnLog()
-	return m_LogWrapper.Log(res, msg);
-
-
-
-	/*
-	char* cPrefix;
-	switch( m_pSettings->Get().render.tyRendererType )
-	{
-	case S_DIRECTX9: cPrefix = "[SpeedPoint:DX9] "; break;
-	case S_DIRECTX10: cPrefix = "[SpeedPoint:DX10] "; break;
-	case S_DIRECTX11: cPrefix = "[SpeedPoint:DX11] "; break;
-	case S_OPENGL: cPrefix = "[SpeedPoint:GL] "; break;
-	default: cPrefix = "[SpeedPoint:??] "; break;
-	}
-		
-	//usint32 nActualMsgLen = msg.GetLength() + strlen(cPrefix) + 10;			
-	SString sActualMsg;
-		
-	sActualMsg = cPrefix + msg;	
-
-	if (IS_VALID_PTR(m_pApplication))
-		m_pApplication->OnLogReport(res, sActualMsg);
-
-	return m_pLog->Log( res, sActualMsg );
-	*/
-
-}
-
-// ----------------------------------------------------------------------------------
-S_API SResult SpeedPointEngine::LogE(const string& msg) { return LogReport(S_ERROR, msg); }
-S_API SResult SpeedPointEngine::LogW(const string& msg) { return LogReport(S_WARN, msg); }
-S_API SResult SpeedPointEngine::LogI(const string& msg) { return LogReport(S_INFO, msg); }
-S_API SResult SpeedPointEngine::LogD(const string& msg, SResultType defRetVal /* = S_DEBUG */)
-{
-	LogReport(S_DEBUG, msg);
-	return defRetVal;
-}
-
-S_API void SpeedPointEngine::LogD(const SMatrix4& mtx, const string& mtxname)
-{
-	LogD(string("Dump matrix ") + mtxname);
-
-	char* cDumpLn = new char[256];
-
-	for (unsigned short i = 0; i < 4; ++i)
-	{
-		memset(cDumpLn, 0, 256);
-		sprintf_s(cDumpLn, 256, "[ %f  %f  %f  %f ]",
-			mtx.m[i][0], mtx.m[i][1], mtx.m[i][2], mtx.m[i][3]);
-
-		LogD(cDumpLn);
-	}
-
-	delete[] cDumpLn;
-}
-S_API void SpeedPointEngine::LogD(const SVector3& vec, const string& vecname)
-{
-	LogD(string("Dump vector ") + vecname);
-	char* cDumpLn = new char[256];
-	memset(cDumpLn, 0, 256);
-	sprintf_s(cDumpLn, 256, "( %f  %f  %f )", vec.x, vec.y, vec.z);
-	LogD(cDumpLn);
-	delete[] cDumpLn;
-}
-S_API void SpeedPointEngine::LogD(bool b, const string& boolname)
-{
-	LogD(string("Dump: ") + boolname + (b ? " = true" : " = false"));
-}
-S_API void SpeedPointEngine::LogD(unsigned int i, const string& intname)
-{
-	char* cDump = new char[60];
-	memset(cDump, 0, 60);
-	sprintf_s(cDump, 60, "%d", i);
-	LogD(string("Dump: ") + intname + " = " + cDump);
-	delete[] cDump;
-}
-S_API void SpeedPointEngine::LogD(float f, const string& floatname)
-{
-	char* cDump = new char[60];
-	memset(cDump, 0, 60);
-	sprintf_s(cDump, 60, "%f", f);
-	LogD(string("Dump: ") + floatname + " = " + cDump);
-	delete[] cDump;
-}
-S_API void SpeedPointEngine::LogD(const string& str, const string& strname)
-{
-	LogD(string("Dump: ") + strname + " = \"" + str + "\"");	
-}
-
-// ----------------------------------------------------------------------------------
-S_API void SpeedPointEngine::OnLog(SResult res, const string& msg)
-{
-	// console output is done in CLog, which calls this function
-
-	m_FileLog.Log(res, msg);
-
-	if (IS_VALID_PTR(m_pApplication))
-		m_pApplication->OnLogReport(res, msg);	
-}
-
-// ----------------------------------------------------------------------------------
-S_API void SpeedPointEngine::HandleException(char* msg)
-{
-	LogReport(S_ERROR, msg);
-	MessageBox(nullptr, msg, "Assertion failed", MB_ICONERROR | MB_OK);
-	m_bRunning = false;
-}
-
-
-
-
 
 SP_NMSPACE_END

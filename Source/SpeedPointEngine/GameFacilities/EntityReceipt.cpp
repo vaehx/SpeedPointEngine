@@ -101,6 +101,7 @@ namespace EntityReceipts
 		I3DEngine* p3DEngine = SpeedPointEnv::GetEngine()->Get3DEngine();
 		CRenderMesh* renderable = entity->AddComponent(p3DEngine->CreateMesh());
 
+		// RenderMesh does not provide a geomFile property, so we have to define it here
 		entity->RegisterProperty("geomFile", this, &Renderable::GetGeomFile, &Renderable::SetGeomFile, renderable);
 		return true;
 	}
@@ -112,11 +113,8 @@ namespace EntityReceipts
 
 	S_API void Renderable::SetGeomFile(const string& geomFile, CRenderMesh* mesh) const
 	{
-
-
-		//TODO: Geometry is currently not yet easily exchangable!
-
-
+		// TODO: As RenderMesh does not provide a geomFile property, we have to load the geometry here and
+		//		 update the RenderMesh ourselves
 	}
 
 

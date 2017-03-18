@@ -220,38 +220,44 @@ private:
 public:	
 	void FrameDump(const string& msg)
 	{
-		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
-			m_pEngine->LogD(msg);
+		if (m_bDumpFrame)
+			CLog::Log(S_DEBUG, msg);
 	}
 	void FrameDump(const string& str, const string& strname)
 	{
-		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
-			m_pEngine->LogD(str, strname);
+		if (m_bDumpFrame)
+			CLog::Log(S_DEBUG, "str %s: \"%s\"", strname.c_str(), str.c_str());
 	}
 	void FrameDump(const SMatrix4& mtx, const string& mtxname)
 	{
-		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
-			m_pEngine->LogD(mtx, mtxname);
+		if (m_bDumpFrame)
+		{
+			CLog::Log(S_DEBUG, "mtx %s: ", mtxname.c_str());
+			CLog::Log(S_DEBUG, "  (%.2f, %.2f, %.2f, %.2f)", mtx._11, mtx._12, mtx._13, mtx._14);
+			CLog::Log(S_DEBUG, "  (%.2f, %.2f, %.2f, %.2f)", mtx._21, mtx._22, mtx._23, mtx._24);
+			CLog::Log(S_DEBUG, "  (%.2f, %.2f, %.2f, %.2f)", mtx._31, mtx._32, mtx._33, mtx._34);
+			CLog::Log(S_DEBUG, "  (%.2f, %.2f, %.2f, %.2f)", mtx._41, mtx._42, mtx._43, mtx._44);
+		}
 	}
 	void FrameDump(const SVector3& vec, const string& vecname)
 	{
-		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
-			m_pEngine->LogD(vec, vecname);
+		if (m_bDumpFrame)
+			CLog::Log(S_DEBUG, "vec %s: (%.2f, %.2f, %.2f)", vecname.c_str(), vec.x, vec.y, vec.z);
 	}
 	void FrameDump(unsigned int i, const string& intname)
 	{
-		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
-			m_pEngine->LogD(i, intname);
+		if (m_bDumpFrame)
+			CLog::Log(S_DEBUG, "int %s: %d", intname.c_str(), i);
 	}
 	void FrameDump(float f, const string& floatname)
 	{
-		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
-			m_pEngine->LogD(f, floatname);
+		if (m_bDumpFrame)
+			CLog::Log(S_DEBUG, "flt %s: %.4f", floatname.c_str(), f);
 	}
 	void FrameDump(bool b, const string& boolname)
 	{
-		if (m_bDumpFrame && IS_VALID_PTR(m_pEngine))
-			m_pEngine->LogD(b, boolname);
+		if (m_bDumpFrame)
+			CLog::Log(S_DEBUG, "bol %s: %s", boolname.c_str(), (b ? "true" : "false"));
 	}
 
 

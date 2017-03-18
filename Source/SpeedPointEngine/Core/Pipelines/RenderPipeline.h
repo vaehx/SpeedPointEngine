@@ -12,7 +12,6 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "..\SCommandBuffering.h"
 #include <Abstract\IRenderPipeline.h>
 #include <Abstract\SPrerequisites.h>
 

@@ -14,20 +14,18 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\Camera.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\CLog.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\FileLogListener.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\MathGeom.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SCommandBuffering.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\FileLogListener.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6A802F58-8B42-46E9-A308-87ADE350A374}</ProjectGuid>

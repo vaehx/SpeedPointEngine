@@ -56,7 +56,7 @@ S_API SResult DX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
 	if (m_pEngine == NULL) return S_ABORTED;
 
 	if (m_pDXRenderer == NULL)
-		return m_pEngine->LogReport(S_ABORTED, "Cannot add Vertex Buffer Resource: Renderer not initialized!");
+		return CLog::Log(S_ERROR, "Cannot add Vertex Buffer Resource: Renderer not initialized!");
 
 	DX11VertexBuffer* pdxVertexBuffer;
 

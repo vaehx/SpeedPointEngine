@@ -19,7 +19,7 @@ struct S_API SRenderMeshParams
 	SRenderMeshParams(SInitialGeometryDesc* pGeomDesc_) : pGeomDesc(pGeomDesc_) {}
 };
 
-struct S_API CRenderMesh : public IRenderObject
+class S_API CRenderMesh : public IRenderObject
 {
 protected:
 	SRenderDesc m_RenderDesc;

@@ -10,9 +10,20 @@
 #include "SPrerequisites.h"
 #include <vector>
 #include <iostream>
+#include <mutex>
+
+using std::mutex;
+using std::vector;
 
 SP_NMSPACE_BEG
 
+enum S_API ELogLevel
+{
+	eLOGLEVEL_ERROR = 0,
+	eLOGLEVEL_WARN,
+	eLOGLEVEL_INFOS,
+	eLOGLEVEL_DEBUG
+};
 
 struct S_API ILogListener
 {
@@ -23,35 +34,54 @@ struct S_API ILogListener
 // Static Log
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Outputs to stdout by default
+// Additional listeners can be registered to add more log handlers
 class S_API CLogIntrnl
 {
 private:
-	std::vector<ILogListener*> m_LogListeners;
-	bool m_bLogLocked;
+	vector<ILogListener*> m_Listeners;
+	mutex m_Lock;
+	ELogLevel m_LogLevel;
+
 public:
 	CLogIntrnl()
-		: m_bLogLocked(false)
+		: m_LogLevel(eLOGLEVEL_INFOS)
 	{
 	}
 
 	void RegisterListener(ILogListener* pListener)
 	{
-		m_LogListeners.push_back(pListener);
+		m_Listeners.push_back(pListener);
 	}
 
 	void UnregisterListener(ILogListener* pListener)
 	{
-		for (auto itListener = m_LogListeners.begin(); itListener != m_LogListeners.end();)
+		for (auto itListener = m_Listeners.begin(); itListener != m_Listeners.end();)
 		{
 			if (*itListener == pListener)
-				itListener = m_LogListeners.erase(itListener);
+				itListener = m_Listeners.erase(itListener);
 			else
 				itListener++;
 		}
 	}
 
+	void SetLogLevel(ELogLevel logLevel)
+	{
+		m_LogLevel = logLevel;
+	}
+
+	ELogLevel GetLogLevel() const
+	{
+		return m_LogLevel;
+	}
+
 	SResult LogString(SResult res, const string& msg)
 	{
+		if (res == S_ERROR && m_LogLevel < eLOGLEVEL_ERROR) return res;
+		else if (res == S_WARN && m_LogLevel < eLOGLEVEL_WARN) return res;
+		else if (res == S_INFO && m_LogLevel < eLOGLEVEL_INFOS) return res;
+		else if (res == S_DEBUG && m_LogLevel < eLOGLEVEL_DEBUG) return res;
+
 		string formatted;
 		switch (res)
 		{
@@ -61,16 +91,11 @@ public:
 
 		formatted += msg + "\n";
 
-		while (m_bLogLocked)
-		{
-			Sleep(1);
-		}
+		m_Lock.lock();
 
-		m_bLogLocked = true;
-
-		if (m_LogListeners.size() > 0)
+		if (m_Listeners.size() > 0)
 		{
-			for (auto itListener = m_LogListeners.begin(); itListener != m_LogListeners.end(); itListener++)
+			for (auto itListener = m_Listeners.begin(); itListener != m_Listeners.end(); itListener++)
 			{
 				if (IS_VALID_PTR(*itListener))
 					(*itListener)->OnLog(res, formatted);
@@ -79,7 +104,7 @@ public:
 
 		std::cout << formatted;
 
-		m_bLogLocked = false;
+		m_Lock.unlock();
 		return res;
 	}	
 
@@ -102,9 +127,6 @@ public:
 	}
 };
 
-//S_API extern std::vector<ILogListener*> g_LogListeners;
-//S_API extern bool g_bLogLocked;
-
 S_API extern CLogIntrnl g_LogIntrnl;
 
 class S_API CLog
@@ -118,6 +140,16 @@ public:
 	static void UnregisterListener(ILogListener* pListener)
 	{
 		g_LogIntrnl.UnregisterListener(pListener);
+	}
+
+	static void SetLogLevel(ELogLevel logLevel)
+	{
+		g_LogIntrnl.SetLogLevel(logLevel);
+	}
+
+	static ELogLevel GetLogLevel()
+	{
+		return g_LogIntrnl.GetLogLevel();
 	}
 
 	static SResult Log(SResult res, const string& msg)

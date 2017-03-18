@@ -8,7 +8,6 @@
 // Include main SpeedPoint Engine Headers:
 
 #include "Abstract\IApplication.h"
-#include "Abstract\ilog.h"
 #include "Abstract\IGameEngine.h"
 #include "Abstract\I3DEngine.h"
 #include "Abstract\IPhysics.h"

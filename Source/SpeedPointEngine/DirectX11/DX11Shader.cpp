@@ -213,7 +213,7 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 		vtxDesc[4].SemanticName = "COLOR";
 
 		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, NUM_ELEMENTS, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
-			return m_pEngine->LogE("Failed Create input layout for VS!");
+			return CLog::Log(S_ERROR, "Failed Create input layout for VS!");
 	}
 
 

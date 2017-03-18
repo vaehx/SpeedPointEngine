@@ -95,7 +95,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IGameEngine.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IGeometry.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IIndexBuffer.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ilog.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IMaterial.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IOcean.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IOctree.h" />

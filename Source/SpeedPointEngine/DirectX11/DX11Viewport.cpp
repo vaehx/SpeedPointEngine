@@ -110,7 +110,7 @@ S_API SResult DX11Viewport::Initialize(IGameEngine* pEngine, const SViewportDesc
 	// Create the swapchain		
 	if (Failure(m_pRenderer->D3D11_CreateSwapChain(&swapChainDesc, &m_pSwapChain)))
 	{
-		return m_pEngine->LogE("Failed create swap chain!");
+		return CLog::Log(S_ERROR, "Failed create swap chain!");
 	}
 #ifdef _DEBUG
 	const char nm[] = "DX11Viewport::SwapChain";
@@ -122,11 +122,11 @@ S_API SResult DX11Viewport::Initialize(IGameEngine* pEngine, const SViewportDesc
 	ID3D11Resource* pBBResource;
 	if (Failure(m_pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
 	{
-		return m_pEngine->LogE("Failed retrieve BackBuffer resource of SwapChain in InitDefaultViewport!");
+		return CLog::Log(S_ERROR, "Failed retrieve BackBuffer resource of SwapChain in InitDefaultViewport!");
 	}
 	if (Failure(m_pRenderer->D3D11_CreateRTV(pBBResource, 0, &m_pRenderTarget)))
 	{
-		return m_pEngine->LogE("Failed create RTV for swapchain!");
+		return CLog::Log(S_ERROR, "Failed create RTV for swapchain!");
 	}
 
 	pBBResource->Release();
@@ -197,7 +197,7 @@ S_API SResult DX11Viewport::InitializeDepthStencilBuffer()
 
 	if (Failure(pD3DDevice->CreateTexture2D(&dsTexDesc, 0, &m_pDepthStencilBuffer)))
 	{
-		return m_pEngine->LogE("Failed Create Depth Stencil Buffer Texture!");
+		return CLog::Log(S_ERROR, "Failed Create Depth Stencil Buffer Texture!");
 	}
 
 
@@ -211,7 +211,7 @@ S_API SResult DX11Viewport::InitializeDepthStencilBuffer()
 
 	if (Failure(pD3DDevice->CreateDepthStencilView(m_pDepthStencilBuffer, &depthStencilViewDesc, &m_pDepthStencilView)))
 	{
-		return m_pEngine->LogE("Failed Create Depth Stencil View!");
+		return CLog::Log(S_ERROR, "Failed Create Depth Stencil View!");
 	}
 
 
@@ -288,7 +288,7 @@ S_API SResult DX11Viewport::SetSize(int nX, int nY)
 
 	if (Failure(m_pSwapChain->ResizeBuffers(m_nBackBuffers, m_Desc.width, m_Desc.height, DXGI_FORMAT_UNKNOWN, 0)))
 	{		
-		return m_pEngine->LogE("Failed Resize Backbuffers of Viewport!");
+		return CLog::Log(S_ERROR, "Failed Resize Backbuffers of Viewport!");
 	}
 
 	return S_SUCCESS;
@@ -357,9 +357,7 @@ S_API SResult DX11Viewport::SetProjectionByDesc(const SProjectionDesc& desc)
 		break;
 
 	default:
-		char logMsg[512];
-		sprintf_s(logMsg, "Invalid projection type (value = %d) given in DX11Viewport::SetProjectionByDesc()", desc.projectionType);
-		m_pEngine->LogE(logMsg);
+		CLog::Log(S_ERROR, "Invalid projection type (value = %d) given in DX11Viewport::SetProjectionByDesc()", desc.projectionType);
 		return S_INVALIDPARAM;
 	}
 

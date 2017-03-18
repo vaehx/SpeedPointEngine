@@ -15,16 +15,10 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\Camera.cpp">
-      <Filter>Sources\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.cpp">
       <Filter>Sources\Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.cpp">
@@ -36,28 +30,28 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\MathGeom.cpp">
       <Filter>Sources\Util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\CLog.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Core\Util\FileLogListener.cpp">
+      <Filter>Sources\Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\EngineSettings.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SCommandBuffering.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointApplication.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\SpeedPointEngine.h">
       <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\SLogStream.h">
-      <Filter>Sources\Util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\FramePipeline.h">
       <Filter>Sources\Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Pipelines\RenderPipeline.h">
       <Filter>Sources\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Core\Util\FileLogListener.h">
+      <Filter>Sources\Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

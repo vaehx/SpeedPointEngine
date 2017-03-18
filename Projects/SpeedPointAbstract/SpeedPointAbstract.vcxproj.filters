@@ -96,9 +96,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IIndexBuffer.h">
       <Filter>Headers\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\ilog.h">
-      <Filter>Headers\Util</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Abstract\IMaterial.h">
       <Filter>Headers\3DEngine</Filter>
     </ClInclude>

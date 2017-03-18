@@ -341,15 +341,15 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;	
 
 	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_depthStencilDesc, &m_pDepthStencilState)))
-		return m_pEngine->LogE("Failed create depth stencil state!");
+		return CLog::Log(S_ERROR, "Failed create depth stencil state!");
 #ifdef _DEBUG
 	else
-		m_pEngine->LogD("Created depth stencil state.");
+		CLog::Log(S_DEBUG, "Created depth stencil state.");
 #endif
 
 	m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
 #ifdef _DEBUG
-	m_pEngine->LogD("Set Depth Stencil state to default one.");
+	CLog::Log(S_DEBUG, "Set Depth Stencil state to default one.");
 #endif
 
 
@@ -362,7 +362,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_terrainDepthDesc.StencilEnable = false;
 
 	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_terrainDepthDesc, &m_pTerrainDepthState)))
-		m_pEngine->LogE("Failed create terrain depth stencil state!");
+		CLog::Log(S_ERROR, "Failed create terrain depth stencil state!");
 
 
 	// In DX11 we fist need a RSState interface	
@@ -381,7 +381,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	HRESULT hRes;
 	if ((hRes = m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
 	{
-		return m_pEngine->LogE("Faield create Rasterizer State!");
+		return CLog::Log(S_ERROR, "Faield create Rasterizer State!");
 	}
 
 	m_pD3DDeviceContext->RSSetState(m_pRSState);
@@ -405,7 +405,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	defSamplerDesc.BorderColor[3] = 0;
 
 	if (Failure(m_pD3DDevice->CreateSamplerState(&defSamplerDesc, &m_pDefaultSamplerState)))
-		return m_pEngine->LogE("Failed create default Sampler State!");
+		return CLog::Log(S_ERROR, "Failed create default Sampler State!");
 
 	m_pD3DDeviceContext->PSSetSamplers(0, 1, &m_pDefaultSamplerState);
 	m_pD3DDeviceContext->PSSetSamplers(1, 1, &m_pDefaultSamplerState);
@@ -430,7 +430,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	pointSamplerDesc.BorderColor[3] = 0;
 
 	if (Failure(m_pD3DDevice->CreateSamplerState(&pointSamplerDesc, &m_pPointSamplerState)))
-		return m_pEngine->LogE("Failed create point sampler state!");
+		return CLog::Log(S_ERROR, "Failed create point sampler state!");
 
 	return S_SUCCESS;
 }
@@ -566,7 +566,7 @@ S_API SResult DX11Renderer::CreateDX11Device()
 	// If everything failed, then don't go further
 	if (Failure(hRes) || !m_pD3DDevice || !m_pD3DDeviceContext)
 	{
-		return m_pEngine->LogE("Failed create D3D11 Device!");
+		return CLog::Log(S_ERROR, "Failed create D3D11 Device!");
 	}
 
 
@@ -619,7 +619,7 @@ S_API SResult DX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter
 	// Auto Select Adapter and display mode
 	if (Failure(AutoSelectAdapter()))
 	{
-		m_pEngine->LogE("Failed automatic selection of Video adapter and display mode. Shut down.");
+		CLog::Log(S_ERROR, "Failed automatic selection of Video adapter and display mode. Shut down.");
 		Shutdown();
 		return S_ERROR;
 	}
@@ -628,12 +628,12 @@ S_API SResult DX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter
 	if (Failure(CreateDX11Device()))
 	{
 		Shutdown();
-		return pEngine->LogE("Failed Create DX11 Device!");
+		return CLog::Log(S_ERROR, "Failed Create DX11 Device!");
 	}		
 	// Set Default RenderStates and Texture Sampler States
 	if (Failure(SetRenderStateDefaults()))
 	{
-		return pEngine->LogReport(S_ERROR, "Failed set render state defaults!");
+		return CLog::Log(S_ERROR, "Failed set render state defaults!");
 	}
 
 
@@ -648,7 +648,7 @@ S_API SResult DX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter
 	if (Failure(InitDefaultViewport(applicationSettings.hWnd, applicationSettings.nXResolution, applicationSettings.nYResolution)))
 	{
 		Shutdown();
-		return m_pEngine->LogE("Failed Init default viewport!");
+		return CLog::Log(S_ERROR, "Failed Init default viewport!");
 	}		
 
 
@@ -665,7 +665,7 @@ S_API SResult DX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter
 
 	if (Failure(SetTargetViewport((IViewport*)&m_Viewport)))
 	{
-		return pEngine->LogReport(S_ERROR, "Failed set Target Viewport!");
+		return CLog::Log(S_ERROR, "Failed set Target Viewport!");
 	}
 
 
@@ -690,14 +690,14 @@ S_API SResult DX11Renderer::Initialize(IGameEngine* pEngine, bool bIgnoreAdapter
 	// Create unset texture dummy
 	if (Failure(m_DummyTexture.CreateEmpty("notexture", 64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.0f, 1.0f, 0.0f))))
 	{
-		m_pEngine->LogE("Could not create empty dummy texture (notexture)!");
+		CLog::Log(S_ERROR, "Could not create empty dummy texture (notexture)!");
 	}
 
 
 	// Create (128,128,0) replacement normal map
 	if (Failure(m_DummyNormalMap.CreateEmpty("normalmap", 64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.5f, 0.5f, 1.0f))))
 	{
-		m_pEngine->LogE("Could not create empty dummy normal map (nonormalmap)!");
+		CLog::Log(S_ERROR, "Could not create empty dummy normal map (nonormalmap)!");
 	}
 
 
@@ -1143,7 +1143,7 @@ S_API SResult DX11Renderer::BeginScene(void)
 	ResetBudgetTimerStats();
 
 	if (m_bDumpFrame)
-		m_pEngine->LogD("Beginning rendering of scene... (Begin Frame)");	
+		CLog::Log(S_DEBUG, "Beginning rendering of scene... (Begin Frame)");	
 	
 	m_bInScene = true;
 
@@ -1352,11 +1352,11 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 		// Render Terrain directly to the backbuffer
 		BindSingleRT(m_pTargetViewport);
 
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pVtxHeightMap))) m_pEngine->LogE("Invalid terrain vtx heightmap in render desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pColorMap))) m_pEngine->LogE("Invalid color map in Terrin render Desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pLayerMasks))) m_pEngine->LogE("Invalid layer masks array in Terarin Render Desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pDetailMaps))) m_pEngine->LogE("Invalid detail maps array in Terarin Render Desc!");
-		if (!(bTerrainRenderState = (terrainRenderDesc.nLayers > 0))) m_pEngine->LogE("Invalid layer count in Terrain Render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pVtxHeightMap))) CLog::Log(S_ERROR, "Invalid terrain vtx heightmap in render desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pColorMap))) CLog::Log(S_ERROR, "Invalid color map in Terrin render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pLayerMasks))) CLog::Log(S_ERROR, "Invalid layer masks array in Terarin Render Desc!");
+		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pDetailMaps))) CLog::Log(S_ERROR, "Invalid detail maps array in Terarin Render Desc!");
+		if (!(bTerrainRenderState = (terrainRenderDesc.nLayers > 0))) CLog::Log(S_ERROR, "Invalid layer count in Terrain Render Desc!");
 
 		BindTexture(terrainRenderDesc.pVtxHeightMap, 0);
 		BindVertexShaderTexture(terrainRenderDesc.pVtxHeightMap, 0);
@@ -1606,7 +1606,7 @@ S_API SResult DX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
 	if (Failure(SetIBStream(dcd.pIndexBuffer))) return S_ERROR;	
 
 	if (Failure(m_TerrainShader.Bind()))
-		return m_pEngine->LogE("Enabling terrain effect failed");
+		return CLog::Log(S_ERROR, "Enabling terrain effect failed");
 
 	if (m_SetPrimitiveType != PRIMITIVE_TYPE_TRIANGLELIST)
 	{
@@ -1851,7 +1851,7 @@ S_API SResult DX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usi
 
 
 	if (Failure(m_pD3DDevice->CreateBuffer(&cbDesc, 0, ppCB)))
-		return m_pEngine->LogE("Failed Create constants buffer! See stdout for more info.");
+		return CLog::Log(S_ERROR, "Failed Create constants buffer! See stdout for more info.");
 
 
 	return S_SUCCESS;
@@ -1865,7 +1865,7 @@ S_API SResult DX11Renderer::D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** 
 
 	D3D11_MAPPED_SUBRESOURCE cbSubRes;	
 	if (Failure(m_pD3DDeviceContext->Map(pCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbSubRes)))
-		return m_pEngine->LogE("Failed lock constants buffer (map failed)!");
+		return CLog::Log(S_ERROR, "Failed lock constants buffer (map failed)!");
 
 	*pData = cbSubRes.pData;	
 
@@ -1933,7 +1933,7 @@ S_API SResult DX11Renderer::UpdateRasterizerState()
 {	
 	SP_SAFE_RELEASE(m_pRSState);
 	if (Failure(m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
-		return EngLog(S_ERROR, m_pEngine, "Failed recreate rasterizer state for updating rasterizer state.");
+		return CLog::Log(S_ERROR, "Failed recreate rasterizer state for updating rasterizer state.");
 
 	m_pD3DDeviceContext->RSSetState(m_pRSState);
 	return S_SUCCESS;
@@ -1944,7 +1944,7 @@ S_API SResult DX11Renderer::UpdateDepthStencilState()
 {
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_depthStencilDesc, &m_pDepthStencilState)))
-		return EngLog(S_ERROR, m_pEngine, "Failed recreate depth stencil state for updating rasterizer state");
+		return CLog::Log(S_ERROR, "Failed recreate depth stencil state for updating rasterizer state");
 
 	m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
 	return S_SUCCESS;
