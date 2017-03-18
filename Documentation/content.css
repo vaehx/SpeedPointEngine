@@ -65,6 +65,13 @@ pre {
   line-height: 16px;
 }
 
+.todo {
+	color: red;
+	font-weight: bold;
+	padding: 10px;
+	border: 1px solid red;
+}
+
 .math {
   font-family: latinmodernmath, "Times New Roman";
   font-size: 17px;
