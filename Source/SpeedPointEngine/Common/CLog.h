@@ -59,10 +59,7 @@ public:
 		for (auto itListener = m_Listeners.begin(); itListener != m_Listeners.end();)
 		{
 			if (*itListener == pListener)
-			{
 				itListener = m_Listeners.erase(itListener);
-				OutputDebugStringA("UnregisterListener()");
-			}
 			else
 				itListener++;
 		}

@@ -222,6 +222,7 @@ S_API void SpeedPointEngine::Shutdown(void)
 
 	if (m_pFileLogListener)
 	{
+		CLog::UnregisterListener(m_pFileLogListener);
 		m_pFileLogListener->ReleaseQueue();
 		m_pFileLogListener->Clear();
 		m_pFileLogListener.Clear();
