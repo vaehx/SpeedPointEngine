@@ -51,6 +51,7 @@ class S_API CPhysObject
 protected:
 	SPhysicalState m_State;
 	SGeomShape m_CollisionShape;
+	float m_Mass;
 
 public:
 	CPhysObject() {};
@@ -65,6 +66,8 @@ public:
 	SGeomShape* GetCollisionShape();
 
 	AABB GetAABB();
+
+	float GetMass() { return m_Mass; }
 };
 
 SP_NMSPACE_END

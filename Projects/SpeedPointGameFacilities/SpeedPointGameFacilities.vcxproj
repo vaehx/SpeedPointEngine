@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Entity.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\EntityReceipt.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\Octree.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFacilities\OctreeNode.h" />
@@ -21,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\Entity.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\EntityReceipt.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\FileSPW.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\PhysicalComponent.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFacilities\SBasicOctree.cpp" />

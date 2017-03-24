@@ -35,6 +35,7 @@ using std::map;
 SP_NMSPACE_BEG
 
 struct S_API IEntity;
+struct S_API IEntityReceipt;
 struct S_API IComponent;
 struct S_API IMaterial;
 struct S_API SAxisAlignedBoundBox;
@@ -111,6 +112,61 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+struct IExternalEntityProperty
+{
+	virtual ~IExternalEntityProperty() {}
+};
+
+template<typename T>
+struct ExternalEntityProperty : public IExternalEntityProperty
+{
+public:
+	typedef std::function<T()> Getter;
+	typedef std::function<const T&()> RefGetter;
+	typedef std::function<void(const T&)> Setter;
+
+private:
+	Getter m_GetFn;
+	RefGetter m_RefGetFn;
+	Setter m_SetFn;
+
+public:
+	ExternalEntityProperty(const Getter& getFn, const RefGetter& refGetFn, const Setter& setFn)
+		: m_GetFn(getFn),
+		m_RefGetFn(refGetFn),
+		m_SetFn(setFn)
+	{
+	}
+
+	void Set(const T& val) const
+	{
+		if (m_SetFn)
+			m_SetFn(val);
+	}
+
+	T Get(const T& defval = T()) const
+	{
+		// Prefer getting the value as an lvalue reference
+		if (m_RefGetFn)
+			return m_RefGetFn();
+		else if (m_GetFn)
+			return m_GetFn();
+		else
+			return defval;
+	}
+
+	const T& GetRef() const
+	{
+		static const T _default = T();
+		if (m_RefGetFn)
+			return m_RefGetFn();
+		else
+			return _default;
+	}
+};
+
+
+
 enum EEntityPropertyType
 {
 	EP_TYPE_UNDEFINED = 0,
@@ -122,11 +178,17 @@ enum EEntityPropertyType
 	EP_TYPE_QUATERNION
 };
 
+enum EEntityPropertyStoreType
+{
+	EP_STORE_TYPE_PROPERTY = 0,
+	EP_STORE_TYPE_REFERENCE,
+	EP_STORE_TYPE_EXTERNAL // via setter/getter
+};
+
 
 class EntityProperty
 {
 private:
-	string m_Name;
 	struct {
 		string str;
 		Vec3f vec3;
@@ -137,58 +199,45 @@ private:
 			float f;
 		};
 	} m_Value;
+
+	string m_Name;
+	
+	EEntityPropertyStoreType m_StoreType;
 	EEntityPropertyType m_Type;
-	bool m_bPtr;
 	void* m_Ptr;
+	IExternalEntityProperty* m_pExternal;
+
+	inline void SetExternal(IExternalEntityProperty* external);
 
 public:
-	EntityProperty(const string& name)
-		: m_Name(name),
-		m_Type(EP_TYPE_UNDEFINED),
-		m_bPtr(false),
-		m_Ptr(0)
+	EntityProperty(const string& name);
+	EntityProperty(const string& name, void* ptr, EEntityPropertyType ptrType);
+	EntityProperty(const string& name, IExternalEntityProperty* pExternal);
+	EntityProperty(const EntityProperty& prop);
+	~EntityProperty();
+
+	const string& GetName() const;
+	EEntityPropertyType GetType() const;
+	EEntityPropertyStoreType GetStoreType() const;
+
+	void Reset();
+
+	template<typename T>
+	void SetExternal(const typename ExternalEntityProperty<T>::Getter& getFn, const typename ExternalEntityProperty<T>::Setter& setFn)
 	{
+		SetExternal(new ExternalEntityProperty<T>(getFn, ExternalEntityProperty<T>::RefGetter(), setFn));
 	}
 
-	EntityProperty(const string& name, void* ptr, EEntityPropertyType ptrType)
-		: m_Name(name),
-		m_Type(ptrType),
-		m_bPtr(true),
-		m_Ptr(ptr)
+	template<typename T>
+	void SetExternalRef(const typename ExternalEntityProperty<T>::RefGetter& refGetFn, const typename ExternalEntityProperty<T>::Setter& setFn)
 	{
-	}
-
-	EntityProperty(const EntityProperty& prop)
-		: m_Name(prop.m_Name),
-		m_Value(prop.m_Value),
-		m_Type(prop.m_Type),
-		m_bPtr(prop.m_bPtr),
-		m_Ptr(prop.m_Ptr)
-	{
-	}
-
-	const string& GetName() const
-	{
-		return m_Name;
-	}
-
-	EEntityPropertyType GetType() const
-	{
-		return m_Type;
-	}
-
-	void Reset()
-	{
-		m_Type = EP_TYPE_UNDEFINED;
-		m_bPtr = false;
-		m_Ptr = 0;
+		SetExternal(new ExternalEntityProperty<T>(ExternalEntityProperty<T>::Getter(), refGetFn, setFn));
 	}
 
 	template<typename T>
 	void Set(const T& val);
 
 	// Makes the entity point to the given pointer.
-	// If this property was previously set, this method will do nothing.
 	template<typename T>
 	void Set(T* ptr);
 
@@ -198,31 +247,25 @@ public:
 	template<typename T>
 	T Get() const;
 
-	const string& GetString() const
-	{
-		static const string _default = "???";
-		if (m_Type != EP_TYPE_STRING)
-			return _default;
-		if (!m_bPtr)
-			return m_Value.str;
-
-		string* str = reinterpret_cast<string*>(m_Ptr);
-		return (str ? *str : _default);
-	}
-
-	const Vec3f& GetVec3() const
-	{
-		static const Vec3f _default;
-		if (m_Type != EP_TYPE_VEC3)
-			return _default;
-		if (!m_bPtr)
-			return m_Value.vec3;
-
-		Vec3f* vec3 = reinterpret_cast<Vec3f*>(m_Ptr);
-		return (vec3 ? *vec3 : _default);
-	}
+	const string& GetString() const;
+	const Vec3f& GetVec3() const;
 };
 
+
+/*
+	Property storing value:
+		entity->SetProperty("mass", 100.0f);
+
+	Pointer to the value:
+		entity->RegisterProperty("mass", &m_Mass);
+
+	Property using getter & setter:
+		entity->RegisterProperty("mass", bind(&Physical::GetMass, this), bind(&Physical::SetMass, this));
+
+
+	The type of the property cannot be changed after setting the first time.
+	The store type of the property can only be altered from the EP_STORE_TYPE_PROPERTY (storing value).
+*/
 
 class EntityPropertyContainer
 {
@@ -231,42 +274,65 @@ private:
 
 	EntityProperty& AddProperty(const string& name)
 	{
+		// Will not insert, if property with name already exists
 		auto inserted = m_Properties.insert(std::pair<string, EntityProperty>(name, EntityProperty(name)));
 		return inserted.first->second;
 	}
 
 public:
-	const map<string, EntityProperty>* GetProperties() const
+	const void GetAllPropertyNames(vector<string>& names) const
 	{
-		return &m_Properties;
+		for (auto itProperty = m_Properties.begin(); itProperty != m_Properties.end(); ++itProperty)
+			names.push_back(itProperty->first);
 	}
 
 	template<typename T>
-	T GetProperty(const string& name, bool* found = 0) const
+	T GetProperty(const string& name, bool* found = 0, const T& defval = T()) const
 	{
 		auto itFound = m_Properties.find(name);
-		if (itFound == m_Properties.end())
+		if (itFound != m_Properties.end())
 		{
 			if (found)
-				*found = false;
-			return T();
+				*found = true;
+
+			return itFound->second.Get<T>();
 		}
 
 		if (found)
-			*found = true;
-		return itFound->second.Get<T>();
+			*found = false;
+
+		return defval;
 	}
+
+	// Overrides existing property with given name!
+	template<typename T>
+	void RegisterProperty(const string& name, T* ptr)
+	{
+		AddProperty(name).Set(ptr);
+	}
+
+
+#define ENTITY_REGISTER_PROPERTY(setExternalFn, getFncPtr, setFncPtr) \
+	template<typename T, typename C, typename ...Args> \
+	void RegisterProperty(const string& name, C* c, getFncPtr, setFncPtr, Args... args) \
+	{ \
+		AddProperty(name).setExternalFn<T>(std::bind(getter, c, args...), std::bind(setter, c, std::placeholders::_1, args...)); \
+	} \
+	template<typename T, typename C, typename ...Args> \
+	void RegisterProperty(const string& name, C* c, getFncPtr, Args... args) \
+	{ \
+		AddProperty(name).setExternalFn<T>(std::bind(getter, c, args...), ExternalEntityProperty<T>::Setter()); \
+	} \
+
+	ENTITY_REGISTER_PROPERTY(SetExternal, T(C::*getter)(Args...), void(C::*setter)(const T&, Args...))
+	ENTITY_REGISTER_PROPERTY(SetExternal, T(C::*getter)(Args...) const, void(C::*setter)(const T&, Args...) const)
+	ENTITY_REGISTER_PROPERTY(SetExternalRef, const T&(C::*getter)(Args...), void(C::*setter)(const T&, Args...))
+	ENTITY_REGISTER_PROPERTY(SetExternalRef, const T&(C::*getter)(Args...) const, void(C::*setter)(const T&, Args...) const)
 
 	template<typename T>
 	void SetProperty(const string& name, const T& val)
 	{
 		AddProperty(name).Set(val);
-	}
-
-	template<typename T>
-	void RegisterProperty(const string& name, T* ptr)
-	{
-		AddProperty(name).Set(ptr);
 	}
 
 	void SetProperty(const string& name, const char* val)
@@ -289,6 +355,9 @@ public:
 		return m_Properties.find(name) != m_Properties.end();
 	}
 };
+
+
+
 
 
 
@@ -430,13 +499,17 @@ protected:
 
 public:
 	IComponent() : m_pEntity(0), m_bTrash(false) {}
-	IComponent(IEntity* pEntity) : m_pEntity(pEntity), m_bTrash(false) { }
+	IComponent(IEntity* pEntity)
+		: m_bTrash(false)
+	{
+		SetEntity(pEntity);
+	}
 
 	// Implement in CEntity.cpp to make this class abstract
 	virtual ~IComponent() = 0;
 
-	// We need this, because we need a standard constructor to be able
-	// to construct the components in the subsystems
+	// This method can be overriden by the component implementation to add
+	// properties to the entity.
 	ILINE virtual void SetEntity(IEntity* pEntity)
 	{
 		m_pEntity = pEntity;
