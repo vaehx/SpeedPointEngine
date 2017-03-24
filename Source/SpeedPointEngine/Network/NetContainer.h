@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <Abstract\SerializationTools.h>
-#include <Abstract\SPrerequisites.h>
+#include <Common\SerializationTools.h>
+#include <Common\SPrerequisites.h>
 #include <string>
 #include <map>
 

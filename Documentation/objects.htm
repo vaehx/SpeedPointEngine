@@ -29,7 +29,17 @@ entity->AddComponent(engine->Get3DEngine()->CreateMesh(SRenderMeshParams(&geom))
 <p>
 To load a model and spawn a new entity for it:<br />
 <pre>
-IEntity* entity = scene->LoadObjectFromFile("weapon.spm", "player-weapon");
+// Spawn an entity
+IEntity* pEntity = pScene->SpawnEntity("my_tree");
+
+// Get absolute resource path
+string file = pResourcePool->GetResourcePath("models\\tree.spm");
+
+// Load the geometry and create the RenderMesh from it
+SInitialGeometryDesc* pGeometry = p3DEngine->GetGeometryManager()->LoadGeometry(file)
+SRenderMeshParams meshParams(pGeometry);
+pEntity->AddComponent(p3DEngine->CreateMesh(meshParams));
+
 </pre>
 </p>
 
@@ -39,6 +49,68 @@ You can attach entities to other entities as a child:<br />
 IEntity *playerEntity, *weapon;
 ...
 playerEntity->AddChild(weapon);
+</pre>
+</p>
+
+<h1>Entity receipts</h1>
+<p>
+To easily bootstrap entities with the same components and additional entity properties, entity receipts can be used.<br />
+Entity receipts also allow for easy serialization of new entities over the network or from a world file, e.g.:<br />
+<pre>
+string receiptName = entityContainer->GetString("entityReceipt");
+IEntityReceipt* receipt = engine->GetEntityReceiptManager()->GetReceipt(receiptName);
+scene->SpawnEntity(receipt);
+</pre>
+</p>
+<p>
+To define and register a custom entity receipt:<br />
+<pre>
+class Actor : public IComponent
+{
+private:
+	unsigned short m_Health; // 0-100
+public: // IComponent
+	virtual void SetEntity(IEntity* entity);
+public:	
+	unsigned short GetHealth() const { return m_Health; }
+	void SetHealth(unsigned short health) { m_Health = health; }
+};
+
+void Actor::SetEntity(IEntity* entity)
+{
+	IComponent::SetEntity(entity);
+	entity->RegisterProperty();
+}
+
+
+class ActorReceipt : public IEntityReceipt
+{
+public:
+	ActorReceipt();
+	virtual bool Apply(IEntity* entity);
+	virtual const char* GetName() const
+	{
+		return "ActorReceipt";
+	}
+};
+
+ActorReceipt::ActorReceipt()
+{
+	Inherit<EntityReceipts::RigidBody>();
+}
+
+bool ActorReceipt::Apply(IEntity* entity)
+{
+	if (!entity)
+		return false;
+
+	// Apply inherited receipts
+	if (!IEntityReceipt::Apply(entity))
+		return false;
+
+	// Apply actor components and properties
+	entity->CreateComponent<Actor>();
+}
 </pre>
 </p>
 

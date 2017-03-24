@@ -10,21 +10,49 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\CHelper.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\I3DEngine.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IGeometry.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IMaterial.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\C3DEngine.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CSkyBox.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Geometry.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Material.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Terrain.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IOcean.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IRenderObject.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\ISkyBox.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\ITerrain.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\RenderLight.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\RenderMesh.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\C3DEngine.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CHelper.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CSkyBox.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Geometry.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Material.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\RenderLight.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\RenderMesh.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Terrain.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{054E8253-E6C1-4063-B65A-090736E00DCF}</ProjectGuid>
+    <ProjectGuid>{64298E44-4CE3-47C2-9000-023FAC8F943B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SpeedPointEngine</RootNamespace>
+    <RootNamespace>SpeedPoint3DEngine</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <ProjectName>3DEngine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -32,6 +60,8 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -41,12 +71,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\..\Dependencies\DirectX\Include;$(SolutionDir)\..\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\..\Dependencies\DirectX\Lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)FileFormats\SpeedPointFileFormats;$(SolutionDir)SpeedPointEngine\Source\SpeedPointEngine;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <TargetName>SpeedPoint$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir)\..\..\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <OutDir>$(ProjectDir)..\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -54,15 +85,12 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SP_EXPORT;WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEEDPOINTENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>false</SDLCheck>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessorDefinitions>SOL_DIR=R"($(SolutionDir))";SP_UNITTEST;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3dx9d.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -73,7 +101,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEEDPOINTENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SP_UNITTEST;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>

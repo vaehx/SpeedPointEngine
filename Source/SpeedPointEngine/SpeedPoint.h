@@ -1,17 +1,17 @@
 // -----------------------------------------------------------------------------------------
 // SpeedPoint Game Engine
-// Copyright (c) 2011-2016, Pascal Rosenkranz
+// Copyright (c) 2011-2017, Pascal Rosenkranz
 // -----------------------------------------------------------------------------------------
 
 #pragma once
 
 // Include main SpeedPoint Engine Headers:
 
-#include "Abstract\IApplication.h"
-#include "Abstract\IGameEngine.h"
-#include "Abstract\I3DEngine.h"
-#include "Abstract\IPhysics.h"
-#include "Abstract\IRenderer.h"
-#include "Abstract\IScene.h"
-#include "Abstract\IEntity.h"
-#include "Abstract\SPrerequisites.h"
+#include <GameFramework\IApplication.h>
+#include <GameFramework\IGameEngine.h>
+#include <EntitySystem\IScene.h>
+#include <EntitySystem\IEntity.h>
+#include <Physics\IPhysics.h>
+#include <3DEngine\I3DEngine.h>
+#include <Renderer\IRenderer.h>
+#include <Common\SPrerequisites.h>

@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Implementation">
+      <UniqueIdentifier>{ac908385-e634-4b89-b2b1-2df37af6182d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Abstract">
+      <UniqueIdentifier>{fdbf2e1f-bccb-4cfd-a5c3-5357b280d2fb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\ISkyBox.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IGeometry.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\CHelper.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\I3DEngine.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IMaterial.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IOcean.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IRenderObject.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\RenderMesh.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\RenderLight.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\ITerrain.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CSkyBox.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Geometry.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Material.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Terrain.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\C3DEngine.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Geometry.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Material.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\RenderLight.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\RenderMesh.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Terrain.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\C3DEngine.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CHelper.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CSkyBox.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

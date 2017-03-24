@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Implementation">
+      <UniqueIdentifier>{2bb3fdfa-eeac-47bd-af28-7d906dc66425}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Abstract">
+      <UniqueIdentifier>{0b21ff5d-0f37-47b9-b4d3-5b34edf5d851}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntityReceipt.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IScene.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntity.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Entity.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityReceipt.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Scene.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityReceipt.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Scene.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Entity.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

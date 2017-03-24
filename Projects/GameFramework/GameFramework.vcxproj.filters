@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Abstract">
+      <UniqueIdentifier>{0fe6da4b-5795-4d5b-aca4-4903ba0c01ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Implementation">
+      <UniqueIdentifier>{ee535993-f762-445f-8e0b-a60b6e9cd6a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Implementation\Components">
+      <UniqueIdentifier>{4a15431f-1cf2-4964-96d1-f490af4cadf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Abstract\Components">
+      <UniqueIdentifier>{4a0442f4-38ff-4d71-9025-34b3fda8d2f0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\IGameEngine.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\ISettings.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\EntityReceipts.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\IApplication.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SpeedPointEngine.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EngineSettings.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileLogListener.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileSPW.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\ProfilingDebugView.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\PhysicalComponent.h">
+      <Filter>Abstract\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\RenderableComponent.h">
+      <Filter>Abstract\Components</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EngineSettings.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileLogListener.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileSPW.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\ProfilingDebugView.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SpeedPointEngine.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicalComponent.cpp">
+      <Filter>Implementation\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EntityReceipts.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
