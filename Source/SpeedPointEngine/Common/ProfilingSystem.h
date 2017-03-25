@@ -22,7 +22,7 @@ struct S_API ProfilingTimer
 	bool running;
 
 	ProfilingTimer(const LONGLONG& _freq)
-		: running(false), elapsed(0), freq(_freq) {}
+		: running(false), startCount(0), elapsed(0), freq(_freq) {}
 
 	ProfilingTimer()
 		: ProfilingTimer(0) {}
@@ -70,7 +70,10 @@ struct S_API ProfilingTimer
 	// Returns the elapsed time in seconds
 	inline double GetDuration() const
 	{
-		return (double)elapsed / (double)freq;
+		if (freq == 0)
+			return 0.0;
+		else
+			return (double)elapsed / (double)freq;
 	}
 };
 
