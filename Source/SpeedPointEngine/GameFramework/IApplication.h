@@ -11,7 +11,6 @@
 
 SP_NMSPACE_BEG
 
-struct S_API IFramePipeline;
 struct S_API IGameEngine;
 
 struct S_API IApplication
