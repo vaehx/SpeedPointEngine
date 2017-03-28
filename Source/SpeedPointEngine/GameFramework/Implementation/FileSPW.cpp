@@ -307,6 +307,7 @@ S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const 
 	terrain.fChunkStepDist	= DeserializeFloat(params["chunkStepDist"]);
 	terrain.nLodLevels		= DeserializeUInt(params["lodLevels"]);
 	terrain.center			= DeserializeBool(params["center"]);
+	terrain.detailmapRange	= 20.0f;
 
 	IResourcePool* pResources = m_p3DEngine->GetRenderer()->GetResourcePool();
 

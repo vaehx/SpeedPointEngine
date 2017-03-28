@@ -159,6 +159,11 @@ struct S_API STerrainParams
 	unsigned int nLodLevels; //= 4
 	bool center; // true to use (0,0) as the CENTER of the terrain
 	float detailmapRange; // viewing range of detailmap
+
+	STerrainParams()
+		: detailmapRange(20.0f)
+	{
+	}
 };
 
 
