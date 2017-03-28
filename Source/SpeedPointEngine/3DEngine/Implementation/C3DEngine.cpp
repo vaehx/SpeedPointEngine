@@ -26,6 +26,8 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 	CreateHelperPrefab<CSphereHelper>();
 
 	C3DEngine::Set(this);
+
+	m_ParticleSystem.Init(pRenderer);
 }
 
 S_API C3DEngine::~C3DEngine()
@@ -182,7 +184,8 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(const SCamera* pCamera)
 		m_pSkyBox->Update();
 	}
 
-
+	// PARTICLES
+	m_ParticleSystem.Update(0.0f);
 
 	// RENDER OBJECTS
 
@@ -314,7 +317,7 @@ S_API void C3DEngine::CreateHUDRenderDesc()
 	IResourcePool* pResources = m_pRenderer->GetResourcePool();
 
 	SIZE vpSz = m_pRenderer->GetTargetViewport()->GetSize();
-	SPMatrixOrthoRH(&m_HUDRenderDesc.viewProjMtx, (float)vpSz.cx, (float)vpSz.cy, 0.1f, 1000.f);
+	SPMatrixOrthoRH(&m_HUDRenderDesc.projMtx, (float)vpSz.cx, (float)vpSz.cy, 0.1f, 1000.f);
 
 	m_HUDRenderDesc.bCustomViewProjMtx = true;
 	m_HUDRenderDesc.bDepthStencilEnable = false;	
@@ -400,6 +403,15 @@ S_API void C3DEngine::RenderCollected()
 
 
 		RenderMeshes();
+
+		unsigned int particleTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollection() - Render particles");
+		{
+			m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
+			m_ParticleSystem.Render();
+			ProfilingSystem::EndSection(particleTimer);
+		}
+
+		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 
 		RenderHelpers();
 

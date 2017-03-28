@@ -10,7 +10,8 @@ static const float PI = 3.14159265f;
 
 cbuffer SceneCB : register(b0)
 {    
-    float4x4 mtxViewProj;    
+    float4x4 mtxView;
+    float4x4 mtxProj;   
     float4 sunPos;
     float4 eyePos;
 }
@@ -95,7 +96,7 @@ VS_OUTPUT VS_terrain(VS_INPUT IN)
     float4 wPos = float4(IN.Position, 1.0f);        
     wPos.y = SampleVertexHeightmapBilinear(IN.TexCoord) * terrainMaxHeight;
     OUT.WorldPos = wPos.xyz;                        
-    OUT.Position = mul(mtxViewProj, wPos);
+    OUT.Position = mul(mtxProj, mul(mtxView, wPos));
     
     
     // Calculate normal

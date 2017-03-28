@@ -10,6 +10,7 @@
 #include "DX11Utilities.h"
 #include "DX11VertexBuffer.h"
 #include "DX11IndexBuffer.h"
+#include "DX11InstanceBuffer.h"
 #include "DX11Texture.h"
 #include "DX11FBO.h"
 #include "DX11Font.h"
@@ -695,6 +696,9 @@ S_API string DX11Renderer::GetShaderPath(EShaderFileType type) const
 	case eSHADERFILE_GUI:
 		filename = "gui.fx";
 		break;
+	case eSHADERFILE_PARTICLES:
+		filename = "particles.fx";
+		break;
 
 		// Deferred Shading:
 	case eSHADERFILE_DEFERRED_ZPASS:
@@ -733,6 +737,9 @@ S_API void DX11Renderer::InitShaderPasses()
 
 	m_Passes[eSHADERPASS_GUI] = new GUIShaderPass();
 	m_Passes[eSHADERPASS_GUI]->Initialize(this);
+
+	m_Passes[eSHADERPASS_PARTICLES] = new ParticleShaderPass();
+	m_Passes[eSHADERPASS_PARTICLES]->Initialize(this);
 
 	m_Passes[eSHADERPASS_POSTEFFECT] = new PosteffectShaderPass();
 	m_Passes[eSHADERPASS_POSTEFFECT]->Initialize(this);
@@ -837,7 +844,7 @@ S_API IShader* DX11Renderer::CreateShader() const
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Renderer::BindShaderPass(EShaderPassType type)
 {
-	if (IS_VALID_PTR(m_Passes[type]))
+	if (IS_VALID_PTR(m_Passes[type]) && m_CurrentPass != type)
 	{
 		m_Passes[type]->Bind();
 		m_CurrentPass = type;
@@ -1010,6 +1017,28 @@ S_API SResult DX11Renderer::SetIBStream(IIndexBuffer* pIB)
 	{		
 		m_pD3DDeviceContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
 	}
+
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::SetInstanceStream(ITypelessInstanceBuffer* pInstanceBuffer, unsigned int index /*= 1*/)
+{
+	if (!IsInited())
+		return S_NOTINIT;
+
+	if (!IS_VALID_PTR(pInstanceBuffer))
+		return S_INVALIDPARAM;
+
+	DX11InstanceBuffer* pDXInstanceBuffer = dynamic_cast<DX11InstanceBuffer*>(pInstanceBuffer);
+	if (!pDXInstanceBuffer)
+		return S_INVALIDPARAM;
+
+	ID3D11Buffer* pD3DBuffer = pDXInstanceBuffer->D3D11_GetHWBuffer();
+	usint32 stride = pDXInstanceBuffer->GetStrideSize();
+	usint32 offset = 0;
+
+	m_pD3DDeviceContext->IASetVertexBuffers(index, 1, &pD3DBuffer, &stride, &offset);
 
 	return S_SUCCESS;
 }
@@ -1235,6 +1264,8 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 	SetDepthTestFunction(depthTestFunc);
 
 
+	D3D11_SetBlendState(m_pDefBlendState);
+
 
 	// Set the viewport matrices
 	SSceneConstants origSceneConstants;
@@ -1246,7 +1277,7 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
 		memcpy(&origSceneConstants, pSceneConstants, sizeof(SSceneConstants));
 
-		SetViewProjMatrix(renderDesc.viewProjMtx);
+		SetViewProjMatrix(renderDesc.viewMtx, renderDesc.projMtx);
 	}
 
 
@@ -1846,7 +1877,8 @@ S_API void DX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 	pV->RecalculateCameraViewMatrix();
 	const SMatrix4& viewMtx = pV->GetCameraViewMatrix();
 	const SMatrix4& projMtx = pV->GetProjectionMatrix();
-	m_SceneConstants.GetConstants()->mtxViewProj = viewMtx * projMtx;
+	m_SceneConstants.GetConstants()->mtxView = viewMtx;
+	m_SceneConstants.GetConstants()->mtxProj = projMtx;
 
 	//m_PerSceneCB.mtxViewProj = projMtx * viewMtx;
 
@@ -1856,14 +1888,8 @@ S_API void DX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
-	m_SceneConstants.GetConstants()->mtxViewProj = mtxView * mtxProj;		
-	m_SceneConstants.Update();
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxViewProj)
-{
-	m_SceneConstants.GetConstants()->mtxViewProj = mtxViewProj;
+	m_SceneConstants.GetConstants()->mtxView = mtxView;
+	m_SceneConstants.GetConstants()->mtxProj = mtxProj;
 	m_SceneConstants.Update();
 }
 
@@ -1975,13 +2001,26 @@ S_API void DX11Renderer::EnableWireframe(bool state /*=true*/)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::EnableDepthTest(bool state)
+S_API void DX11Renderer::EnableDepthTest(bool enableDepthTest /*= true*/, bool enableDepthWrite /*= true*/)
 {
-	if ((m_depthStencilDesc.DepthEnable ? true : false) != state)
+	bool stateChanged = false;
+
+	// Enable depth test
+	if ((m_depthStencilDesc.DepthEnable ? true : false) != enableDepthTest)
 	{
-		m_depthStencilDesc.DepthEnable = state;
-		UpdateDepthStencilState();
+		m_depthStencilDesc.DepthEnable = enableDepthTest;
+		stateChanged = true;
 	}
+
+	// Enable depth write
+	if ((m_depthStencilDesc.DepthWriteMask == D3D11_DEPTH_WRITE_MASK_ALL ? true : false) != enableDepthWrite)
+	{
+		m_depthStencilDesc.DepthWriteMask = (enableDepthWrite ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO);
+		stateChanged = true;
+	}
+
+	if (stateChanged)
+		UpdateDepthStencilState();
 }
 
 // -----------------------------------------------------------------------------------------------

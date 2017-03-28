@@ -27,7 +27,7 @@ private:
 public:
 	virtual AABB GetAABB();
 	virtual SRenderDesc* GetRenderDesc();
-	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj);
+	virtual void SetCustomViewProjMatrix(const Mat44& viewMtx, const Mat44& projMtx);
 };
 
 SP_NMSPACE_END

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "ITexture.h"
+#include "IInstanceBuffer.h"
 #include <Common\SPrerequisites.h>
 
 SP_NMSPACE_BEG
@@ -22,6 +23,10 @@ struct S_API SMaterial;
 
 struct S_API IResourcePool
 {
+protected:
+	virtual ITypelessInstanceBuffer* CreateTypelessInstanceBuffer() = 0;
+	virtual void OnInstanceBufferResourceCreated(IInstanceBufferResource* instanceBuffer) = 0;
+
 public:
 	virtual SResult Initialize(IRenderer* pRenderer) = 0;
 	virtual SResult	ClearAll(void) = 0;
@@ -43,6 +48,26 @@ public:
 	// Remove IB by given ptr. After deletion the ptr is set to 0
 	virtual SResult RemoveIndexBuffer(IIndexBuffer** pIB) = 0;
 
+
+	template<typename InstanceT, unsigned int chunkSz = 10>
+	SResult AddInstanceBuffer(IInstanceBuffer<InstanceT>** pInstanceBuffer)
+	{
+		if (!pInstanceBuffer)
+			return S_INVALIDPARAM;
+
+		*pInstanceBuffer = new InstanceBufferWrapper<InstanceT, chunkSz>(CreateTypelessInstanceBuffer());
+
+		OnInstanceBufferResourceCreated(*pInstanceBuffer);
+		return S_SUCCESS;
+	}
+
+	template<typename InstanceT>
+	SResult RemoveInstanceBuffer(IInstanceBuffer<InstanceT>** pInstanceBuffer)
+	{
+		return RemoveInstanceBuffer(reinterpret_cast<IInstanceBufferResource**>(pInstanceBuffer));
+	}
+
+	virtual SResult RemoveInstanceBuffer(IInstanceBufferResource** instanceBuffer) = 0;
 
 
 

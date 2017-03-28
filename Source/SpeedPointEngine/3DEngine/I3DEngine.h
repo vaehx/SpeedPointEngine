@@ -14,6 +14,7 @@ struct S_API ISkyBox;
 struct S_API IGeometryManager;
 struct S_API ITexture;
 struct S_API IMaterialManager;
+struct S_API IParticleSystem;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,6 +68,7 @@ public:
 	ILINE virtual IRenderer* GetRenderer() const = 0;
 	ILINE virtual IGeometryManager* GetGeometryManager() = 0;
 	ILINE virtual IMaterialManager* GetMaterialManager() = 0;
+	ILINE virtual IParticleSystem* GetParticleSystem() = 0;
 
 	template<class RenderMeshImpl> void SetRenderMeshImplementation() { SetRenderMeshPool(new ComponentPool<CRenderMesh, RenderMeshImpl>()); }
 	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params = SRenderMeshParams()) = 0;

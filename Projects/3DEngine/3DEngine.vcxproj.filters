@@ -54,6 +54,12 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\C3DEngine.h">
       <Filter>Implementation</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IParticleSystem.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\ParticleSystem.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Geometry.cpp">
@@ -78,6 +84,9 @@
       <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CSkyBox.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\ParticleSystem.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>

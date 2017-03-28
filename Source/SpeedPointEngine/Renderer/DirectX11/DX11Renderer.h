@@ -345,6 +345,7 @@ public:
 	virtual string GetShaderPath(EShaderFileType type) const;
 
 	virtual SResult Render(const SRenderDesc& renderDesc);
+	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
 
 	virtual SResult RenderDeferredLight(const SLightDesc& light);
@@ -353,6 +354,7 @@ public:
 
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0);
 	virtual SResult SetIBStream(IIndexBuffer* pIB);
+	virtual SResult SetInstanceStream(ITypelessInstanceBuffer* pInstanceBuffer, unsigned int index = 1);
 
 	virtual SResult ClearBoundRTs(void);
 
@@ -391,7 +393,7 @@ public:
 	virtual SResult EnableBackfaceCulling(bool state = true);
 	virtual SResult UpdatePolygonType(S_PRIMITIVE_TYPE type);
 	virtual void EnableWireframe(bool state = true);
-	virtual void EnableDepthTest(bool state = true);
+	virtual void EnableDepthTest(bool enableDepthTest = true, bool enableDepthWrite = true);
 
 	virtual IResourcePool* GetResourcePool();
 
@@ -411,7 +413,6 @@ public:
 protected:
 	virtual void SetViewProjMatrix(IViewport* pViewport = 0);
 	virtual void SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj);
-	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj);	
 };
 
 

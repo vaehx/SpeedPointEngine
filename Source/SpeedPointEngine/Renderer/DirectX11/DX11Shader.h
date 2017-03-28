@@ -183,6 +183,41 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
+struct S_API SParticleEmitterConstants : public SObjectConstants
+{
+	unsigned __int32 time; // us passed since emitter creation, 4B
+	unsigned __int32 particleLifetime; // us for a particle to live, 4B
+	float particleSize; // 4B
+	float particleSpeed; // 4B
+};
+
+class S_API ParticleShaderPass : public IShaderPass
+{
+private:
+	IRenderer* m_pRenderer;
+	IShader* m_pShader;
+	ConstantsBufferHelper<SParticleEmitterConstants> m_Constants;
+
+public:
+	ParticleShaderPass()
+		: m_pRenderer(0)
+	{
+	}
+
+	virtual ~ParticleShaderPass()
+	{
+		Clear();
+	}
+
+	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void Clear();
+	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+
+	void SetConstants(const SParticleEmitterConstants& constants);
+};
+
+///////////////////////////////////////////////////////////////////////////////////
 class S_API GUIShaderPass : public IShaderPass
 {
 private:

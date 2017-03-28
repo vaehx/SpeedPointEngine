@@ -14,6 +14,114 @@ using std::ifstream;
 
 SP_NMSPACE_BEG
 
+
+inline void FillSimpleInputLayout(D3D11_INPUT_ELEMENT_DESC** pInputLayout, unsigned int* pNumElements, const char** pName)
+{
+	*pName = "SHADERINPUTLAYOUT_SIMPLE";	
+	unsigned int numElements = *pNumElements = 2;
+
+	D3D11_INPUT_ELEMENT_DESC* vtxDesc = *pInputLayout = new D3D11_INPUT_ELEMENT_DESC[numElements];
+	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * numElements);
+
+	vtxDesc[0].AlignedByteOffset = 0;
+	vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[0].SemanticName = "POSITION";
+
+	vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[1].SemanticName = "NORMAL";
+}
+
+inline void FillDefaultInputLayout(D3D11_INPUT_ELEMENT_DESC** pInputLayout, unsigned int* pNumElements, const char** pName)
+{
+	*pName = "SHADERINPUTLAYOUT_DEFAULT";
+	unsigned int numElements = *pNumElements = 5;
+
+	D3D11_INPUT_ELEMENT_DESC* vtxDesc = *pInputLayout = new D3D11_INPUT_ELEMENT_DESC[numElements];
+	memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * numElements);
+
+	vtxDesc[0].AlignedByteOffset = 0;
+	vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[0].InputSlot = 0;
+	vtxDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[0].SemanticIndex = 0;
+	vtxDesc[0].SemanticName = "POSITION";
+
+	vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[1].InputSlot = 0;
+	vtxDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[1].SemanticIndex = 0;
+	vtxDesc[1].SemanticName = "NORMAL";
+
+	vtxDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[2].InputSlot = 0;
+	vtxDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[2].SemanticIndex = 0;
+	vtxDesc[2].SemanticName = "TANGENT";
+
+	vtxDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[3].Format = DXGI_FORMAT_R32G32_FLOAT;
+	vtxDesc[3].InputSlot = 0;
+	vtxDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[3].SemanticIndex = 0;
+	vtxDesc[3].SemanticName = "TEXCOORD";
+
+	/* // Second texture coordinate:
+	vtxDesc[4].AlignedByteOffset = 0;
+	vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[4].InputSlot = 0;
+	vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[4].SemanticIndex = 1;
+	vtxDesc[4].SemanticName = "TEXCOORD";
+	*/
+
+	vtxDesc[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[4].InputSlot = 0;
+	vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	vtxDesc[4].SemanticIndex = 0;
+	vtxDesc[4].SemanticName = "COLOR";
+}
+
+inline void FillParticleInputLayout(D3D11_INPUT_ELEMENT_DESC** pInputLayout, unsigned int* pNumElements, const char** pName)
+{
+	FillDefaultInputLayout(pInputLayout, pNumElements, pName);
+	unsigned int defaultElements = *pNumElements;
+	D3D11_INPUT_ELEMENT_DESC* defaultInputLayout = *pInputLayout;
+
+	*pName = "SHADERINPUTLAYOUT_PARTICLES";	
+	unsigned int numElements = *pNumElements = *pNumElements + 2;
+
+	D3D11_INPUT_ELEMENT_DESC* vtxDesc = *pInputLayout = new D3D11_INPUT_ELEMENT_DESC[numElements];
+	memcpy(vtxDesc, defaultInputLayout, sizeof(D3D11_INPUT_ELEMENT_DESC) * defaultElements);
+	memset(vtxDesc + defaultElements, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * (numElements - defaultElements));
+
+	delete[] defaultInputLayout;
+	defaultInputLayout = 0;
+
+	// Vec3f direction
+	vtxDesc[defaultElements + 0].AlignedByteOffset = 0;	// !!!
+	vtxDesc[defaultElements + 0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vtxDesc[defaultElements + 0].InputSlot = 1;
+	vtxDesc[defaultElements + 0].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	vtxDesc[defaultElements + 0].InstanceDataStepRate = 1;
+	vtxDesc[defaultElements + 0].SemanticIndex = 1;
+	vtxDesc[defaultElements + 0].SemanticName = "TEXCOORD";
+
+	// unsigned __int32 startTime
+	vtxDesc[defaultElements + 1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	vtxDesc[defaultElements + 1].Format = DXGI_FORMAT_R32_UINT;
+	vtxDesc[defaultElements + 1].InputSlot = 1;
+	vtxDesc[defaultElements + 1].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	vtxDesc[defaultElements + 1].InstanceDataStepRate = 1;
+	vtxDesc[defaultElements + 1].SemanticIndex = 2;
+	vtxDesc[defaultElements + 1].SemanticName = "TEXCOORD";
+}
+
+
+
 // -----------------------------------------------------------------------------------------------
 DX11Shader::DX11Shader()
 : m_pDXRenderer(0),
@@ -140,79 +248,32 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 
 	// 5. Create the polygon layout for the SVertex structure
 	
-	if (info.vertexType == eSHADERVERTEX_SIMPLE)
+	unsigned int numElements = 0;
+	D3D11_INPUT_ELEMENT_DESC* vtxDesc = 0;
+	const char* layoutName;
+
+	switch (info.inputLayout)
 	{
-		const unsigned int NUM_ELEMENTS = 2;
-
-		D3D11_INPUT_ELEMENT_DESC vtxDesc[NUM_ELEMENTS];
-		memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * NUM_ELEMENTS);
-
-		vtxDesc[0].AlignedByteOffset = 0;
-		vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		vtxDesc[0].SemanticName = "POSITION";
-
-		vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		vtxDesc[1].SemanticName = "NORMAL";
-
-		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, NUM_ELEMENTS, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
-			return CLog::Log(S_ERROR, "Failed Create (Simple-Vertex) input layout for VS!");
-	}
-	else
-	{
-		const unsigned int NUM_ELEMENTS = 5;
-
-		D3D11_INPUT_ELEMENT_DESC vtxDesc[NUM_ELEMENTS];
-		memset(vtxDesc, 0, sizeof(D3D11_INPUT_ELEMENT_DESC) * NUM_ELEMENTS);
-
-		vtxDesc[0].AlignedByteOffset = 0;
-		vtxDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		vtxDesc[0].InputSlot = 0;
-		vtxDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		vtxDesc[0].SemanticIndex = 0;
-		vtxDesc[0].SemanticName = "POSITION";
-
-		vtxDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		vtxDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		vtxDesc[1].InputSlot = 0;
-		vtxDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		vtxDesc[1].SemanticIndex = 0;
-		vtxDesc[1].SemanticName = "NORMAL";
-
-		vtxDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		vtxDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		vtxDesc[2].InputSlot = 0;
-		vtxDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		vtxDesc[2].SemanticIndex = 0;
-		vtxDesc[2].SemanticName = "TANGENT";
-
-		vtxDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		vtxDesc[3].Format = DXGI_FORMAT_R32G32_FLOAT;
-		vtxDesc[3].InputSlot = 0;
-		vtxDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		vtxDesc[3].SemanticIndex = 0;
-		vtxDesc[3].SemanticName = "TEXCOORD";
-
-		/* // Second texture coordinate:
-		vtxDesc[4].AlignedByteOffset = 0;
-		vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		vtxDesc[4].InputSlot = 0;
-		vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		vtxDesc[4].SemanticIndex = 1;
-		vtxDesc[4].SemanticName = "TEXCOORD";
-		*/
-
-		vtxDesc[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		vtxDesc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-		vtxDesc[4].InputSlot = 0;
-		vtxDesc[4].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		vtxDesc[4].SemanticIndex = 0;
-		vtxDesc[4].SemanticName = "COLOR";
-
-		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, NUM_ELEMENTS, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
-			return CLog::Log(S_ERROR, "Failed Create input layout for VS!");
+	case eSHADERINPUTLAYOUT_SIMPLE: // SSimpleVertex
+		FillSimpleInputLayout(&vtxDesc, &numElements, &layoutName);
+		break;
+	case eSHADERINPUTLAYOUT_PARTICLES: // SVertex + SParticleInstance
+		FillParticleInputLayout(&vtxDesc, &numElements, &layoutName);
+		break;
+	case eSHADERINPUTLAYOUT_DEFAULT: // SVertex
+	default:
+		FillDefaultInputLayout(&vtxDesc, &numElements, &layoutName);
+		break;
 	}
 
+	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateInputLayout(vtxDesc, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVSInputLayout)))
+	{
+		delete[] vtxDesc;
+		return CLog::Log(S_ERROR, "Failed Create (%s) input layout for VS!", layoutName);
+	}
+
+	delete[] vtxDesc;
+	vtxDesc = 0;
 
 
 	// 6. Clear unneeded stuff
@@ -284,7 +345,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 	SShaderInfo si;
 	si.filename = pRenderer->GetShaderPath(eSHADERFILE_FORWARD_HELPER);
 	si.entry = "helper";	
-	si.vertexType = eSHADERVERTEX_DEFAULT;
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
 	m_pHelperShader = m_pRenderer->CreateShader();
 	m_pHelperShader->Load(pRenderer, si);
@@ -292,7 +353,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 
 	si.filename = pRenderer->GetShaderPath(eSHADERFILE_FORWARD);
 	si.entry = "forward";
-	si.vertexType = eSHADERVERTEX_DEFAULT;
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
 	m_pShader = m_pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
@@ -300,7 +361,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 
 	si.filename = pRenderer->GetShaderPath(eSHADERFILE_SKYBOX);
 	si.entry = "skybox";
-	si.vertexType = eSHADERVERTEX_DEFAULT;
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
 	m_pSkyboxShader = m_pRenderer->CreateShader();
 	m_pSkyboxShader->Load(pRenderer, si);
@@ -535,7 +596,7 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 	SShaderInfo si;
 	si.filename = pRenderer->GetShaderPath(eSHADERFILE_DEFERRED_SHADING);
 	si.entry = "illum";
-	si.vertexType = eSHADERVERTEX_DEFAULT;
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
@@ -619,6 +680,67 @@ S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, c
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
+//				Particle Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+S_API SResult ParticleShaderPass::Initialize(IRenderer* pRenderer)
+{
+	m_pRenderer = pRenderer;
+
+	SShaderInfo si;
+	si.entry = "ParticleEmitter";
+	si.filename = pRenderer->GetShaderPath(eSHADERFILE_PARTICLES);
+	si.inputLayout = eSHADERINPUTLAYOUT_PARTICLES;
+
+	m_pShader = pRenderer->CreateShader();
+	if (Failure(m_pShader->Load(pRenderer, si)))
+		return S_ERROR;
+
+	m_Constants.Initialize(pRenderer);
+	return S_SUCCESS;
+}
+
+S_API void ParticleShaderPass::Clear()
+{
+	m_Constants.Clear();
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+	m_pShader = 0;
+	m_pRenderer = 0;
+}
+
+S_API SResult ParticleShaderPass::Bind()
+{
+	m_pShader->Bind();
+	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
+	return S_SUCCESS;
+}
+
+S_API void ParticleShaderPass::SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& transform)
+{
+	m_pRenderer->BindTexture(shaderResources.textureMap);
+
+	SObjectConstants* constants = m_Constants.GetConstants();
+	constants->mtxWorld = transform;
+	m_Constants.Update();
+}
+
+S_API void ParticleShaderPass::SetConstants(const SParticleEmitterConstants& constants)
+{
+	SParticleEmitterConstants* pConstants = m_Constants.GetConstants();
+	memcpy(pConstants, &constants, sizeof(SParticleEmitterConstants));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
 //				GUI Shader Pass
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -631,7 +753,7 @@ S_API SResult GUIShaderPass::Initialize(IRenderer* pRenderer)
 	SShaderInfo si;
 	si.entry = "GUI";
 	si.filename = pRenderer->GetShaderPath(eSHADERFILE_GUI);
-	si.vertexType = eSHADERVERTEX_DEFAULT;
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 	
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);

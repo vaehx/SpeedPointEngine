@@ -3,6 +3,7 @@
 #include "Geometry.h"
 #include "..\I3DEngine.h"
 #include "Material.h"
+#include "ParticleSystem.h"
 #include <Renderer\IRenderer.h>
 #include <Common\ChunkedObjectPool.h>
 #include <Common\SPrerequisites.h>
@@ -22,6 +23,7 @@ private:
 	IRenderer* m_pRenderer;	
 	CGeometryManager m_GeoMgr;
 	MaterialManager m_MatMgr;
+	CParticleSystem m_ParticleSystem;
 
 	IComponentPool<CRenderMesh>* m_pMeshes;
 	IComponentPool<CRenderLight>* m_pLights;
@@ -61,20 +63,10 @@ public:
 	C3DEngine(IRenderer* pRenderer);
 	virtual ~C3DEngine();
 
-	ILINE virtual IRenderer* GetRenderer() const
-	{
-		return m_pRenderer;
-	}
-	
-	ILINE virtual IGeometryManager* GetGeometryManager()
-	{
-		return &m_GeoMgr;
-	}
-
-	ILINE virtual IMaterialManager* GetMaterialManager()
-	{
-		return &m_MatMgr;
-	}
+	ILINE virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
+	ILINE virtual IGeometryManager* GetGeometryManager() { return &m_GeoMgr; }
+	ILINE virtual IMaterialManager* GetMaterialManager() { return &m_MatMgr; }
+	ILINE virtual IParticleSystem* GetParticleSystem() { return &m_ParticleSystem; }
 	
 	ILINE virtual unsigned int CollectVisibleObjects(const SCamera* pCamera);
 

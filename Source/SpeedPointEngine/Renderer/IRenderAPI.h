@@ -30,12 +30,8 @@ struct S_API ITexture;
 
 struct S_API SSceneConstants
 {
-
-	// mtxView and mtxProjection could also be in a separate CB, but we want to
-	// save memory bandwidth. Also it might be that the camera or projection changes
-	// per scene.
-
-	SMatrix4 mtxViewProj;	// 16 * 4 Byte
+	SMatrix4 mtxView;	// 16 * 4 Byte
+	SMatrix4 mtxProj;
 	
 	// Pos used instead of Dir, to avoid struggling around with angles when calculating
 	// sun traveling due to TOD.   sun dir = normalize(-sunPosition)
@@ -45,7 +41,8 @@ struct S_API SSceneConstants
 
 	SSceneConstants& operator = (const SSceneConstants& b)
 	{
-		mtxViewProj = b.mtxViewProj;
+		mtxView = b.mtxView;
+		mtxProj = b.mtxProj;
 		sunPosition = b.sunPosition;
 		eyePosition = b.eyePosition;
 		return *this;

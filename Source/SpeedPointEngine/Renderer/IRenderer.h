@@ -22,6 +22,7 @@ struct S_API IRenderer;
 struct S_API IRenderPipeline;
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
+struct S_API ITypelessInstanceBuffer;
 class S_API STransformable;
 struct S_API ITexture;
 struct S_API IRendererSettings;
@@ -212,8 +213,9 @@ struct S_API SRenderDesc
 	//STransformationDesc transform;
 	SMatrix transform;
 
-	SMatrix viewProjMtx; // custom view-proj-mtx, only used if bCustomViewProjMtx is set to true
-	bool bCustomViewProjMtx; // if false, uses current viewport viewproj
+	SMatrix viewMtx; // custom view-mtx, only used if bCustomViewProjMtx is set to true
+	SMatrix projMtx; // custom proj-mtx, only used if bCustomViewProjMtx is set to true
+	bool bCustomViewProjMtx; // if false, uses current viewport view- and projection matrix
 
 	bool bDepthStencilEnable;
 	bool bInverseDepthTest; // use GREATER function for depth test
@@ -252,7 +254,8 @@ struct S_API SRenderDesc
 		renderPipeline = rd.renderPipeline;
 		nSubsets = rd.nSubsets;
 		transform = rd.transform;
-		viewProjMtx = rd.viewProjMtx;
+		viewMtx = rd.viewMtx;
+		projMtx = rd.projMtx;
 		bCustomViewProjMtx = rd.bCustomViewProjMtx;
 		bDepthStencilEnable = rd.bDepthStencilEnable;
 		bInverseDepthTest = rd.bInverseDepthTest;
@@ -274,6 +277,24 @@ struct S_API SRenderDesc
 
 		pSubsets = 0;
 		nSubsets = 0;
+	}
+};
+
+struct S_API SInstancedRenderDesc
+{
+	Mat44 transform;
+	SShaderResources shaderResources;
+	IVertexBuffer* pVertexBuffer;
+	ITypelessInstanceBuffer* pInstanceBuffer;
+	bool render; // false to skip this instance batch during render
+	bool enableDepthTest;
+	bool enableDepthWrite;
+
+	SInstancedRenderDesc()
+		: render(true),
+		enableDepthTest(true),
+		enableDepthWrite(true)
+	{
 	}
 };
 
@@ -427,7 +448,8 @@ enum EShaderFileType
 	eSHADERFILE_DEFERRED_ZPASS,	// ZPass for Deferred Shading
 	eSHADERFILE_DEFERRED_SHADING,	// shading pass for Deferred Shading
 	eSHADERFILE_TERRAIN,	// Deferred Shading Terrain
-	eSHADERFILE_GUI
+	eSHADERFILE_GUI,
+	eSHADERFILE_PARTICLES
 };
 
 ///////////////////////////////////////////////////////////////
@@ -525,6 +547,7 @@ public:
 
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0) = 0;
 	virtual SResult SetIBStream(IIndexBuffer* pIB) = 0;
+	virtual SResult SetInstanceStream(ITypelessInstanceBuffer* pInstanceBuffer, unsigned int index = 1) = 0;
 
 	// Arguments:
 	//	Pass nullptr as pTex to empty this texture level
@@ -552,6 +575,7 @@ public:
 	virtual SResult EndScene(void) = 0;
 
 	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
+	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
 
 	virtual SResult RenderDeferredLight(const SLightDesc& light) = 0;
@@ -564,7 +588,7 @@ public:
 	virtual SResult EnableBackfaceCulling(bool state = true) = 0;
 	virtual SResult UpdatePolygonType(S_PRIMITIVE_TYPE type) = 0;
 	virtual void EnableWireframe(bool state = true) = 0;
-	virtual void EnableDepthTest(bool state = true) = 0;
+	virtual void EnableDepthTest(bool enableDepthTest = true, bool enableDepthWrite = true) = 0;
 
 
 
@@ -620,7 +644,6 @@ protected:
 	//	If pViewport is 0 then the current target-viewport is used (default 0)
 	virtual void SetViewProjMatrix(IViewport* pViewport = 0) = 0;
 	virtual void SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
-	virtual void SetViewProjMatrix(const SMatrix& mtxViewProj) = 0;		
 };
 
 

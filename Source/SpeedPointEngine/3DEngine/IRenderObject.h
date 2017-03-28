@@ -34,7 +34,7 @@ public:
 
 	// viewProj - The custom view-projection matrix to apply when rendering this renderobject.
 	//			  If viewproj == 0, the custom viewproj matrix is unset and the renderer uses the viewproj of the viewport
-	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj) = 0;
+	virtual void SetCustomViewProjMatrix(const Mat44& viewMtx, const Mat44& projMtx) = 0;
 
 	// Events
 public:

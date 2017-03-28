@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	SpeedPoint Game Engine
-//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -9,6 +9,7 @@
 
 #include <EntitySystem\IEntity.h>
 #include <3DEngine\I3DEngine.h>
+#include <3DEngine\IParticleSystem.h>
 
 SP_NMSPACE_BEG
 
@@ -42,5 +43,24 @@ public:
 
 typedef S_API class CRenderObjectComponent<CRenderMesh> CRenderMeshComponent;
 typedef S_API class CRenderObjectComponent<CRenderLight> CRenderLightComponent;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+class S_API CParticleEmitterComponent : public IComponent, public CParticleEmitter
+{
+	DEFINE_COMPONENT
+
+	// CParticleEmitter:
+public:
+	virtual SInstancedRenderDesc* GetRenderDesc()
+	{
+		SInstancedRenderDesc* renderDesc = CParticleEmitter::GetRenderDesc();
+		if (m_pEntity)
+			renderDesc->transform = m_pEntity->GetTransform();
+
+		return renderDesc;
+	}
+};
+
 
 SP_NMSPACE_END

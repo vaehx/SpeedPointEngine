@@ -22,10 +22,15 @@ private:
 	DX11Renderer* m_pDXRenderer;
 	string m_RootPath;
 
+	vector<IInstanceBufferResource*> m_InstanceBuffers;
 	ChunkPool<DX11IndexBuffer>	m_plIndexBuffers;
 	ChunkPool<DX11VertexBuffer> m_plVertexBuffers;
 	ChunkPool<DX11Shader> m_plShaders;
 	ChunkPool<DX11Texture> m_plTextures;
+
+protected:
+	virtual ITypelessInstanceBuffer* CreateTypelessInstanceBuffer();
+	virtual void OnInstanceBufferResourceCreated(IInstanceBufferResource* instanceBuffer);
 
 public:		
 	virtual SResult Initialize(IRenderer* pRenderer);
@@ -35,16 +40,13 @@ public:
 	virtual void SetResourceRootPath(const string& path);
 	virtual string GetResourcePath(const string& file) const;
 
-
 	virtual SResult AddVertexBuffer(IVertexBuffer** pVBuffer);	
 	virtual SResult RemoveVertexBuffer(IVertexBuffer** pVB);
-
-
 
 	virtual SResult AddIndexBuffer(IIndexBuffer** pIBuffer);
 	virtual SResult RemoveIndexBuffer(IIndexBuffer** pIB);
 
-
+	virtual SResult RemoveInstanceBuffer(IInstanceBufferResource** pInstanceBuffer);
 
 	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT miplevels = 1, const ETextureType& ty = eTEXTURE_R8G8B8A8_UNORM, const SColor& clearcolor = SColor());
 	virtual ITexture* GetTexture(const string& specification);

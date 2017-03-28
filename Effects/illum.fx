@@ -8,7 +8,8 @@
 
 cbuffer SceneCB : register(b0)
 {    
-    float4x4 mtxViewProj;    
+    float4x4 mtxView;
+    float4x4 mtxProj;   
     float4 sunPos;
     float4 eyePos;
 }
@@ -67,7 +68,7 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
     float4 wPos = mul(mtxWorld, float4(IN.Position,1.0f));
     OUT.WorldPos = wPos.xyz;
         
-    OUT.Position = mul(mtxViewProj, wPos);
+    OUT.Position = mul(mtxProj, mul(mtxView, wPos));
     
     
     

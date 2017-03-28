@@ -8,6 +8,7 @@
 #include "DX11ResourcePool.h"
 #include "DX11VertexBuffer.h"
 #include "DX11IndexBuffer.h"
+#include "DX11InstanceBuffer.h"
 #include "DX11Texture.h"
 #include "DX11Shader.h"
 #include "DX11Renderer.h"
@@ -127,6 +128,43 @@ S_API SResult DX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 
 	return S_SUCCESS;
 }
+
+// **************************************************************************
+//				InstanceBuffer
+// **************************************************************************
+
+S_API ITypelessInstanceBuffer* DX11ResourcePool::CreateTypelessInstanceBuffer()
+{
+	return new DX11InstanceBuffer(m_pDXRenderer);
+}
+
+S_API void DX11ResourcePool::OnInstanceBufferResourceCreated(IInstanceBufferResource* pInstanceBuffer)
+{
+	if (!pInstanceBuffer)
+		return;
+
+	m_InstanceBuffers.push_back(pInstanceBuffer);
+}
+
+S_API SResult DX11ResourcePool::RemoveInstanceBuffer(IInstanceBufferResource** pInstanceBuffer)
+{
+	if (!pInstanceBuffer || !*pInstanceBuffer)
+		return CLog::Log(S_ERROR, "Failed remove instance buffer: nullptr given");
+
+	for (auto itInstanceBuffer = m_InstanceBuffers.begin(); itInstanceBuffer != m_InstanceBuffers.end(); ++itInstanceBuffer)
+	{
+		if (*itInstanceBuffer == *pInstanceBuffer)
+		{
+			delete *pInstanceBuffer;
+			*pInstanceBuffer = 0;
+			m_InstanceBuffers.erase(itInstanceBuffer);
+			break;
+		}
+	}
+
+	return S_SUCCESS;
+}
+
 
 // **************************************************************************
 //				Texturing

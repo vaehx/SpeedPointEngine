@@ -19,6 +19,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\CSkyBox.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Geometry.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Material.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\ParticleSystem.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Terrain.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IOcean.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IRenderObject.h" />
@@ -26,6 +27,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\ITerrain.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\RenderLight.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\RenderMesh.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\3DEngine\IParticleSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\C3DEngine.cpp" />
@@ -35,6 +37,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Material.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\RenderLight.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\RenderMesh.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\ParticleSystem.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\3DEngine\Implementation\Terrain.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

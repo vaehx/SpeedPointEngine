@@ -176,17 +176,11 @@ S_API AABB CRenderMesh::GetAABB()
 	return m_AABB;
 }
 
-S_API void CRenderMesh::SetCustomViewProjMatrix(const SMatrix* viewProj)
+S_API void CRenderMesh::SetCustomViewProjMatrix(const Mat44& viewMtx, const Mat44& projMtx)
 {
-	if (viewProj)
-	{
-		m_RenderDesc.bCustomViewProjMtx = true;
-		m_RenderDesc.viewProjMtx = *viewProj;
-	}
-	else
-	{
-		m_RenderDesc.bCustomViewProjMtx = false;
-	}
+	m_RenderDesc.bCustomViewProjMtx = true;
+	m_RenderDesc.viewMtx = viewMtx;
+	m_RenderDesc.projMtx = projMtx;
 }
 
 S_API IVertexBuffer* CRenderMesh::GetVertexBuffer()

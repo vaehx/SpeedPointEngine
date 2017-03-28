@@ -16,6 +16,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11FBO.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Font.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11IndexBuffer.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11InstanceBuffer.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11OutputPlane.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Renderer.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11ResourcePool.h" />
@@ -28,6 +29,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IFBO.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IFont.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IIndexBuffer.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IInstanceBuffer.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IOutputPlane.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IRenderAPI.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IRenderer.h" />
@@ -42,8 +44,10 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11FBO.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Font.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11IndexBuffer.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11InstanceBuffer.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11OuptutBuffer.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Renderer.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11RendererRenderInstanced.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11ResourcePool.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Shader.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Texture.cpp" />

@@ -2,7 +2,8 @@
 
 cbuffer SceneCB : register(b0)
 {    
-    float4x4 mtxViewProj;    
+    float4x4 mtxView;
+    float4x4 mtxProj;   
     float4 sunPos;
     float4 eyePos;
 };
@@ -33,7 +34,7 @@ v2f VS_helper(a2v IN)
 {
     v2f OUT;
     float4 wPos = mul(mtxWorld, float4(IN.Position.xyz, 1.0f));
-    OUT.Position = mul(mtxViewProj, wPos);
+    OUT.Position = mul(mtxProj, mul(mtxView, wPos));
 	OUT.Color = IN.Color;
 
     return OUT;
@@ -43,6 +44,6 @@ v2f VS_helper(a2v IN)
 float4 PS_helper(v2f IN) : SV_Target0
 {
 	float3 col = IN.Color * helperColor.rgb;
-	return float4(col.x, col.y, col.z, 0);
+	return float4(col.x, col.y, col.z, 0.5f);
 }
 

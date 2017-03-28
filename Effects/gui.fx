@@ -8,7 +8,8 @@
 
 cbuffer SceneCB : register(b0)
 {    
-    float4x4 mtxViewProj;    
+    float4x4 mtxView;
+    float4x4 mtxProj;
     float4 sunPos;
     float4 eyePos;
 }
@@ -47,7 +48,7 @@ VS_OUTPUT VS_GUI(VS_INPUT IN)
 	VS_OUTPUT OUT;
 
 	float4 wPos = mul(mtxWorld, float4(IN.Position, 1.0f));
-	OUT.Position = mul(mtxViewProj, wPos);
+	OUT.Position = mul(mtxProj, mul(mtxView, wPos));
 	OUT.Position.z = 0.1f;
 	OUT.TexCoord = IN.TexCoord;
 

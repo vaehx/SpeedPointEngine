@@ -18,32 +18,33 @@ struct S_API IRenderer;
 struct S_API SShaderResources;
 
 // The type of Vertex structure to use as input for a shader/effect
-enum S_API EShaderVertexType
+enum S_API EShaderInputLayout
 {
-	eSHADERVERTEX_DEFAULT = 0,	// SVertex
-	eSHADERVERTEX_SIMPLE	// SSimpleVertex
+	eSHADERINPUTLAYOUT_DEFAULT = 0,	// SVertex
+	eSHADERINPUTLAYOUT_SIMPLE,		// SSimpleVertex
+	eSHADERINPUTLAYOUT_PARTICLES	// uses instance pool for particles
 };
 
 struct S_API SShaderInfo
 {
-	EShaderVertexType vertexType;
+	EShaderInputLayout inputLayout;
 	string filename;
 	string entry;
 
-	SShaderInfo(const string& _filename, const string& _entry, EShaderVertexType _vertexType)
+	SShaderInfo(const string& _filename, const string& _entry, EShaderInputLayout _inputLayout)
 		: filename(_filename),
 		entry(_entry),
-		vertexType(_vertexType)
+		inputLayout(_inputLayout)
 	{
 	}
 
 	SShaderInfo(const string& _filename, const string& _entry)
-		: SShaderInfo(_filename, _entry, eSHADERVERTEX_DEFAULT)
+		: SShaderInfo(_filename, _entry, eSHADERINPUTLAYOUT_DEFAULT)
 	{
 	}
 
 	SShaderInfo()
-		: SShaderInfo("", "", eSHADERVERTEX_DEFAULT)
+		: SShaderInfo("", "")
 	{
 	}	
 };
@@ -82,6 +83,7 @@ enum S_API EShaderPassType
 	eSHADERPASS_GBUFFER,
 	eSHADERPASS_SHADING,
 	eSHADERPASS_SHADOWMAP,
+	eSHADERPASS_PARTICLES,
 	eSHADERPASS_GUI,
 	eSHADERPASS_POSTEFFECT
 #define NUM_SHADERPASS_TYPES (eSHADERPASS_POSTEFFECT + 1)

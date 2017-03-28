@@ -30,7 +30,7 @@ S_API SRenderDesc* CRenderLight::GetRenderDesc()
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API void CRenderLight::SetCustomViewProjMatrix(const SMatrix* viewProj)
+S_API void CRenderLight::SetCustomViewProjMatrix(const Mat44& viewMtx, const Mat44& projMtx)
 {
 
 

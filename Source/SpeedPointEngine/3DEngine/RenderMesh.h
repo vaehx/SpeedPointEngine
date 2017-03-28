@@ -46,7 +46,7 @@ public:
 	// IRenderObject
 public:
 	virtual AABB GetAABB();
-	virtual void SetCustomViewProjMatrix(const SMatrix* viewProj);	
+	virtual void SetCustomViewProjMatrix(const Mat44& viewMtx, const Mat44& projMtx);
 
 	// Events:
 public:
