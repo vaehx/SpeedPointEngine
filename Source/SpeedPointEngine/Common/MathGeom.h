@@ -673,10 +673,10 @@ struct SMesh
 		for (u32 i = 0; i < (u32)meshFaces.size(); ++i)
 			faceIndices[i] = i;
 
-		CLog::Log(S_DEBUG, "Initializing kTree with %u faces,  maxDepth = %u", meshFaces.size(), maxDepth);
+		//CLog::Log(S_DEBUG, "Initializing kTree with %u faces,  maxDepth = %u", meshFaces.size(), maxDepth);
 		kTree.Init(meshFaces, aabb, faceIndices, kTreeType, maxDepth);
 
-		CLog::Log(S_DEBUG, "Done. kTree.nChilds = %u    kTree.faces.size() = %u", kTree.nChilds, kTree.faces.size());
+		//CLog::Log(S_DEBUG, "Done. kTree.nChilds = %u    kTree.faces.size() = %u", kTree.nChilds, kTree.faces.size());
 	}
 
 	// Fills the intersecting array with faces that intersect with the given AABB

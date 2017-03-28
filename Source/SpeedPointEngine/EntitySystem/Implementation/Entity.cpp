@@ -267,7 +267,10 @@ S_API void CEntity::AddComponentIntrl(IComponent* pComponent, bool managed /*=fa
 		return;
 
 	if (HasComponent(pComponent))
+	{
+		CLog::Log(S_DEBUG, "Not adding component: Entity already has such a component");
 		return;
+	}
 
 	m_Components.push_back(pComponent);
 	pComponent->SetEntity(this);

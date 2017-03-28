@@ -16,13 +16,16 @@ SP_NMSPACE_BEG
 
 S_API CParticleEmitter::CParticleEmitter()
 	: m_pInstanceBuffer(0),
-	m_bStarted(false)
+	m_bStarted(false),
+	m_bTrash(false),
+	m_nForceSpawnParticles(0)
 {
 	srand(0);
 }
 
 S_API void CParticleEmitter::Init(const SParticleEmitterParams& params)
 {
+	m_bTrash = false;
 	m_Params = params;
 
 	IResourcePool* pResources = C3DEngine::Get()->GetRenderer()->GetResourcePool();
@@ -42,6 +45,7 @@ S_API void CParticleEmitter::Init(const SParticleEmitterParams& params)
 
 	m_bStarted = false;
 	m_nSpawnedParticles = 0;
+	m_nForceSpawnParticles = 0;
 
 	m_ParticleLifetime = (usint32)(1000000.0 * (double)m_Params.particleMaxDistance / (double)m_Params.particleSpeed); //us
 	m_SpawnDelay = (usint32)(m_ParticleLifetime / (usint32)m_Params.numConcurrentParticles);
@@ -84,12 +88,25 @@ S_API void CParticleEmitter::Update(float fTime)
 		}
 	}
 
-	// Spawn new particle if necessary
+	// Spawn new particles if necessary
 	unsigned int numExpectedSpawns = (unsigned int)(m_CurTime / m_SpawnDelay);
 	unsigned int numActualSpawns = m_nSpawnedParticles;
-	if (numExpectedSpawns > numActualSpawns)
+
+	unsigned int newParticles = 0;
+
+	if (m_Params.spawnAutomatically && numExpectedSpawns > numActualSpawns)
+		newParticles += numExpectedSpawns - numActualSpawns;
+
+	if (m_nForceSpawnParticles > 0)
 	{
-		for (unsigned int i = 0; i < (numExpectedSpawns - numActualSpawns); ++i)
+		newParticles += m_nForceSpawnParticles;
+		m_nForceSpawnParticles = 0;
+	}
+
+	if (newParticles > 0)
+	{
+		unsigned int newParticleDelay = (unsigned int)(lastFrameDur / newParticles);
+		for (unsigned int i = 0; i < newParticles; ++i)
 		{
 			SParticleInstance* pInstance = m_pInstanceBuffer->AddInstance();
 
@@ -100,13 +117,18 @@ S_API void CParticleEmitter::Update(float fTime)
 				(float)rand() / (RAND_MAX / 2.f) - 1.f
 			).Normalized();
 
-			pInstance->startTime = (m_CurTime - lastFrameDur) + i * m_SpawnDelay;
-
-			++m_nSpawnedParticles;
+			pInstance->startTime = (m_CurTime - lastFrameDur) + i * newParticleDelay;
 		}
+
+		m_nSpawnedParticles = numExpectedSpawns;
 	}
 
 	m_pInstanceBuffer->Unlock();
+}
+
+S_API void CParticleEmitter::SpawnParticle()
+{
+	m_nForceSpawnParticles++;
 }
 
 S_API void CParticleEmitter::Clear()
@@ -117,10 +139,12 @@ S_API void CParticleEmitter::Clear()
 		pResources->RemoveInstanceBuffer(&m_pInstanceBuffer);
 
 	m_bStarted = false;
+	m_bTrash = true;
 }
 
 S_API SInstancedRenderDesc* CParticleEmitter::GetRenderDesc()
 {
+	m_RenderDesc.transform = Mat44::MakeTranslationMatrix(m_Params.position);
 	return &m_RenderDesc;
 }
 
@@ -166,7 +190,11 @@ S_API void CParticleSystem::Update(float fTime)
 	CParticleEmitter* pEmitter = m_pEmitters->GetFirst(iEmitter);
 	while (pEmitter)
 	{
-		pEmitter->Update(fTime);
+		if (pEmitter->IsTrash())
+			m_pEmitters->Release(&pEmitter);
+		else
+			pEmitter->Update(fTime);
+
 		pEmitter = m_pEmitters->GetNext(iEmitter);
 	}
 }

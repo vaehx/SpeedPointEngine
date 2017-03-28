@@ -636,7 +636,7 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 
 	// Initialize shader passes
 	InitShaderPasses();
-	BindShaderPass(eSHADERPASS_GBUFFER);
+	m_CurrentPass = eSHADERPASS_NONE;
 
 	// Create unset texture dummy
 	m_DummyTexture.D3D11_SetRenderer(this);
@@ -1339,6 +1339,8 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 	{
 		bool bTerrainRenderState = true;	// true = success
 		FrameDump("Rendering Terrain...");
+
+		m_CurrentPass = eSHADERPASS_NONE;
 
 		// Render Terrain directly to the backbuffer
 		BindSingleRT(m_pTargetViewport);

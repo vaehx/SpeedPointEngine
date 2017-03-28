@@ -21,7 +21,7 @@ S_API void SMeshKTree::Clear()
 
 S_API void SMeshKTree::Init(const vector<SMeshFace>& insertFaces, const AABB& _aabb, const vector<u32>& faceIndices, EMeshKTreeType _type /*= eMESH_KTREE_OCTREE*/, unsigned int maxDepth /*= 0*/)
 {
-	CLog::Log(S_DEBUG, "SMeshKTree::Init(insertFaces=[%d], faceIndices=[%d], depth=%d)", insertFaces.size(), faceIndices.size(), maxDepth);
+	//CLog::Log(S_DEBUG, "SMeshKTree::Init(insertFaces=[%d], faceIndices=[%d], depth=%d)", insertFaces.size(), faceIndices.size(), maxDepth);
 
 	Clear();
 	faces.clear();

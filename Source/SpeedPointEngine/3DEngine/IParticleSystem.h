@@ -20,11 +20,19 @@ struct S_API ITexture;
 // TODO: Currently only spreading in all directions
 struct S_API SParticleEmitterParams
 {
+	Vec3f position;
 	ITexture* particleTexture;
 	float particleSize; // size of a side of a particle billboard
 	float particleMaxDistance; // maximum distance of a particle before despawning
 	float particleSpeed; // units/second
 	unsigned int numConcurrentParticles; // must be at least 1
+	bool spawnAutomatically; // if false, call SpawnParticle()
+
+	SParticleEmitterParams()
+		: spawnAutomatically(true),
+		particleTexture(0)
+	{
+	}
 };
 
 struct S_API SParticleInstance
@@ -44,6 +52,7 @@ private:
 	unsigned __int32 m_ParticleLifetime;
 	unsigned __int32 m_SpawnDelay;
 	unsigned int m_nSpawnedParticles;
+	unsigned int m_nForceSpawnParticles;
 	SInstancedRenderDesc m_RenderDesc;
 	IInstanceBuffer<SParticleInstance>* m_pInstanceBuffer;
 	SParticleEmitterParams m_Params;
@@ -55,7 +64,13 @@ public:
 	void Init(const SParticleEmitterParams& params);
 	void Update(float fTime);
 
+	void SpawnParticle();
+
 	const SParticleEmitterParams& GetParams() const { return m_Params; }
+
+	const Vec3f& GetPos() const { return m_Params.position; }
+	void SetPos(const Vec3f& pos) { m_Params.position = pos; }
+
 	const unsigned __int32& GetCurTime() const { return m_CurTime; }
 	const unsigned __int32& GetParticleLifetime() const { return m_ParticleLifetime; }
 

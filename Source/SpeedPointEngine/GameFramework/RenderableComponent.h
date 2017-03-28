@@ -56,9 +56,15 @@ public:
 	{
 		SInstancedRenderDesc* renderDesc = CParticleEmitter::GetRenderDesc();
 		if (m_pEntity)
-			renderDesc->transform = m_pEntity->GetTransform();
+			renderDesc->transform = m_pEntity->GetTransform() * renderDesc->transform;
 
 		return renderDesc;
+	}
+
+	virtual void Clear()
+	{
+		CParticleEmitter::Clear();
+		IComponent::Release();
 	}
 };
 
