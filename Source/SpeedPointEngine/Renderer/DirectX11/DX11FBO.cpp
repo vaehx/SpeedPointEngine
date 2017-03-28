@@ -14,7 +14,7 @@ SP_NMSPACE_BEG
 
 // -----------------------------------------------------------------------------------------------
 S_API DX11FBO::DX11FBO()
-	: m_pDXRenderer(0),	
+	: m_pDXRenderer(0),
 	m_pTexture(0),
 	m_pRTV(0),
 	m_nBufferWidth(0),
@@ -33,7 +33,7 @@ S_API DX11FBO::~DX11FBO()
 S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned int nW, unsigned int nH)
 {
 	Clear(); // make sure to clear before initialize again
-	
+
 	if (!IS_VALID_PTR(pRenderer) || pRenderer->GetType() != S_DIRECTX11)
 		return S_INVALIDPARAM;
 
@@ -43,9 +43,9 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 	m_nBufferHeight = nH;
 
 	// By default we use sRGB 32bit unsigned normalized buffer
-	DXGI_FORMAT texFmt;	
+	DXGI_FORMAT texFmt;
 	switch (type)
-	{		
+	{
 	case eFBO_F32:
 		texFmt = DXGI_FORMAT_R32_FLOAT;
 		break;
@@ -54,11 +54,11 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 		texFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
 	}
 
-	// Setup the texture description structure	
+	// Setup the texture description structure
 	m_texDesc.ArraySize = 1;
 
 
-	m_texDesc.BindFlags = D3D11_BIND_RENDER_TARGET 
+	m_texDesc.BindFlags = D3D11_BIND_RENDER_TARGET
 		| D3D11_BIND_SHADER_RESOURCE;	// assumes that all FBOs currently are used as textures as well - maybe we want to change this someday!
 
 
@@ -66,7 +66,7 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 	m_texDesc.Height = nH;
 	m_texDesc.Width = nW;
 	m_texDesc.MiscFlags = 0;
-	m_texDesc.Usage = D3D11_USAGE_DEFAULT; // maybe make this specificable someday							
+	m_texDesc.Usage = D3D11_USAGE_DEFAULT; // maybe make this specificable someday
 	m_texDesc.Format = texFmt;
 	m_texDesc.SampleDesc = GetD3D11MSAADesc(
 		m_texDesc.Format,
@@ -108,7 +108,7 @@ S_API SResult DX11FBO::InitializeDSV()
 
 
 	// Setup the depth Buffer
-	DXGI_FORMAT depthStencilBufferFormat = DXGI_FORMAT_D24_UNORM_S8_UINT; // you might want to change this format someday		
+	DXGI_FORMAT depthStencilBufferFormat = DXGI_FORMAT_D32_FLOAT; // you might want to change this format someday
 	usint32 nDepthStencilWidth = m_nBufferWidth;
 	usint32 nDepthStencilHeight = m_nBufferHeight;
 
@@ -150,7 +150,7 @@ S_API SResult DX11FBO::InitializeDSV()
 		return CLog::Log(S_ERROR, "Failed Create Depth Stencil View!");
 	}
 
-	
+
 	// okay. done.
 	return S_SUCCESS;
 }
@@ -190,7 +190,7 @@ S_API void DX11FBO::Clear(void)
 		SP_SAFE_RELEASE(m_pDepthStencilView);
 	}
 
-	SP_SAFE_RELEASE(m_pTexture);	
+	SP_SAFE_RELEASE(m_pTexture);
 	SP_SAFE_RELEASE(m_pDepthStencilBuffer);
 	SP_SAFE_RELEASE(m_pSRV);
 
@@ -198,7 +198,7 @@ S_API void DX11FBO::Clear(void)
 	m_pTexture = 0;
 	m_pDepthStencilView = 0;
 	m_pDepthStencilBuffer = 0;
-	m_pDXRenderer = 0;	
+	m_pDXRenderer = 0;
 }
 
 

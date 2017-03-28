@@ -32,8 +32,8 @@ struct S_API SProjectionDesc
 
 	SProjectionDesc()
 		: bUseEngineZPlanes(true),
-		nearZ(1.0f),
-		farZ(200.0f)
+		nearZ(0.2f),
+		farZ(100.0f)
 	{
 	}
 

@@ -70,6 +70,8 @@ S_API SResult CRenderMesh::Init(const SRenderMeshParams& params)
 
 	SRenderDesc* rd = GetRenderDesc();
 	rd->renderPipeline = eRENDER_FORWARD;
+	rd->bDepthStencilEnable = true;
+	rd->bInverseDepthTest = false;
 	rd->bCustomViewProjMtx = false;
 
 	// copy over subsets

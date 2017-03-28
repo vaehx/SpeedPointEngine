@@ -1263,7 +1263,10 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
 	SetDepthTestFunction(depthTestFunc);
 
+	// Set rasterizer state
+	EnableBackfaceCulling(false);
 
+	// Set blend state
 	D3D11_SetBlendState(m_pDefBlendState);
 
 
