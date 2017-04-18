@@ -52,20 +52,16 @@ public:
 	// Summary:
 	//	Initialize with given renderer
 	// Arguments:
-	//	nW / nH - (default 0) resolution of the buffer. set to 0 or omit to use FBOType-Default
-	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int nW = 0, unsigned int nH = 0) = 0;		
-
-	// Initialize 
-	//	Initialize the Depth Stencil Buffer and its View
-	// Return value:
-	//	S_NOTINIT - Initialize() was not called or not successful
-	virtual SResult InitializeDSV() = 0;
+	//	allowAsTexture - allows the FBO to be used as a texture
+	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, bool allowAsTexture = false) = 0;
 
 	// Summary:
-	//	Mark this FBO to later be used as a texture, so generate the Shader resource view
-	virtual SResult InitializeSRV() = 0;
+	//	Creates a hardware depth buffer for this FBO
+	// Arguments:
+	//	allowAsTexture - allows the depth buffer to be used as a texture
+	virtual SResult InitializeDepthBuffer(bool allowAsTexture = false) = 0;
 
-	virtual bool IsInitialized() = 0;
+	virtual bool IsInitialized() const = 0;
 
 	// Get the handling renderer
 	virtual IRenderer* GetRenderer() = 0;

@@ -68,58 +68,52 @@ private:
 
 	ID3D11Device* m_pD3DDevice;
 	ID3D11DeviceContext* m_pD3DDeviceContext;
-
 	D3D_FEATURE_LEVEL m_D3DFeatureLevel;
+
+	IDXGIFactory1* m_pDXGIFactory;
+	vector<IDXGIAdapter1*> m_vAdapters;	// enumeration list of all possible adapters
+	DXGI_MODE_DESC m_AutoSelectedDisplayModeDesc;	// automatically selected in AutoSelectAdapter()
+	DXGI_ADAPTER_DESC m_AutoSelectedAdapterDesc;
+	IDXGIAdapter1* m_pAutoSelectedAdapter;	// dont release this. it will be released in m_vAdapters! possibly use shared_ptr
+
+	// Rasterizer state
 	D3D11_RASTERIZER_DESC m_rsDesc;	
 	ID3D11RasterizerState* m_pRSState;
 
+	// Sampler state
 	ETextureSampling m_SetSamplerState;
 	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
 	ID3D11SamplerState* m_pPointSamplerState;
-	
 
-
+	// Blend state
 	D3D11_BLEND_DESC m_DefBlendDesc;
 	ID3D11BlendState* m_pDefBlendState;
 
 	D3D11_BLEND_DESC m_AlphaTestBlendDesc;
 	ID3D11BlendState* m_pAlphaTestBlendState;
-	
+
 	ID3D11BlendState* m_pSetBlendState;
 
-
-
-	IDXGIFactory1* m_pDXGIFactory;
-
-	vector<IDXGIAdapter1*> m_vAdapters;	// enumeration list of all possible adapters
-	DXGI_MODE_DESC m_AutoSelectedDisplayModeDesc;	// automatically selected in AutoSelectAdapter()
-	DXGI_ADAPTER_DESC m_AutoSelectedAdapterDesc;	
-	IDXGIAdapter1* m_pAutoSelectedAdapter;	// dont release this. it will be released in m_vAdapters! possibly use shared_ptr
-
-	bool m_bFullscreen;
-
-
-	DX11Viewport m_Viewport;	// Default Viewport?
-	IViewport* m_pTargetViewport;
-
-	DX11FBO* m_pRenderTargets[MAX_BOUND_RTS];
-	ID3D11DepthStencilView* m_pDSV;	// the bound DSV
-	unsigned int m_nRenderTargets;
-
+	// Depth Stencil state
 	D3D11_DEPTH_STENCIL_DESC m_depthStencilDesc;
-	ID3D11DepthStencilState* m_pDepthStencilState;	
+	ID3D11DepthStencilState* m_pDepthStencilState;
 
 	D3D11_DEPTH_STENCIL_DESC m_terrainDepthDesc;
 	ID3D11DepthStencilState* m_pTerrainDepthState;
+
+
+	bool m_bFullscreen;
+
+	DX11Viewport m_Viewport;
+	IViewport* m_pTargetViewport;
+
+	vector<DX11FBO*> m_BoundRenderTargets;
+	ID3D11DepthStencilView* m_pBoundDSV;
+	bool m_bBoundDSVReadonly;
 	
 
 
 
-
-	//SMaterialConstantsBuffer* m_pMaterialConstants;
-	//SHelperConstantBuffer* m_pHelperConstants;
-	//ID3D11Buffer* m_pIllumCB;
-	//ID3D11Buffer* m_pHelperCB;
 
 	ConstantsBufferHelper<SSceneConstants> m_SceneConstants;
 	ConstantsBufferHelper<STerrainConstants> m_TerrainConstants;	
@@ -311,22 +305,22 @@ public:
 		return new DX11FBO();
 	}
 	
-	virtual SResult BindSingleRT(IFBO* pFBO);
+	virtual SResult BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, bool depthReadonly = false, const char* dump_name = 0);
+	virtual SResult BindSingleRT(IFBO* pFBO, bool depthReadonly = false);
 	virtual SResult BindSingleRT(IViewport* pViewport);
-	
-	virtual SResult BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0);
-
-	virtual IFBO* GetBoundSingleRT();
 
 	virtual bool BoundMultipleRTs() const
 	{
-		return (m_nRenderTargets > 1);
-	}	
+		return (m_BoundRenderTargets.size() > 1);
+	}
 
+	virtual vector<IFBO*> GetBoundRTs() const;
 
 	virtual SResult BindVertexShaderTexture(ITexture* pTex, usint32 lvl = 0);
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0);
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
+	virtual SResult BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl = 0);
+	virtual void UnbindTexture(usint32 lvl);
 
 	virtual ITexture* GetDummyTexture() const;
 

@@ -212,6 +212,7 @@ public:
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual void Clear();
 	virtual SResult Bind();
+	virtual void OnUnbind();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
 
 	void SetConstants(const SParticleEmitterConstants& constants);

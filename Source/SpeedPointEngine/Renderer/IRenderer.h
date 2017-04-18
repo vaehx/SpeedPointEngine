@@ -32,7 +32,7 @@ struct S_API IVisibleObject;
 struct S_API SDisplayModeDescription
 {
 	usint32 width;
-	usint32 height;		
+	usint32 height;
 	usint32 refreshRate;
 
 	SDisplayModeDescription()
@@ -80,7 +80,7 @@ struct S_API SRenderTargetCollection
 	vector<SRenderTarget> pvRenderTargets;
 
 	SRenderTargetCollection()
-	{	
+	{
 	}
 
 	SRenderTargetCollection(const SRenderTargetCollection& o)
@@ -185,7 +185,7 @@ struct SRenderSubset
 	SDrawCallDesc drawCallDesc;
 	bool render; // true to render, false to skip
 	bool bOnce;	// set bRender to false if drawcall passed the pipeline
-	
+
 	// All pure black (0,0,0) pixels will be transparent, blending enabled
 	bool enableAlphaTest;
 
@@ -302,7 +302,7 @@ struct S_API SInstancedRenderDesc
 // Summary:
 //	Draw call information for a terrain lod level
 struct S_API STerrainDrawCallDesc : SDrawCallDesc
-{	
+{
 	bool bRender;
 
 	STerrainDrawCallDesc()
@@ -322,15 +322,15 @@ struct S_API STerrainRenderDesc
 {
 	STerrainDrawCallDesc *pDrawCallDescs;
 	unsigned int nDrawCallDescs;
-	STransformationDesc transform;	
+	STransformationDesc transform;
 	ITexture* pColorMap;
 	ITexture* pVtxHeightMap;
-	
+
 	ITexture** pLayerMasks;	// numLayers
 	ITexture** pDetailMaps; // numLayers
 	unsigned int nLayers;
 
-	STerrainConstants constants;	
+	STerrainConstants constants;
 	bool bUpdateCB;
 	bool bRender;
 
@@ -351,7 +351,7 @@ struct S_API STerrainRenderDesc
 struct S_API SRenderSlot
 {
 	SRenderDesc renderDesc;
-	bool keep; // true if slot may no be released after rendered	
+	bool keep; // true if slot may no be released after rendered
 
 	SRenderSlot()
 		: keep(true)
@@ -407,7 +407,7 @@ struct S_API SFontRenderSlot
 
 
 struct S_API SLightDesc
-{	
+{
 	SColor intensity; // spectral intensity
 
 	// Deferred Shading:
@@ -511,8 +511,8 @@ public:
 	virtual SResult GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pDesc) = 0;
 
 	virtual bool AdapterModeSupported(usint32 nW, usint32 nH) = 0;
-	
-	virtual SResult SetTargetViewport( IViewport* pViewport ) = 0;		
+
+	virtual SResult SetTargetViewport( IViewport* pViewport ) = 0;
 	virtual IViewport* GetTargetViewport(void) = 0;
 
 	// Get the default viewport
@@ -521,48 +521,61 @@ public:
 	// Create an an addition viewport
 	virtual SResult CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc) = 0;
 
-	/*
-	// Will update the collection if existing
-	virtual SResult StoreRTCollection(ERenderTargetCollectionID asId) = 0;
-	*/
-	
+
 	// Factory method to create a new RenderTarget
 	virtual IFBO* CreateRT() const = 0;
 
 	// Summary:
 	//	Binds given collection of render targets.
 	// Arguments:
-	//	depthFBO - The DepthStencil Buffer of this FBO will be bound for rendering
-	virtual SResult BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name = 0) = 0;
+	//	depthFBO - The DepthStencil Buffer of this FBO will be bound for rendering.
+	//  depthReadonly - Set to true to disable depth-writes. This allows the depth buffer to be also bound as texture
+	virtual SResult BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, bool depthReadonly = false, const char* dump_name = 0) = 0;
 
-	virtual bool BoundMultipleRTs() const = 0;
+	// Summary:
+	//	Uses the given FBO as sole render target and depth buffer.
+	// Arguments:
+	//	depthReadonly - Set to true to disable depth-writes. This allows the depth buffer to be also bound as texture
+	virtual SResult BindSingleRT(IFBO* pFBO, bool depthReadonly = false) = 0;
 
-	// Binds a single FrameBuffer Object (mainly used for binding a single backbuffer of a viewport in post-rendering section)
-	virtual SResult BindSingleRT(IFBO* pFBO) = 0;
+	// Summary:
+	//	Uses the FBO of the given viewport as sole render target and depth buffer
 	virtual SResult BindSingleRT(IViewport* pViewport) = 0;
 
-	virtual IFBO* GetBoundSingleRT() = 0;
-
+	virtual bool BoundMultipleRTs() const = 0;
+	virtual vector<IFBO*> GetBoundRTs() const = 0;
 
 
 	virtual SResult SetVBStream(IVertexBuffer* pVB, unsigned int index = 0) = 0;
 	virtual SResult SetIBStream(IIndexBuffer* pIB) = 0;
 	virtual SResult SetInstanceStream(ITypelessInstanceBuffer* pInstanceBuffer, unsigned int index = 1) = 0;
 
-	// Arguments:
-	//	Pass nullptr as pTex to empty this texture level
+	// If pTex is 0, the slot will be unbound.
 	virtual SResult BindVertexShaderTexture(ITexture* pTex, usint32 lvl = 0) = 0;
+
+	// Binds the given texture to the pixel shader.
+	// If pTex is 0, the slot will be unbound.
 	virtual SResult BindTexture(ITexture* pTex, usint32 lvl = 0) = 0;
+
+	// Binds the frame-buffer as a texture. Fails if the fbo is already bound as render target.
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0) = 0;
-	
+
+	// Binds the depth buffer of the FBO as a texture. Fails if the depth buffer is already bound as non-readonly depth-RT
+	virtual SResult BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl = 0) = 0;
+
+	// Unbinds a pixel shader texture
+	virtual void UnbindTexture(usint32 lvl) = 0;
+
+
+
 	virtual ITexture* GetDummyTexture() const = 0;
-	
+
 
 	// Clearout everything (viewports, buffers, stop render Pipeline thread and task buffer)
 	virtual SResult Shutdown( void ) = 0;
 
 	// Check if this Renderer is initialized properly
-	virtual bool IsInited( void ) = 0;	
+	virtual bool IsInited( void ) = 0;
 
 	virtual IShader* CreateShader() const = 0;
 
@@ -594,7 +607,7 @@ public:
 
 	virtual IConstantsBuffer* CreateConstantsBuffer() const = 0;
 
-	// vs - set to true to bind the CB to vertex shader too. If false, any bound CB to VS is unbound.	
+	// vs - set to true to bind the CB to vertex shader too. If false, any bound CB to VS is unbound.
 	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false) = 0;
 
 	virtual SSceneConstants* GetSceneConstants() const = 0;
@@ -612,11 +625,11 @@ public:
 
 	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
 
-	
+
 	// *pFRS is set to 0 ptr after releases
 	virtual void ReleaseFontRenderSlot(SFontRenderSlot** pFRS) = 0;
 
-	virtual SFontRenderSlot* GetFontRenderSlot() = 0;	
+	virtual SFontRenderSlot* GetFontRenderSlot() = 0;
 
 	// Summary:
 	//	Draws the given geometry desc directly to the back buffer and the depth buffer

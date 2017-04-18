@@ -30,8 +30,9 @@ struct S_API ITexture;
 
 struct S_API SSceneConstants
 {
-	SMatrix4 mtxView;	// 16 * 4 Byte
-	SMatrix4 mtxProj;
+	Mat44 mtxView;	// 16 * 4 Byte
+	Mat44 mtxProj;
+	Mat44 mtxProjInv;
 	
 	// Pos used instead of Dir, to avoid struggling around with angles when calculating
 	// sun traveling due to TOD.   sun dir = normalize(-sunPosition)
@@ -43,6 +44,7 @@ struct S_API SSceneConstants
 	{
 		mtxView = b.mtxView;
 		mtxProj = b.mtxProj;
+		mtxProjInv = b.mtxProjInv;
 		sunPosition = b.sunPosition;
 		eyePosition = b.eyePosition;
 		return *this;

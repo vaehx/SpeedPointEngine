@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	SpeedPoint Game Engine
-//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,8 +43,7 @@ m_pD3DDeviceContext(0),
 m_pAutoSelectedAdapter(0),
 m_pTargetViewport(0),
 m_pDXGIFactory(0),
-m_pDSV(0),
-m_nRenderTargets(0),
+m_pBoundDSV(0),
 m_pDefBlendState(0),
 m_pAlphaTestBlendState(0),
 m_pTerrainBlendState(0),
@@ -110,7 +109,7 @@ S_API void DX11Renderer::ResetBudgetTimerStats()
 	memset(m_BudgetTimers, 0, NUM_DIRECTX11_BUDGET_TIMERS * sizeof(SRenderBudgetTimer));
 	/*for (unsigned int i = 0; i < NUM_DIRECTX11_BUDGET_TIMERS; ++i)
 	{
-		m_BudgetTimers[i].numUsed = 0;		
+		m_BudgetTimers[i].numUsed = 0;
 	}*/
 }
 
@@ -123,7 +122,7 @@ S_API IResourcePool* DX11Renderer::GetResourcePool()
 		m_pResourcePool = new DX11ResourcePool();
 		m_pResourcePool->Initialize(this);
 	}
-	
+
 	return m_pResourcePool;
 }
 
@@ -133,13 +132,13 @@ S_API SResult DX11Renderer::AutoSelectAdapter()
 	HRESULT hRes = S_OK;
 
 	// Create and Validate the DXGI Factory
-	CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_pDXGIFactory);	
+	CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_pDXGIFactory);
 	SP_ASSERTR(m_pDXGIFactory, S_ERROR);
 
 
 	// Load and save all possible adapters
 	IDXGIAdapter1* pAdapter;
-	usint32 iBestAdapter = 0;	
+	usint32 iBestAdapter = 0;
 	DXGI_ADAPTER_DESC bestAdapterDesc;
 	bestAdapterDesc.DedicatedVideoMemory = 0;
 	for (usint32 iAdapter = 0; m_pDXGIFactory->EnumAdapters1(iAdapter, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++iAdapter)
@@ -149,7 +148,7 @@ S_API SResult DX11Renderer::AutoSelectAdapter()
 
 		/*
 		wchar_t adapterTxt[1024];
-		memset(adapterTxt, 0, 1024);		
+		memset(adapterTxt, 0, 1024);
 		swprintf_s(adapterTxt, L"%s\nsharedSysMem: %.3f MB\ndedicatedSysMem: %.3f MB\ndedicatedVidMem: %.3f MB",
 			adapterDesc.Description,
 			(float)adapterDesc.SharedSystemMemory / (1024.0f * 1024.0f),
@@ -158,13 +157,13 @@ S_API SResult DX11Renderer::AutoSelectAdapter()
 
 		MessageBoxW(0, adapterTxt, L"Found adapter", MB_ICONINFORMATION | MB_OK);
 		*/
-		
+
 		if (bestAdapterDesc.DedicatedVideoMemory < adapterDesc.DedicatedVideoMemory)
 		{
 			iBestAdapter = iAdapter;
 			memcpy(&bestAdapterDesc, &adapterDesc, sizeof(DXGI_ADAPTER_DESC));
 		}
-		
+
 		m_vAdapters.push_back(pAdapter);
 	}
 
@@ -180,7 +179,7 @@ S_API SResult DX11Renderer::AutoSelectAdapter()
 	if (!m_InitParams.windowed)
 	{
 		m_bFullscreen = true;
-		bool bFound = false;		
+		bool bFound = false;
 		IDXGIOutput* pOutput;
 		for (auto iAdapter = m_vAdapters.begin(); iAdapter != m_vAdapters.end(); ++iAdapter)
 		{
@@ -228,16 +227,16 @@ S_API SResult DX11Renderer::AutoSelectAdapter()
 	else
 	{
 		m_AutoSelectedAdapterDesc = bestAdapterDesc;
-		m_pAutoSelectedAdapter = m_vAdapters[iBestAdapter];				
+		m_pAutoSelectedAdapter = m_vAdapters[iBestAdapter];
 		m_bFullscreen = false;
 
 		m_AutoSelectedDisplayModeDesc.Format = desiredBackBufferFormat;
 		m_AutoSelectedDisplayModeDesc.Width = m_InitParams.resolution[0];
 		m_AutoSelectedDisplayModeDesc.Height = m_InitParams.resolution[1];
-		
+
 		// In windowed mode RefreshRate, Scaling and ScanlineOrdering are ignored.
 		m_AutoSelectedDisplayModeDesc.RefreshRate.Denominator = 1;
-		m_AutoSelectedDisplayModeDesc.RefreshRate.Numerator = 0;		
+		m_AutoSelectedDisplayModeDesc.RefreshRate.Numerator = 0;
 	}
 
 
@@ -273,7 +272,7 @@ SResult DX11Renderer::GetAutoSelectedDisplayModeDesc(SDisplayModeDescription* pD
 S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
-	
+
 	// Depth state
 	m_depthStencilDesc.DepthEnable = true; // we probably won't change this, so this if fixed
 	m_depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
@@ -291,7 +290,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	m_depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
 	m_depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	m_depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;	
+	m_depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_depthStencilDesc, &m_pDepthStencilState)))
 		return CLog::Log(S_ERROR, "Failed create depth stencil state!");
@@ -306,19 +305,19 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 #endif
 
 
-	// Create Terrain Depth Stencil State	
+	// Create Terrain Depth Stencil State
 	ZeroMemory(&m_terrainDepthDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
 	m_terrainDepthDesc.DepthEnable = true;
 	m_terrainDepthDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	m_terrainDepthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	
+
 	m_terrainDepthDesc.StencilEnable = false;
 
 	if (Failure(m_pD3DDevice->CreateDepthStencilState(&m_terrainDepthDesc, &m_pTerrainDepthState)))
 		CLog::Log(S_ERROR, "Failed create terrain depth stencil state!");
 
 
-	// In DX11 we fist need a RSState interface	
+	// In DX11 we fist need a RSState interface
 	memset((void*)&m_rsDesc, 0, sizeof(D3D11_RASTERIZER_DESC));
 	m_rsDesc.AntialiasedLineEnable = false;	// ???
 	m_rsDesc.CullMode = D3D11_CULL_BACK;
@@ -329,7 +328,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_rsDesc.DepthClipEnable = false;
 	m_rsDesc.FillMode = D3D11_FILL_SOLID;
 	m_rsDesc.MultisampleEnable = m_InitParams.antiAliasingQuality != eAAQUALITY_LOW;
-	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday	
+	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday
 
 	HRESULT hRes;
 	if ((hRes = m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
@@ -342,16 +341,16 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 
 	// Setup default Sampler State
 	// NOTE: Currently using same default sampler state for Texturemap and Normalmap!
-	D3D11_SAMPLER_DESC defSamplerDesc;	
+	D3D11_SAMPLER_DESC defSamplerDesc;
 	defSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;	
-	defSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;	
+	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	defSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	defSamplerDesc.MinLOD = -FLT_MAX;
 	defSamplerDesc.MaxLOD = FLT_MAX;
 	defSamplerDesc.MipLODBias = 0.0f;
-	defSamplerDesc.MaxAnisotropy = 1;	
+	defSamplerDesc.MaxAnisotropy = 1;
 	defSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	defSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;	
+	defSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	defSamplerDesc.BorderColor[0] = 0;
 	defSamplerDesc.BorderColor[1] = 0;
 	defSamplerDesc.BorderColor[2] = 0;
@@ -444,24 +443,27 @@ S_API void DX11Renderer::InitBlendStates()
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 {
-	SP_ASSERTR(m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);	
+	SP_ASSERTR(m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);
 	SP_ASSERTR(hWnd, S_INVALIDPARAM);
 
 	SViewportDescription vpDesc;
-	
+
 	vpDesc.projectionDesc.fov = 60;
 	vpDesc.projectionDesc.projectionType = S_PROJECTION_PERSPECTIVE;
+	//vpDesc.projectionDesc.farZ = 100.0f;
 
 	vpDesc.width = nW;
 	vpDesc.height = nH;
-	vpDesc.useDepthStencil = true;	// we definetly want a depthstencil!
+	vpDesc.useDepthStencil = true;
+	vpDesc.allowAsTexture = false;
+	vpDesc.allowDepthAsTexture = true;
 	vpDesc.hWnd = hWnd;
 	vpDesc.windowed = m_InitParams.windowed;
 	vpDesc.antiAliasingCount = m_InitParams.antiAliasingCount;
 	vpDesc.antiAliasingQuality = m_InitParams.antiAliasingQuality;
 
-	if (Failure(m_Viewport.Initialize(this, vpDesc, false)))
-		return S_ERROR;	
+	if (Failure(m_Viewport.Initialize(this, vpDesc)))
+		return S_ERROR;
 
 	// m_pD3DDeviceContext->RSSetViewports() is called in the SetTargetViewport after the call of this function.
 
@@ -476,15 +478,15 @@ S_API SResult DX11Renderer::CreateDX11Device()
 	SP_ASSERTR(m_pAutoSelectedAdapter, S_NOTINIT);
 
 	// Setup creation flags
-	usint32 createFlags = 0;	
+	usint32 createFlags = 0;
 	if (!m_InitParams.multithreaded)
-		createFlags |= D3D11_CREATE_DEVICE_SINGLETHREADED;	
+		createFlags |= D3D11_CREATE_DEVICE_SINGLETHREADED;
 
 #ifdef _DEBUG
 	createFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	// To be sure we only use correct feature levels in our dx11 device, we have to explicitly set them	
+	// To be sure we only use correct feature levels in our dx11 device, we have to explicitly set them
 	// !!! Notice: To optionally support DX11.1, you have to add the missing D3D_FEATURE_LEVEL_11_1 !!!
 	D3D_FEATURE_LEVEL pD3D11FeatureLevels[] =
 	{
@@ -508,12 +510,12 @@ S_API SResult DX11Renderer::CreateDX11Device()
 		createFlags,
 		pD3D11FeatureLevels, nFeatureLevels, D3D11_SDK_VERSION,
 		&m_pD3DDevice, &m_D3DFeatureLevel, &m_pD3DDeviceContext);	// consider using deferred context for multithreading!
-	
+
 	assert(IS_VALID_PTR(m_pD3DDevice));
 
 #ifdef _DEBUG
 	const char nm[] = "SPD3D11Device";
-	m_pD3DDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(nm) - 1, nm);	
+	m_pD3DDevice->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(nm) - 1, nm);
 #endif
 
 	//delete[] pD3D11FeatureLevels;
@@ -582,7 +584,7 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 	{
 		Shutdown();
 		return CLog::Log(S_ERROR, "Failed Create DX11 Device!");
-	}		
+	}
 	// Set Default RenderStates and Texture Sampler States
 	if (Failure(SetRenderStateDefaults()))
 	{
@@ -595,12 +597,12 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 
 	// Initialize the default Viewport
 	// This viewport is forced to be generated. Client is only able to add more SwapChains
-	// !! Do NOT put this call before CreateDX11Device(). InitDefaultViewport depends on an existing device in DX11 !!	
+	// !! Do NOT put this call before CreateDX11Device(). InitDefaultViewport depends on an existing device in DX11 !!
 	if (Failure(InitDefaultViewport(params.hWnd, params.resolution[0], params.resolution[1])))
 	{
 		Shutdown();
 		return CLog::Log(S_ERROR, "Failed Init default viewport!");
-	}		
+	}
 
 
 	// Initialize the matrix Constants buffer
@@ -609,11 +611,7 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 		return S_ERROR;
 
 
-	// initialize the render target collections
-	// WARNING: Needs to be done before initialization of the render pipeline, beacuse the sections
-	// might add FBO collections in order to initialize!	
-	ZeroMemory(m_pRenderTargets, sizeof(DX11FBO*) * MAX_BOUND_RTS);
-
+	// Set default viewport as target viewport
 	if (Failure(SetTargetViewport((IViewport*)&m_Viewport)))
 	{
 		return CLog::Log(S_ERROR, "Failed set Target Viewport!");
@@ -622,7 +620,7 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 
 	// Set the base primitive topology
 	m_pD3DDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	
+
 	// Do not render terrain immediately
 	m_TerrainRenderDesc.bRender = false;
 
@@ -630,7 +628,7 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 	// Initialize Terrain Shader
 	SShaderInfo terrainSI;
 	terrainSI.filename = GetShaderPath(eSHADERFILE_TERRAIN);
-	terrainSI.entry = "terrain";		
+	terrainSI.entry = "terrain";
 	if (Failure(m_TerrainShader.Load(this, terrainSI)))
 		return S_ERROR;
 
@@ -748,7 +746,7 @@ S_API void DX11Renderer::InitShaderPasses()
 // -----------------------------------------------------------------------------------------------
 S_API IFontRenderer* DX11Renderer::GetFontRenderer() const
 {
-	return m_pFontRenderer;	
+	return m_pFontRenderer;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -762,7 +760,7 @@ S_API SResult DX11Renderer::Shutdown(void)
 	if (IS_VALID_PTR(m_pResourcePool))
 	{
 		m_pResourcePool->ClearAll();
-		delete m_pResourcePool;		
+		delete m_pResourcePool;
 	}
 	m_pResourcePool = nullptr;
 
@@ -798,7 +796,7 @@ S_API SResult DX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pPointSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	SP_SAFE_RELEASE(m_pTerrainDepthState);
-	SP_SAFE_RELEASE(m_pRSState);			
+	SP_SAFE_RELEASE(m_pRSState);
 
 	m_SceneConstants.Clear();
 	m_TerrainConstants.Clear();
@@ -811,21 +809,21 @@ S_API SResult DX11Renderer::Shutdown(void)
 	memset(m_BoundPSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 
 	if (IS_VALID_PTR(m_pD3DDeviceContext))
-	{		
+	{
 		m_pD3DDeviceContext->ClearState();
 		m_pD3DDeviceContext->Flush();
 	}
-			
 
-	SP_SAFE_RELEASE(m_pD3DDevice);	
-	SP_SAFE_RELEASE(m_pD3DDeviceContext);	
 
-#ifdef _DEBUG	
+	SP_SAFE_RELEASE(m_pD3DDevice);
+	SP_SAFE_RELEASE(m_pD3DDeviceContext);
+
+#ifdef _DEBUG
 	// Print live objects to detect memory leaks
 	IDXGIDebug1* pDXGIDebug;
 	DXGIGetDebugInterface1(0, __uuidof(IDXGIDebug1), reinterpret_cast<void**>(&pDXGIDebug));
-	pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);	
-#endif		
+	pDXGIDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_DETAIL);
+#endif
 
 	m_FontRenderSchedule.Clear();
 	m_RenderSchedule.Clear();
@@ -846,6 +844,9 @@ S_API void DX11Renderer::BindShaderPass(EShaderPassType type)
 {
 	if (IS_VALID_PTR(m_Passes[type]) && m_CurrentPass != type)
 	{
+		if (m_CurrentPass < NUM_SHADERPASS_TYPES)
+			m_Passes[m_CurrentPass]->OnUnbind();
+
 		m_Passes[type]->Bind();
 		m_CurrentPass = type;
 	}
@@ -861,85 +862,82 @@ S_API IShaderPass* DX11Renderer::GetCurrentShaderPass() const
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, const char* dump_name /*= 0*/)
+S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, bool depthReadonly /*= false*/, const char* dump_name /*= 0*/)
 {
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
 
-	if (fboCollection.size() == 0)
-		return S_INVALIDPARAM;
+	if (fboCollection.empty())
+		return CLog::Log(S_ERROR, "Failed BindRTCollection(): fboCollection is empty");
 
-	// check depth fbo and get DSV
+	// Collect DSV
 	ID3D11DepthStencilView* pDSV = 0;
-	if (IS_VALID_PTR(depthFBO))
+	DX11FBO* pDXDepthFBO = dynamic_cast<DX11FBO*>(depthFBO);
+	if (IS_VALID_PTR(pDXDepthFBO))
 	{
-		DX11FBO* pDXDepthFBO = dynamic_cast<DX11FBO*>(depthFBO);
-		if (IS_VALID_PTR(pDXDepthFBO))	
+		if (depthReadonly)
+			pDSV = pDXDepthFBO->GetReadonlyDSV();
+		else
 			pDSV = pDXDepthFBO->GetDSV();
-	}	
 
-	// Bind all FBOs
+		if (!pDSV)
+			return CLog::Log(S_ERROR, "Failed BindRTCollection(): DSV is not bindable as read-only");
+	}
+
+	m_bBoundDSVReadonly = depthReadonly;
+	m_pBoundDSV = pDSV;
+
+	// Collect RTVs
+	m_BoundRenderTargets.clear();
 	ID3D11RenderTargetView** pRTVs = new ID3D11RenderTargetView*[fboCollection.size()];
-	ZeroMemory(pRTVs, sizeof(ID3D11RenderTargetView*) * fboCollection.size());
-	unsigned int nRTVCounter = 0;
-	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); itFBO++)
+	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); ++itFBO)
 	{
 		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(*itFBO);
 		if (!IS_VALID_PTR(pDXFBO))
 			continue;
 
-		m_pRenderTargets[nRTVCounter] = pDXFBO;
-
-		pRTVs[itFBO - fboCollection.begin()] = pDXFBO->GetRTV();
-		nRTVCounter++;
+		m_BoundRenderTargets.push_back(pDXFBO);
+		pRTVs[m_BoundRenderTargets.size()] = pDXFBO->GetRTV();
 	}
 
-	m_nRenderTargets = nRTVCounter;
-
-	// Bind the rtvs
-	m_pD3DDeviceContext->OMSetRenderTargets(nRTVCounter, pRTVs, pDSV);
-	m_pDSV = pDSV;
+	// Bind
+	m_pD3DDeviceContext->OMSetRenderTargets(m_BoundRenderTargets.size(), pRTVs, pDSV);
 
 	delete[] pRTVs;
 	pRTVs = 0;
 
-	FrameDump(string("Bound RT Collection ") + (dump_name ? dump_name : "") + " (" + std::to_string(nRTVCounter) + " RTs)!");
+	FrameDump(string("Bound RT Collection ") + (dump_name ? dump_name : "") + " (" + std::to_string(m_BoundRenderTargets.size()) + " RTs)!");
 
 	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::BindSingleRT(IFBO* pFBO)
+S_API SResult DX11Renderer::BindSingleRT(IFBO* pFBO, bool depthReadonly /*= 0*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
-	SP_ASSERTR(IS_VALID_PTR(pFBO), S_INVALIDPARAM);	
+	SP_ASSERTR(IS_VALID_PTR(pFBO), S_INVALIDPARAM);
 
-	/*
-	SetViewportMatrices(m_pTargetViewport);
-	UpdateConstantBuffer(CONSTANTBUFFER_PERSCENE);
-	*/
-
-	// check if already bound
-	if (!BoundMultipleRTs() && GetBoundSingleRT() == pFBO)
-		return S_SUCCESS;
-
-	DX11FBO* pSPDXFBO = dynamic_cast<DX11FBO*>(pFBO);
-	if (!IS_VALID_PTR(pSPDXFBO))
+	// Collect RTV and DSV
+	DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
+	if (!IS_VALID_PTR(pDXFBO))
 		return S_INVALIDPARAM;
 
-	if (BoundMultipleRTs())
-	{
-		for (unsigned int i = 0; i < m_nRenderTargets; ++i)
-			m_pRenderTargets[i] = 0;
-	}
+	ID3D11RenderTargetView* pRTV = pDXFBO->GetRTV();
+	ID3D11DepthStencilView* pDSV = (depthReadonly ? pDXFBO->GetReadonlyDSV() : pDXFBO->GetDSV());
+	if (!pDSV)
+		return CLog::Log(S_ERROR, "Failed BindSingleRT(): DSV is not bindable as read-only");
 
-	m_nRenderTargets = 1;
-	m_pRenderTargets[0] = pSPDXFBO;
+	// Check if already bound
+	if (!m_BoundRenderTargets.empty() && !BoundMultipleRTs() && m_BoundRenderTargets[0] == pFBO && m_pBoundDSV == pDSV)
+		return S_SUCCESS;
 
-	ID3D11RenderTargetView* pRTV = pSPDXFBO->GetRTV();
-	ID3D11DepthStencilView* pDSV = pSPDXFBO->GetDSV();
-
+	// Bind
 	m_pD3DDeviceContext->OMSetRenderTargets(1, &pRTV, pDSV);
-	m_pDSV = pDSV;
+
+	m_BoundRenderTargets.clear();
+	m_BoundRenderTargets.push_back(pDXFBO);
+
+	m_pBoundDSV = pDSV;
+	m_bBoundDSVReadonly = depthReadonly;
 
 	return S_SUCCESS;
 }
@@ -954,7 +952,6 @@ S_API SResult DX11Renderer::BindSingleRT(IViewport* pViewport)
 	if (!pBackBuffer->IsInitialized())
 		return S_INVALIDPARAM;
 
-	// updates View matrices using target buffer matrices
 	if (Failure(BindSingleRT(pBackBuffer)))
 		return S_ERROR;
 
@@ -962,12 +959,13 @@ S_API SResult DX11Renderer::BindSingleRT(IViewport* pViewport)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API IFBO* DX11Renderer::GetBoundSingleRT()
+S_API vector<IFBO*> DX11Renderer::GetBoundRTs() const
 {
-	if (BoundMultipleRTs())
-		FrameDump("Warning: Tried query Bound Single RT, but multiple RTs bound!");
+	vector<IFBO*> boundRTs;
+	for (auto itDXFBO = m_BoundRenderTargets.begin(); itDXFBO != m_BoundRenderTargets.end(); ++itDXFBO)
+		boundRTs.push_back(*itDXFBO);
 
-	return (IFBO*)m_pRenderTargets[0];
+	return boundRTs;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -993,7 +991,7 @@ S_API SResult DX11Renderer::SetVBStream(IVertexBuffer* pVB, unsigned int index)
 S_API SResult DX11Renderer::SetIBStream(IIndexBuffer* pIB)
 {
 	if (!IsInited())
-		return S_NOTINIT;	
+		return S_NOTINIT;
 
 	if (IS_VALID_PTR(pIB))
 	{
@@ -1014,7 +1012,7 @@ S_API SResult DX11Renderer::SetIBStream(IIndexBuffer* pIB)
 		m_pD3DDeviceContext->IASetIndexBuffer(pDXIB->D3D11_GetBuffer(), ibFmtDX, 0);
 	}
 	else
-	{		
+	{
 		m_pD3DDeviceContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
 	}
 
@@ -1064,7 +1062,7 @@ S_API SResult DX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);	
+	SP_ASSERTR(IsInited(), S_NOTINIT);
 
 	if (!pTex)
 		pTex = GetDummyTexture();
@@ -1088,7 +1086,7 @@ S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);	
+	SP_ASSERTR(IsInited(), S_NOTINIT);
 
 	ID3D11ShaderResourceView* pSRV = 0;
 	if (IS_VALID_PTR(pFBO))
@@ -1110,6 +1108,33 @@ S_API SResult DX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl /*= 0*/)
+{
+	DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
+	if (!IS_VALID_PTR(pDXFBO))
+		return S_INVALIDPARAM;
+
+	ID3D11DepthStencilView* pWriteableDSV = pDXFBO->GetDSV();
+	if (m_pBoundDSV == pWriteableDSV)
+		return CLog::Log(S_ERROR, "Failed BindDepthBufferAsTexture(): Is bound as writeable depth buffer");
+
+	ID3D11ShaderResourceView* pDepthSRV = pDXFBO->GetDepthBufferSRV();
+	if (!IS_VALID_PTR(pDepthSRV))
+		return CLog::Log(S_ERROR, "Cannot BindDepthBufferAsTexture(): Is not bindable as texture");
+
+	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pDepthSRV);
+
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::UnbindTexture(usint32 lvl)
+{
+	ID3D11ShaderResourceView* srv[] = { 0 };
+	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, srv);
+}
+
+// -----------------------------------------------------------------------------------------------
 S_API ITexture* DX11Renderer::GetDummyTexture() const
 {
 	return (ITexture*)&m_DummyTexture;
@@ -1119,16 +1144,12 @@ S_API ITexture* DX11Renderer::GetDummyTexture() const
 S_API SResult DX11Renderer::CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc)
 {
 	SP_ASSERTR(m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);
-	SP_ASSERTR(pViewport, S_INVALIDPARAM);		
+	SP_ASSERTR(pViewport, S_INVALIDPARAM);
 
 	// Instanciate the viewport first and initialize it
 	DX11Viewport* pDXViewport = new DX11Viewport();
-	if (Failure(pDXViewport->Initialize(this, desc, true)))
+	if (Failure(pDXViewport->Initialize(this, desc)))
 		return CLog::Log(S_ERROR, "Failed initialize additional viewport");
-
-	// Initialize the depth-stencil view for this viewport
-	if (Failure(pDXViewport->InitializeDepthStencilBuffer()))
-		return CLog::Log(S_ERROR, "Failed initialize depth stencil buffer for additional viewport");
 
 	*pViewport = pDXViewport;
 	return S_SUCCESS;
@@ -1159,8 +1180,8 @@ S_API SResult DX11Renderer::BeginScene(void)
 	ResetBudgetTimerStats();
 
 	if (m_bDumpFrame)
-		CLog::Log(S_DEBUG, "Beginning rendering of scene... (Begin Frame)");	
-	
+		CLog::Log(S_DEBUG, "Beginning rendering of scene... (Begin Frame)");
+
 	m_bInScene = true;
 
 	// Reset to target viewport camera
@@ -1221,7 +1242,7 @@ S_API SResult DX11Renderer::EndScene(void)
 	sr = PresentTargetViewport();
 	sr = BindSingleRT(m_pTargetViewport);
 	sr = ClearBoundRTs();
-	
+
 	m_bDumpFrame = false;
 	return sr;
 }
@@ -1257,9 +1278,9 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 
 
 
-	// Set correct depth stencil state	
+	// Set correct depth stencil state
 	EnableDepthTest(renderDesc.bDepthStencilEnable);
-	
+
 	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
 	SetDepthTestFunction(depthTestFunc);
 
@@ -1331,7 +1352,7 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 
 
 	// Update Per-Scene Constants Buffer
-	SetViewProjMatrix(m_pTargetViewport);	
+	SetViewProjMatrix(m_pTargetViewport);
 
 	// In case something else was bound to the slot before...
 	BindSceneCB(m_SceneConstants.GetCB());
@@ -1369,7 +1390,7 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 
 		EnableBackfaceCulling(true);
 
-		// bind terrain cb		
+		// bind terrain cb
 		BindConstantsBuffer(m_TerrainConstants.GetCB());
 
 		// render all chunks
@@ -1478,7 +1499,7 @@ S_API SResult DX11Renderer::UnleashRenderSchedule()
 
 	FrameDump("Unleashing render schedule now...");
 	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), "RenderScheduleSize");
-	
+
 
 	bool bDepthEnableBackup = (m_depthStencilDesc.DepthEnable ? true : false);
 
@@ -1492,7 +1513,7 @@ S_API SResult DX11Renderer::UnleashRenderSchedule()
 		// Remove RenderSlot item if it should not be kept anymore
 		if (!pSlot->keep)
 		{
-			m_RenderSchedule.Release(&pSlot);			
+			m_RenderSchedule.Release(&pSlot);
 		}
 
 		pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
@@ -1510,7 +1531,7 @@ S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
 	{
 		SRenderSubset& subset = renderDesc.pSubsets[iSubset];
-	
+
 		if (!subset.render)
 		{
 			FrameDump("[DX11Renderer] subset.render=false in DrawForwardSubsets()");
@@ -1537,14 +1558,14 @@ S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 		}
 	}
 
-	FrameDump(renderDesc.nSubsets, "renderDesc.nSubsets");	
+	FrameDump(renderDesc.nSubsets, "renderDesc.nSubsets");
 	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::Draw(const SDrawCallDesc& desc)
-{		
-	FrameDump("DX11Renderer::Draw()");	
+{
+	FrameDump("DX11Renderer::Draw()");
 
 	// bind vertex data stream
 	if (Failure(SetVBStream(desc.pVertexBuffer)))
@@ -1559,10 +1580,10 @@ S_API SResult DX11Renderer::Draw(const SDrawCallDesc& desc)
 	if (bLines)
 	{
 		if (Failure(SetIBStream(0)))
-			return S_ERROR;		
+			return S_ERROR;
 
 		if (m_SetPrimitiveType != desc.primitiveType)
-		{			
+		{
 			D3D11_PRIMITIVE_TOPOLOGY d3dTopology;
 			if (desc.primitiveType == PRIMITIVE_TYPE_LINES)
 				d3dTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
@@ -1587,7 +1608,7 @@ S_API SResult DX11Renderer::Draw(const SDrawCallDesc& desc)
 		}
 
 		m_pD3DDeviceContext->DrawIndexed(desc.iEndIBIndex - desc.iStartIBIndex + 1, desc.iStartIBIndex, desc.iStartVBIndex);
-	}	
+	}
 
 	return S_SUCCESS;
 }
@@ -1599,7 +1620,7 @@ S_API SResult DX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
 		return S_SUCCESS;
 
 	if (Failure(SetVBStream(dcd.pVertexBuffer))) return S_ERROR;
-	if (Failure(SetIBStream(dcd.pIndexBuffer))) return S_ERROR;	
+	if (Failure(SetIBStream(dcd.pIndexBuffer))) return S_ERROR;
 
 	if (Failure(m_TerrainShader.Bind()))
 		return CLog::Log(S_ERROR, "Enabling terrain effect failed");
@@ -1636,7 +1657,7 @@ S_API SResult DX11Renderer::MergeDeferred()
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::UnleashFontRenderSchedule()
-{	
+{
 	if (m_FontRenderSchedule.GetUsedObjectCount() == 0)
 		return S_SUCCESS;
 
@@ -1648,7 +1669,7 @@ S_API SResult DX11Renderer::UnleashFontRenderSchedule()
 	BindSingleRT(m_pTargetViewport);
 
 	m_pFontRenderer->BeginRender();
-	
+
 	unsigned int iFRSIterator;
 	SFontRenderSlot* pFRS = m_FontRenderSchedule.GetFirstUsedObject(iFRSIterator);
 	while (pFRS)
@@ -1660,7 +1681,7 @@ S_API SResult DX11Renderer::UnleashFontRenderSchedule()
 
 		if (!pFRS->keep)
 		{
-			m_FontRenderSchedule.Release(&pFRS);			
+			m_FontRenderSchedule.Release(&pFRS);
 		}
 
 		pFRS = m_FontRenderSchedule.GetNextUsedObject(iFRSIterator);
@@ -1699,8 +1720,8 @@ S_API SResult DX11Renderer::PresentTargetViewport(void)
 	DX11Viewport* pDXTargetViewport = dynamic_cast<DX11Viewport*>(m_pTargetViewport);
 	SP_ASSERTR(pDXTargetViewport, S_ERROR);
 
-	IDXGISwapChain* pSwapChain = *pDXTargetViewport->GetSwapChainPtr();
-	
+	IDXGISwapChain* pSwapChain = *pDXTargetViewport->D3D11_GetSwapChainPtr();
+
 	unsigned int syncInterval = 0;
 	if (m_InitParams.enableVSync)
 		syncInterval = m_InitParams.vsyncInterval;
@@ -1720,21 +1741,18 @@ S_API SResult DX11Renderer::ClearBoundRTs(void)
 	SPGetColorFloatArray(clearColor, m_InitParams.clearColor);
 
 	// Clear RTs
-	for (unsigned int i = 0; i < m_nRenderTargets; ++i)
+	for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
 	{
-		if (!IS_VALID_PTR(m_pRenderTargets[i]))
-			continue;
-
-		ID3D11RenderTargetView* pRTV = m_pRenderTargets[i]->GetRTV();
+		ID3D11RenderTargetView* pRTV = (*itBoundRT)->GetRTV();
 		if (!IS_VALID_PTR(pRTV))
-			continue;		
+			continue;
 
 		m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
 	}
 
 	// Clear Depth Buffer
-	if (IS_VALID_PTR(m_pDSV))
-		m_pD3DDeviceContext->ClearDepthStencilView(m_pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);	
+	if (IS_VALID_PTR(m_pBoundDSV) && !m_bBoundDSVReadonly)
+		m_pD3DDeviceContext->ClearDepthStencilView(m_pBoundDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	return S_SUCCESS;
 }
@@ -1752,9 +1770,7 @@ S_API SResult DX11Renderer::SetTargetViewport(IViewport* pViewport)
 		if (!IS_VALID_PTR(pDXViewport))
 			return S_INVALIDPARAM;
 
-		D3D11_VIEWPORT* vp = pDXViewport->GetViewportDescPtr();
-		
-		m_pD3DDeviceContext->RSSetViewports(1, pDXViewport->GetViewportDescPtr());	
+		m_pD3DDeviceContext->RSSetViewports(1, pDXViewport->D3D11_GetViewportDescPtr());
 	}
 
 	return S_SUCCESS;
@@ -1775,7 +1791,7 @@ S_API IViewport* DX11Renderer::GetDefaultViewport(void)
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::InitConstantBuffers()
 {
-	// Per-Object constants	
+	// Per-Object constants
 	if (Failure(m_SceneConstants.Initialize(this)))
 		return CLog::Log(S_ERROR, "Failed initialize scene constants buffer!");
 
@@ -1833,7 +1849,7 @@ S_API SResult DX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usi
 	SP_ASSERTR(ppCB, S_INVALIDPARAM);
 
 	D3D11_BUFFER_DESC cbDesc;
-	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;	
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	cbDesc.MiscFlags = 0;
 	cbDesc.StructureByteStride = 0;
@@ -1854,11 +1870,11 @@ S_API SResult DX11Renderer::D3D11_LockConstantsBuffer(ID3D11Buffer* pCB, void** 
 	SP_ASSERTR(m_pD3DDeviceContext, S_NOTINIT);
 	SP_ASSERTR(pCB && pData, S_INVALIDPARAM);
 
-	D3D11_MAPPED_SUBRESOURCE cbSubRes;	
+	D3D11_MAPPED_SUBRESOURCE cbSubRes;
 	if (Failure(m_pD3DDeviceContext->Map(pCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbSubRes)))
 		return CLog::Log(S_ERROR, "Failed lock constants buffer (map failed)!");
 
-	*pData = cbSubRes.pData;	
+	*pData = cbSubRes.pData;
 
 	return S_SUCCESS;
 }
@@ -1876,25 +1892,22 @@ S_API SResult DX11Renderer::D3D11_UnlockConstantsBuffer(ID3D11Buffer* pCB)
 
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Renderer::SetViewProjMatrix(IViewport* pViewport)
-{	
+{
 	IViewport* pV = (pViewport) ? pViewport : GetTargetViewport();
 
 	pV->RecalculateCameraViewMatrix();
-	const SMatrix4& viewMtx = pV->GetCameraViewMatrix();
-	const SMatrix4& projMtx = pV->GetProjectionMatrix();
-	m_SceneConstants.GetConstants()->mtxView = viewMtx;
-	m_SceneConstants.GetConstants()->mtxProj = projMtx;
 
-	//m_PerSceneCB.mtxViewProj = projMtx * viewMtx;
-
-	m_SceneConstants.Update();
+	SetViewProjMatrix(pV->GetCameraViewMatrix(), pV->GetProjectionMatrix());
 }
 
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
-	m_SceneConstants.GetConstants()->mtxView = mtxView;
-	m_SceneConstants.GetConstants()->mtxProj = mtxProj;
+	SSceneConstants* pConstants = m_SceneConstants.GetConstants();
+	pConstants->mtxView = mtxView;
+	pConstants->mtxProj = mtxProj;
+	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
+
 	m_SceneConstants.Update();
 }
 
@@ -1916,7 +1929,7 @@ S_API void DX11Renderer::SetSunPosition(const Vec3f& pos)
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::UpdateRasterizerState()
-{	
+{
 	SP_SAFE_RELEASE(m_pRSState);
 	if (Failure(m_pD3DDevice->CreateRasterizerState(&m_rsDesc, &m_pRSState)))
 		return CLog::Log(S_ERROR, "Failed recreate rasterizer state for updating rasterizer state.");
@@ -1940,7 +1953,7 @@ S_API SResult DX11Renderer::UpdateDepthStencilState()
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::UpdateCullMode(EFrontFace ff)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);	
+	SP_ASSERTR(IsInited(), S_NOTINIT);
 
 	// update the rasterizer settings
 	if (m_InitParams.frontFace != ff)
@@ -1955,7 +1968,7 @@ S_API SResult DX11Renderer::UpdateCullMode(EFrontFace ff)
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::EnableBackfaceCulling(bool state)
-{	
+{
 	assert(IsInited());
 
 	if ((m_rsDesc.CullMode == D3D11_CULL_NONE && !state) ||
@@ -1989,7 +2002,7 @@ S_API SResult DX11Renderer::UpdatePolygonType(S_PRIMITIVE_TYPE type)
 	m_pD3DDeviceContext->IAGetPrimitiveTopology(&currentTP);
 
 	if (currentTP != targetTP)
-		m_pD3DDeviceContext->IASetPrimitiveTopology(targetTP);	
+		m_pD3DDeviceContext->IASetPrimitiveTopology(targetTP);
 
 	return S_SUCCESS;
 }
@@ -2058,7 +2071,7 @@ S_API void DX11Renderer::SetSamplerState(ETextureSampling sampling)
 		return;
 
 	ID3D11SamplerState* pSamplerState = 0;
-	switch (sampling)		
+	switch (sampling)
 	{
 	case eTEX_SAMPLE_BILINEAR:
 		pSamplerState = m_pDefaultSamplerState;

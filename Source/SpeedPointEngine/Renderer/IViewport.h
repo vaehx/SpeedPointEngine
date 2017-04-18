@@ -60,14 +60,18 @@ struct S_API SViewportDescription
 	EAntiAliasingQuality antiAliasingQuality;
 	EAntiAliasingCount antiAliasingCount;
 	bool useDepthStencil;
+	bool allowAsTexture; // frame buffer can be bound as shader resource
+	bool allowDepthAsTexture; // depth buffer can be bound as shader resource
 
 	SViewportDescription()
 		: width(1024),
 		height(768),
 		windowed(false),
-		useDepthStencil(true),
 		antiAliasingQuality(eAAQUALITY_LOW),
-		antiAliasingCount(eAACOUNT_NONE)
+		antiAliasingCount(eAACOUNT_NONE),
+		useDepthStencil(true),
+		allowAsTexture(false),
+		allowDepthAsTexture(false)
 	{
 	}
 };
@@ -84,16 +88,15 @@ public:
 
 	// Summary:
 	//	Initialize this viewport with an Engine instance
-	virtual SResult Initialize(IRenderer* pRenderer, const SViewportDescription& desc, bool bIsAdditional = true) = 0;
-
-	// check whether this viewport is an additional one
-	virtual bool IsAdditional() = 0;
+	virtual SResult Initialize(IRenderer* pRenderer, const SViewportDescription& desc) = 0;
 
 	// Get the size of this viewport
-	virtual SIZE GetSize( void ) = 0;
+	virtual SIZE GetSize(void) = 0;
 
 	// Set the size of this viewport
-	virtual SResult SetSize( int nX, int nY ) = 0;
+	// Recreates the backbuffer!
+	// Does nothing, if the current size is already the given size
+	virtual SResult SetSize(unsigned int width, unsigned int height) = 0;
 
 	virtual SResult EnableVSync(bool enable = true) = 0;
 

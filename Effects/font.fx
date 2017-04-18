@@ -31,18 +31,18 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
-    float4 Position : SV_Position;     
+    float4 Position : SV_Position;
     float2 TexCoord : TEXCOORD0;
 };
 
 VS_OUTPUT VS_font(VS_INPUT IN)
 {
     VS_OUTPUT OUT;
-    
+
     OUT.Position = IN.Position;
-    OUT.Position.z = 0.1f;    
+    OUT.Position.z = 0.1f;
     OUT.TexCoord = IN.TexCoord;
-    
+
     return OUT;
 }
 
@@ -50,7 +50,7 @@ VS_OUTPUT VS_font(VS_INPUT IN)
 
 struct PS_INPUT
 {
-    float4 Position : SV_Position;       
+    float4 Position : SV_Position;
     float2 TexCoord : TEXCOORD0;
 };
 
@@ -69,9 +69,9 @@ struct PS_OUTPUT
 PS_OUTPUT PS_font(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
-            
+
     float4 sample = tex0.Sample(Tex0Sampler, IN.TexCoord);
-    OUT.Color = sample;       
-                    
+    OUT.Color = sample;
+
     return OUT;
 }

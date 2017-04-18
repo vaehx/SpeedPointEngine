@@ -17,7 +17,7 @@ SP_NMSPACE_BEG
 
 inline void FillSimpleInputLayout(D3D11_INPUT_ELEMENT_DESC** pInputLayout, unsigned int* pNumElements, const char** pName)
 {
-	*pName = "SHADERINPUTLAYOUT_SIMPLE";	
+	*pName = "SHADERINPUTLAYOUT_SIMPLE";
 	unsigned int numElements = *pNumElements = 2;
 
 	D3D11_INPUT_ELEMENT_DESC* vtxDesc = *pInputLayout = new D3D11_INPUT_ELEMENT_DESC[numElements];
@@ -91,7 +91,7 @@ inline void FillParticleInputLayout(D3D11_INPUT_ELEMENT_DESC** pInputLayout, uns
 	unsigned int defaultElements = *pNumElements;
 	D3D11_INPUT_ELEMENT_DESC* defaultInputLayout = *pInputLayout;
 
-	*pName = "SHADERINPUTLAYOUT_PARTICLES";	
+	*pName = "SHADERINPUTLAYOUT_PARTICLES";
 	unsigned int numElements = *pNumElements = *pNumElements + 2;
 
 	D3D11_INPUT_ELEMENT_DESC* vtxDesc = *pInputLayout = new D3D11_INPUT_ELEMENT_DESC[numElements];
@@ -184,9 +184,9 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 	usint32 compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
 	compileFlags |= D3DCOMPILE_DEBUG;
-#endif	
-	
-	string composedEntryName = "VS_" + info.entry;	
+#endif
+
+	string composedEntryName = "VS_" + info.entry;
 
 	ID3DBlob *pVSBlob = 0, *pPSBlob = 0, *pErrorBlob = 0;
 	if (Failure(D3DCompile(
@@ -219,7 +219,7 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 	CLog::Log(S_DEBUG, "Loaded and compiled effect '%s'", info.filename.c_str());
 
 
-	
+
 	// 3. delete the ifstream buffer
 
 	delete[] fxBuffer;
@@ -236,18 +236,18 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 	{
 		CLog::Log(S_ERROR, "Failed create vertex shader!");
 	}
-	
+
 	hRes = m_pDXRenderer->GetD3D11Device()->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), 0, &m_pPixelShader);
 	if (Failure(hRes))
 	{
 		CLog::Log(S_ERROR, "Failed create pixel shader!");
-	}	
+	}
 
 
 
 
 	// 5. Create the polygon layout for the SVertex structure
-	
+
 	unsigned int numElements = 0;
 	D3D11_INPUT_ELEMENT_DESC* vtxDesc = 0;
 	const char* layoutName;
@@ -301,7 +301,7 @@ S_API void DX11Shader::Clear()
 
 	if (IS_VALID_PTR(m_pVSInputLayout))
 		m_pVSInputLayout->Release();
-	
+
 	m_pVSInputLayout = nullptr;
 
 	m_pDXRenderer = 0;
@@ -311,15 +311,15 @@ S_API void DX11Shader::Clear()
 S_API SResult DX11Shader::Bind()
 {
 	if (!IS_VALID_PTR(m_pDXRenderer) || !IS_VALID_PTR(m_pPixelShader) || !IS_VALID_PTR(m_pVertexShader) || !IS_VALID_PTR(m_pVSInputLayout))
-		return S_NOTINIT;	
+		return S_NOTINIT;
 
-	ID3D11DeviceContext* pDXDeviceContext = m_pDXRenderer->GetD3D11DeviceContext();	
+	ID3D11DeviceContext* pDXDeviceContext = m_pDXRenderer->GetD3D11DeviceContext();
 	if (!IS_VALID_PTR(pDXDeviceContext))
 		return S_NOTINIT;
 
-	pDXDeviceContext->VSSetShader(m_pVertexShader, 0, 0);		
-	pDXDeviceContext->PSSetShader(m_pPixelShader, 0, 0);	
-	pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);	
+	pDXDeviceContext->VSSetShader(m_pVertexShader, 0, 0);
+	pDXDeviceContext->PSSetShader(m_pPixelShader, 0, 0);
+	pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);
 
 	return S_SUCCESS;
 }
@@ -344,7 +344,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 	// Create shaders
 	SShaderInfo si;
 	si.filename = pRenderer->GetShaderPath(eSHADERFILE_FORWARD_HELPER);
-	si.entry = "helper";	
+	si.entry = "helper";
 	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
 	m_pHelperShader = m_pRenderer->CreateShader();
@@ -368,7 +368,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 
 
 	// Create CB
-	m_Constants.Initialize(pRenderer);	
+	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
 }
@@ -482,12 +482,11 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
 	{
 		m_pGBuffer[i] = pRenderer->CreateRT();
-		m_pGBuffer[i]->Initialize(eFBO_R8G8B8A8, pRenderer, pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1]);
-		m_pGBuffer[i]->InitializeSRV();
-		
+		m_pGBuffer[i]->Initialize(eFBO_R8G8B8A8, pRenderer, pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1], true);
+
 		// Make the first layer carry the depth buffer
 		if (i == 0)
-			m_pGBuffer[i]->InitializeDSV();
+			m_pGBuffer[i]->InitializeDepthBuffer();
 	}
 
 	SShaderInfo si;
@@ -497,7 +496,7 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
 
-	m_Constants.Initialize(pRenderer);	
+	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
 }
@@ -562,9 +561,9 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)
-	
-	
-		
+
+
+
 	constants->mtxWorld = transform;
 	constants->matEmissive = sr.emissive;
 	constants->matAmbient = 0.1f;
@@ -572,7 +571,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 
-	m_Constants.Update();	
+	m_Constants.Update();
 }
 
 S_API const vector<IFBO*>& GBufferShaderPass::GetGBuffer() const
@@ -601,7 +600,7 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
 
-	m_Constants.Initialize(pRenderer);	
+	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
 }
@@ -716,14 +715,24 @@ S_API void ParticleShaderPass::Clear()
 S_API SResult ParticleShaderPass::Bind()
 {
 	m_pShader->Bind();
-	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
+
+	IFBO* pFBO = m_pRenderer->GetTargetViewport()->GetBackBuffer();
+	m_pRenderer->BindSingleRT(pFBO, true);
+	m_pRenderer->BindDepthBufferAsTexture(pFBO, 1);
+
 	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
+
 	return S_SUCCESS;
+}
+
+S_API void ParticleShaderPass::OnUnbind()
+{
+	m_pRenderer->UnbindTexture(1);
 }
 
 S_API void ParticleShaderPass::SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& transform)
 {
-	m_pRenderer->BindTexture(shaderResources.textureMap);
+	m_pRenderer->BindTexture(shaderResources.textureMap, 0);
 
 	SObjectConstants* constants = m_Constants.GetConstants();
 	constants->mtxWorld = transform;
@@ -754,7 +763,7 @@ S_API SResult GUIShaderPass::Initialize(IRenderer* pRenderer)
 	si.entry = "GUI";
 	si.filename = pRenderer->GetShaderPath(eSHADERFILE_GUI);
 	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
-	
+
 	m_pShader = pRenderer->CreateShader();
 	m_pShader->Load(pRenderer, si);
 

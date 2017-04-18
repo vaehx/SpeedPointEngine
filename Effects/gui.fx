@@ -7,9 +7,10 @@
 /////////////////////////////////////////////////////////////////////////
 
 cbuffer SceneCB : register(b0)
-{    
+{
     float4x4 mtxView;
     float4x4 mtxProj;
+    float4x4 mtxProjInv;
     float4 sunPos;
     float4 eyePos;
 }
@@ -45,21 +46,21 @@ struct VS_OUTPUT
 
 VS_OUTPUT VS_GUI(VS_INPUT IN)
 {
-	VS_OUTPUT OUT;
+    VS_OUTPUT OUT;
 
-	float4 wPos = mul(mtxWorld, float4(IN.Position, 1.0f));
-	OUT.Position = mul(mtxProj, mul(mtxView, wPos));
-	OUT.Position.z = 0.1f;
-	OUT.TexCoord = IN.TexCoord;
+    float4 wPos = mul(mtxWorld, float4(IN.Position, 1.0f));
+    OUT.Position = mul(mtxProj, mul(mtxView, wPos));
+    OUT.Position.z = 0.1f;
+    OUT.TexCoord = IN.TexCoord;
 
-	return OUT;
+    return OUT;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 struct PS_INPUT
 {
-    float4 Position : SV_Position;   
+    float4 Position : SV_Position;
     float2 TexCoord : TEXCOORD0;
 };
 
@@ -70,13 +71,13 @@ struct PS_OUTPUT
 
 PS_OUTPUT PS_GUI(PS_INPUT IN)
 {
-	PS_OUTPUT OUT;
+    PS_OUTPUT OUT;
 //	OUT.Color = float4(1.0f, 0, 0, 1.0f);
-	float3 sample = textureMap.Sample(TextureMapSampler, IN.TexCoord).rgb;
-	float alpha = 1.0f;
-	if (dot(sample, sample) <= 0.00001f)
-		alpha = 0.0f;
-	
-	OUT.Color = float4(sample, alpha);
-	return OUT;
+    float3 sample = textureMap.Sample(TextureMapSampler, IN.TexCoord).rgb;
+    float alpha = 1.0f;
+    if (dot(sample, sample) <= 0.00001f)
+        alpha = 0.0f;
+
+    OUT.Color = float4(sample, alpha);
+    return OUT;
 }
