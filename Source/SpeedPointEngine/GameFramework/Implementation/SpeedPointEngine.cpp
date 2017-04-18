@@ -357,7 +357,8 @@ S_API void SpeedPointEngine::DoFrame()
 	// Update
 	m_pProfilingDebugView->Update(m_pRenderer);
 
-	m_pApplication->Update((float)pProfilingSystem->GetLastFrameDuration());
+	if (m_pApplication)
+		m_pApplication->Update((float)pProfilingSystem->GetLastFrameDuration());
 
 	m_pPhysics->Update(pProfilingSystem->GetLastFrameDuration());
 
