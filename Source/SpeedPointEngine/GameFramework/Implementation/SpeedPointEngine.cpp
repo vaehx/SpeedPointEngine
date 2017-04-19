@@ -116,7 +116,7 @@ S_API SResult SpeedPointEngine::Initialize(const SGameEngineInitParams& params)
 // ----------------------------------------------------------------------------------
 #define CHECK_COMPONENT_INITIALIZED(component, componentName) \
 	if (!IS_VALID_PTR(component)) \
-		return CLog::Log(S_ERROR, "CheckFinishInit() failed: componentName not set");
+		return CLog::Log(S_ERROR, "CheckFinishInit() failed: " componentName " not set");
 
 S_API SResult SpeedPointEngine::CheckFinishInit()
 {
