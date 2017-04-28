@@ -6,13 +6,13 @@ Talk: "Fighting Latency on Call of Duty: Black Ops III" - Benjamin Goyette
 
 - Server is authoritive
 - Server periodically sends SNAPSHOT to clients
-	- contains world state at one frame
+	- contains (displayed?) world state at one frame
 	- Delta compression against last snapshot, the client acknowledged
-	- UDP
-	- rate of snapshot sending < framerate (--> more frames than snapshots)
+	- fit into MTU of one UDP
+	- snapshots/sec < frames/sec (!!!---> more frames than snapshots)
 	- client interpolates between snapshots
 - Clients send COMMAND packets
-	- jumping, shooting, ...
+	- Intention of the player: jumping, shooting, ...
 	- very small, UDP
 	- care about reliability:
 		- spam socket with commands until server acknowledges
