@@ -1,9 +1,9 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	SpeedPoint Game Engine
-//	Copyright (c) 2011-2016 Pascal Rosenkranz, All rights reserved.
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
 //
-//////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "DX11ResourcePool.h"
 #include "DX11VertexBuffer.h"
@@ -13,15 +13,11 @@
 #include "DX11Shader.h"
 #include "DX11Renderer.h"
 
-
 SP_NMSPACE_BEG
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// **************************************************************************
-//				GENERAL
-// **************************************************************************	
-
-// -----------------------------------------------------------------------------------------------
 S_API SResult DX11ResourcePool::Initialize(IRenderer* renderer)
 {
 	if (renderer == NULL)
@@ -34,27 +30,73 @@ S_API SResult DX11ResourcePool::Initialize(IRenderer* renderer)
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------------------
+S_API SResult DX11ResourcePool::ClearAll()
+{
+	SResult res = S_SUCCESS;
+
+	// Destructors of instances are called by the pool when the slot buffer is destroyed
+	m_InstanceBuffers.clear();
+	m_plVertexBuffers.Clear();
+	m_plIndexBuffers.Clear();
+	//m_plShaders.Clear();
+	m_plTextures.Clear();
+
+	m_pDXRenderer = NULL;
+
+	CoUninitialize();
+
+	return res;
+}
+
 S_API const string& DX11ResourcePool::GetResourceRootPath() const
 {
 	return m_RootPath;
 }
 
-// -----------------------------------------------------------------------------------------------
-S_API void DX11ResourcePool::SetResourceRootPath(const string& rootPath)
+S_API void DX11ResourcePool::SetResourceRootPath(const string& rootSystemPath)
 {
-	m_RootPath = rootPath;
+	m_RootPath = rootSystemPath;
 }
 
-// -----------------------------------------------------------------------------------------------
-S_API string DX11ResourcePool::GetResourcePath(const string& file) const
+S_API string DX11ResourcePool::GetResourceSystemPath(const string& resourcePath) const
 {
-	return m_RootPath + ((m_RootPath.empty() || file.empty()) ? "" : "\\") + file;
+	if (resourcePath.empty())
+		return m_RootPath;
+
+	if (m_RootPath.empty())
+		return resourcePath;
+
+	string sysPath = strreplace(resourcePath, '/', '\\');
+	if (!strstartswith(sysPath, '\\'))
+		sysPath = "\\" + sysPath;
+
+	return m_RootPath + sysPath;
 }
 
-// **************************************************************************
-//				VertexBuffer
-// **************************************************************************
+S_API string DX11ResourcePool::GetAbsoluteResourcePath(const string& relPath, const string& absReference) const
+{
+	if (relPath.empty())
+		return absReference;
+
+	if (relPath[0] == '/')
+		return relPath; // already absolute
+
+	string absPath = absReference;
+	if (!strendswith(absPath, '/'))
+		absPath += "/";
+
+	return absPath + relPath;
+}
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	VertexBuffer
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API SResult DX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
 {
@@ -74,7 +116,6 @@ S_API SResult DX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------------------
 S_API SResult DX11ResourcePool::RemoveVertexBuffer(IVertexBuffer** pVB)
 {
 	SP_ASSERTR(IS_VALID_PTR(pVB), S_INVALIDPARAM);
@@ -92,9 +133,16 @@ S_API SResult DX11ResourcePool::RemoveVertexBuffer(IVertexBuffer** pVB)
 	return S_SUCCESS;
 }
 
-// **************************************************************************
-//				IndexBuffer
-// **************************************************************************
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	IndexBuffer
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API SResult DX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer)
 {
@@ -111,7 +159,6 @@ S_API SResult DX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer)
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------------------
 S_API SResult DX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 {
 	SP_ASSERTR(IS_VALID_PTR(pIB), S_INVALIDPARAM);
@@ -129,9 +176,15 @@ S_API SResult DX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
 	return S_SUCCESS;
 }
 
-// **************************************************************************
-//				InstanceBuffer
-// **************************************************************************
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	InstanceBuffer
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API ITypelessInstanceBuffer* DX11ResourcePool::CreateTypelessInstanceBuffer()
 {
@@ -166,10 +219,14 @@ S_API SResult DX11ResourcePool::RemoveInstanceBuffer(IInstanceBufferResource** p
 }
 
 
-// **************************************************************************
-//				Texturing
-// **************************************************************************
 
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	Textures
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API SResult DX11ResourcePool::AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT mipLevels, const ETextureType& ty, const SColor& clearcolor)
 {
@@ -199,7 +256,6 @@ S_API SResult DX11ResourcePool::AddTexture(const string& specification, ITexture
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------------------
 S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 {
 	if (specification.empty())
@@ -220,13 +276,12 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 	if (!pTexture->IsInitialized())
 	{
 		// This attempt may fail if the specification is not actually a filename
-		pTexture->LoadFromFile(specification, GetResourcePath(specification));
+		pTexture->LoadFromFile(specification, GetResourceSystemPath(specification));
 	}
 
 	return pTexture;
 }
 
-// -----------------------------------------------------------------------------------------------
 S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 {
 	if (file.empty())
@@ -246,14 +301,13 @@ S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 	ITexture* pTexture = pDXTexture;
 	if (!pTexture->IsCubemap())
 	{
-		if (Failure(pTexture->LoadCubemapFromFile(file, GetResourcePath(file))))
+		if (Failure(pTexture->LoadCubemapFromFile(file, GetResourceSystemPath(file))))
 			CLog::Log(S_ERROR, "DX11ResourcePool::GetCubeTexture(): Failed DX11Texture::LoadCubemapFromFile()");
 	}
 
 	return pTexture;
 }
 
-// -----------------------------------------------------------------------------------------------
 S_API SResult DX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler)
 {
 	if (!IS_VALID_PTR(pForEachHandler))
@@ -288,7 +342,6 @@ S_API SResult DX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* pForE
 	return S_SUCCESS;
 }
 
-// -----------------------------------------------------------------------------------------------
 S_API void DX11ResourcePool::ListTextures(vector<string>& list) const
 {
 	auto pChunks = m_plTextures.GetChunks();
@@ -307,29 +360,6 @@ S_API void DX11ResourcePool::ListTextures(vector<string>& list) const
 			list.push_back(pTex->GetSpecification());
 		}
 	}
-}
-
-
-
-// **************************************************************************
-//				All
-// **************************************************************************
-
-S_API SResult DX11ResourcePool::ClearAll(VOID)
-{
-	SResult res = S_SUCCESS;
-
-	// Destructors of instances are called by the pool when the slot buffer is destroyed
-	m_plVertexBuffers.Clear();
-	m_plIndexBuffers.Clear();
-	//m_plShaders.Clear();
-	m_plTextures.Clear();	
-
-	m_pDXRenderer = NULL;
-
-	CoUninitialize();
-
-	return res;
 }
 
 

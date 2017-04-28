@@ -48,6 +48,7 @@ private:
 	void ReadAndParseFile();
 
 public:
+	// file - absolute system path to the SPW file
 	void Load(I3DEngine* p3DEngine, IScene* pScene, const string& file);
 };
 

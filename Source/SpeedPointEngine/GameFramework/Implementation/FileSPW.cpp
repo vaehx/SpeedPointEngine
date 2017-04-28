@@ -160,6 +160,24 @@ S_API void CSPWLoader::DeserializeComponent(const map<string, string>& params, I
 
 S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity* pEntity, const string& paramsExpr, unsigned int& trailingIndent)
 {
+
+
+
+	//!!
+	//
+	//	TODO: Deserialize entity via receipt and properties
+	//
+	//		- Each entity has a receipt (Given when spawning: pScene->SpawnEntity(RigidBodyReceipt::sName))
+	//
+	//		- Receipts can add components (and properties) to the entity. (In IEntityReceipt::Apply())
+	//
+	//		- Components can add properties (and components) to the entity.
+	//			-> How? In IComponent::SetEntity()? Or something like IComponent::ApplyProperties()
+	//
+	//!!
+
+
+
 	map<string, string> params;
 	params["name"] = "\"entity\"";
 	params["pos"] = "(0,0,0)";
@@ -172,6 +190,7 @@ S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity
 	pEntity->SetRotation(DeserializeQuaternion(params["rot"]));
 	pEntity->SetScale(DeserializeVector(params["scale"]));
 
+
 	unsigned int nextBlockIndent = ReadIndent();
 	while (nextBlockIndent > blockIndent)
 	{
@@ -183,8 +202,7 @@ S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity
 
 		unsigned int nextBlockTrailingIndent = 0;
 
-
-		//TODO: Use generic DeSerialization code
+		// TODO....
 
 		/*if (nextBlockType == "Renderable") DeserializeComponent(nextBlockParams, pEntity->AddComponent(pEngine->Get3DEngine()->CreateMesh()));
 		else if (nextBlockType == "Physical") DeserializeComponent(nextBlockParams, pEntity->AddComponent(pEngine->GetPhysics()->CreatePhysObject()));
@@ -202,7 +220,7 @@ S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity
 
 
 
-// file - relative to rootDir
+// file - absolute resource path to .raw texture file
 ITexture* LoadRawTexture(const string& file, ETextureType type, IResourcePool* pResources)
 {
 	if (!pResources)
@@ -212,7 +230,7 @@ ITexture* LoadRawTexture(const string& file, ETextureType type, IResourcePool* p
 	}
 
 	std::ifstream stream;
-	stream.open(pResources->GetResourcePath(file), stream.in | stream.binary);
+	stream.open(pResources->GetResourceSystemPath(file), stream.in | stream.binary);
 	if (!stream.good())
 	{
 		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Cannot open file", file.c_str());

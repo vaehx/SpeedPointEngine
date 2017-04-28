@@ -18,7 +18,8 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 	m_pMeshes(0),
 	m_pLights(0),
 	m_pSkyBox(0),
-	m_pTerrain(0)
+	m_pTerrain(0),
+	m_MatMgr(this)
 {
 	CreateHelperPrefab<CPointHelper>();
 	CreateHelperPrefab<CLineHelper>();

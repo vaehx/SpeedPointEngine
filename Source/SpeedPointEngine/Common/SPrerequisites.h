@@ -39,6 +39,7 @@ using std::vector;
 #include "SPoolIndex.h"
 
 #include <string>
+#include "strutils.h"
 #include <sstream>
 using std::string;
 
@@ -108,92 +109,6 @@ typedef usint32 SP_UNIQUE;
 
 #define MAX_UINT32 0xffffffffui32
 //#define MAX_UINT64 0xffffffffffffffff
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Note: This function assumes that the string properly terminates with a 0!
-//	Otherwise a memory access violation occurs.
-ILINE static unsigned short sp_strlen(const char* str)
-{
-	if (!IS_VALID_PTR(str))
-		return 0;
-
-	unsigned short cnt = 0;
-	while (str[cnt] != 0)
-		cnt++;
-
-	return cnt;
-}
-
-// Note: This function assumes that src properly terminates with a 0!
-//	DST IS CREATED WITH new BY THIS FUNCTION IF NOT A VALID POINTER!
-//	Otherwise a memory access violation occurs.
-//	MAKE SURE TO DELETE IT PROPERLY!
-ILINE static void sp_strcpy(char** dst, const char* src)
-{
-	if (!IS_VALID_PTR(dst))
-		return;
-
-	unsigned short srcLn = sp_strlen(src);
-	if (!IS_VALID_PTR(*dst))
-		*dst = new char[srcLn + 1];
-
-	memcpy(*dst, src, srcLn);
-	(*dst)[srcLn] = 0;
-}
-
-ILINE static bool sp_string_iequals(const string& a, const string& b)
-{
-	unsigned int sz = a.size();
-
-	if (b.size() != sz)
-		return false;
-
-	for (unsigned int i = 0; i < sz; ++i)
-		if (tolower(a[i]) != tolower(b[i]))
-			return false;
-
-	return true;
-}
-
-ILINE static int sp_extended_isspace(char c)
-{
-	return std::isspace((unsigned char)c);
-}
-
-// Trims string from start
-ILINE static string& sp_ltrim(string& s)
-{
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun(sp_extended_isspace))));
-	return s;
-}
-
-// Trims string at the end
-ILINE static string& sp_rtrim(string& s)
-{
-	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun(sp_extended_isspace))).base(), s.end());
-	return s;
-}
-
-ILINE static string& sp_trim(string& s)
-{
-	sp_ltrim(s);
-	sp_rtrim(s);
-	return s;
-}
-
-ILINE static vector<string> sp_explode(const string& s, char delim)
-{
-	vector<string> result;
-	std::istringstream iss(s);
-
-	for (string token; std::getline(iss, token, delim); )
-	{
-		result.push_back(std::move(token));
-	}
-
-	return result;
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Some math utility functions

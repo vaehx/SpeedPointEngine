@@ -32,23 +32,40 @@ public:
 	virtual SResult	ClearAll(void) = 0;
 
 	virtual const string& GetResourceRootPath() const = 0;
-	virtual void SetResourceRootPath(const string& path) = 0;
-	virtual string GetResourcePath(const string& file) const = 0;
+	virtual void SetResourceRootPath(const string& rootSystemPath) = 0;
+	
+	// Returns the system path for given absolute resource path
+	virtual string GetResourceSystemPath(const string& file) const = 0;
 
+	// Summary:
+	//		Returns the absolute resource path to the resource referenced by relPath
+	// Arguments:
+	//		relPath - The relative resource path, relative to absReference
+	//		absReference - Absolute resource path to directory, relPath is relative to
+	virtual string GetAbsoluteResourcePath(const string& relPath, const string& absReferenceDir) const = 0;
+
+
+	// ------------------------------------------------------------------
+	// Vertex Buffers:
+public:
 	virtual SResult	AddVertexBuffer(IVertexBuffer** pVBuffer) = 0;
 
 	// Remove VB by given ptr. After deletion the ptr is set to 0
 	virtual SResult RemoveVertexBuffer(IVertexBuffer** pVB) = 0;
 
 
-
-
+	// ------------------------------------------------------------------
+	// Index Buffers:
+public:
 	virtual SResult	AddIndexBuffer(IIndexBuffer** pIBuffer) = 0;
 
 	// Remove IB by given ptr. After deletion the ptr is set to 0
 	virtual SResult RemoveIndexBuffer(IIndexBuffer** pIB) = 0;
 
 
+	// ------------------------------------------------------------------
+	// Instance Buffers:
+public:
 	template<typename InstanceT, unsigned int chunkSz = 10>
 	SResult AddInstanceBuffer(IInstanceBuffer<InstanceT>** pInstanceBuffer)
 	{
@@ -70,11 +87,13 @@ public:
 	virtual SResult RemoveInstanceBuffer(IInstanceBufferResource** instanceBuffer) = 0;
 
 
-
+	// ------------------------------------------------------------------
+	// Textures:
+public:
 	// Summary:
 	//		Adds an empty (dynamic) texture to the pool that can be modified later.
 	// Parameters:
-	//		specification - The texture specification. Should not be a filename.
+	//		specification - The texture specification. Should not be a filename to prevent conflicts.
 	//		clearcolor - color to initialize the texture with
 	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT miplevels = 1, const ETextureType& ty = eTEXTURE_R8G8B8A8_UNORM, const SColor& clearcolor = SColor()) = 0;
 
@@ -88,17 +107,15 @@ public:
 	//		If the texture could not be loaded, a pointer to a texture object is returned,
 	//		which is not loaded (cleared).
 	// Parameters:
-	//		specification - either the specification/filename of an existing texture or the filename to be loaded
+	//		specification - either the specification/path of an existing texture or the absolute resource path to the texture
 	virtual ITexture* GetTexture(const string& specification) = 0;
 
 	// Summary:
 	//		Returns a pointer to the cube texture with given file name and loads
 	//		it if it wasn't loaded yet.
 	// Parameters:
-	//		file - the name/path of the texture file relative to the set resource base path:   "assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp"
-	virtual ITexture* GetCubeTexture(const string& file) = 0;
-
-
+	//		basePath - absolute resource path to the cube texture base name:   "/textures/sky" -> "/textures/sky_(pos|neg)(x|y|z).bmp"
+	virtual ITexture* GetCubeTexture(const string& basePath) = 0;
 
 	// Warning: The parameter of for each Handle() points to a ptr of ITexture which is destroyed
 	// after Handle() returns.

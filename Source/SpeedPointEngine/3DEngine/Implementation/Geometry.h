@@ -119,7 +119,7 @@ private:
 
 public:
 	virtual ~CGeometryManager();
-	virtual SInitialGeometryDesc* LoadGeometry(const string& file);
+	virtual SInitialGeometryDesc* LoadModel(const string& spmResourcePath);
 	virtual void Clear();
 };
 

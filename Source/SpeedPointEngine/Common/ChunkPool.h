@@ -279,7 +279,7 @@ public:
 					continue;
 
 				if (bCaseSensitive ? spec == pChnk->pSlots[iSlot].specification
-					: sp_string_iequals(spec, pChnk->pSlots[iSlot].specification))
+					: striequals(spec, pChnk->pSlots[iSlot].specification))
 				{
 					return &pChnk->pSlots[iSlot].instance;
 				}

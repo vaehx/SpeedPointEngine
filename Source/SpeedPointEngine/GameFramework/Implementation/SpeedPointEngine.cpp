@@ -299,23 +299,13 @@ S_API void SpeedPointEngine::RegisterApplication(IApplication* pApp)
 }
 
 // ----------------------------------------------------------------------------------
-S_API void SpeedPointEngine::LoadWorld(const string& file)
+S_API SResult SpeedPointEngine::LoadWorld(const string& absResourcePath)
 {
-	SSettingsDesc& settings = GetSettings()->Get();
+	if (absResourcePath.empty())
+		return CLog::Log(S_ERROR, "Failed load world: Empty path given");
 
-	size_t lastDelim = file.find_last_of('\\');
-	if (lastDelim == file.npos)
-	{
-		m_pResourcePool->SetResourceRootPath("");
-		settings.resources.worldFile = file;
-	}
-	else
-	{
-		m_pResourcePool->SetResourceRootPath(file.substr(0, lastDelim));
-		settings.resources.worldFile = file.substr(lastDelim);
-	}
-
-	CLog::Log(S_DEBUG, "rootDir := '%s'", m_pResourcePool->GetResourceRootPath().c_str());
+	string file = GetResourceSystemPath(absResourcePath);
+	CLog::Log(S_DEBUG, "Attempting to load world '%s'...", file.c_str());
 
 	GetScene()->Clear();
 	GetScene()->Initialize();
@@ -326,6 +316,9 @@ S_API void SpeedPointEngine::LoadWorld(const string& file)
 
 	CSPWLoader loader;
 	loader.Load(m_p3DEngine, m_pScene, file);
+	
+	CLog::Log(S_INFO, "Loaded world '%s'", file.c_str());
+	return S_SUCCESS;
 }
 
 // ----------------------------------------------------------------------------------
@@ -341,9 +334,9 @@ S_API string SpeedPointEngine::GetShaderDirectoryPath() const
 }
 
 // ----------------------------------------------------------------------------------
-S_API string SpeedPointEngine::GetResourcePath(const string& file) const
+S_API string SpeedPointEngine::GetResourceSystemPath(const string& absResourcePath) const
 {
-	return m_pResourcePool->GetResourcePath(file);
+	return m_pResourcePool->GetResourceSystemPath(absResourcePath);
 }
 
 

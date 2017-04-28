@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ChunkPool.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\CLog.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ComponentPool.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\FileUtils.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\IShutdownHandler.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Math.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\MathGeom.h" />
@@ -41,6 +42,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\SPrerequisites.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\SQueue.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\SResult.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\strutils.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\SVertex.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Vector2.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Vector3.h" />
@@ -49,6 +51,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Camera.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\MathGeom.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ProfilingSystem.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ShutdownManager.cpp" />

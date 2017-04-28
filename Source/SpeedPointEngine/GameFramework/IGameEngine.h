@@ -77,9 +77,14 @@ public: // Game / Application interface
 
 	// Does NOT end with a slash
 	virtual string GetShaderDirectoryPath() const = 0;
-	virtual string GetResourcePath(const string& file = "") const = 0;
+	
+	// Returns the system path that points to the resource given by the absolute resource path.
+	// If the given resource path is relative, it is assumed to be relative to the root resource directory.
+	// If the resource path is empty, the system path to the resource root directory is returned.
+	virtual string GetResourceSystemPath(const string& resourcePath = "") const = 0;
 
-	virtual void LoadWorld(const string& file) = 0;
+	// Loads the SPW world referenced by the absolute resource path
+	virtual SResult LoadWorld(const string& absResourcePath) = 0;
 
 	// Executes an engine Update->Render cycle
 	virtual void DoFrame() = 0;

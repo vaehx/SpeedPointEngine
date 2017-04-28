@@ -20,6 +20,7 @@
 #include <Renderer\IVertexBuffer.h>
 #include <Renderer\IIndexBuffer.h>
 #include <Common\BoundBox.h>
+#include <Common\FileUtils.h>
 #include <FileSPM.h>
 
 SP_NMSPACE_BEG
@@ -448,27 +449,28 @@ S_API CGeometryManager::~CGeometryManager()
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SInitialGeometryDesc* CGeometryManager::LoadGeometry(const string& file)
+S_API SInitialGeometryDesc* CGeometryManager::LoadModel(const string& spmResourcePath)
 {
-	auto found = m_Geometry.find(file);
+	auto found = m_Geometry.find(spmResourcePath);
 	if (found != m_Geometry.end())
 		return &found->second;
 
 	// Actually load the model:
 	CSPMLoader spmLoader;
-	string filepath = C3DEngine::Get()->GetRenderer()->GetResourcePool()->GetResourcePath(file);
+	string modelDir = GetDirectoryPath(spmResourcePath);
+	string filepath = C3DEngine::Get()->GetRenderer()->GetResourcePool()->GetResourceSystemPath(spmResourcePath);
 	if (!spmLoader.Load(filepath.c_str()))
 	{
-		CLog::Log(S_ERROR, "Failed to load object file '%s'", filepath.c_str());
+		CLog::Log(S_ERROR, "Failed to load model file '%s'", filepath.c_str());
 		return 0;
 	}
 
 	const std::vector<SModelMeta>& models = spmLoader.GetModels();
 
-	auto geomDescIt = m_Geometry.insert(std::pair<string, SInitialGeometryDesc>(file.c_str(), SInitialGeometryDesc()));
+	auto geomDescIt = m_Geometry.insert(std::pair<string, SInitialGeometryDesc>(spmResourcePath.c_str(), SInitialGeometryDesc()));
 	SInitialGeometryDesc& geomDesc = geomDescIt.first->second;
 
-	geomDesc.geomFile = file;
+	geomDesc.geomFile = spmResourcePath;
 
 	geomDesc.bRequireNormalRecalc = true;
 	geomDesc.bRequireTangentRecalc = true;
@@ -510,7 +512,7 @@ S_API SInitialGeometryDesc* CGeometryManager::LoadGeometry(const string& file)
 				subset.pIndices[iIndex] = modelSubset.pIndices[iIndex] + vtxOffset;
 
 			if (pMatMgr)
-				subset.pMaterial = pMatMgr->GetMaterial(modelSubset.materialName);
+				subset.pMaterial = pMatMgr->LoadMaterial(MakePathAbsolute(modelSubset.materialName, modelDir));
 
 			iSubset++;
 		}

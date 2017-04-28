@@ -1,15 +1,9 @@
-//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// This file is part of the SpeedPointEngine
-// Copyright (c) 2011-2015, iSmokiieZz
-// ------------------------------------------------------------------------------
-// Filename:	Material.h
-// Created:	12/22/2014 by iSmokiieZz
-// Description:
-// -------------------------------------------------------------------------------
-// History:
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
 //
-//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
@@ -64,12 +58,6 @@ struct S_API IMaterial
 
 
 
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Material Manager
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,32 +65,32 @@ struct S_API IMaterial
 struct S_API IMaterialManager
 {
 	virtual ~IMaterialManager() {}
-	
-	// Loads all materials from the given bank file into memory, overriding existing materials with same name.
-	// While loading the material, 
-	virtual void LoadMaterialBank(const string& smbFile) = 0;
 
 	// Summary:
-	//		Returns the material object with the given name.
-	//		If there is no such object, it will be created and the pointer returned.
-	//		If there are multiple materials with the given name, the first one found will be returned.
+	//		Returns the material object with the given name or 0 if not found.
+	//		If this material is loaded from file, the specification is the absolute resource
+	//		path to the material file.
 	// Arguments:
-	//		name - is case sensitive
-	virtual IMaterial* GetMaterial(const string& name) = 0;
+	//		specification - case-sensitive
+	virtual IMaterial* GetMaterial(const string& specification) = 0;
 
-	// Does the same as GetMaterial()
-	virtual IMaterial* CreateMaterial(const string& name)
-	{
-		return GetMaterial(name);
-	}
+	// Summary:
+	//		Loads the material from file only if it was not loaded yet. Otherwise a pointer to
+	//		the existing material instance is returned.
+	//		The absResourcePath will be used as the specification for the material.
+	virtual IMaterial* LoadMaterial(const string& absResourcePath) = 0;
 
-	virtual void RemoveMaterial(const string& name) = 0;
+	// Summary:
+	//		Creates a new, empty material with the given specification.
+	//		If a material with that specification already exists, a pointer to that material is returned
+	virtual IMaterial* CreateMaterial(const string& specification) = 0;
+
+	virtual void RemoveMaterial(const string& specification) = 0;
 	virtual void RemoveMaterial(IMaterial** pMat) = 0;
 
 	virtual IMaterial* GetDefaultMaterial() = 0;
 
-	// Returns a list of all material names
-	virtual void ListMaterials(vector<string>& list) const = 0;
+	virtual void GetAllMaterialSpecifications(vector<string>& list) const = 0;
 
 	virtual void Clear() = 0;
 };

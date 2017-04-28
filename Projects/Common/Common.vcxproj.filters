@@ -84,6 +84,12 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\IShutdownHandler.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\strutils.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\FileUtils.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp">
@@ -99,6 +105,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ShutdownManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

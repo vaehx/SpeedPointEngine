@@ -137,9 +137,9 @@ public: // Game / Application interface
 //	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
 
 	virtual string GetShaderDirectoryPath() const;
-	virtual string GetResourcePath(const string& file = "") const;
+	virtual string GetResourceSystemPath(const string& absResourcePath = "") const;
 
-	virtual void LoadWorld(const string& file);
+	virtual SResult LoadWorld(const string& absResourcePath);
 
 	virtual void DoFrame();
 };

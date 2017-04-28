@@ -20,7 +20,7 @@ class S_API DX11ResourcePool : public IResourcePool
 {
 private:
 	DX11Renderer* m_pDXRenderer;
-	string m_RootPath;
+	string m_RootPath; // System path to resource root directory
 
 	vector<IInstanceBufferResource*> m_InstanceBuffers;
 	ChunkPool<DX11IndexBuffer>	m_plIndexBuffers;
@@ -37,8 +37,9 @@ public:
 	virtual SResult ClearAll();
 
 	virtual const string& GetResourceRootPath() const;
-	virtual void SetResourceRootPath(const string& path);
-	virtual string GetResourcePath(const string& file) const;
+	virtual void SetResourceRootPath(const string& rootSystemPath);
+	virtual string GetResourceSystemPath(const string& file) const;
+	virtual string GetAbsoluteResourcePath(const string& relPath, const string& absReferenceDir) const;
 
 	virtual SResult AddVertexBuffer(IVertexBuffer** pVBuffer);	
 	virtual SResult RemoveVertexBuffer(IVertexBuffer** pVB);
