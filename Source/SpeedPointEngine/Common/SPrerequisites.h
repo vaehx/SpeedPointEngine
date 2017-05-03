@@ -118,6 +118,7 @@ static inline double cot(double val) { return (1.0f / tan(val)); }
 static inline double cot(float val) { return (1.0f / tan((double)val)); }
 
 #define SP_PI 3.14159265358979323f
+#define SP_PI_HALF 1.57079632679489662f
 #define SP_UNIT_DEG_RAD 0.01745329251994f
 #define SP_UNIT_RAD_DEG 57.29577951308232f
 #define SP_DEG_TO_RAD(deg) ((float)deg * SP_UNIT_DEG_RAD)
