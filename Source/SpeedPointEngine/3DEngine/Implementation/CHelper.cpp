@@ -10,11 +10,64 @@ SP_NMSPACE_BEG
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API CDynamicMeshHelper::CDynamicMeshHelper()	
-	: CHelper(),
-	m_Scale(1.0f)
+S_API CTransformableHelper::CTransformableHelper()
+	: m_Scale(1.0f)
 {
 	RecalcTransform();
+}
+
+S_API void CTransformableHelper::RecalcTransform()
+{
+	MakeTransformationTRS(m_Pos, m_Rotation.ToRotationMatrix(), m_Scale, &m_Transform);
+}
+
+S_API const Mat44& CTransformableHelper::GetTransform() const
+{
+	return m_Transform;
+}
+
+S_API void CTransformableHelper::SetTransform(const Mat44& transform)
+{
+	m_Transform = transform;
+}
+
+S_API void CTransformableHelper::SetPos(const Vec3f& pos)
+{
+	m_Pos = pos;
+	RecalcTransform();
+}
+
+S_API Vec3f CTransformableHelper::GetPos() const
+{
+	return m_Pos;
+}
+
+S_API void CTransformableHelper::SetRotation(const Quat& rot)
+{
+	m_Rotation = rot;
+	RecalcTransform();
+}
+
+S_API Quat CTransformableHelper::GetRotation() const
+{
+	return m_Rotation;
+}
+
+S_API void CTransformableHelper::SetScale(const Vec3f& scale)
+{
+	m_Scale = scale;
+	RecalcTransform();
+}
+
+S_API Vec3f CTransformableHelper::GetScale() const
+{
+	return m_Scale;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API CDynamicMeshHelper::CDynamicMeshHelper()
+{
 }
 
 S_API CDynamicMeshHelper::~CDynamicMeshHelper()
@@ -106,42 +159,8 @@ S_API void CDynamicMeshHelper::SetTransform(const Mat44& transform)
 
 S_API void CDynamicMeshHelper::RecalcTransform()
 {
-	MakeTransformationTRS(m_Pos, m_Rotation.ToRotationMatrix(), m_Scale, &m_RenderDesc.transform);
-}
-
-S_API void CDynamicMeshHelper::SetPos(const Vec3f& pos)
-{
-	m_Pos = pos;
-	RecalcTransform();
-}
-
-S_API Vec3f CDynamicMeshHelper::GetPos() const
-{
-	return m_Pos;
-}
-
-
-S_API void CDynamicMeshHelper::SetRotation(const Quat& rot)
-{
-	m_Rotation = rot;
-	RecalcTransform();
-}
-
-S_API Quat CDynamicMeshHelper::GetRotation() const
-{
-	return m_Rotation;
-}
-
-
-S_API void CDynamicMeshHelper::SetScale(const Vec3f& scale)
-{
-	m_Scale = scale;
-	RecalcTransform();
-}
-
-S_API Vec3f CDynamicMeshHelper::GetScale() const
-{
-	return m_Scale;
+	CTransformableHelper::RecalcTransform();
+	m_RenderDesc.transform = m_Transform;
 }
 
 

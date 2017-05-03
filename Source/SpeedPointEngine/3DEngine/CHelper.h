@@ -120,8 +120,36 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class S_API CTransformableHelper : public CHelper
+{
+protected:
+	Vec3f m_Pos;
+	Quat m_Rotation;
+	Vec3f m_Scale;
+
+	virtual void RecalcTransform();
+
+public:
+	CTransformableHelper();
+	virtual ~CTransformableHelper() {}
+
+	virtual const Mat44& GetTransform() const;
+	virtual void SetTransform(const Mat44& transform);
+
+	void SetPos(const Vec3f& pos);
+	Vec3f GetPos() const;
+
+	void SetRotation(const Quat& rot);
+	Quat GetRotation() const;
+
+	void SetScale(const Vec3f& scale);
+	Vec3f GetScale() const;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Allows vertex buffer to be altered after creation
-class S_API CDynamicMeshHelper : public CHelper
+class S_API CDynamicMeshHelper : public CTransformableHelper
 {
 public:
 	struct Params
@@ -153,36 +181,24 @@ public:
 
 private:
 	SRenderDesc m_RenderDesc;
-	Vec3f m_Pos;
-	Quat m_Rotation;
-	Vec3f m_Scale;
 
 	void ClearRenderDesc();
-	void RecalcTransform();
+
+protected:
+	virtual void RecalcTransform();
 
 public:
 	CDynamicMeshHelper();
 	virtual ~CDynamicMeshHelper();
 
-	virtual SRenderDesc* GetDynamicMesh();
-	
-	IVertexBuffer* GetVertexBuffer() const;
-
+	virtual SRenderDesc* GetDynamicMesh();	
 	virtual unsigned int GetTypeId() const { return SP_HELPER_DYNAMIC_MESH; }
-
 	void SetParams(const Params& params);
 
+	IVertexBuffer* GetVertexBuffer() const;
+
 	virtual const Mat44& GetTransform() const;
-	void SetTransform(const Mat44& transform);
-
-	void SetPos(const Vec3f& pos);
-	Vec3f GetPos() const;
-
-	void SetRotation(const Quat& rot);
-	Quat GetRotation() const;
-
-	void SetScale(const Vec3f& scale);
-	Vec3f GetScale() const;
+	virtual void SetTransform(const Mat44& transform);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
