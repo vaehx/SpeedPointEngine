@@ -73,6 +73,15 @@ namespace SpeedPoint
 				(int)(b * 255.999f) << 8 |
 				(int)(a * 255.999f);
 		}
+
+		static SColor Black()	{ return SColor(0.f, 0.f, 0.f); }
+		static SColor White()	{ return SColor(1.f, 1.f, 1.f); }
+		static SColor Red()		{ return SColor(1.f, 0.f, 0.f); }
+		static SColor Green()	{ return SColor(0.f, 1.f, 0.f); }
+		static SColor Blue()	{ return SColor(0.f, 0.f, 1.f); }
+		static SColor Yellow()	{ return SColor(1.f, 1.f, 0.f); }
+		static SColor Purple()	{ return SColor(1.f, 0.f, 1.f); }
+		static SColor Turqouise(){ return SColor(0.f, 1.f, 1.f); }
 	};
 
 	// --------------------------------------------------------------------------
