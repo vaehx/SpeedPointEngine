@@ -187,6 +187,22 @@ struct SGeomShape
 };
 
 
+// On which "feature" of the shape the intersection happened
+enum EIntersectionFeature
+{
+	eINTERSECTION_FEATURE_BASE_SHAPE = 0,
+	eINTERSECTION_FEATURE_CAP // cap for capsule / cylinder
+};
+
+struct SIntersection
+{
+	Vec3f p;
+	Vec3f n;
+	bool interp; // shapes interpenetrated
+	EIntersectionFeature feature;
+};
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -924,7 +940,7 @@ inline bool IntersectPlaneCapsule(const SPlane& plane, const SCapsule& capsule);
 
 inline bool IntersectRayPoint(const SRay& ray, const SPoint& point, float* pDist = 0, Vec3f* pFoot = 0);
 inline bool IntersectRaySphere(const SRay& ray, const SSphere& sphere, float* pDist = 0);
-inline bool IntersectRayCylinder(const SRay& ray, const SCylinder& cyl);
+bool IntersectRayCylinder(const SRay& ray, const SCylinder& cyl, SIntersection* pinters);
 inline bool IntersectRayCapsule(const SRay& ray, const SCapsule& capsule, float* pRayParam = 0);
 
 // Line: origin + lambda * direction    with  0 <= lambda <= maxLambda
@@ -1366,67 +1382,6 @@ inline bool IntersectRaySphere(const SRay& ray, const SSphere& sphere, float* pD
 
 	return (dist <= sphere.radius);
 }
-
-// -------------------------------------------------------------------------------------------
-//
-//	Ray - Cylinder
-//
-// -------------------------------------------------------------------------------------------
-inline bool IntersectRayCylinder(const SRay& ray, const SCylinder& cyl)
-{
-	// Ray: x = p + t * v
-	// Cylinder: p1, p2, radius, u = direction (normalized)
-	const Vec3f &p = ray.p, &v = ray.v;
-	const Vec3f &p1 = cyl.p1, &p2 = cyl.p2;
-	const float &r = cyl.r;
-	Vec3f u = p2 - p1;
-	const float ulength = u.Length();
-	u /= ulength; // normalize u
-
-	// Parallel?
-	if (fabs(fabs(Vec3Dot(v.Normalized(), u)) - 1.0f) <= FLOAT_TOLERANCE)
-	{
-		// Determine distance by projecting p-p1-vector onto ray and then subtracting this from the p-p1-vector
-		const Vec3f vNormalized = v.Normalized();
-		const Vec3f pq = p1 - p;
-		float distSq = (pq - Vec3Dot(vNormalized, pq) * vNormalized).LengthSq();
-		return (distSq <= (r * r));
-	}
-
-	// Determine perpendicular foot on cyl of the shortest distance-vector
-	float param, dist;
-	SRay cylRay;
-	cylRay.p = p1;
-	cylRay.v = u;
-	bool intersect = IntersectRayRay(ray, cylRay, 0, &param, &dist);
-
-	// Check if perpendicular foot is in the cyl-ray-segment
-	if (param >= 0 && param <= ulength)
-		return (dist <= r + FLOAT_TOLERANCE); // intersecting the cylinder
-
-	// Check if the ray intersects with the cap-planes. IntersectRayPlane() must not modify the param, if there was no intersection
-	float bottomParam = FLT_MAX, topParam = FLT_MAX;
-	bool bottomIntersect = IntersectRayPlane(ray, SPlane::FromNormalAndPoint(-u, p1), &bottomParam);
-	bool topIntersect = IntersectRayPlane(ray, SPlane::FromNormalAndPoint(u, p2), &topParam);
-
-	if (!bottomIntersect && !topIntersect)
-		return false;
-
-	Vec3f checkPnt = p1;
-	param = bottomParam;
-	if (topParam < bottomParam)
-	{
-		param = topParam;
-		checkPnt = p2;
-	}
-
-	// possibleIntersection and distSq should lie on the same plane (bottom-cap-plane)
-	const Vec3f possibleIntersection = ray.GetPoint(param);
-	const float distSq = (possibleIntersection - checkPnt).LengthSq();
-
-	return (distSq <= (r * r));
-}
-
 
 
 // -------------------------------------------------------------------------------------------

@@ -132,7 +132,19 @@ namespace SpeedPoint
 	}
 
 	template<typename F>
+	S_API inline F operator | (const Vec3<F>& v1, const Vec3<F>& v2)
+	{
+		return v1.Dot(v2);
+	}
+
+	template<typename F>
 	S_API inline Vec3<F> Vec3Cross(const Vec3<F>& v1, const Vec3<F>& v2)
+	{
+		return v1.Cross(v2);
+	}
+
+	template<typename F>
+	S_API inline Vec3<F> operator ^(const Vec3<F>& v1, const Vec3<F>& v2)
 	{
 		return v1.Cross(v2);
 	}

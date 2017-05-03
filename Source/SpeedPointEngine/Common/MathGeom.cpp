@@ -257,4 +257,102 @@ S_API void SMeshKTree::UpdateAABBHeights(float minY, float maxY)
 	}
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool IntersectRayCylinder(const SRay& ray, const SCylinder& cyl, SIntersection* inters)
+{
+	const Vec3f vr = ray.v.Normalized(); // normalized ray direction
+	const Vec3f pc[] = { cyl.p1, cyl.p2 }; // cylinder bottom/top cap center
+	const Vec3f vc = (pc[1] - pc[0]).Normalized(); // normalized cylinder ray direction
+	const float rsq = cyl.r * cyl.r; // r^2
+
+	// Test against mantle
+	// Find solutions for At^2 + Bt + C = 0 with ...
+	const Vec3f U = vr - Vec3Dot(vr, vc) * vc;
+	const Vec3f V = (ray.p - pc[0]) - Vec3Dot(ray.p - pc[0], vc) * vc;
+	const float A = U.LengthSq();
+	const float B = 2.0f * Vec3Dot(U, V);
+	const float C = V.LengthSq() - rsq;
+
+	float t[] = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX }; // normalized ray params
+	bool b[] = { false, false, false, false }; // t[i] is a valid intersection
+	int n = 0;
+	const float s = B * B - 4.0f * A * C;
+	const float den = 2.0f * A;
+	if (s >= 0 && fabsf(den) > 0.0001f)
+	{
+		// Intersections with cylinder mantle
+		const float sqrt_s = sqrtf(s);
+		const float invden = 1.0f / den;
+		t[0] = (-B + sqrt_s) * invden;
+		t[1] = (-B - sqrt_s) * invden;
+
+		// Check if intersections are between caps
+		Vec3f q;
+		for (int i = 0; i < 2; ++i)
+		{
+			q = ray.p + vr * t[i];
+			b[i] = (Vec3Dot(vc, q - pc[0]) > 0 && Vec3Dot(vc, q - pc[1]) < 0);
+		}
+
+		n += 2;
+	}
+
+	if (!b[0] || !b[1])
+	{
+		// Test against caps
+		float param;
+		SPlane plane;
+		SRay nray(ray.p, vr); // normalized ray
+		for (int i = 0; i < 2; ++i)
+		{
+			plane = SPlane::FromNormalAndPoint(vc, pc[i]);
+			if (IntersectRayPlane(nray, plane, &param))
+			{
+				if ((nray.GetPoint(param) - pc[i]).LengthSq() <= rsq)
+				{
+					t[i + 2] = param;
+					b[i + 2] = true;
+				}
+			}
+		}
+
+		n += 2;
+	}
+
+	// Determine minimum intersection
+	int mint = n;
+	bool intersect = false;
+	for (int i = 0; i < n; ++i)
+	{
+		if (b[i])
+		{
+			intersect = true;
+			if (mint == n || t[i] < t[mint])
+				mint = i;
+		}
+	}
+
+	if (intersect)
+	{
+		inters->p = ray.p + vr * t[mint];
+		if (mint < 2)
+		{
+			inters->n = Vec3Normalize(inters->p - pc[0] + ((inters->p - pc[0]) | vc) * vc);
+			inters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+		}
+		else
+		{
+			inters->n = Vec3Normalize(inters->p - pc[mint - 2]);
+			inters->feature = eINTERSECTION_FEATURE_CAP;
+		}
+	}
+	
+	return intersect;
+}
+
+
+
 SP_NMSPACE_END
