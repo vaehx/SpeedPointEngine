@@ -15,6 +15,102 @@
 
 SP_NMSPACE_BEG
 
+
+const char* GetWICPixelFormatName(WICPixelFormatGUID fmt)
+{
+	if (fmt == GUID_WICPixelFormatDontCare) return "GUID_WICPixelFormatDontCare";
+	else if (fmt == GUID_WICPixelFormat1bppIndexed) return "GUID_WICPixelFormat1bppIndexed";
+	else if (fmt == GUID_WICPixelFormat2bppIndexed) return "GUID_WICPixelFormat2bppIndexed";
+	else if (fmt == GUID_WICPixelFormat4bppIndexed) return "GUID_WICPixelFormat4bppIndexed";
+	else if (fmt == GUID_WICPixelFormat8bppIndexed) return "GUID_WICPixelFormat8bppIndexed";
+	else if (fmt == GUID_WICPixelFormatBlackWhite) return "GUID_WICPixelFormatBlackWhite";
+	else if (fmt == GUID_WICPixelFormat2bppGray) return "GUID_WICPixelFormat2bppGray";
+	else if (fmt == GUID_WICPixelFormat4bppGray) return "GUID_WICPixelFormat4bppGray";
+	else if (fmt == GUID_WICPixelFormat8bppGray) return "GUID_WICPixelFormat8bppGray";
+	else if (fmt == GUID_WICPixelFormat8bppAlpha) return "GUID_WICPixelFormat8bppAlpha";
+	else if (fmt == GUID_WICPixelFormat16bppBGR555) return "GUID_WICPixelFormat16bppBGR555";
+	else if (fmt == GUID_WICPixelFormat16bppBGR565) return "GUID_WICPixelFormat16bppBGR565";
+	else if (fmt == GUID_WICPixelFormat16bppBGRA5551) return "GUID_WICPixelFormat16bppBGRA5551";
+	else if (fmt == GUID_WICPixelFormat16bppGray) return "GUID_WICPixelFormat16bppGray";
+	else if (fmt == GUID_WICPixelFormat24bppBGR) return "GUID_WICPixelFormat24bppBGR";
+	else if (fmt == GUID_WICPixelFormat24bppRGB) return "GUID_WICPixelFormat24bppRGB";
+	else if (fmt == GUID_WICPixelFormat32bppBGR) return "GUID_WICPixelFormat32bppBGR";
+	else if (fmt == GUID_WICPixelFormat32bppBGRA) return "GUID_WICPixelFormat32bppBGRA";
+	else if (fmt == GUID_WICPixelFormat32bppPBGRA) return "GUID_WICPixelFormat32bppPBGRA";
+	else if (fmt == GUID_WICPixelFormat32bppGrayFloat) return "GUID_WICPixelFormat32bppGrayFloat";
+	else if (fmt == GUID_WICPixelFormat32bppRGB) return "GUID_WICPixelFormat32bppRGB";
+	else if (fmt == GUID_WICPixelFormat32bppRGBA) return "GUID_WICPixelFormat32bppRGBA";
+	else if (fmt == GUID_WICPixelFormat32bppPRGBA) return "GUID_WICPixelFormat32bppPRGBA";
+	else if (fmt == GUID_WICPixelFormat48bppRGB) return "GUID_WICPixelFormat48bppRGB";
+	else if (fmt == GUID_WICPixelFormat48bppBGR) return "GUID_WICPixelFormat48bppBGR";
+	else if (fmt == GUID_WICPixelFormat64bppRGB) return "GUID_WICPixelFormat64bppRGB";
+	else if (fmt == GUID_WICPixelFormat64bppRGBA) return "GUID_WICPixelFormat64bppRGBA";
+	else if (fmt == GUID_WICPixelFormat64bppBGRA) return "GUID_WICPixelFormat64bppBGRA";
+	else if (fmt == GUID_WICPixelFormat64bppPRGBA) return "GUID_WICPixelFormat64bppPRGBA";
+	else if (fmt == GUID_WICPixelFormat64bppPBGRA) return "GUID_WICPixelFormat64bppPBGRA";
+	else if (fmt == GUID_WICPixelFormat16bppGrayFixedPoint) return "GUID_WICPixelFormat16bppGrayFixedPoint";
+	else if (fmt == GUID_WICPixelFormat32bppBGR101010) return "GUID_WICPixelFormat32bppBGR101010";
+	else if (fmt == GUID_WICPixelFormat48bppRGBFixedPoint) return "GUID_WICPixelFormat48bppRGBFixedPoint";
+	else if (fmt == GUID_WICPixelFormat48bppBGRFixedPoint) return "GUID_WICPixelFormat48bppBGRFixedPoint";
+	else if (fmt == GUID_WICPixelFormat96bppRGBFixedPoint) return "GUID_WICPixelFormat96bppRGBFixedPoint";
+	else if (fmt == GUID_WICPixelFormat96bppRGBFloat) return "GUID_WICPixelFormat96bppRGBFloat";
+	else if (fmt == GUID_WICPixelFormat128bppRGBAFloat) return "GUID_WICPixelFormat128bppRGBAFloat";
+	else if (fmt == GUID_WICPixelFormat128bppPRGBAFloat) return "GUID_WICPixelFormat128bppPRGBAFloat";
+	else if (fmt == GUID_WICPixelFormat128bppRGBFloat) return "GUID_WICPixelFormat128bppRGBFloat";
+	else if (fmt == GUID_WICPixelFormat32bppCMYK) return "GUID_WICPixelFormat32bppCMYK";
+	else if (fmt == GUID_WICPixelFormat64bppRGBAFixedPoint) return "GUID_WICPixelFormat64bppRGBAFixedPoint";
+	else if (fmt == GUID_WICPixelFormat64bppBGRAFixedPoint) return "GUID_WICPixelFormat64bppBGRAFixedPoint";
+	else if (fmt == GUID_WICPixelFormat64bppRGBFixedPoint) return "GUID_WICPixelFormat64bppRGBFixedPoint";
+	else if (fmt == GUID_WICPixelFormat128bppRGBAFixedPoint) return "GUID_WICPixelFormat128bppRGBAFixedPoint";
+	else if (fmt == GUID_WICPixelFormat128bppRGBFixedPoint) return "GUID_WICPixelFormat128bppRGBFixedPoint";
+	else if (fmt == GUID_WICPixelFormat64bppRGBAHalf) return "GUID_WICPixelFormat64bppRGBAHalf";
+	else if (fmt == GUID_WICPixelFormat64bppRGBHalf) return "GUID_WICPixelFormat64bppRGBHalf";
+	else if (fmt == GUID_WICPixelFormat48bppRGBHalf) return "GUID_WICPixelFormat48bppRGBHalf";
+	else if (fmt == GUID_WICPixelFormat32bppRGBE) return "GUID_WICPixelFormat32bppRGBE";
+	else if (fmt == GUID_WICPixelFormat16bppGrayHalf) return "GUID_WICPixelFormat16bppGrayHalf";
+	else if (fmt == GUID_WICPixelFormat32bppGrayFixedPoint) return "GUID_WICPixelFormat32bppGrayFixedPoint";
+	else if (fmt == GUID_WICPixelFormat32bppRGBA1010102) return "GUID_WICPixelFormat32bppRGBA1010102";
+	else if (fmt == GUID_WICPixelFormat32bppRGBA1010102XR) return "GUID_WICPixelFormat32bppRGBA1010102XR";
+	else if (fmt == GUID_WICPixelFormat64bppCMYK) return "GUID_WICPixelFormat64bppCMYK";
+	else if (fmt == GUID_WICPixelFormat24bpp3Channels) return "GUID_WICPixelFormat24bpp3Channels";
+	else if (fmt == GUID_WICPixelFormat32bpp4Channels) return "GUID_WICPixelFormat32bpp4Channels";
+	else if (fmt == GUID_WICPixelFormat40bpp5Channels) return "GUID_WICPixelFormat40bpp5Channels";
+	else if (fmt == GUID_WICPixelFormat48bpp6Channels) return "GUID_WICPixelFormat48bpp6Channels";
+	else if (fmt == GUID_WICPixelFormat56bpp7Channels) return "GUID_WICPixelFormat56bpp7Channels";
+	else if (fmt == GUID_WICPixelFormat64bpp8Channels) return "GUID_WICPixelFormat64bpp8Channels";
+	else if (fmt == GUID_WICPixelFormat48bpp3Channels) return "GUID_WICPixelFormat48bpp3Channels";
+	else if (fmt == GUID_WICPixelFormat64bpp4Channels) return "GUID_WICPixelFormat64bpp4Channels";
+	else if (fmt == GUID_WICPixelFormat80bpp5Channels) return "GUID_WICPixelFormat80bpp5Channels";
+	else if (fmt == GUID_WICPixelFormat96bpp6Channels) return "GUID_WICPixelFormat96bpp6Channels";
+	else if (fmt == GUID_WICPixelFormat112bpp7Channels) return "GUID_WICPixelFormat112bpp7Channels";
+	else if (fmt == GUID_WICPixelFormat128bpp8Channels) return "GUID_WICPixelFormat128bpp8Channels";
+	else if (fmt == GUID_WICPixelFormat40bppCMYKAlpha) return "GUID_WICPixelFormat40bppCMYKAlpha";
+	else if (fmt == GUID_WICPixelFormat80bppCMYKAlpha) return "GUID_WICPixelFormat80bppCMYKAlpha";
+	else if (fmt == GUID_WICPixelFormat32bpp3ChannelsAlpha) return "GUID_WICPixelFormat32bpp3ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat40bpp4ChannelsAlpha) return "GUID_WICPixelFormat40bpp4ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat48bpp5ChannelsAlpha) return "GUID_WICPixelFormat48bpp5ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat56bpp6ChannelsAlpha) return "GUID_WICPixelFormat56bpp6ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat64bpp7ChannelsAlpha) return "GUID_WICPixelFormat64bpp7ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat72bpp8ChannelsAlpha) return "GUID_WICPixelFormat72bpp8ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat64bpp3ChannelsAlpha) return "GUID_WICPixelFormat64bpp3ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat80bpp4ChannelsAlpha) return "GUID_WICPixelFormat80bpp4ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat96bpp5ChannelsAlpha) return "GUID_WICPixelFormat96bpp5ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat112bpp6ChannelsAlpha) return "GUID_WICPixelFormat112bpp6ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat128bpp7ChannelsAlpha) return "GUID_WICPixelFormat128bpp7ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat144bpp8ChannelsAlpha) return "GUID_WICPixelFormat144bpp8ChannelsAlpha";
+	else if (fmt == GUID_WICPixelFormat8bppY) return "GUID_WICPixelFormat8bppY";
+	else if (fmt == GUID_WICPixelFormat8bppCb) return "GUID_WICPixelFormat8bppCb";
+	else if (fmt == GUID_WICPixelFormat8bppCr) return "GUID_WICPixelFormat8bppCr";
+	else if (fmt == GUID_WICPixelFormat16bppCbCr) return "GUID_WICPixelFormat16bppCbCr";
+	else if (fmt == GUID_WICPixelFormat16bppYQuantizedDctCoefficients) return "GUID_WICPixelFormat16bppYQuantizedDctCoefficients";
+	else if (fmt == GUID_WICPixelFormat16bppCbQuantizedDctCoefficients) return "GUID_WICPixelFormat16bppCbQuantizedDctCoefficients";
+	else if (fmt == GUID_WICPixelFormat16bppCrQuantizedDctCoefficients) return "GUID_WICPixelFormat16bppCrQuantizedDctCoefficients";
+	else return "Unknown format";
+}
+
+
+
+
 // -----------------------------------------------------------------------------------------------
 DX11Texture::DX11Texture(DX11Renderer* pDXRenderer)
 : m_pDXRenderer(pDXRenderer),
@@ -105,8 +201,7 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 #endif
 	else
 	{
-		return CLog::Log(S_ERROR, "Unsupported pixel fmt of texture: Unkown format!");
-		// m_pEngine->LogE << "Failed convert pixel fmt: Unknown format: " << pxlFmtGUID << "!";
+		return CLog::Log(S_ERROR, "Unsupported pixel fmt of texture: %s!", GetWICPixelFormatName(pxlFmtGUID));
 	}
 
 	// ----------------------------------------------------------------------------------------------------------------------
