@@ -178,6 +178,7 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 	WICPixelFormatGUID pxlFmtGUIDOrig = pxlFmtGUID;
 	if (pxlFmtGUID == GUID_WICPixelFormat24bppBGR) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
 	else if (pxlFmtGUID == GUID_WICPixelFormat8bppIndexed) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
+	else if (pxlFmtGUID == GUID_WICPixelFormat32bppPBGRA) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
 
 	// we'll probably need a dxgi format to create the dx texture instance	
 	if (pxlFmtGUID == GUID_WICPixelFormat128bppRGBAFloat)		loadedTextureFmt = DXGI_FORMAT_R32G32B32A32_FLOAT;
