@@ -221,7 +221,6 @@ public:
 		if (freeobjindex > freeobjchunk->last_used_object || freeobjchunk->num_used_objects == 1)
 			freeobjchunk->last_used_object = freeobjindex;
 
-
 		num_used_objects++;
 
 		return &freeobj->instance;
@@ -238,10 +237,10 @@ public:
 		for (unsigned int ic = 0; ic < num_chunks; ++ic)
 		{
 			Chunk& chunk = *chunks[ic];
-			if ((unsigned long)instance < (unsigned long)chunk.objects || (unsigned long)instance >(unsigned long)chunk.objects + (unsigned long)chunk.GetObjectsByteSize())
+			if ((unsigned long)instance < (unsigned long)chunk.objects || (unsigned long)instance > (unsigned long)chunk.objects + (unsigned long)chunk.GetObjectsByteSize())
 				continue;
 
-			unsigned int ptrOffs = (unsigned int)instance - (unsigned int)chunk.objects;
+			unsigned int ptrOffs = (unsigned int)((unsigned long)instance - (unsigned long)chunk.objects);
 			unsigned int iObj = (ptrOffs - (ptrOffs % sizeof(Object))) / sizeof(Object);
 			Object& obj = chunk.objects[iObj];
 			if (!obj.used)
@@ -261,29 +260,23 @@ public:
 				chunk.first_used_object = 0;
 				chunk.last_used_object = 0;
 			}
-			else if (iObj == chunk.first_used_object || iObj == chunk.last_used_object)
+			else if (iObj == chunk.first_used_object)
 			{
-				bool objIsFirstUsedObj = (iObj == chunk.first_used_object);
-				unsigned int& checkLimit = (objIsFirstUsedObj) ? chunk.first_used_object : chunk.last_used_object;
-				unsigned int& oppositeCheckLimit = (objIsFirstUsedObj) ? chunk.last_used_object : chunk.first_used_object;
-				unsigned int diff = (objIsFirstUsedObj) ? 1 : -1;
-
-				for (unsigned int i = checkLimit + 1;; i += diff)
+				// find new first used object
+				for (; chunk.first_used_object < chunk.last_used_object; ++chunk.first_used_object)
 				{
-					if (!chunk.objects[i].used)
-					{
-						if ((i + diff) == oppositeCheckLimit)
-							break;
-
-						continue;
-					}
-
-					checkLimit = i;
-					break;
+					if (chunk.objects[chunk.first_used_object].used)
+						break;
 				}
-
-				if (checkLimit == iObj)
-					return; // unexpected
+			}
+			else if (iObj == chunk.last_used_object)
+			{
+				// find new last used object
+				for (; chunk.last_used_object > chunk.first_used_object; --chunk.last_used_object)
+				{
+					if (chunk.objects[chunk.last_used_object].used)
+						break;
+				}
 			}
 
 			break; // found according obj in chunk
