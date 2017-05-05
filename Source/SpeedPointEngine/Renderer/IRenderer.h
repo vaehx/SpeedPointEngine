@@ -420,7 +420,6 @@ struct S_API SLightDesc
 	Vec3f direction;
 };
 
-
 ///////////////////////////////////////////////////////////////
 
 struct S_API SRenderBudgetTimer
@@ -439,6 +438,8 @@ struct S_API SRenderBudgetTimer
 enum EShaderFileType
 {
 	eSHADERFILE_SKYBOX,
+
+	eSHADERFILE_SHADOW,
 
 	eSHADERFILE_FORWARD_HELPER,	// Forward helper effect
 	eSHADERFILE_FORWARD,
@@ -580,6 +581,7 @@ public:
 	virtual IShader* CreateShader() const = 0;
 
 	virtual void BindShaderPass(EShaderPassType type) = 0;
+	virtual IShaderPass* GetShaderPass(EShaderPassType type) const = 0;
 	virtual IShaderPass* GetCurrentShaderPass() const = 0;
 
 	virtual string GetShaderPath(EShaderFileType type) const = 0;
@@ -595,7 +597,7 @@ public:
 
 	virtual SResult PresentTargetViewport(void) = 0;
 
-	virtual SResult ClearBoundRTs(void) = 0;
+	virtual SResult ClearBoundRTs(bool color = true, bool depth = true) = 0;
 
 	virtual SResult UpdateCullMode(EFrontFace cullmode) = 0;
 	virtual SResult EnableBackfaceCulling(bool state = true) = 0;

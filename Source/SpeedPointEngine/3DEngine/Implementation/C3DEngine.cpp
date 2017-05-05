@@ -375,48 +375,40 @@ S_API void C3DEngine::RenderCollected()
 {
 	unsigned int budgetTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected()");
 	{
-
-		//TODO: Render skybox deferred as well!
-
-		if (IS_VALID_PTR(m_pSkyBox))
-		{
-			unsigned int skyboxTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected() - Render Skybox");		
-			{
-
-				m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-				SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
-				m_pRenderer->Render(*rd);
-
-				ProfilingSystem::EndSection(skyboxTimer);
-			}
-		}
-
-
-
-		//TODO: Render terrain deferred as well!
-
-		unsigned int terrainTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected() - Render terrain");
-		{
-			m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
-			ProfilingSystem::EndSection(terrainTimer);
-		}
-
-
+		// Shadowmap Prepass
+		// TODO: Only render objects that are inside the ViewFrustum !!!!!
+		m_pRenderer->BindShaderPass(eSHADERPASS_SHADOWMAP);
 		RenderMeshes();
 
-		unsigned int particleTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollection() - Render particles");
+
+
+		// Skybox
+		if (IS_VALID_PTR(m_pSkyBox))
 		{
-			m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
-			m_ParticleSystem.Render();
-			ProfilingSystem::EndSection(particleTimer);
+			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+			SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
+			m_pRenderer->Render(*rd);
 		}
 
-		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+		// Terrain
+		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
+
+		// Meshes
+		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+		RenderMeshes();
+
+		// Particles
+		m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
+		m_ParticleSystem.Render();
+
+		// Helpers
+		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 		RenderHelpers();
 
+		// HUD
 		RenderHUD();
+
 
 		//TODO: Implement deferred shading pass
 		/*
@@ -443,16 +435,6 @@ S_API void C3DEngine::RenderMeshes()
 
 	unsigned int renderObjectsTimer = ProfilingSystem::StartSection(objectsTimerName.str().c_str());
 	{
-
-
-		//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
-		//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
-		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-
-
-
-
 		unsigned int itMesh;
 		CRenderMesh* pMesh = m_pMeshes->GetFirst(itMesh);
 		while (pMesh)

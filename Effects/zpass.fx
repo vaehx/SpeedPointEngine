@@ -12,6 +12,7 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
+	float4x4 mtxSunViewProj;
     float4 eyePos;
 }
 cbuffer ObjectCB : register(b1)
@@ -23,13 +24,13 @@ cbuffer ObjectCB : register(b1)
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
 Texture2D normalMap : register(t1);
-SamplerState TextureMapSampler
+SamplerState PointSampler
 {
     Filter = MIN_MAG_MIP_POINT;
     AddressU = WRAP;
     AddressV = WRAP;
 };
-SamplerState NormalMapSampler
+SamplerState LinearSampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
     AddressU = WRAP;
@@ -147,7 +148,7 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
 PS_OUTPUT PS_zpass(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
-    //OUT.Color = textureMap.Sample(TextureMapSampler, IN.TexCoord);
+    //OUT.Color = textureMap.Sample(PointSampler, IN.TexCoord);
     //return OUT;
 
 
@@ -161,7 +162,7 @@ PS_OUTPUT PS_zpass(PS_INPUT IN)
     float3x3 matTW = transpose(matWT);
 
     // Sample normal change in tangent space from NormalMap
-    float3 sampledNormal = normalMap.Sample(NormalMapSampler, IN.TexCoord).rgb;
+    float3 sampledNormal = normalMap.Sample(LinearSampler, IN.TexCoord).rgb;
     sampledNormal.rg = 2.0f * sampledNormal.rg - 1.0f;
     float3 bumpNormal = mul(matTW, normalize(sampledNormal));
 
@@ -170,7 +171,7 @@ PS_OUTPUT PS_zpass(PS_INPUT IN)
 
 
     // Get texture map color
-    float3 albedo = textureMap.Sample(TextureMapSampler, IN.TexCoord).rgb;
+    float3 albedo = textureMap.Sample(PointSampler, IN.TexCoord).rgb;
 
     // Surface constants
     float matRoughness = 0.8f;

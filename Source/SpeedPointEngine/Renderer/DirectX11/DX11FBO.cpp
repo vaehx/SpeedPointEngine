@@ -16,6 +16,8 @@ inline DXGI_FORMAT GetDXGIFormatFromFBOType(EFBOType type)
 {
 	switch (type)
 	{
+	case eFBO_F16:
+		return DXGI_FORMAT_R16_UNORM;
 	case eFBO_F32:
 		return DXGI_FORMAT_R32_TYPELESS;
 	case eFBO_R8G8B8A8:
@@ -61,8 +63,8 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 	memset(&m_texDesc, 0, sizeof(m_texDesc));
 	m_texDesc.Format = GetDXGIFormatFromFBOType(type);
 	m_texDesc.ArraySize = 1;
-	m_texDesc.Height = width;
-	m_texDesc.Width = height;
+	m_texDesc.Width = width;
+	m_texDesc.Height = height;
 	m_texDesc.MiscFlags = 0;
 	m_texDesc.Usage = D3D11_USAGE_DEFAULT; // maybe make this specificable someday
 	m_texDesc.SampleDesc = GetD3D11MSAADesc(

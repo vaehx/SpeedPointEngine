@@ -110,5 +110,8 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Matrix.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -53,6 +53,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\MathGeom.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Matrix.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ProfilingSystem.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ShutdownManager.cpp" />
   </ItemGroup>

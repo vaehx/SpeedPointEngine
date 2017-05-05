@@ -14,6 +14,7 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
+	float4x4 mtxSunViewProj;
     float4 eyePos;
 }
 
@@ -29,7 +30,8 @@ Texture2D vtxHeightMap : register(t0);
 Texture2D colorMap : register(t1);
 Texture2D detailMap : register(t2);
 Texture2D alphaMask : register(t3);
-SamplerState MapSampler
+Texture2D shadowMap : register(t4);
+SamplerState PointSampler
 {
     Filter = MIN_MAG_MIP_POINT;
     AddressU = WRAP;
@@ -182,8 +184,8 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float3 normal = normalize(IN.Normal);
 
     // Sample CM and DM
-    float3 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord).rgb;
-    float3 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz).rgb;
+    float3 sampleCM = colorMap.Sample(PointSampler, IN.TexCoord).rgb;
+    float3 sampleDM = detailMap.Sample(PointSampler, IN.WorldPos.xz).rgb;
 
     // Calculate blended Diffuse Color
     float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
@@ -206,10 +208,20 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 
     float lambert = saturate(dot(normal, lightDir));
 
-    OUT.Color = lambert * (blendedDiffuse / PI) * lightIntensity + ambient * blendedDiffuse;
+	// Shadowmapping
+	float4 sunPos = mul(mtxSunViewProj, float4(IN.WorldPos, 1.0f));
+	sunPos /= sunPos.w;
+	sunPos.y *= -1.0f;
+	float shadowMapSample = shadowMap.Sample(PointSampler, (sunPos.xy + float2(1.0f, 1.0f)) * 0.5f).r;
+	float shadowmapFactor = 1.0f;
+	if (sunPos.z > shadowMapSample)
+		shadowmapFactor = 0.0f;
+
+    OUT.Color = lambert * (blendedDiffuse / PI) * shadowmapFactor * lightIntensity + ambient * blendedDiffuse;
+
 
     // Sample alpha value
-    float4 sampleMask = alphaMask.Sample(MapSampler, IN.TexCoord);
+    float4 sampleMask = alphaMask.Sample(PointSampler, IN.TexCoord);
     //OUT.Color.a = 1.0f;
     OUT.Color.a = sampleMask.r;
 

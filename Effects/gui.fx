@@ -12,6 +12,7 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
+	float4x4 mtxSunViewProj;
     float4 eyePos;
 }
 cbuffer ObjectCB : register(b1)
@@ -20,7 +21,7 @@ cbuffer ObjectCB : register(b1)
 }
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
-SamplerState TextureMapSampler
+SamplerState PointSampler
 {
     Filter = MIN_MAG_MIP_POINT;
     AddressU = WRAP;
@@ -73,7 +74,7 @@ PS_OUTPUT PS_GUI(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
 //	OUT.Color = float4(1.0f, 0, 0, 1.0f);
-    float3 sample = textureMap.Sample(TextureMapSampler, IN.TexCoord).rgb;
+    float3 sample = textureMap.Sample(PointSampler, IN.TexCoord).rgb;
     float alpha = 1.0f;
     if (dot(sample, sample) <= 0.00001f)
         alpha = 0.0f;

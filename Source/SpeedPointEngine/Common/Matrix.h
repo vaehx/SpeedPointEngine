@@ -82,6 +82,23 @@ struct S_API SMatrix
 			);
 	}
 
+	inline void GetColumnVectors(Vec3f vectors[3]) const
+	{
+		vectors[0] = Vec3f(_11, _21, _31);
+		vectors[1] = Vec3f(_12, _22, _32);
+		vectors[2] = Vec3f(_13, _23, _33);
+	}
+
+	inline Vec4f GetColumn(unsigned int c) const
+	{
+		if (c < 4)
+			return Vec4f(m[c][0], m[c][1], m[c][2], m[c][3]);
+		else
+			return Vec4f();
+	}
+
+
+	static const SMatrix Identity;
 
 	static SMatrix MakeTranslationMatrix(const SVector3& translation)
 	{
@@ -122,13 +139,6 @@ struct S_API SMatrix
 			sb,		-sa * cb,			 ca * cb,			0,
 			0,		 0,				 0,		 		1
 			);
-	}
-
-	inline void GetColumnVectors(Vec3f vectors[3]) const
-	{
-		vectors[0] = Vec3f(_11, _21, _31);
-		vectors[1] = Vec3f(_12, _22, _32);
-		vectors[2] = Vec3f(_13, _23, _33);
 	}
 };
 
@@ -379,6 +389,7 @@ ILINE static void SVector3Unproject(SVector3 *pout, const SVector3& pv, const SV
 
 
 // calculate view matrix
+// up - up direction in world space
 ILINE static void SPMatrixLookAtRH(SMatrix* pMtx, const Vec3f& eye, const Vec3f& at, const Vec3f& up)
 {
 	if (!pMtx)

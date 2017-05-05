@@ -116,6 +116,7 @@
     <FxCompile Include="..\..\Effects\helper.fx" />
     <FxCompile Include="..\..\Effects\illum.fx" />
     <FxCompile Include="..\..\Effects\particles.fx" />
+    <FxCompile Include="..\..\Effects\shadow.fx" />
     <FxCompile Include="..\..\Effects\skybox.fx" />
     <FxCompile Include="..\..\Effects\terrain.fx" />
     <FxCompile Include="..\..\Effects\zpass.fx" />

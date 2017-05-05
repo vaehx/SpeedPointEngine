@@ -36,7 +36,8 @@ struct S_API SSceneConstants
 	
 	// Pos used instead of Dir, to avoid struggling around with angles when calculating
 	// sun traveling due to TOD.   sun dir = normalize(-sunPosition)
-	float4 sunPosition;		// 4 * 4 Byte
+	float4 sunPosition;
+	Mat44 mtxSunViewProj;	// 16 * 4 Byte
 
 	float4 eyePosition;		// 4 * 4 Byte
 

@@ -12,6 +12,7 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
+	float4x4 mtxSunViewProj;
     float4 eyePos;
 }
 cbuffer IllumCB : register(b1)
@@ -22,7 +23,7 @@ cbuffer IllumCB : register(b1)
 }
 float4x4 mtxWorldViewProj;
 TextureCube textureMap : register(t0);
-SamplerState TextureMapSampler
+SamplerState PointSampler
 {
     Filter = MIN_MAG_MIP_POINT;
     AddressU = WRAP;
@@ -84,7 +85,7 @@ PS_OUTPUT PS_skybox(PS_INPUT IN)
 
     float3 D = normalize(IN.ObjPos);
 
-    //float3 texSample = textureMap.Sample(TextureMapSampler, D).rgb;
+    //float3 texSample = textureMap.Sample(PointSampler, D).rgb;
 
     //OUT.Color = float4(texSample.r, texSample.g, texSample.b, 1.0f);
     //OUT.Color = float4(D.x, D.y, D.z, 1.0f);

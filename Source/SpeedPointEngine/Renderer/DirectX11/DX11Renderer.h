@@ -334,6 +334,7 @@ public:
 	virtual IShader* CreateShader() const;
 
 	virtual void BindShaderPass(EShaderPassType type);
+	virtual IShaderPass* GetShaderPass(EShaderPassType type) const;
 	virtual IShaderPass* GetCurrentShaderPass() const;
 
 	virtual string GetShaderPath(EShaderFileType type) const;
@@ -350,7 +351,7 @@ public:
 	virtual SResult SetIBStream(IIndexBuffer* pIB);
 	virtual SResult SetInstanceStream(ITypelessInstanceBuffer* pInstanceBuffer, unsigned int index = 1);
 
-	virtual SResult ClearBoundRTs(void);
+	virtual SResult ClearBoundRTs(bool color = true, bool depth = true);
 
 	virtual SResult SetTargetViewport(IViewport* pViewport);
 	virtual IViewport* GetTargetViewport(void);

@@ -325,7 +325,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_rsDesc.DepthBias = 0;
 	m_rsDesc.DepthBiasClamp = 0;
 	m_rsDesc.SlopeScaledDepthBias = 0;
-	m_rsDesc.DepthClipEnable = false;
+	m_rsDesc.DepthClipEnable = true;
 	m_rsDesc.FillMode = D3D11_FILL_SOLID;
 	m_rsDesc.MultisampleEnable = m_InitParams.antiAliasingQuality != eAAQUALITY_LOW;
 	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday
@@ -450,7 +450,7 @@ S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 
 	vpDesc.projectionDesc.fov = 60;
 	vpDesc.projectionDesc.projectionType = S_PROJECTION_PERSPECTIVE;
-	//vpDesc.projectionDesc.farZ = 100.0f;
+	vpDesc.projectionDesc.farZ = 50.0f;
 
 	vpDesc.width = nW;
 	vpDesc.height = nH;
@@ -678,6 +678,10 @@ S_API string DX11Renderer::GetShaderPath(EShaderFileType type) const
 	const char* filename;
 	switch (type)
 	{
+	case eSHADERFILE_SHADOW:
+		filename = "shadow.fx";
+		break;
+
 		// FORWARD:
 	case eSHADERFILE_SKYBOX:
 		filename = "skybox.fx";
@@ -741,6 +745,12 @@ S_API void DX11Renderer::InitShaderPasses()
 
 	m_Passes[eSHADERPASS_POSTEFFECT] = new PosteffectShaderPass();
 	m_Passes[eSHADERPASS_POSTEFFECT]->Initialize(this);
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API IShaderPass* DX11Renderer::GetShaderPass(EShaderPassType type) const
+{
+	return m_Passes[type];
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1239,7 +1249,16 @@ S_API SResult DX11Renderer::EndScene(void)
 	static SResult sr;
 
 	sr = UnleashFontRenderSchedule();
+	
 	sr = PresentTargetViewport();
+
+	for (int iShaderPass = 0; iShaderPass < NUM_SHADERPASS_TYPES; ++iShaderPass)
+	{
+		if (m_Passes[iShaderPass])
+			m_Passes[iShaderPass]->OnEndFrame();
+	}
+
+	// Clear target viewport
 	sr = BindSingleRT(m_pTargetViewport);
 	sr = ClearBoundRTs();
 
@@ -1379,6 +1398,13 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 		BindVertexShaderTexture(terrainRenderDesc.pVtxHeightMap, 0);
 		BindTexture(terrainRenderDesc.pColorMap, 1);
 
+		// ~~
+		// TODO: Avoid referencing a shader pass here
+		//			- probably fixed with deferred rendering!
+		ShadowmapShaderPass* pShadowmapPass = dynamic_cast<ShadowmapShaderPass*>(GetShaderPass(eSHADERPASS_SHADOWMAP));
+		if (pShadowmapPass)
+			BindDepthBufferAsTexture(pShadowmapPass->GetShadowmap(), 4);
+
 		if (terrainRenderDesc.bUpdateCB)
 		{
 			memcpy(m_TerrainConstants.GetConstants(), &terrainRenderDesc.constants, sizeof(terrainRenderDesc.constants));
@@ -1422,12 +1448,14 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 			}
 
 			// Unbind terrain layer textures
-			BindTexture((ITexture*)0, 2);
-			BindTexture((ITexture*)0, 3);
+			UnbindTexture(2);
+			UnbindTexture(3);
 
 			// Unbind Vertex Shader texture
 			BindVertexShaderTexture((ITexture*)0, 0);
 		}
+
+		UnbindTexture(4);
 
 		D3D11_SetBlendState(m_pDefBlendState);
 	}
@@ -1733,26 +1761,30 @@ S_API SResult DX11Renderer::PresentTargetViewport(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::ClearBoundRTs(void)
+S_API SResult DX11Renderer::ClearBoundRTs(bool color /*= true*/, bool depth /*= true*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
-	float clearColor[4];
-	SPGetColorFloatArray(clearColor, m_InitParams.clearColor);
-
-	// Clear RTs
-	for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
+	if (color)
 	{
-		ID3D11RenderTargetView* pRTV = (*itBoundRT)->GetRTV();
-		if (!IS_VALID_PTR(pRTV))
-			continue;
+		float clearColor[4];
+		SPGetColorFloatArray(clearColor, m_InitParams.clearColor);
 
-		m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
+		for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
+		{
+			ID3D11RenderTargetView* pRTV = (*itBoundRT)->GetRTV();
+			if (!IS_VALID_PTR(pRTV))
+				continue;
+
+			m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
+		}
 	}
 
-	// Clear Depth Buffer
-	if (IS_VALID_PTR(m_pBoundDSV) && !m_bBoundDSVReadonly)
-		m_pD3DDeviceContext->ClearDepthStencilView(m_pBoundDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	if (depth)
+	{
+		if (IS_VALID_PTR(m_pBoundDSV) && !m_bBoundDSVReadonly)
+			m_pD3DDeviceContext->ClearDepthStencilView(m_pBoundDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
 
 	return S_SUCCESS;
 }
@@ -1908,6 +1940,47 @@ S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix
 	pConstants->mtxProj = mtxProj;
 	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
 
+	// Recalculate sun light viewProj matrix
+	ViewFrustum frustum(mtxView, mtxProj);
+	Vec3f corners[8]; // in view-space
+	frustum.GetCorners(corners, true);
+
+	const float maxCamZ = 35.0f;
+
+	Mat44 mtxViewInv = SMatrixInvert(mtxView);
+	SMatrixTranspose(&mtxViewInv);
+
+	Mat44 mtxSunView;
+	SPMatrixLookAtRH(&mtxSunView, pConstants->sunPosition.xyz(), Vec3f(0), Vec3f(0, 1.0f, 0));
+	SMatrixTranspose(&mtxSunView);
+
+	AABB aabb; // in view-space of light
+	aabb.Reset();
+	for (int i = 0; i < 8; ++i)
+	{
+		if (i >= 4)
+		{
+			if (-corners[i].z > maxCamZ)
+			{
+				Vec3f cv = Vec3Normalize(corners[i] - corners[i - 4]);
+				corners[i] = corners[i - 4] + Vec3Dot(Vec3f(0, 0, -maxCamZ), cv) * cv;
+			}
+		}
+
+		aabb.AddPoint((mtxSunView * (mtxViewInv * Vec4f(corners[i], 1.0f))).xyz());
+	}
+
+	Vec3f fittedSunPos = pConstants->sunPosition.xyz();
+	fittedSunPos += fittedSunPos * -aabb.vMin.z;
+
+	SPMatrixLookAtRH(&mtxSunView, fittedSunPos, Vec3f(0), Vec3f(0, 1.0f, 0));
+
+	Mat44 mtxSunProj;
+	SPMatrixOrthoRH(&mtxSunProj, aabb.vMax.x - aabb.vMin.x, aabb.vMax.y - aabb.vMin.y, 0.0f, aabb.vMax.z - aabb.vMin.z);
+
+	pConstants->mtxSunViewProj = mtxSunView * (mtxSunProj);
+
+
 	m_SceneConstants.Update();
 }
 
@@ -1915,6 +1988,7 @@ S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix
 S_API void DX11Renderer::SetEyePosition(const Vec3f& eyePos)
 {
 	m_SceneConstants.GetConstants()->eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
+
 	//FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
 
 	m_SceneConstants.Update();
@@ -1923,7 +1997,8 @@ S_API void DX11Renderer::SetEyePosition(const Vec3f& eyePos)
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Renderer::SetSunPosition(const Vec3f& pos)
 {
-	m_SceneConstants.GetConstants()->sunPosition = float4(pos.x, pos.y, pos.z);
+	SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
+	pSceneConstants->sunPosition = float4(pos.x, pos.y, pos.z);
 	m_SceneConstants.Update();
 }
 

@@ -19,24 +19,8 @@ struct S_API IRenderer;
 enum S_API EFBOType
 {
 	eFBO_R8G8B8A8,
-	eFBO_F32 // 32bit Red Channel
-
-
-/*	// G-Buffer FBOs. See documentation for mapping of these values
-	eFBO_GBUFFER_ALBEDO,	// (deferred-shading)
-	eFBO_GBUFFER_NORMALS,	// (deferred-shading)
-	eFBO_GBUFFER_TANGENTS,	// (deferred-shading)
-	eFBO_GBUFFER_POSITION,	// WS-pos (deferred-shading)
-
-	eFBO_GBUFFER_SRT,	// single G-Buffer render target for deferred-rendering
-
-	// Lighting buffer
-	eFBO_LIGHT,		// (deferred-shading)
-	eFBO_LIGHT_SPECULAR,	// (deferred-rendering)
-	eFBO_LIGHT_DIFFUSE,	// (deferred-rendering)
-
-	eFBO_BACKBUFFER
-	*/
+	eFBO_F32, // 32bit float Red Channel
+	eFBO_F16 // 16bit float Red Channel
 };
 
 
