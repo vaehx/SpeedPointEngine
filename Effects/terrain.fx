@@ -39,12 +39,13 @@ SamplerState PointSampler
     AddressU = WRAP;
     AddressV = WRAP;
 };
-SamplerState ShadowMapSampler
+SamplerComparisonState ShadowMapSamplerState
 {
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = BORDER;
-	AddressV = BORDER;
-	BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	Filter = FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+	ComparisonFunc = GREATER;
+	AddressU = MIRROR;
+	AddressV = MIRROR;
+	//BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f);	
 };
 
 // ---------------------------------------------------------
@@ -190,16 +191,19 @@ float CalculateShadowMapFactor(float3 WorldPos)
 
 	float avgSample = 0.0f;
 	float testZ = saturate(sunPos.z - 0.001f);
-	for (int x = -2; x <= 2; ++x)
+	avgSample = shadowMap.SampleCmpLevelZero(ShadowMapSamplerState, sunPos.xy, -sunPos.z);
+	/*for (int x = -2; x <= 2; ++x)
 	{
 		for (int y = -2; y <= 2; ++y)
 		{
-			float smSample = shadowMap.Sample(ShadowMapSampler, sunPos.xy + float2(x, y) * smTCOffset);
-			avgSample += (testZ <= smSample) * 1.0f;
+			if (shadowMap.SampleCmpLevelZero(ShadowMapSamplerState, sunPos.xy + float2(x, y) * smTCOffset, testZ))
+				//avgSample += (testZ <= smSample) * 1.0f;
+				avgSample += 1.0f;
 		}
-	}
+	}*/
 
-	return (avgSample / 16.0f);
+	return avgSample;
+	//return (avgSample / 16.0f);
 }
 
 
