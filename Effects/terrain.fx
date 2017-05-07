@@ -15,6 +15,8 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProjInv;
     float4 sunPos;
 	float4x4 mtxSunViewProj;
+	uint2 shadowMapRes;
+	uint2 screenRes;
     float4 eyePos;
 }
 
@@ -177,6 +179,30 @@ float3 BlendOverlay(float3 b, float3 a)
 }
 
 
+float CalculateShadowMapFactor(float3 WorldPos)
+{
+	float4 sunPos = mul(mtxSunViewProj, float4(WorldPos, 1.0f));
+	sunPos /= sunPos.w;
+	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
+	sunPos.y = -(sunPos.y + 1.0f) * 0.5f;
+
+	float2 smTCOffset = 1.0f / screenRes;
+
+	float avgSample = 0.0f;
+	float testZ = saturate(sunPos.z - 0.001f);
+	for (int x = -2; x <= 2; ++x)
+	{
+		for (int y = -2; y <= 2; ++y)
+		{
+			float smSample = shadowMap.Sample(ShadowMapSampler, sunPos.xy + float2(x, y) * smTCOffset);
+			avgSample += (testZ <= smSample) * 1.0f;
+		}
+	}
+
+	return (avgSample / 16.0f);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -207,25 +233,18 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     // Light Dir is assumed to be OUTGING directed
     float3 lightDir = normalize(sunPos.xyz);
 
-    float monoLightIntensity = 5.0f;
+    float monoLightIntensity = 4.0f;
     float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
+	lightIntensity *= CalculateShadowMapFactor(IN.WorldPos);
 
-    float monoAmbient = 0.12f;
+    float monoAmbient = 0.40f;
     float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
     float lambert = saturate(dot(normal, lightDir));
 
-	// Shadowmapping
-	float4 sunPos = mul(mtxSunViewProj, float4(IN.WorldPos, 1.0f));
-	sunPos /= sunPos.w;
-	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
-	sunPos.y = -(sunPos.y + 1.0f) * 0.5f;
-	float shadowMapSample = shadowMap.Sample(ShadowMapSampler, sunPos.xy).r;
-	float shadowMapFactor = 1.0f;
-	if (saturate(sunPos.z) > shadowMapSample)
-		shadowMapFactor = 0.0f;
 
-    OUT.Color = lambert * (blendedDiffuse / PI) * shadowMapFactor * lightIntensity + ambient * blendedDiffuse;
+	// Final color
+    OUT.Color = lambert * (blendedDiffuse / PI) * lightIntensity + ambient * blendedDiffuse;
 
     // Sample alpha value
     float4 sampleMask = alphaMask.Sample(PointSampler, IN.TexCoord);

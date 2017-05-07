@@ -39,6 +39,9 @@ struct S_API SSceneConstants
 	float4 sunPosition;
 	Mat44 mtxSunViewProj;	// 16 * 4 Byte
 
+	unsigned int shadowMapRes[2]; // 8 Byte
+	unsigned int screenRes[2]; // 8 Byte
+
 	float4 eyePosition;		// 4 * 4 Byte
 
 	SSceneConstants& operator = (const SSceneConstants& b)

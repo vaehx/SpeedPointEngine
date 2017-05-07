@@ -7,6 +7,8 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProjInv;
     float4 sunPos;
 	float4x4 mtxSunViewProj;
+	uint2 shadowMapRes;
+	uint2 screenRes;
     float4 eyePos;
 };
 

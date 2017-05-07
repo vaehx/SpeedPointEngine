@@ -367,6 +367,10 @@ S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
 	m_pShadowmap->Initialize(eFBO_F16, pRenderer, viewportSz.cx, viewportSz.cy);
 	m_pShadowmap->InitializeDepthBufferAsTexture("$shadowmap");
 
+	SSceneConstants* sceneConstants = m_pRenderer->GetSceneConstants();
+	sceneConstants->shadowMapRes[0] = viewportSz.cx;
+	sceneConstants->shadowMapRes[1] = viewportSz.cy;
+
 	// Create shadowmap shader
 	SShaderInfo si;
 	si.entry = "shadowmap";

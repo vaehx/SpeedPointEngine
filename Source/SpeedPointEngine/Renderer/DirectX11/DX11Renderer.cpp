@@ -1866,6 +1866,12 @@ S_API SResult DX11Renderer::SetTargetViewport(IViewport* pViewport)
 			return S_INVALIDPARAM;
 
 		m_pD3DDeviceContext->RSSetViewports(1, pDXViewport->D3D11_GetViewportDescPtr());
+
+		SIZE vpSz = pViewport->GetSize();
+
+		SSceneConstants* sceneConstants = m_SceneConstants.GetConstants();
+		sceneConstants->screenRes[0] = vpSz.cx;
+		sceneConstants->screenRes[1] = vpSz.cy;
 	}
 
 	return S_SUCCESS;
