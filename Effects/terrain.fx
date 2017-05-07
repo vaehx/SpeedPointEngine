@@ -37,6 +37,13 @@ SamplerState PointSampler
     AddressU = WRAP;
     AddressV = WRAP;
 };
+SamplerState ShadowMapSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = BORDER;
+	AddressV = BORDER;
+	BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+};
 
 // ---------------------------------------------------------
 
@@ -211,14 +218,14 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
 	// Shadowmapping
 	float4 sunPos = mul(mtxSunViewProj, float4(IN.WorldPos, 1.0f));
 	sunPos /= sunPos.w;
-	sunPos.y *= -1.0f;
-	float shadowMapSample = shadowMap.Sample(PointSampler, (sunPos.xy + float2(1.0f, 1.0f)) * 0.5f).r;
-	float shadowmapFactor = 1.0f;
-	if (sunPos.z > shadowMapSample)
-		shadowmapFactor = 0.0f;
+	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
+	sunPos.y = -(sunPos.y + 1.0f) * 0.5f;
+	float shadowMapSample = shadowMap.Sample(ShadowMapSampler, sunPos.xy).r;
+	float shadowMapFactor = 1.0f;
+	if (saturate(sunPos.z) > shadowMapSample)
+		shadowMapFactor = 0.0f;
 
-    OUT.Color = lambert * (blendedDiffuse / PI) * shadowmapFactor * lightIntensity + ambient * blendedDiffuse;
-
+    OUT.Color = lambert * (blendedDiffuse / PI) * shadowMapFactor * lightIntensity + ambient * blendedDiffuse;
 
     // Sample alpha value
     float4 sampleMask = alphaMask.Sample(PointSampler, IN.TexCoord);

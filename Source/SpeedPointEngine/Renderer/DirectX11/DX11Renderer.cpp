@@ -55,7 +55,9 @@ m_pPointSamplerState(0),
 m_pBoundCB(nullptr),
 m_bInScene(false),
 m_bDumpFrame(false),
-m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
+m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN),
+m_iMaxBoundVSResource(0),
+m_iMaxBoundPSResource(0)
 {
 	for (int i = 0; i < NUM_SHADERPASS_TYPES; ++i)
 		m_Passes[i] = 0;
@@ -450,7 +452,7 @@ S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 
 	vpDesc.projectionDesc.fov = 60;
 	vpDesc.projectionDesc.projectionType = S_PROJECTION_PERSPECTIVE;
-	vpDesc.projectionDesc.farZ = 50.0f;
+	vpDesc.projectionDesc.farZ = 100.0f;
 
 	vpDesc.width = nW;
 	vpDesc.height = nH;
@@ -767,13 +769,6 @@ S_API SResult DX11Renderer::Shutdown(void)
 
 	m_DummyTexture.Release();
 
-	if (IS_VALID_PTR(m_pResourcePool))
-	{
-		m_pResourcePool->ClearAll();
-		delete m_pResourcePool;
-	}
-	m_pResourcePool = nullptr;
-
 	SP_SAFE_RELEASE(m_pDXGIFactory);
 	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);
 
@@ -798,6 +793,16 @@ S_API SResult DX11Renderer::Shutdown(void)
 
 	m_Viewport.Clear();
 
+	m_DummyTexture.Release();
+	m_DummyNormalMap.Release();
+
+	if (IS_VALID_PTR(m_pResourcePool))
+	{
+		m_pResourcePool->ClearAll();
+		delete m_pResourcePool;
+	}
+	m_pResourcePool = nullptr;
+
 	m_pSetBlendState = 0;
 	SP_SAFE_RELEASE(m_pDefBlendState);
 	SP_SAFE_RELEASE(m_pAlphaTestBlendState);
@@ -811,10 +816,9 @@ S_API SResult DX11Renderer::Shutdown(void)
 	m_SceneConstants.Clear();
 	m_TerrainConstants.Clear();
 
-	m_DummyTexture.Release();
-	m_DummyNormalMap.Release();
-
 	// Reset bound-resources cache
+	m_iMaxBoundPSResource = 0;
+	m_iMaxBoundVSResource = 0;
 	memset(m_BoundVSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 	memset(m_BoundPSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 
@@ -862,18 +866,20 @@ S_API void DX11Renderer::BindShaderPass(EShaderPassType type)
 	}
 }
 
-
-
-
 // -----------------------------------------------------------------------------------------------
 S_API IShaderPass* DX11Renderer::GetCurrentShaderPass() const
 {
 	return m_Passes[m_CurrentPass];
 }
 
+
+
+
+
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, bool depthReadonly /*= false*/, const char* dump_name /*= 0*/)
 {
+	int boundOnLvl;
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
 
 	if (fboCollection.empty())
@@ -889,6 +895,9 @@ S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollec
 		else
 			pDSV = pDXDepthFBO->GetDSV();
 
+		if (!depthReadonly && (boundOnLvl = IsBoundAsTexture(pDXDepthFBO->GetDepthSRV())) != -1)
+			return CLog::Log(S_ERROR, "Failed BindRTCollection(): Depth buffer bound as texture already on level %d", boundOnLvl);
+
 		if (!pDSV)
 			return CLog::Log(S_ERROR, "Failed BindRTCollection(): DSV is not bindable as read-only");
 	}
@@ -899,11 +908,18 @@ S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollec
 	// Collect RTVs
 	m_BoundRenderTargets.clear();
 	ID3D11RenderTargetView** pRTVs = new ID3D11RenderTargetView*[fboCollection.size()];
-	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); ++itFBO)
+	int i = 0;
+	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); ++itFBO, ++i)
 	{
 		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(*itFBO);
 		if (!IS_VALID_PTR(pDXFBO))
 			continue;
+
+		if ((boundOnLvl = IsBoundAsTexture(pDXFBO->GetSRV())) != -1)
+		{
+			CLog::Log(S_ERROR, "Failed BindRTCollection(): Frame buffer #%d bound as texture already on level %d", i, boundOnLvl);
+			continue;
+		}
 
 		m_BoundRenderTargets.push_back(pDXFBO);
 		pRTVs[m_BoundRenderTargets.size()] = pDXFBO->GetRTV();
@@ -939,6 +955,14 @@ S_API SResult DX11Renderer::BindSingleRT(IFBO* pFBO, bool depthReadonly /*= 0*/)
 	// Check if already bound
 	if (!m_BoundRenderTargets.empty() && !BoundMultipleRTs() && m_BoundRenderTargets[0] == pFBO && m_pBoundDSV == pDSV)
 		return S_SUCCESS;
+
+	// Check if already bound as texture
+	int boundOnLvl;
+	if ((boundOnLvl = IsBoundAsTexture(pDXFBO->GetSRV())) != -1)
+		return CLog::Log(S_ERROR, "Failed BindSingleRT(): Frame buffer bound as texture already on level %d", boundOnLvl);
+
+	if (!depthReadonly && (boundOnLvl = IsBoundAsTexture(pDXFBO->GetDepthSRV())) != -1)
+		return CLog::Log(S_ERROR, "Failed BindSingleRT(): Depth buffer bound as texture already on level %d", boundOnLvl);
 
 	// Bind
 	m_pD3DDeviceContext->OMSetRenderTargets(1, &pRTV, pDSV);
@@ -1051,6 +1075,7 @@ S_API SResult DX11Renderer::SetInstanceStream(ITypelessInstanceBuffer* pInstance
 	return S_SUCCESS;
 }
 
+
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl /*= 0*/)
 {
@@ -1064,6 +1089,11 @@ S_API SResult DX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl 
 	{
 		m_pD3DDeviceContext->VSSetShaderResources(lvl, 1, &pSRV);
 		m_BoundVSResources[lvl] = pSRV;
+
+		if (lvl > m_iMaxBoundVSResource)
+			m_iMaxBoundVSResource = lvl;
+		else
+			for (; m_iMaxBoundVSResource > 0 && !m_BoundVSResources[m_iMaxBoundVSResource]; --m_iMaxBoundVSResource) {}
 	}
 
 	return S_SUCCESS;
@@ -1088,6 +1118,11 @@ S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 	{
 		m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
 		m_BoundPSResources[lvl] = pSRV;
+
+		if (lvl > m_iMaxBoundPSResource)
+			m_iMaxBoundPSResource = lvl;
+		else
+			for (; m_iMaxBoundPSResource > 0 && !m_BoundPSResources[m_iMaxBoundPSResource]; --m_iMaxBoundPSResource) {}
 	}
 
 	return S_SUCCESS;
@@ -1096,30 +1131,20 @@ S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(pFBO, S_INVALIDPARAM);
 
-	ID3D11ShaderResourceView* pSRV = 0;
-	if (IS_VALID_PTR(pFBO))
-	{
-		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
-		SP_ASSERTR(pDXFBO, S_INVALIDPARAM);
+	ITexture* pFrameBufferTexture = pFBO->GetTexture();
+	if (!pFrameBufferTexture)
+		return CLog::Log(S_ERROR, "Cannot BindTexture() from FBO on level %d: Not initialized as texture", lvl);
 
-		pSRV = pDXFBO->GetSRV();
-		SP_ASSERTR(pSRV, S_ERROR);
-	}
-
-	if (pSRV != m_BoundPSResources[lvl])
-	{
-		m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
-		m_BoundPSResources[lvl] = pSRV;
-	}
-
-	return S_SUCCESS;
+	return BindTexture(pFrameBufferTexture, lvl);
 }
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl /*= 0*/)
 {
+	SP_ASSERTR(pFBO, S_INVALIDPARAM);
+
 	DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
 	if (!IS_VALID_PTR(pDXFBO))
 		return S_INVALIDPARAM;
@@ -1128,13 +1153,11 @@ S_API SResult DX11Renderer::BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl /*=
 	if (m_pBoundDSV == pWriteableDSV)
 		return CLog::Log(S_ERROR, "Failed BindDepthBufferAsTexture(): Is bound as writeable depth buffer");
 
-	ID3D11ShaderResourceView* pDepthSRV = pDXFBO->GetDepthBufferSRV();
-	if (!IS_VALID_PTR(pDepthSRV))
-		return CLog::Log(S_ERROR, "Cannot BindDepthBufferAsTexture(): Is not bindable as texture");
+	ITexture* pDepthBufferTexture = pDXFBO->GetDepthBufferTexture();
+	if (!pDepthBufferTexture)
+		return CLog::Log(S_ERROR, "Cannot BindDepthBufferAsTexture() from FBO on level %d: Not initialized as texture", lvl);
 
-	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pDepthSRV);
-
-	return S_SUCCESS;
+	return BindTexture(pDepthBufferTexture, lvl);
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1142,6 +1165,46 @@ S_API void DX11Renderer::UnbindTexture(usint32 lvl)
 {
 	ID3D11ShaderResourceView* srv[] = { 0 };
 	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, srv);
+	m_BoundPSResources[lvl] = 0;
+
+	for (; m_iMaxBoundPSResource > 0 && !m_BoundPSResources[m_iMaxBoundPSResource]; --m_iMaxBoundPSResource) {}
+}
+
+S_API void DX11Renderer::UnbindTexture(ITexture* pTexture)
+{
+	DX11Texture* pDXTexture = dynamic_cast<DX11Texture*>(pTexture);
+	if (!pTexture)
+		return;
+
+	const ID3D11ShaderResourceView* pSRV = pDXTexture->D3D11_GetSRV();
+
+	for (unsigned int i = 0; i <= m_iMaxBoundPSResource; ++i)
+	{
+		if (m_BoundPSResources[i] == pSRV)
+			UnbindTexture(i);
+	}
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API int DX11Renderer::IsBoundAsTexture(ID3D11ShaderResourceView* srv)
+{
+	if (srv)
+	{
+		unsigned int i;
+		for (i = 0; i <= m_iMaxBoundPSResource; ++i)
+		{
+			if (m_BoundPSResources[i] == srv)
+				return (int)i;
+		}
+
+		for (i = 0; i <= m_iMaxBoundVSResource; ++i)
+		{
+			if (m_BoundVSResources[i] == srv)
+				return (int)i;
+		}
+	}
+
+	return -1;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1933,6 +1996,57 @@ S_API void DX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::CalculateSunViewProj(Mat44* pMtxSunView, Mat44* pMtxSunProj)
+{
+	const SSceneConstants* sceneConstants = m_SceneConstants.GetConstants();
+
+	// Recalculate sun light viewProj matrix
+	ViewFrustum frustum(sceneConstants->mtxView, sceneConstants->mtxProj);
+	Vec3f corners[8]; // in view-space of camera
+	frustum.GetCorners(corners, true);
+	float nearZ = frustum.GetNearZ();
+
+	const float maxCamZ = -35.0f;
+	const Vec3f dirToSunNormalized = Vec3Normalize(sceneConstants->sunPosition.xyz());
+
+	Mat44 mtxViewInv = SMatrixInvert(sceneConstants->mtxView);
+	SMatrixTranspose(&mtxViewInv);
+
+	Mat44 mtxSunView;	
+	SPMatrixLookAtRH(&mtxSunView, dirToSunNormalized, Vec3f(0), Vec3f(0, 1.0f, 0));
+	SMatrixTranspose(&mtxSunView);
+
+	AABB aabb; // in view-space of light
+	aabb.Reset();
+	Vec3f cv;
+	for (int i = 0; i < 8; ++i)
+	{
+		if (i >= 4)
+		{
+			// Limit corner to a maximum z value
+			if (corners[i].z < maxCamZ)
+			{
+				cv = corners[i] - corners[i - 4];
+				corners[i] = corners[i - 4] + (maxCamZ / cv.z) * cv;
+			}
+		}
+
+		aabb.AddPoint((mtxSunView * (mtxViewInv * Vec4f(corners[i], 1.0f))).xyz());
+	}
+
+	Mat44 mtxSunViewInv = SMatrixInvert(mtxSunView);
+	Vec3f fittedSunPosVS = (Vec3f(aabb.vMin.x, aabb.vMin.y, aabb.vMax.z) + Vec3f(aabb.vMax.x, aabb.vMax.y, aabb.vMax.z)) * 0.5f;
+	Vec3f fittedSunPos = (mtxSunViewInv * Vec4f(fittedSunPosVS, 1.0f)).xyz();
+
+	SPMatrixLookAtRH(&mtxSunView, fittedSunPos, fittedSunPos - dirToSunNormalized, Vec3f(0, 1.0f, 0));
+
+	Mat44 mtxSunProj;
+	SPMatrixOrthoRH(&mtxSunProj, aabb.vMax.x - aabb.vMin.x, aabb.vMax.y - aabb.vMin.y, -1.0f, (aabb.vMax.z - aabb.vMin.z));
+
+	*pMtxSunView = mtxSunView;
+	*pMtxSunProj = mtxSunProj;
+}
+
 S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
 	SSceneConstants* pConstants = m_SceneConstants.GetConstants();
@@ -1940,43 +2054,8 @@ S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix
 	pConstants->mtxProj = mtxProj;
 	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
 
-	// Recalculate sun light viewProj matrix
-	ViewFrustum frustum(mtxView, mtxProj);
-	Vec3f corners[8]; // in view-space
-	frustum.GetCorners(corners, true);
-
-	const float maxCamZ = 35.0f;
-
-	Mat44 mtxViewInv = SMatrixInvert(mtxView);
-	SMatrixTranspose(&mtxViewInv);
-
-	Mat44 mtxSunView;
-	SPMatrixLookAtRH(&mtxSunView, pConstants->sunPosition.xyz(), Vec3f(0), Vec3f(0, 1.0f, 0));
-	SMatrixTranspose(&mtxSunView);
-
-	AABB aabb; // in view-space of light
-	aabb.Reset();
-	for (int i = 0; i < 8; ++i)
-	{
-		if (i >= 4)
-		{
-			if (-corners[i].z > maxCamZ)
-			{
-				Vec3f cv = Vec3Normalize(corners[i] - corners[i - 4]);
-				corners[i] = corners[i - 4] + Vec3Dot(Vec3f(0, 0, -maxCamZ), cv) * cv;
-			}
-		}
-
-		aabb.AddPoint((mtxSunView * (mtxViewInv * Vec4f(corners[i], 1.0f))).xyz());
-	}
-
-	Vec3f fittedSunPos = pConstants->sunPosition.xyz();
-	fittedSunPos += fittedSunPos * -aabb.vMin.z;
-
-	SPMatrixLookAtRH(&mtxSunView, fittedSunPos, Vec3f(0), Vec3f(0, 1.0f, 0));
-
-	Mat44 mtxSunProj;
-	SPMatrixOrthoRH(&mtxSunProj, aabb.vMax.x - aabb.vMin.x, aabb.vMax.y - aabb.vMin.y, 0.0f, aabb.vMax.z - aabb.vMin.z);
+	Mat44 mtxSunView, mtxSunProj;
+	CalculateSunViewProj(&mtxSunView, &mtxSunProj);
 
 	pConstants->mtxSunViewProj = mtxSunView * (mtxSunProj);
 

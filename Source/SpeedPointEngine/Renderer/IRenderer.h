@@ -566,6 +566,7 @@ public:
 
 	// Unbinds a pixel shader texture
 	virtual void UnbindTexture(usint32 lvl) = 0;
+	virtual void UnbindTexture(ITexture* pTexture) = 0;
 
 
 

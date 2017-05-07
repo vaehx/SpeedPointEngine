@@ -103,7 +103,7 @@ S_API void ViewFrustum::GetCorners(Vec3f _corners[8], bool viewSpace /*= false*/
 	}
 
 	for (int i = 0; i < 8; ++i)
-		_corners[i] = (mtxViewInv * Vec4f(corners[i], 1.0f)).xyz();
+		_corners[i] = (mtxViewInv * Vec4f(corners[i].x, corners[i].y, corners[i].z, 1.0f)).xyz();
 }
 
 

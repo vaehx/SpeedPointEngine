@@ -243,10 +243,10 @@ ITexture* LoadRawTexture(const string& file, ETextureType type, IResourcePool* p
 	stream.read((char*)&sz[1], sizeof(unsigned int));
 	stream.read((char*)&bitsPerPixel, sizeof(unsigned int));
 
-	ITexture* pTex;
-	if (Failure(pResources->AddTexture(file, &pTex, sz[0], sz[1], 1, type, SColor())))
+	ITexture* pTex = pResources->GetTexture(file);
+	if (Failure(pTex->CreateEmpty(file, sz[0], sz[1], 1, type, SColor::Black())))
 	{
-		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Cannot AddTexture()", file.c_str());
+		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Failed CreateEmpty()", file.c_str());
 		stream.close();
 		return 0;
 	}

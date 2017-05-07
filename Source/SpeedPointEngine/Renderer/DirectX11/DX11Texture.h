@@ -66,6 +66,10 @@ struct S_API SLoadedCubemapSide
 };
 
 
+// Returns R8G8B8A8_UNORM if not known
+S_API static ETextureType GetTextureTypeFromDXGIFormat(DXGI_FORMAT fmt);
+
+
 class S_API DX11Texture : public ITexture
 {
 private:
@@ -115,6 +119,9 @@ public:
 	virtual SResult LoadCubemapFromFile(const string& specification, const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0);
 	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
 
+	// Texture will be non-dynamic and non-staged.
+	// format - If DXGI_FORMAT_UNKNOWN, the same resource format will be used.
+	SResult D3D11_InitializeFromExistingResource(const string& specification, ID3D11Texture2D* pResource, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
 	// Status queries
 public:

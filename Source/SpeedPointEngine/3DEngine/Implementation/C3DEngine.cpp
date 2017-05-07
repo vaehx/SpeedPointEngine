@@ -6,6 +6,8 @@
 #include <Common\ProfilingSystem.h>
 #include <sstream>
 
+#include <Renderer\DirectX11\DX11Renderer.h>
+
 using std::stringstream;
 
 SP_NMSPACE_BEG
@@ -398,6 +400,15 @@ S_API void C3DEngine::RenderCollected()
 		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 		RenderMeshes();
 
+		//TODO: Implement deferred shading pass
+		/*
+		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
+		foreach (light : lights)
+		{
+		m_pRenderer->Render(light->pRenderDesc);
+		}
+		*/
+
 		// Particles
 		m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
 		m_ParticleSystem.Render();
@@ -409,15 +420,8 @@ S_API void C3DEngine::RenderCollected()
 		// HUD
 		RenderHUD();
 
-
-		//TODO: Implement deferred shading pass
-		/*
-		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
-		foreach (light : lights)
-		{
-			m_pRenderer->Render(light->pRenderDesc);
-		}
-		*/
+		// Debugging stuff
+		RenderDebugTexture();
 
 		ProfilingSystem::EndSection(budgetTimer);
 	}
@@ -538,6 +542,30 @@ S_API void C3DEngine::RenderHUD()
 
 		pHUDElement = m_HUDElements.GetNextUsedObject(iHUDElement);
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::RenderDebugTexture()
+{
+	m_pRenderer->BindShaderPass(eSHADERPASS_GUI);
+
+	ITexture* pShadowmap = m_pRenderer->GetResourcePool()->GetTexture("$shadowmap");
+	if (!pShadowmap)
+		return;
+
+	SIZE vpSz = m_pRenderer->GetTargetViewport()->GetSize();
+
+	unsigned int width = 250;
+	unsigned int size[] = { width, (unsigned int)((float)width * ((float)vpSz.cy / (float)vpSz.cx)) };
+	unsigned int pos[] = { (unsigned int)(size[0] * 0.5f), (unsigned int)(size[1] * 0.5f) };
+
+	m_HUDRenderDesc.transform =
+		SMatrix::MakeTranslationMatrix(Vec3f((float)pos[0] - 0.5f * vpSz.cx, (float)pos[1] - 0.5f * vpSz.cy, 1.0f))
+		* SMatrix::MakeScaleMatrix(Vec3f((float)size[0], (float)size[1], 1.0f));
+
+	m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = pShadowmap;
+	m_pRenderer->Render(m_HUDRenderDesc);
 }
 
 SP_NMSPACE_END

@@ -365,7 +365,7 @@ S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
 
 	m_pShadowmap = pRenderer->CreateRT();
 	m_pShadowmap->Initialize(eFBO_F16, pRenderer, viewportSz.cx, viewportSz.cy);
-	m_pShadowmap->InitializeDepthBuffer(true);
+	m_pShadowmap->InitializeDepthBufferAsTexture("$shadowmap");
 
 	// Create shadowmap shader
 	SShaderInfo si;
@@ -407,6 +407,7 @@ S_API SResult ShadowmapShaderPass::Bind()
 		return S_ERROR;
 
 	m_pShader->Bind();
+	m_pRenderer->UnbindTexture(m_pShadowmap->GetDepthBufferTexture());
 	m_pRenderer->BindSingleRT(m_pShadowmap);
 	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
@@ -418,6 +419,21 @@ S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, c
 	SObjectConstants* constants = m_Constants.GetConstants();
 	constants->mtxWorld = transform;
 	m_Constants.Update();
+}
+
+S_API void ShadowmapShaderPass::OnEndFrame()
+{
+	if (m_pShadowmap)
+	{
+		m_pRenderer->UnbindTexture(m_pShadowmap->GetDepthBufferTexture());
+		m_pRenderer->BindSingleRT(m_pShadowmap);
+		m_pRenderer->ClearBoundRTs(false, true);
+	}
+}
+
+S_API IFBO* ShadowmapShaderPass::GetShadowmap() const
+{
+	return m_pShadowmap;
 }
 
 
@@ -561,20 +577,6 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	m_Constants.Update();
 }
 
-S_API void ShadowmapShaderPass::OnEndFrame()
-{
-	if (m_pShadowmap)
-	{
-		m_pRenderer->BindSingleRT(m_pShadowmap);
-		m_pRenderer->ClearBoundRTs(false, true);
-	}
-}
-
-S_API IFBO* ShadowmapShaderPass::GetShadowmap() const
-{
-	return m_pShadowmap;
-}
-
 
 
 
@@ -591,14 +593,18 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	Clear();
 	m_pGBuffer.resize(NUM_GBUFFER_LAYERS);
 
+	string spec = "";
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
 	{
+		spec = "$gbuffer_";
+		spec += std::to_string(i);
+
 		m_pGBuffer[i] = pRenderer->CreateRT();
-		m_pGBuffer[i]->Initialize(eFBO_R8G8B8A8, pRenderer, pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1], true);
+		m_pGBuffer[i]->InitializeAsTexture(eFBO_R8G8B8A8, pRenderer, pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1], spec.c_str());
 
 		// Make the first layer carry the depth buffer
 		if (i == 0)
-			m_pGBuffer[i]->InitializeDepthBuffer();
+			m_pGBuffer[i]->InitializeDepthBufferAsTexture("$gbuffer_depth");
 	}
 
 	SShaderInfo si;

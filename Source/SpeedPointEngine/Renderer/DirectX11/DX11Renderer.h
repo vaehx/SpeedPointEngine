@@ -128,6 +128,8 @@ private:
 	// TODO: Eliminate the static 8 there
 	ID3D11ShaderResourceView* m_BoundVSResources[8];
 	ID3D11ShaderResourceView* m_BoundPSResources[8];
+	unsigned int m_iMaxBoundVSResource;
+	unsigned int m_iMaxBoundPSResource;
 
 	DX11Texture m_DummyTexture;
 	DX11Texture m_DummyNormalMap;	// contains pure (128,128,0) color.
@@ -179,6 +181,9 @@ private:
 	SResult UpdateDepthStencilState();
 		
 	void BindSceneCB(const IConstantsBuffer* cb);
+
+	// Returns the lvl which the srv is bound on or -1 if it is not bound
+	int IsBoundAsTexture(ID3D11ShaderResourceView* srv);
 
 	void SetSamplerState(ETextureSampling sampling);
 
@@ -277,6 +282,9 @@ public:
 
 	SResult UnleashFontRenderSchedule();
 
+
+	void CalculateSunViewProj(Mat44* pMtxSunView, Mat44* pMtxSunProj);
+
 	////////////////////////////////////////////////////////////////////////////
 	// Derived:
 
@@ -321,6 +329,7 @@ public:
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
 	virtual SResult BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl = 0);
 	virtual void UnbindTexture(usint32 lvl);
+	virtual void UnbindTexture(ITexture* pTexture);
 
 	virtual ITexture* GetDummyTexture() const;
 

@@ -37,6 +37,13 @@ SamplerState LinearSampler
     AddressU = WRAP;
     AddressV = WRAP;
 };
+SamplerState ShadowMapSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = BORDER;
+	AddressV = BORDER;
+	BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+};
 
 static float PI = 3.14159265358f;
 
@@ -193,22 +200,24 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float3 L = normalize(sunPos.xyz);
     float3 V = normalize(eyePos.xyz - IN.WorldPos);
 
-    float3 irradiance = float3(1.0f, 1.0f, 1.0f) * 4.0f;
-
-    float3 ambient = float3(1.0f, 1.0f, 1.0f) * 0.2f;
-
     float lambertBRDF = 1 / PI;
-    float3 LOut = IN.Color * saturate(albedo * (lambertBRDF * saturate(dot(normal, L)) * irradiance + ambient));
 
+	float3 irradiance = float3(1.0f, 1.0f, 1.0f) * 4.0f;
+	float3 ambient = float3(1.0f, 1.0f, 1.0f) * 0.2f;
 
 	// Shadowing
 	float4 sunPos = mul(mtxSunViewProj, float4(IN.WorldPos, 1.0f));
 	sunPos /= sunPos.w;
-	sunPos.y *= -1.0f;
-	float shadowMapSample = shadowMap.Sample(PointSampler, (sunPos.xy + float2(1.0f, 1.0f)) * 0.5f).r;
-	if (sunPos.z - 0.001f > shadowMapSample)
-		LOut *= 0.0f;
+	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
+	sunPos.y = -(sunPos.y + 1.0f) * 0.5f;
+	float shadowMapSample = shadowMap.Sample(ShadowMapSampler, sunPos.xy).r;
+	float shadowMapFactor = 1.0f;
+	if (saturate(sunPos.z - 0.001f) > shadowMapSample)
+		shadowMapFactor = 0.0f;
 
+	irradiance *= shadowMapFactor;
+
+    float3 LOut = IN.Color * saturate(albedo * (lambertBRDF * saturate(dot(normal, L)) * irradiance + ambient));
 
     OUT.Color = float4(LOut.r, LOut.g, LOut.b, 1.0f);
     return OUT;

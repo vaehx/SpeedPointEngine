@@ -46,6 +46,7 @@ private:
 	void RenderMeshes();
 	void RenderHelpers();
 	void RenderHUD();
+	void RenderDebugTexture();
 
 protected:
 	virtual void SetRenderMeshPool(IComponentPool<CRenderMesh>* pPool);
