@@ -14,25 +14,33 @@ SP_NMSPACE_BEG
 
 
 // SpeedPoint BoundBox is always axis aligned
-struct S_API SAxisAlignedBoundBox
+struct S_API AABB
 {
-	SVector3 vMin, vMax;
+	Vec3f vMin, vMax;
 
-	SAxisAlignedBoundBox()
+	AABB()
 	{
 	}
 
-	SAxisAlignedBoundBox(const SAxisAlignedBoundBox& aabb)
+	AABB(const AABB& aabb)
 		: vMin(aabb.vMin), vMax(aabb.vMax) {}
 
-	SAxisAlignedBoundBox(const Vec3f& min, const Vec3f& max)
+	AABB(const Vec3f& min, const Vec3f& max)
 		: vMin(min), vMax(max) {}
 
-	void AddPoint(const SVector3& v)
+	void AddPoint(const Vec3f& v)
 	{
 		vMin.CheckMin(v);
 		vMax.CheckMax(v);
-	}	
+	}
+
+	void AddAABB(const AABB& aabb)
+	{
+		vMin.CheckMin(aabb.vMin);
+		vMax.CheckMax(aabb.vMin);
+		vMin.CheckMin(aabb.vMax);
+		vMax.CheckMax(aabb.vMax);
+	}
 
 	void Reset()
 	{
@@ -98,7 +106,7 @@ struct S_API SAxisAlignedBoundBox
 		return true;
 	}
 
-	bool Intersects(const SAxisAlignedBoundBox& aabb) const
+	bool Intersects(const AABB& aabb) const
 	{
 		if ((vMin.x > aabb.vMax.x) || (aabb.vMin.x > vMax.x)) return false;		
 		if ((vMin.y > aabb.vMax.y) || (aabb.vMin.y > vMax.y)) return false;		
@@ -126,9 +134,8 @@ struct S_API SAxisAlignedBoundBox
 		vMax += v;
 	}
 
-	inline SAxisAlignedBoundBox& Transform(const SMatrix& transform)
+	inline AABB& Transform(const Mat44& transform)
 	{
-		//TODO: Maybe avoid 7 flops by using a 3x3 matrix here!
 		Vec3f sz = (transform * Vec4f((vMax - vMin) * 0.5f, 0.0f)).xyz();
 		Vec3f pos = (transform * Vec4f((vMax + vMin) * 0.5f, 1.0f)).xyz();
 		vMin = pos - sz;
@@ -136,23 +143,50 @@ struct S_API SAxisAlignedBoundBox
 
 		return *this;
 	}
-};
-typedef struct S_API SAxisAlignedBoundBox AABB;
 
-struct S_API SOrientedBoundBox
-{
-	SVector3 directions[3];	// rotated x, y, z axis
-	SVector3 dimensions;
-	SVector3 center;	// center position
-
-	SOrientedBoundBox()		
+	// min.z plane first, then max.z
+	// Per plane: (min.x, min.y), (min.x, max.y), (max.x, max.y), (max.x, min.y)
+	inline void GetCorners(Vec3f corners[8])
 	{
-		directions[0] = SVector3(1.0f, 0, 0);
-		directions[1] = SVector3(0, 1.0f, 0);
-		directions[2] = SVector3(0, 0, 1.0f);
+		if (!corners)
+			return;
+
+		corners[0] = Vec3f(vMin.x, vMin.y, vMin.z);
+		corners[1] = Vec3f(vMin.x, vMax.y, vMin.z);
+		corners[2] = Vec3f(vMax.x, vMax.y, vMin.z);
+		corners[3] = Vec3f(vMax.x, vMin.y, vMin.z);
+		corners[4] = Vec3f(vMin.x, vMin.y, vMax.z);
+		corners[5] = Vec3f(vMin.x, vMax.y, vMax.z);
+		corners[6] = Vec3f(vMax.x, vMax.y, vMax.z);
+		corners[7] = Vec3f(vMax.x, vMin.y, vMax.z);
 	}
 
-	SOrientedBoundBox(const SOrientedBoundBox& bb)
+	inline void GetCornersTransformed(Vec3f corners[8], const Mat44& mtx)
+	{
+		if (!corners)
+			return;
+
+		GetCorners(corners);
+		for (int i = 0; i < 8; ++i)
+			corners[i] = (mtx * Vec4f(corners[i], 1.0f)).xyz();
+	}
+};
+typedef struct S_API AABB SAxisAlignedBoundBox;
+
+struct S_API OBB
+{
+	Vec3f directions[3];	// rotated x, y, z axis
+	Vec3f dimensions;
+	Vec3f center;	// center position
+
+	OBB()
+	{
+		directions[0] = Vec3f(1.0f, 0, 0);
+		directions[1] = Vec3f(0, 1.0f, 0);
+		directions[2] = Vec3f(0, 0, 1.0f);
+	}
+
+	OBB(const OBB& bb)
 	{
 		directions[0] = bb.directions[0];
 		directions[1] = bb.directions[1];
@@ -162,26 +196,26 @@ struct S_API SOrientedBoundBox
 		center = bb.center;
 	}
 
-	SOrientedBoundBox(const SAxisAlignedBoundBox& aabb)
+	OBB(const AABB& aabb)
 	{		
-		directions[0] = SVector3(1.0f, 0, 0);
-		directions[1] = SVector3(0, 1.0f, 0);
-		directions[2] = SVector3(0, 0, 1.0f);
+		directions[0] = Vec3f(1.0f, 0, 0);
+		directions[1] = Vec3f(0, 1.0f, 0);
+		directions[2] = Vec3f(0, 0, 1.0f);
 
 		dimensions = aabb.vMax - aabb.vMin;
 		center = (aabb.vMin + aabb.vMax) * 0.5f;
 	}
 
-	void Transform(const SVector3& position, const SVector3& rotation, const SVector3& size)
+	void Transform(const Vec3f& position, const Vec3f& rotation, const Vec3f& size)
 	{
-		SMatrix rotMat = SMatrix::MakeRotationMatrix(rotation);
+		Mat44 rotMat = Mat44::MakeRotationMatrix(rotation);
 		for (unsigned int i = 0; i < 3; ++i)
-			directions[i] = (rotMat * SVector4(directions[i], 0.0f)).xyz();
+			directions[i] = (rotMat * Vec4f(directions[i], 0.0f)).xyz();
 
 		center += position;
 		dimensions += size;
 	}
 };
-typedef struct S_API SOrientedBoundBox OBB;
+typedef struct S_API OBB SOrientedBoundBox;
 
 SP_NMSPACE_END

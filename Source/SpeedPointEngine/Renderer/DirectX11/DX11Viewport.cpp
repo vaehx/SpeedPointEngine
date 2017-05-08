@@ -18,6 +18,8 @@
 
 SP_NMSPACE_BEG
 
+unsigned int DX11Viewport::m_SwapChainIdCtr = 0;
+
 // -----------------------------------------------------------------------------------------------
 S_API DX11Viewport::DX11Viewport()
 : m_pRenderer(0),
@@ -97,11 +99,25 @@ S_API SResult DX11Viewport::Initialize(IRenderer* pRenderer, const SViewportDesc
 	if (Failure(m_pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
 		return CLog::Log(S_ERROR, "Failed retrieve BackBuffer resource of SwapChain in InitDefaultViewport!");
 
-	if (Failure(m_FBO.D3D11_InitializeFromCustomResource(pBBResource, m_pRenderer, swapChainDesc.BufferDesc.Width, swapChainDesc.BufferDesc.Height, m_Desc.allowAsTexture)))
-		return CLog::Log(S_ERROR, "Failed initialize FBO for viewport swapchain");
+	string textureSpec = string("$swapchain_") + std::to_string(m_SwapChainIdCtr++);
 
-	if (m_Desc.useDepthStencil && Failure(m_FBO.InitializeDepthBuffer(m_Desc.allowDepthAsTexture)))
-		return CLog::Log(S_ERROR, "Failed initialize depth buffer for viewport swapchain");
+	if (Failure(m_FBO.D3D11_InitializeFromCustomResource(pBBResource, m_pRenderer,
+		swapChainDesc.BufferDesc.Width, swapChainDesc.BufferDesc.Height, m_Desc.allowAsTexture, textureSpec)))
+	{
+		return CLog::Log(S_ERROR, "Failed initialize FBO for viewport swapchain");
+	}
+
+	if (m_Desc.useDepthStencil)
+	{
+		SResult res;
+		if (m_Desc.allowDepthAsTexture)
+			res = m_FBO.InitializeDepthBufferAsTexture(textureSpec + "_depth");
+		else
+			res = m_FBO.InitializeDepthBuffer();
+
+		if (Failure(res))
+			return CLog::Log(S_ERROR, "Failed initialize depth buffer for viewport swapchain");
+	}
 
 	pBBResource->Release();
 
@@ -167,11 +183,22 @@ S_API SResult DX11Viewport::SetSize(unsigned int width, unsigned int height)
 	if (Failure(m_pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
 		return CLog::Log(S_ERROR, "Failed retrieve BackBuffer resource of SwapChain in InitDefaultViewport!");
 
-	if (Failure(m_FBO.D3D11_InitializeFromCustomResource(pBBResource, m_pRenderer, width, height, m_Desc.allowAsTexture)))
+	string textureSpec = string("$swapchain_") + std::to_string(m_SwapChainIdCtr++);
+
+	if (Failure(m_FBO.D3D11_InitializeFromCustomResource(pBBResource, m_pRenderer, width, height, m_Desc.allowAsTexture, textureSpec)))
 		return CLog::Log(S_ERROR, "Failed initialize FBO for viewport swapchain");
 
-	if (m_Desc.useDepthStencil && Failure(m_FBO.InitializeDepthBuffer(m_Desc.allowDepthAsTexture)))
-		return CLog::Log(S_ERROR, "Failed initialize depth buffer for viewport swapchain");
+	if (m_Desc.useDepthStencil)
+	{
+		SResult res;
+		if (m_Desc.allowDepthAsTexture)
+			res = m_FBO.InitializeDepthBufferAsTexture(textureSpec + "_depth");
+		else
+			res = m_FBO.InitializeDepthBuffer();
+
+		if (Failure(res))
+			return CLog::Log(S_ERROR, "Failed initialize depth buffer for viewport swapchain");
+	}
 
 	pBBResource->Release();
 

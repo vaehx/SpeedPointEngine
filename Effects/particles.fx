@@ -12,6 +12,9 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
+	float4x4 mtxSunViewProj;
+	uint2 shadowMapRes;
+	uint2 screenRes;
     float4 eyePos;
 }
 
@@ -27,12 +30,7 @@ cbuffer EmitterCB : register(b1)
 Texture2D textureMap : register(t0);
 Texture2D depthBuffer : register(t1);
 
-SamplerState PointSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+SamplerState PointSampler : register(s0);
 
 // ---------------------------------------------------------
 

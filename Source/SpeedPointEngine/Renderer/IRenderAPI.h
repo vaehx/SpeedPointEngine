@@ -36,7 +36,11 @@ struct S_API SSceneConstants
 	
 	// Pos used instead of Dir, to avoid struggling around with angles when calculating
 	// sun traveling due to TOD.   sun dir = normalize(-sunPosition)
-	float4 sunPosition;		// 4 * 4 Byte
+	float4 sunPosition;
+	Mat44 mtxSunViewProj;	// 16 * 4 Byte
+
+	unsigned int shadowMapRes[2]; // 8 Byte
+	unsigned int screenRes[2]; // 8 Byte
 
 	float4 eyePosition;		// 4 * 4 Byte
 
@@ -138,6 +142,13 @@ enum S_API EAntiAliasingCount
 	eAACOUNT_4 = 4,
 	eAACOUNT_8 = 8,
 	eAACOUNT_16 = 16
+};
+
+enum S_API ETextureSamplingType
+{
+	eTEXTURE_SAMPLING_POINT,
+	eTEXTURE_SAMPLING_BILINEAR,
+	eTEXTURE_SAMPLING_SHADOWING, // comparative sampling for shadowmapping
 };
 
 /*

@@ -8,6 +8,7 @@
 #include "DX11FBO.h"
 #include "DX11Renderer.h"
 #include "DX11Utilities.h"
+#include "DX11ResourcePool.h"
 #include "..\IRenderer.h"
 
 SP_NMSPACE_BEG
@@ -16,6 +17,8 @@ inline DXGI_FORMAT GetDXGIFormatFromFBOType(EFBOType type)
 {
 	switch (type)
 	{
+	case eFBO_F16:
+		return DXGI_FORMAT_R16_UNORM;
 	case eFBO_F32:
 		return DXGI_FORMAT_R32_TYPELESS;
 	case eFBO_R8G8B8A8:
@@ -28,13 +31,13 @@ inline DXGI_FORMAT GetDXGIFormatFromFBOType(EFBOType type)
 // -----------------------------------------------------------------------------------------------
 S_API DX11FBO::DX11FBO()
 	: m_pDXRenderer(0),
-	m_pTexture(0),
+	m_pFrameBuffer(0),
 	m_pRTV(0),
-	m_pSRV(0),
+	m_pFrameBufferTexture(0),
 	m_pDepthBuffer(0),
 	m_pDSV(0),
 	m_pReadonlyDSV(0),
-	m_pDepthSRV(0)
+	m_pDepthBufferTexture(0)
 {
 }
 
@@ -45,7 +48,7 @@ S_API DX11FBO::~DX11FBO()
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, bool allowAsTexture /*= false*/)
+S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height)
 {
 	HRESULT hRes;
 
@@ -61,8 +64,8 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 	memset(&m_texDesc, 0, sizeof(m_texDesc));
 	m_texDesc.Format = GetDXGIFormatFromFBOType(type);
 	m_texDesc.ArraySize = 1;
-	m_texDesc.Height = width;
-	m_texDesc.Width = height;
+	m_texDesc.Width = width;
+	m_texDesc.Height = height;
 	m_texDesc.MiscFlags = 0;
 	m_texDesc.Usage = D3D11_USAGE_DEFAULT; // maybe make this specificable someday
 	m_texDesc.SampleDesc = GetD3D11MSAADesc(
@@ -74,7 +77,7 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 	m_texDesc.BindFlags = D3D11_BIND_RENDER_TARGET
 		| D3D11_BIND_SHADER_RESOURCE;	// assumes that all FBOs currently are used as textures as well - maybe we want to change this someday!
 
-	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&m_texDesc, 0, &m_pTexture)))
+	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&m_texDesc, 0, &m_pFrameBuffer)))
 		return CLog::Log(S_ERROR, "Failed CreateTexture2D while attempting to create FBO!");
 
 	// Create RTV for frame buffer
@@ -84,27 +87,35 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateRenderTargetView(m_pTexture, &rtvDesc, &m_pRTV)))
+	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateRenderTargetView(m_pFrameBuffer, &rtvDesc, &m_pRTV)))
 		return CLog::Log(S_ERROR, "Failed CreateRTV while attempting to create FBO!");
-
-	// Create SRV if necessary
-	if (allowAsTexture)
-	{
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		memset(&srvDesc, 0, sizeof(srvDesc));
-		srvDesc.Format = m_texDesc.Format;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;		// maybe someday use MS?
-		srvDesc.Texture2D.MipLevels = 1;
-
-		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pTexture, &srvDesc, &m_pSRV)))
-			return CLog::Log(S_ERROR, "Failed create shader resource view for FBO!");
-	}
 
 	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResource, IRenderer* pRenderer, unsigned int width, unsigned height, bool allowAsTexture /*= false*/)
+S_API SResult DX11FBO::InitializeAsTexture(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, const string& specification)
+{
+	if (specification.empty())
+		return CLog::Log(S_ERROR, "Failed DX11FBO::InitializeAsTexture(): specification empty");
+
+	SResult res;
+	if (Failure(res = Initialize(type, pRenderer, width, height)))
+		return res;
+
+	m_pFrameBufferTexture = dynamic_cast<DX11Texture*>(pRenderer->GetResourcePool()->GetTexture(specification));
+	if (!m_pFrameBufferTexture)
+		return S_ERROR;
+
+	if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(specification, m_pFrameBuffer)))
+		return S_ERROR;
+
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResource, IRenderer* pRenderer, unsigned int width, unsigned height,
+	bool allowAsTexture /*= false*/, const string& specification /*= ""*/)
 {
 	Clear();
 
@@ -120,18 +131,22 @@ S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResou
 	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateRenderTargetView(pResource, 0, &m_pRTV)))
 		return CLog::Log(S_ERROR, "Failed CreateRTV while attempting to create FBO!");
 
-	// Create SRV if necessary
+	// Create texture if necessary
 	if (allowAsTexture)
 	{
-		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pTexture, 0, &m_pSRV)))
-			return CLog::Log(S_ERROR, "Failed create shader resource view for FBO!");
+		m_pFrameBufferTexture = dynamic_cast<DX11Texture*>(pRenderer->GetResourcePool()->GetTexture(specification));
+		if (!m_pFrameBufferTexture)
+			return S_ERROR;
+
+		if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(specification, m_pFrameBuffer)))
+			return S_ERROR;
 	}
 
 	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11FBO::InitializeDepthBuffer(bool allowAsTexture /*= false*/)
+S_API SResult DX11FBO::InitializeDepthBufferIntrnl(bool allowAsTexture, const string& specification)
 {
 	SP_ASSERTR(IsInitialized(), S_NOTINIT);
 
@@ -191,18 +206,26 @@ S_API SResult DX11FBO::InitializeDepthBuffer(bool allowAsTexture /*= false*/)
 		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateDepthStencilView(m_pDepthBuffer, &readonlyDSV, &m_pReadonlyDSV)))
 			return CLog::Log(S_ERROR, "Failed create readonly-dsv for fbo");
 
-		// Depth Buffer SRV
-		D3D11_SHADER_RESOURCE_VIEW_DESC depthSrvDesc;
-		memset(&depthSrvDesc, 0, sizeof(depthSrvDesc));
-		depthSrvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		depthSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		depthSrvDesc.Texture2D.MipLevels = 1;
+		// Create texture
+		m_pDepthBufferTexture = dynamic_cast<DX11Texture*>(m_pDXRenderer->GetResourcePool()->GetTexture(specification));
+		if (!m_pDepthBufferTexture)
+			return S_ERROR;
 
-		if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDepthBuffer, &depthSrvDesc, &m_pDepthSRV)))
-			return CLog::Log(S_ERROR, "Failed create shader resource view for depth buffer of FBO!");
+		if (Failure(m_pDepthBufferTexture->D3D11_InitializeFromExistingResource(specification, m_pDepthBuffer, DXGI_FORMAT_R32_FLOAT)))
+			return S_ERROR;
 	}
 
 	return S_SUCCESS;
+}
+
+S_API SResult DX11FBO::InitializeDepthBuffer()
+{
+	return InitializeDepthBufferIntrnl(false, "");
+}
+
+S_API SResult DX11FBO::InitializeDepthBufferAsTexture(const string& specification)
+{
+	return InitializeDepthBufferIntrnl(true, specification);
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -212,15 +235,37 @@ S_API bool DX11FBO::IsInitialized() const
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API ITexture* DX11FBO::GetTexture() const
+{
+	return m_pFrameBufferTexture;
+}
+
+S_API ID3D11ShaderResourceView* DX11FBO::GetSRV() const
+{
+	return (m_pFrameBufferTexture ? m_pFrameBufferTexture->D3D11_GetSRV() : 0);
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API ITexture* DX11FBO::GetDepthBufferTexture() const
+{
+	return m_pDepthBufferTexture;
+}
+
+S_API ID3D11ShaderResourceView* DX11FBO::GetDepthSRV() const
+{
+	return (m_pDepthBufferTexture ? m_pDepthBufferTexture->D3D11_GetSRV() : 0);
+}
+
+// -----------------------------------------------------------------------------------------------
 S_API void DX11FBO::Clear(void)
 {
-	SP_SAFE_RELEASE(m_pSRV);
-	SP_SAFE_RELEASE(m_pDepthSRV);
+	SP_SAFE_RELEASE(m_pFrameBufferTexture);
+	SP_SAFE_RELEASE(m_pDepthBufferTexture);
 	SP_SAFE_RELEASE(m_pRTV);
 	SP_SAFE_RELEASE(m_pDSV);
 	SP_SAFE_RELEASE(m_pReadonlyDSV);
 	SP_SAFE_RELEASE(m_pDepthBuffer);
-	SP_SAFE_RELEASE(m_pTexture);
+	SP_SAFE_RELEASE(m_pFrameBuffer);
 
 	m_pDXRenderer = 0;
 }

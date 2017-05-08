@@ -91,28 +91,19 @@ public:
 	// Textures:
 public:
 	// Summary:
-	//		Adds an empty (dynamic) texture to the pool that can be modified later.
-	// Parameters:
-	//		specification - The texture specification. Should not be a filename to prevent conflicts.
-	//		clearcolor - color to initialize the texture with
-	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT miplevels = 1, const ETextureType& ty = eTEXTURE_R8G8B8A8_UNORM, const SColor& clearcolor = SColor()) = 0;
-
-	// Summary:
-	//		Returns a pointer to the texture object with the given specification.
+	//		Returns a pointer to the texture object with the given specification and loads the texture if possible.
 	// Description:
 	//		If the specification is known, the pointer to the existing texture is returned.
-	//		Otherwise, the texture is attempted to be loaded from disk during this call.
+	//		Otherwise, if specification is an absolute resource path, the texture is attempted to be loaded from disk during this call:
 	//			- The loaded texture will then be non-dynamic and not staged.
 	//			- No scaling of the texture will happen.
-	//		If the texture could not be loaded, a pointer to a texture object is returned,
-	//		which is not loaded (cleared).
+	//		If the texture could not be loaded, a pointer to a cleared new texture object is returned.
 	// Parameters:
 	//		specification - either the specification/path of an existing texture or the absolute resource path to the texture
 	virtual ITexture* GetTexture(const string& specification) = 0;
 
 	// Summary:
-	//		Returns a pointer to the cube texture with given file name and loads
-	//		it if it wasn't loaded yet.
+	//		Returns a pointer to the cube texture with given file name and loads it if it wasn't loaded yet.
 	// Parameters:
 	//		basePath - absolute resource path to the cube texture base name:   "/textures/sky" -> "/textures/sky_(pos|neg)(x|y|z).bmp"
 	virtual ITexture* GetCubeTexture(const string& basePath) = 0;

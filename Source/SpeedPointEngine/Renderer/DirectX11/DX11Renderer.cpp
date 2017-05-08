@@ -50,12 +50,15 @@ m_pTerrainBlendState(0),
 m_pSetBlendState(0),
 m_pDepthStencilState(0),
 m_pTerrainDepthState(0),
-m_pDefaultSamplerState(0),
+m_pBilinearSamplerState(0),
 m_pPointSamplerState(0),
+m_pShadowSamplerState(0),
 m_pBoundCB(nullptr),
 m_bInScene(false),
 m_bDumpFrame(false),
-m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN)
+m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN),
+m_iMaxBoundVSResource(0),
+m_iMaxBoundPSResource(0)
 {
 	for (int i = 0; i < NUM_SHADERPASS_TYPES; ++i)
 		m_Passes[i] = 0;
@@ -325,7 +328,7 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_rsDesc.DepthBias = 0;
 	m_rsDesc.DepthBiasClamp = 0;
 	m_rsDesc.SlopeScaledDepthBias = 0;
-	m_rsDesc.DepthClipEnable = false;
+	m_rsDesc.DepthClipEnable = true;
 	m_rsDesc.FillMode = D3D11_FILL_SOLID;
 	m_rsDesc.MultisampleEnable = m_InitParams.antiAliasingQuality != eAAQUALITY_LOW;
 	m_rsDesc.ScissorEnable = FALSE; // maybe change this to true someday
@@ -339,34 +342,24 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_pD3DDeviceContext->RSSetState(m_pRSState);
 
 
-	// Setup default Sampler State
+	// Setup bilinear Sampler State
 	// NOTE: Currently using same default sampler state for Texturemap and Normalmap!
-	D3D11_SAMPLER_DESC defSamplerDesc;
-	defSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	defSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	defSamplerDesc.MinLOD = -FLT_MAX;
-	defSamplerDesc.MaxLOD = FLT_MAX;
-	defSamplerDesc.MipLODBias = 0.0f;
-	defSamplerDesc.MaxAnisotropy = 1;
-	defSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	defSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	defSamplerDesc.BorderColor[0] = 0;
-	defSamplerDesc.BorderColor[1] = 0;
-	defSamplerDesc.BorderColor[2] = 0;
-	defSamplerDesc.BorderColor[3] = 0;
+	D3D11_SAMPLER_DESC bilinearSamplerDesc;
+	bilinearSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	bilinearSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	bilinearSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	bilinearSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	bilinearSamplerDesc.MinLOD = -FLT_MAX;
+	bilinearSamplerDesc.MaxLOD = FLT_MAX;
+	bilinearSamplerDesc.MipLODBias = 0.0f;
+	bilinearSamplerDesc.MaxAnisotropy = 1;	
 
-	if (Failure(m_pD3DDevice->CreateSamplerState(&defSamplerDesc, &m_pDefaultSamplerState)))
-		return CLog::Log(S_ERROR, "Failed create default Sampler State!");
-
-	m_pD3DDeviceContext->PSSetSamplers(0, 1, &m_pDefaultSamplerState);
-	m_pD3DDeviceContext->PSSetSamplers(1, 1, &m_pDefaultSamplerState);
-
-	m_SetSamplerState = eTEX_SAMPLE_BILINEAR;
-
+	if (Failure(m_pD3DDevice->CreateSamplerState(&bilinearSamplerDesc, &m_pBilinearSamplerState)))
+		return CLog::Log(S_ERROR, "Failed create bilinear sampler state!");
 
 	// Nearest-Neighbor filtering Sampler state (used for skybox e.g.)
 	D3D11_SAMPLER_DESC pointSamplerDesc;
+	pointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	pointSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	pointSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	pointSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -374,15 +367,38 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	pointSamplerDesc.MaxLOD = FLT_MAX;
 	pointSamplerDesc.MipLODBias = 0.0f;
 	pointSamplerDesc.MaxAnisotropy = 1;
-	pointSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	pointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	pointSamplerDesc.BorderColor[0] = 0;
-	pointSamplerDesc.BorderColor[1] = 0;
-	pointSamplerDesc.BorderColor[2] = 0;
-	pointSamplerDesc.BorderColor[3] = 0;
 
 	if (Failure(m_pD3DDevice->CreateSamplerState(&pointSamplerDesc, &m_pPointSamplerState)))
 		return CLog::Log(S_ERROR, "Failed create point sampler state!");
+
+	// Shadowing sampler state
+	D3D11_SAMPLER_DESC shadowSamplerDesc;
+	shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL; // sample <= projCoord.z
+	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	for (int i = 0; i < 4; ++i)
+		shadowSamplerDesc.BorderColor[i] = 1.0f; // max depth
+	shadowSamplerDesc.MinLOD = -FLT_MAX;
+	shadowSamplerDesc.MaxLOD = FLT_MAX;
+	shadowSamplerDesc.MipLODBias = 0.0f;
+	shadowSamplerDesc.MaxAnisotropy = 1;
+
+	if (Failure(m_pD3DDevice->CreateSamplerState(&shadowSamplerDesc, &m_pShadowSamplerState)))
+		return CLog::Log(S_ERROR, "Failed create shadow sampler state!");
+
+
+	// Set samplers
+	unsigned int numSamplerStates = 3;
+	ID3D11SamplerState* samplerStates[] = 
+	{
+		/*s0*/ m_pPointSamplerState,
+		/*s1*/ m_pBilinearSamplerState,
+		/*s2*/ m_pShadowSamplerState
+	};	
+
+	m_pD3DDeviceContext->PSSetSamplers(0, numSamplerStates, samplerStates);
 
 	return S_SUCCESS;
 }
@@ -450,7 +466,7 @@ S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 
 	vpDesc.projectionDesc.fov = 60;
 	vpDesc.projectionDesc.projectionType = S_PROJECTION_PERSPECTIVE;
-	//vpDesc.projectionDesc.farZ = 100.0f;
+	vpDesc.projectionDesc.farZ = 100.0f;
 
 	vpDesc.width = nW;
 	vpDesc.height = nH;
@@ -678,6 +694,10 @@ S_API string DX11Renderer::GetShaderPath(EShaderFileType type) const
 	const char* filename;
 	switch (type)
 	{
+	case eSHADERFILE_SHADOW:
+		filename = "shadow.fx";
+		break;
+
 		// FORWARD:
 	case eSHADERFILE_SKYBOX:
 		filename = "skybox.fx";
@@ -744,6 +764,12 @@ S_API void DX11Renderer::InitShaderPasses()
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API IShaderPass* DX11Renderer::GetShaderPass(EShaderPassType type) const
+{
+	return m_Passes[type];
+}
+
+// -----------------------------------------------------------------------------------------------
 S_API IFontRenderer* DX11Renderer::GetFontRenderer() const
 {
 	return m_pFontRenderer;
@@ -756,13 +782,6 @@ S_API SResult DX11Renderer::Shutdown(void)
 	m_pFontRenderer = 0;
 
 	m_DummyTexture.Release();
-
-	if (IS_VALID_PTR(m_pResourcePool))
-	{
-		m_pResourcePool->ClearAll();
-		delete m_pResourcePool;
-	}
-	m_pResourcePool = nullptr;
 
 	SP_SAFE_RELEASE(m_pDXGIFactory);
 	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);
@@ -788,12 +807,23 @@ S_API SResult DX11Renderer::Shutdown(void)
 
 	m_Viewport.Clear();
 
+	m_DummyTexture.Release();
+	m_DummyNormalMap.Release();
+
+	if (IS_VALID_PTR(m_pResourcePool))
+	{
+		m_pResourcePool->ClearAll();
+		delete m_pResourcePool;
+	}
+	m_pResourcePool = nullptr;
+
 	m_pSetBlendState = 0;
 	SP_SAFE_RELEASE(m_pDefBlendState);
 	SP_SAFE_RELEASE(m_pAlphaTestBlendState);
 	SP_SAFE_RELEASE(m_pTerrainBlendState);
-	SP_SAFE_RELEASE(m_pDefaultSamplerState);
+	SP_SAFE_RELEASE(m_pBilinearSamplerState);
 	SP_SAFE_RELEASE(m_pPointSamplerState);
+	SP_SAFE_RELEASE(m_pShadowSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	SP_SAFE_RELEASE(m_pTerrainDepthState);
 	SP_SAFE_RELEASE(m_pRSState);
@@ -801,10 +831,9 @@ S_API SResult DX11Renderer::Shutdown(void)
 	m_SceneConstants.Clear();
 	m_TerrainConstants.Clear();
 
-	m_DummyTexture.Release();
-	m_DummyNormalMap.Release();
-
 	// Reset bound-resources cache
+	m_iMaxBoundPSResource = 0;
+	m_iMaxBoundVSResource = 0;
 	memset(m_BoundVSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 	memset(m_BoundPSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 
@@ -826,7 +855,6 @@ S_API SResult DX11Renderer::Shutdown(void)
 #endif
 
 	m_FontRenderSchedule.Clear();
-	m_RenderSchedule.Clear();
 
 	return S_SUCCESS;
 }
@@ -852,18 +880,20 @@ S_API void DX11Renderer::BindShaderPass(EShaderPassType type)
 	}
 }
 
-
-
-
 // -----------------------------------------------------------------------------------------------
 S_API IShaderPass* DX11Renderer::GetCurrentShaderPass() const
 {
 	return m_Passes[m_CurrentPass];
 }
 
+
+
+
+
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, bool depthReadonly /*= false*/, const char* dump_name /*= 0*/)
 {
+	int boundOnLvl;
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
 
 	if (fboCollection.empty())
@@ -879,6 +909,9 @@ S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollec
 		else
 			pDSV = pDXDepthFBO->GetDSV();
 
+		if (!depthReadonly && (boundOnLvl = IsBoundAsTexture(pDXDepthFBO->GetDepthSRV())) != -1)
+			return CLog::Log(S_ERROR, "Failed BindRTCollection(): Depth buffer bound as texture already on level %d", boundOnLvl);
+
 		if (!pDSV)
 			return CLog::Log(S_ERROR, "Failed BindRTCollection(): DSV is not bindable as read-only");
 	}
@@ -889,11 +922,18 @@ S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollec
 	// Collect RTVs
 	m_BoundRenderTargets.clear();
 	ID3D11RenderTargetView** pRTVs = new ID3D11RenderTargetView*[fboCollection.size()];
-	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); ++itFBO)
+	int i = 0;
+	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); ++itFBO, ++i)
 	{
 		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(*itFBO);
 		if (!IS_VALID_PTR(pDXFBO))
 			continue;
+
+		if ((boundOnLvl = IsBoundAsTexture(pDXFBO->GetSRV())) != -1)
+		{
+			CLog::Log(S_ERROR, "Failed BindRTCollection(): Frame buffer #%d bound as texture already on level %d", i, boundOnLvl);
+			continue;
+		}
 
 		m_BoundRenderTargets.push_back(pDXFBO);
 		pRTVs[m_BoundRenderTargets.size()] = pDXFBO->GetRTV();
@@ -929,6 +969,14 @@ S_API SResult DX11Renderer::BindSingleRT(IFBO* pFBO, bool depthReadonly /*= 0*/)
 	// Check if already bound
 	if (!m_BoundRenderTargets.empty() && !BoundMultipleRTs() && m_BoundRenderTargets[0] == pFBO && m_pBoundDSV == pDSV)
 		return S_SUCCESS;
+
+	// Check if already bound as texture
+	int boundOnLvl;
+	if ((boundOnLvl = IsBoundAsTexture(pDXFBO->GetSRV())) != -1)
+		return CLog::Log(S_ERROR, "Failed BindSingleRT(): Frame buffer bound as texture already on level %d", boundOnLvl);
+
+	if (!depthReadonly && (boundOnLvl = IsBoundAsTexture(pDXFBO->GetDepthSRV())) != -1)
+		return CLog::Log(S_ERROR, "Failed BindSingleRT(): Depth buffer bound as texture already on level %d", boundOnLvl);
 
 	// Bind
 	m_pD3DDeviceContext->OMSetRenderTargets(1, &pRTV, pDSV);
@@ -1041,6 +1089,7 @@ S_API SResult DX11Renderer::SetInstanceStream(ITypelessInstanceBuffer* pInstance
 	return S_SUCCESS;
 }
 
+
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl /*= 0*/)
 {
@@ -1054,6 +1103,11 @@ S_API SResult DX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl 
 	{
 		m_pD3DDeviceContext->VSSetShaderResources(lvl, 1, &pSRV);
 		m_BoundVSResources[lvl] = pSRV;
+
+		if (lvl > m_iMaxBoundVSResource)
+			m_iMaxBoundVSResource = lvl;
+		else
+			for (; m_iMaxBoundVSResource > 0 && !m_BoundVSResources[m_iMaxBoundVSResource]; --m_iMaxBoundVSResource) {}
 	}
 
 	return S_SUCCESS;
@@ -1063,6 +1117,9 @@ S_API SResult DX11Renderer::BindVertexShaderTexture(ITexture* pTex, usint32 lvl 
 S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	if (lvl > MAX_BOUND_SHADER_RESOURCES)
+		return S_INVALIDPARAM;
 
 	if (!pTex)
 		pTex = GetDummyTexture();
@@ -1078,6 +1135,11 @@ S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 	{
 		m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
 		m_BoundPSResources[lvl] = pSRV;
+
+		if (lvl > m_iMaxBoundPSResource)
+			m_iMaxBoundPSResource = lvl;
+		else
+			for (; m_iMaxBoundPSResource > 0 && !m_BoundPSResources[m_iMaxBoundPSResource]; --m_iMaxBoundPSResource) {}
 	}
 
 	return S_SUCCESS;
@@ -1086,30 +1148,20 @@ S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindTexture(IFBO* pFBO, usint32 lvl)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
+	SP_ASSERTR(pFBO, S_INVALIDPARAM);
 
-	ID3D11ShaderResourceView* pSRV = 0;
-	if (IS_VALID_PTR(pFBO))
-	{
-		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
-		SP_ASSERTR(pDXFBO, S_INVALIDPARAM);
+	ITexture* pFrameBufferTexture = pFBO->GetTexture();
+	if (!pFrameBufferTexture)
+		return CLog::Log(S_ERROR, "Cannot BindTexture() from FBO on level %d: Not initialized as texture", lvl);
 
-		pSRV = pDXFBO->GetSRV();
-		SP_ASSERTR(pSRV, S_ERROR);
-	}
-
-	if (pSRV != m_BoundPSResources[lvl])
-	{
-		m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pSRV);
-		m_BoundPSResources[lvl] = pSRV;
-	}
-
-	return S_SUCCESS;
+	return BindTexture(pFrameBufferTexture, lvl);
 }
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl /*= 0*/)
 {
+	SP_ASSERTR(pFBO, S_INVALIDPARAM);
+
 	DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
 	if (!IS_VALID_PTR(pDXFBO))
 		return S_INVALIDPARAM;
@@ -1118,13 +1170,11 @@ S_API SResult DX11Renderer::BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl /*=
 	if (m_pBoundDSV == pWriteableDSV)
 		return CLog::Log(S_ERROR, "Failed BindDepthBufferAsTexture(): Is bound as writeable depth buffer");
 
-	ID3D11ShaderResourceView* pDepthSRV = pDXFBO->GetDepthBufferSRV();
-	if (!IS_VALID_PTR(pDepthSRV))
-		return CLog::Log(S_ERROR, "Cannot BindDepthBufferAsTexture(): Is not bindable as texture");
+	ITexture* pDepthBufferTexture = pDXFBO->GetDepthBufferTexture();
+	if (!pDepthBufferTexture)
+		return CLog::Log(S_ERROR, "Cannot BindDepthBufferAsTexture() from FBO on level %d: Not initialized as texture", lvl);
 
-	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, &pDepthSRV);
-
-	return S_SUCCESS;
+	return BindTexture(pDepthBufferTexture, lvl);
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1132,6 +1182,46 @@ S_API void DX11Renderer::UnbindTexture(usint32 lvl)
 {
 	ID3D11ShaderResourceView* srv[] = { 0 };
 	m_pD3DDeviceContext->PSSetShaderResources(lvl, 1, srv);
+	m_BoundPSResources[lvl] = 0;
+
+	for (; m_iMaxBoundPSResource > 0 && !m_BoundPSResources[m_iMaxBoundPSResource]; --m_iMaxBoundPSResource) {}
+}
+
+S_API void DX11Renderer::UnbindTexture(ITexture* pTexture)
+{
+	DX11Texture* pDXTexture = dynamic_cast<DX11Texture*>(pTexture);
+	if (!pTexture)
+		return;
+
+	const ID3D11ShaderResourceView* pSRV = pDXTexture->D3D11_GetSRV();
+
+	for (unsigned int i = 0; i <= m_iMaxBoundPSResource; ++i)
+	{
+		if (m_BoundPSResources[i] == pSRV)
+			UnbindTexture(i);
+	}
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API int DX11Renderer::IsBoundAsTexture(ID3D11ShaderResourceView* srv)
+{
+	if (srv)
+	{
+		unsigned int i;
+		for (i = 0; i <= m_iMaxBoundPSResource; ++i)
+		{
+			if (m_BoundPSResources[i] == srv)
+				return (int)i;
+		}
+
+		for (i = 0; i <= m_iMaxBoundVSResource; ++i)
+		{
+			if (m_BoundVSResources[i] == srv)
+				return (int)i;
+		}
+	}
+
+	return -1;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1139,6 +1229,8 @@ S_API ITexture* DX11Renderer::GetDummyTexture() const
 {
 	return (ITexture*)&m_DummyTexture;
 }
+
+
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc)
@@ -1192,21 +1284,6 @@ S_API SResult DX11Renderer::BeginScene(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SRenderSlot* DX11Renderer::GetRenderSlot()
-{
-	if (!m_bInScene)
-		return 0;
-
-	return m_RenderSchedule.Get();
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::ReleaseRenderSlot(SRenderSlot** pSlot)
-{
-	m_RenderSchedule.Release(pSlot);
-}
-
-// -----------------------------------------------------------------------------------------------
 S_API STerrainRenderDesc* DX11Renderer::GetTerrainRenderDesc()
 {
 	return &m_TerrainRenderDesc;
@@ -1239,7 +1316,16 @@ S_API SResult DX11Renderer::EndScene(void)
 	static SResult sr;
 
 	sr = UnleashFontRenderSchedule();
+	
 	sr = PresentTargetViewport();
+
+	for (int iShaderPass = 0; iShaderPass < NUM_SHADERPASS_TYPES; ++iShaderPass)
+	{
+		if (m_Passes[iShaderPass])
+			m_Passes[iShaderPass]->OnEndFrame();
+	}
+
+	// Clear target viewport
 	sr = BindSingleRT(m_pTargetViewport);
 	sr = ClearBoundRTs();
 
@@ -1268,15 +1354,12 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 		return S_INVALIDSTAGE;
 	}
 
-
 	// Skip render desc without subsets
 	if (renderDesc.nSubsets == 0 || !IS_VALID_PTR(renderDesc.pSubsets))
 	{
 		FrameDump("Skipping Render: No subsets");
 		return S_SUCCESS;
 	}
-
-
 
 	// Set correct depth stencil state
 	EnableDepthTest(renderDesc.bDepthStencilEnable);
@@ -1305,22 +1388,11 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 	}
 
 
-
 	// In case something else was bound to the slot before...
 	BindSceneCB(m_SceneConstants.GetCB());
 
 
-
-	// Set correct samplers
-	SetSamplerState(renderDesc.textureSampling);
-
-
-
-
-
-
 	DrawSubsets(renderDesc);
-
 
 
 	// Restore scene constants if necessary
@@ -1330,8 +1402,6 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 		memcpy(pSceneConstants, &origSceneConstants, sizeof(SSceneConstants));
 		m_SceneConstants.Update();
 	}
-
-
 
 	return S_SUCCESS;
 }
@@ -1379,6 +1449,13 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 		BindVertexShaderTexture(terrainRenderDesc.pVtxHeightMap, 0);
 		BindTexture(terrainRenderDesc.pColorMap, 1);
 
+		// ~~
+		// TODO: Avoid referencing a shader pass here
+		//			- probably fixed with deferred rendering, because the shadowmap is then only bound in shading pass.
+		ShadowmapShaderPass* pShadowmapPass = dynamic_cast<ShadowmapShaderPass*>(GetShaderPass(eSHADERPASS_SHADOWMAP));
+		if (pShadowmapPass)
+			BindDepthBufferAsTexture(pShadowmapPass->GetShadowmap(), 4);
+
 		if (terrainRenderDesc.bUpdateCB)
 		{
 			memcpy(m_TerrainConstants.GetConstants(), &terrainRenderDesc.constants, sizeof(terrainRenderDesc.constants));
@@ -1422,12 +1499,14 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 			}
 
 			// Unbind terrain layer textures
-			BindTexture((ITexture*)0, 2);
-			BindTexture((ITexture*)0, 3);
+			UnbindTexture(2);
+			UnbindTexture(3);
 
 			// Unbind Vertex Shader texture
 			BindVertexShaderTexture((ITexture*)0, 0);
 		}
+
+		UnbindTexture(4);
 
 		D3D11_SetBlendState(m_pDefBlendState);
 	}
@@ -1475,55 +1554,12 @@ S_API SResult DX11Renderer::RenderDeferredLight(const SLightDesc& light)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//		UNLEASH RENDER SCHEDULE
+//		DRAW
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-S_API SResult DX11Renderer::UnleashRenderSchedule()
-{
-	return S_SUCCESS;
-
-
-
-
-
-
-
-	if (m_RenderSchedule.GetUsedObjectCount() == 0)
-	{
-		FrameDump("Render schedule empty in UnleashRenderSchedule()");
-		return S_SUCCESS;
-	}
-
-	FrameDump("Unleashing render schedule now...");
-	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), "RenderScheduleSize");
-
-
-	bool bDepthEnableBackup = (m_depthStencilDesc.DepthEnable ? true : false);
-
-	unsigned int iRSIterator;
-	SRenderSlot* pSlot = m_RenderSchedule.GetFirstUsedObject(iRSIterator);
-	while (pSlot)
-	{
-		Render(pSlot->renderDesc);
-
-
-		// Remove RenderSlot item if it should not be kept anymore
-		if (!pSlot->keep)
-		{
-			m_RenderSchedule.Release(&pSlot);
-		}
-
-		pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
-	}
-
-	// Restore backed up depth stencil state
-	EnableDepthTest(bDepthEnableBackup);
-
-	return S_SUCCESS;
-}
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
@@ -1637,25 +1673,6 @@ S_API SResult DX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::DrawDeferred(const SDrawCallDesc& desc)
-{
-	return S_ERROR; // not supported yet
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::DrawDeferredLighting()
-{
-	return S_ERROR; // not supported yet
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::MergeDeferred()
-{
-	return S_ERROR; // not supported yet
-}
-
-
-// -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::UnleashFontRenderSchedule()
 {
 	if (m_FontRenderSchedule.GetUsedObjectCount() == 0)
@@ -1733,26 +1750,30 @@ S_API SResult DX11Renderer::PresentTargetViewport(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::ClearBoundRTs(void)
+S_API SResult DX11Renderer::ClearBoundRTs(bool color /*= true*/, bool depth /*= true*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
-	float clearColor[4];
-	SPGetColorFloatArray(clearColor, m_InitParams.clearColor);
-
-	// Clear RTs
-	for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
+	if (color)
 	{
-		ID3D11RenderTargetView* pRTV = (*itBoundRT)->GetRTV();
-		if (!IS_VALID_PTR(pRTV))
-			continue;
+		float clearColor[4];
+		SPGetColorFloatArray(clearColor, m_InitParams.clearColor);
 
-		m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
+		for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
+		{
+			ID3D11RenderTargetView* pRTV = (*itBoundRT)->GetRTV();
+			if (!IS_VALID_PTR(pRTV))
+				continue;
+
+			m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
+		}
 	}
 
-	// Clear Depth Buffer
-	if (IS_VALID_PTR(m_pBoundDSV) && !m_bBoundDSVReadonly)
-		m_pD3DDeviceContext->ClearDepthStencilView(m_pBoundDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	if (depth)
+	{
+		if (IS_VALID_PTR(m_pBoundDSV) && !m_bBoundDSVReadonly)
+			m_pD3DDeviceContext->ClearDepthStencilView(m_pBoundDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
 
 	return S_SUCCESS;
 }
@@ -1771,6 +1792,12 @@ S_API SResult DX11Renderer::SetTargetViewport(IViewport* pViewport)
 			return S_INVALIDPARAM;
 
 		m_pD3DDeviceContext->RSSetViewports(1, pDXViewport->D3D11_GetViewportDescPtr());
+
+		SIZE vpSz = pViewport->GetSize();
+
+		SSceneConstants* sceneConstants = m_SceneConstants.GetConstants();
+		sceneConstants->screenRes[0] = vpSz.cx;
+		sceneConstants->screenRes[1] = vpSz.cy;
 	}
 
 	return S_SUCCESS;
@@ -1843,6 +1870,12 @@ S_API SSceneConstants* DX11Renderer::GetSceneConstants() const
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::UpdateSceneConstants()
+{
+	m_SceneConstants.Update();
+}
+
+// -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 byteSize)
 {
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
@@ -1907,7 +1940,6 @@ S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix
 	pConstants->mtxView = mtxView;
 	pConstants->mtxProj = mtxProj;
 	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
-
 	m_SceneConstants.Update();
 }
 
@@ -1915,15 +1947,9 @@ S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix
 S_API void DX11Renderer::SetEyePosition(const Vec3f& eyePos)
 {
 	m_SceneConstants.GetConstants()->eyePosition = float4(eyePos.x, eyePos.y, eyePos.z, 0);
+
 	//FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
 
-	m_SceneConstants.Update();
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::SetSunPosition(const Vec3f& pos)
-{
-	m_SceneConstants.GetConstants()->sunPosition = float4(pos.x, pos.y, pos.z);
 	m_SceneConstants.Update();
 }
 
@@ -2061,30 +2087,6 @@ S_API void DX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestFunc)
 		m_depthStencilDesc.DepthFunc = d3dFunc;
 		UpdateDepthStencilState();
 	}
-}
-
-
-// -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::SetSamplerState(ETextureSampling sampling)
-{
-	if (m_SetSamplerState == sampling)
-		return;
-
-	ID3D11SamplerState* pSamplerState = 0;
-	switch (sampling)
-	{
-	case eTEX_SAMPLE_BILINEAR:
-		pSamplerState = m_pDefaultSamplerState;
-		break;
-	case eTEX_SAMPLE_POINT:
-		pSamplerState = m_pPointSamplerState;
-		break;
-	default:
-		return;
-	}
-
-	m_pD3DDeviceContext->PSSetSamplers(0, 1, &pSamplerState);
-	m_SetSamplerState = sampling;
 }
 
 // -----------------------------------------------------------------------------------------------

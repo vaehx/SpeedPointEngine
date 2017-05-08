@@ -5,13 +5,53 @@
 // ********************************************************************************************
 
 #pragma once
-#include <Common\SPrerequisites.h>
-#include <Common\Matrix.h>
-#include <Common\Quaternion.h>
+#include "SPrerequisites.h"
+#include "Matrix.h"
+#include "Quaternion.h"
+#include "MathGeom.h"
 #include <math.h>
 
 SP_NMSPACE_BEG
 
+
+class S_API ViewFrustum
+{
+private:
+	Mat44 mtxView, mtxProj;
+	
+	bool bViewDirCalculated;
+	Vec3f viewDir;
+
+	bool bEnclosingPlanesCalculated;
+	SPlane planes[4];
+
+	bool bCornersCalculated;
+	Vec3f corners[8]; // in view-space
+
+	void CalculateCorners();
+
+public:
+	ViewFrustum(const Mat44& _mtxView, const Mat44& _mtxProj);
+
+	// Identity will be used for projection matrix
+	ViewFrustum(const Mat44& _mtxView)
+		: ViewFrustum(_mtxView, Mat44::Identity) {}
+
+	const Mat44& GetViewMatrix() const { return mtxView; }
+	const Mat44& GetProjectionMatrix() const { return mtxProj; }
+
+	Vec3f GetViewDirection();
+
+	// Left, Right, Top, Bottom
+	void GetEnclosingPlanes(SPlane enclosingPlanes[4]);
+
+	// Starting from top left, then clockwise
+	// 0-3: near, 4-7: far
+	void GetCorners(Vec3f corners[8], bool viewSpace = false);
+
+	float GetNearZ();
+	float GetFarZ();
+};
 
 
 

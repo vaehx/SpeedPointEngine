@@ -59,6 +59,8 @@ enum EDepthTestFunction
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SpeedPoint DirectX 11 Renderer Implementation
 
+#define MAX_BOUND_SHADER_RESOURCES 8
+
 class S_API DX11Renderer : public IRenderer
 {
 private:
@@ -80,12 +82,12 @@ private:
 	D3D11_RASTERIZER_DESC m_rsDesc;	
 	ID3D11RasterizerState* m_pRSState;
 
-	// Sampler state
-	ETextureSampling m_SetSamplerState;
-	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
+	// Sampler states
+	ID3D11SamplerState* m_pBilinearSamplerState;
 	ID3D11SamplerState* m_pPointSamplerState;
+	ID3D11SamplerState* m_pShadowSamplerState;	
 
-	// Blend state
+	// Blend states
 	D3D11_BLEND_DESC m_DefBlendDesc;
 	ID3D11BlendState* m_pDefBlendState;
 
@@ -94,7 +96,7 @@ private:
 
 	ID3D11BlendState* m_pSetBlendState;
 
-	// Depth Stencil state
+	// Depth Stencil states
 	D3D11_DEPTH_STENCIL_DESC m_depthStencilDesc;
 	ID3D11DepthStencilState* m_pDepthStencilState;
 
@@ -125,9 +127,10 @@ private:
 	EPrimitiveType m_SetPrimitiveType;
 	EShaderPassType m_EnabledShaderPass;
 
-	// TODO: Eliminate the static 8 there
-	ID3D11ShaderResourceView* m_BoundVSResources[8];
-	ID3D11ShaderResourceView* m_BoundPSResources[8];
+	ID3D11ShaderResourceView* m_BoundVSResources[MAX_BOUND_SHADER_RESOURCES];
+	ID3D11ShaderResourceView* m_BoundPSResources[MAX_BOUND_SHADER_RESOURCES];
+	unsigned int m_iMaxBoundVSResource;
+	unsigned int m_iMaxBoundPSResource;
 
 	DX11Texture m_DummyTexture;
 	DX11Texture m_DummyNormalMap;	// contains pure (128,128,0) color.
@@ -150,9 +153,6 @@ private:
 	bool m_bInScene;
 
 
-	// Render Schedule	
-	ChunkedObjectPool<SRenderSlot, 50> m_RenderSchedule;	
-	
 	STerrainRenderDesc m_TerrainRenderDesc;
 	D3D11_BLEND_DESC m_TerrainBlendDesc;	
 	ID3D11BlendState* m_pTerrainBlendState;
@@ -180,7 +180,8 @@ private:
 		
 	void BindSceneCB(const IConstantsBuffer* cb);
 
-	void SetSamplerState(ETextureSampling sampling);
+	// Returns the lvl which the srv is bound on or -1 if it is not bound
+	int IsBoundAsTexture(ID3D11ShaderResourceView* srv);
 
 	SResult DrawTerrainSubset(const STerrainDrawCallDesc& dcd);
 	SResult DrawSubsets(const SRenderDesc& renderDesc);
@@ -271,10 +272,6 @@ public:
 
 	void D3D11_SetBlendState(ID3D11BlendState* pBlendState, const float blendFactor[4] = 0, UINT sampleMask = 0xffffffff);
 
-
-	// Draw all things schedule in the render schedule
-	SResult UnleashRenderSchedule();
-
 	SResult UnleashFontRenderSchedule();
 
 	////////////////////////////////////////////////////////////////////////////
@@ -321,6 +318,7 @@ public:
 	virtual SResult BindTexture(IFBO* pFBO, usint32 lvl = 0);
 	virtual SResult BindDepthBufferAsTexture(IFBO* pFBO, usint32 lvl = 0);
 	virtual void UnbindTexture(usint32 lvl);
+	virtual void UnbindTexture(ITexture* pTexture);
 
 	virtual ITexture* GetDummyTexture() const;
 
@@ -334,6 +332,7 @@ public:
 	virtual IShader* CreateShader() const;
 
 	virtual void BindShaderPass(EShaderPassType type);
+	virtual IShaderPass* GetShaderPass(EShaderPassType type) const;
 	virtual IShaderPass* GetCurrentShaderPass() const;
 
 	virtual string GetShaderPath(EShaderFileType type) const;
@@ -350,33 +349,22 @@ public:
 	virtual SResult SetIBStream(IIndexBuffer* pIB);
 	virtual SResult SetInstanceStream(ITypelessInstanceBuffer* pInstanceBuffer, unsigned int index = 1);
 
-	virtual SResult ClearBoundRTs(void);
+	virtual SResult ClearBoundRTs(bool color = true, bool depth = true);
 
 	virtual SResult SetTargetViewport(IViewport* pViewport);
 	virtual IViewport* GetTargetViewport(void);
 	virtual IViewport* GetDefaultViewport(void);	
 
 
-	virtual IConstantsBuffer* CreateConstantsBuffer() const;
-	
+	virtual IConstantsBuffer* CreateConstantsBuffer() const;	
 	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false);
-
 	virtual SSceneConstants* GetSceneConstants() const;
-	virtual void SetSunPosition(const Vec3f& pos);
-
+	virtual void UpdateSceneConstants();
 	
-	virtual SRenderSlot* GetRenderSlot();
-	virtual void ReleaseRenderSlot(SRenderSlot** pSlot);
 	virtual STerrainRenderDesc* GetTerrainRenderDesc();
 
 	virtual SFontRenderSlot* GetFontRenderSlot();
 	virtual void ReleaseFontRenderSlot(SFontRenderSlot** pFRS);
-
-	// Summary:
-	//	Draws the given geometry desc to the GBuffer and its depth buffer
-	virtual SResult DrawDeferred(const SDrawCallDesc& desc);
-	virtual SResult DrawDeferredLighting();
-	virtual SResult MergeDeferred();
 
 	// Summary:
 	//	Draws the given geometry desc directly to the back buffer and the depth buffer

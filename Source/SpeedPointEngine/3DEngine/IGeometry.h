@@ -31,8 +31,7 @@ SP_NMSPACE_BEG
 struct S_API ITexture;
 struct S_API IVertexBuffer;
 struct S_API IMaterial;
-struct SAxisAlignedBoundBox;
-typedef struct S_API SAxisAlignedBoundBox AABB;
+struct S_API AABB;
 
 ///////////////////////////////////////////////////////////////////////////////////
 

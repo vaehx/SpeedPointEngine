@@ -196,12 +196,6 @@ struct SRenderSubset
 	}
 };
 
-enum ETextureSampling
-{
-	eTEX_SAMPLE_BILINEAR,
-	eTEX_SAMPLE_POINT
-};
-
 // Do not copy with memcpy or std::copy!
 struct S_API SRenderDesc
 {
@@ -220,13 +214,10 @@ struct S_API SRenderDesc
 	bool bDepthStencilEnable;
 	bool bInverseDepthTest; // use GREATER function for depth test
 
-	ETextureSampling textureSampling;
-
 	SRenderDesc()
 		: bCustomViewProjMtx(false),
 		bDepthStencilEnable(true),
 		bInverseDepthTest(false),
-		textureSampling(eTEX_SAMPLE_BILINEAR),
 		pSubsets(0)
 	{
 	}
@@ -259,7 +250,6 @@ struct S_API SRenderDesc
 		bCustomViewProjMtx = rd.bCustomViewProjMtx;
 		bDepthStencilEnable = rd.bDepthStencilEnable;
 		bInverseDepthTest = rd.bInverseDepthTest;
-		textureSampling = rd.textureSampling;
 		pSubsets = 0;
 
 		// copy subsets array
@@ -348,17 +338,6 @@ struct S_API STerrainRenderDesc
 	}
 };
 
-struct S_API SRenderSlot
-{
-	SRenderDesc renderDesc;
-	bool keep; // true if slot may no be released after rendered
-
-	SRenderSlot()
-		: keep(true)
-	{
-	}
-};
-
 
 // Font Render Slot used in the Font renderer to render font.
 // Pass it to the actual Renderer which will keep a queue of all
@@ -420,7 +399,6 @@ struct S_API SLightDesc
 	Vec3f direction;
 };
 
-
 ///////////////////////////////////////////////////////////////
 
 struct S_API SRenderBudgetTimer
@@ -439,6 +417,8 @@ struct S_API SRenderBudgetTimer
 enum EShaderFileType
 {
 	eSHADERFILE_SKYBOX,
+
+	eSHADERFILE_SHADOW,
 
 	eSHADERFILE_FORWARD_HELPER,	// Forward helper effect
 	eSHADERFILE_FORWARD,
@@ -565,6 +545,7 @@ public:
 
 	// Unbinds a pixel shader texture
 	virtual void UnbindTexture(usint32 lvl) = 0;
+	virtual void UnbindTexture(ITexture* pTexture) = 0;
 
 
 
@@ -580,6 +561,7 @@ public:
 	virtual IShader* CreateShader() const = 0;
 
 	virtual void BindShaderPass(EShaderPassType type) = 0;
+	virtual IShaderPass* GetShaderPass(EShaderPassType type) const = 0;
 	virtual IShaderPass* GetCurrentShaderPass() const = 0;
 
 	virtual string GetShaderPath(EShaderFileType type) const = 0;
@@ -587,15 +569,16 @@ public:
 	virtual SResult BeginScene(void) = 0;
 	virtual SResult EndScene(void) = 0;
 
+	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
+
 	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
-
 	virtual SResult RenderDeferredLight(const SLightDesc& light) = 0;
 
 	virtual SResult PresentTargetViewport(void) = 0;
 
-	virtual SResult ClearBoundRTs(void) = 0;
+	virtual SResult ClearBoundRTs(bool color = true, bool depth = true) = 0;
 
 	virtual SResult UpdateCullMode(EFrontFace cullmode) = 0;
 	virtual SResult EnableBackfaceCulling(bool state = true) = 0;
@@ -611,19 +594,12 @@ public:
 	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false) = 0;
 
 	virtual SSceneConstants* GetSceneConstants() const = 0;
-	virtual void SetSunPosition(const Vec3f& pos) = 0;
+	virtual void UpdateSceneConstants() = 0;
 
 
 	// Summary:
 	//	Get the specific resource pool. Will instanciate one if not done yet
 	virtual IResourcePool* GetResourcePool() = 0;
-
-	virtual SRenderSlot* GetRenderSlot() = 0;
-
-	// *pSlot is set to 0 after release
-	virtual void ReleaseRenderSlot(SRenderSlot** pSlot) = 0;
-
-	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
 
 
 	// *pFRS is set to 0 ptr after releases

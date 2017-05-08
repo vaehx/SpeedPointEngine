@@ -22,6 +22,8 @@ class S_API DX11Renderer;
 class S_API DX11Viewport : public IViewport
 {
 private:
+	static unsigned int m_SwapChainIdCtr;
+	
 	DX11Renderer* m_pRenderer;	// the handling rendering
 	
 	IDXGISwapChain* m_pSwapChain;	// the corresponding swap chain

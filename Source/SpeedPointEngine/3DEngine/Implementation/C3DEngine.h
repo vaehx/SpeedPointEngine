@@ -28,6 +28,8 @@ private:
 	IComponentPool<CRenderMesh>* m_pMeshes;
 	IComponentPool<CRenderLight>* m_pLights;
 
+	AABB m_GlobalAABB;
+
 	ChunkedObjectPool<SHelperRenderObject> m_HelperPool;
 	map<unsigned int, SRenderDesc> m_HelperPrefabs; // index = (uint)type * 2 + (uint)bOutline
 
@@ -40,12 +42,13 @@ private:
 	SRenderDesc m_HUDRenderDesc;
 
 	void ClearHelperPrefabs();
-
 	void CreateHUDRenderDesc();
+	void UpdateSunViewProj();
 
 	void RenderMeshes();
 	void RenderHelpers();
 	void RenderHUD();
+	void RenderDebugTexture();
 
 protected:
 	virtual void SetRenderMeshPool(IComponentPool<CRenderMesh>* pPool);
@@ -80,6 +83,8 @@ public:
 	ILINE virtual void ClearHelperRenderObjects();
 
 	ILINE virtual ISkyBox* GetSkyBox();
+
+	ILINE virtual void SetSunPosition(const Vec3f& sunPos);
 
 	// Render lastly collected visible objects
 	ILINE virtual void RenderCollected();

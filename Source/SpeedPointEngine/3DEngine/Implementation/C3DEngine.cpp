@@ -6,6 +6,8 @@
 #include <Common\ProfilingSystem.h>
 #include <sstream>
 
+#include <Renderer\DirectX11\DX11Renderer.h>
+
 using std::stringstream;
 
 SP_NMSPACE_BEG
@@ -188,9 +190,17 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(const SCamera* pCamera)
 	// PARTICLES
 	m_ParticleSystem.Update(0.0f);
 
-	// RENDER OBJECTS
+	// MESHES
+	m_GlobalAABB.Reset();
+	unsigned int itMesh = 0;
+	CRenderMesh* pMesh = m_pMeshes->GetFirst(itMesh);
+	while (pMesh)
+	{
+		AABB aabb = pMesh->GetAABB().Transform(pMesh->GetRenderDesc()->transform);
+		m_GlobalAABB.AddAABB(aabb);
 
-	//TODO: Determine which render objects are visible!
+		pMesh = m_pMeshes->GetNext(itMesh);
+	}
 
 	ProfilingSystem::EndSection(budgetTimer);
 	return 0;
@@ -325,7 +335,6 @@ S_API void C3DEngine::CreateHUDRenderDesc()
 	m_HUDRenderDesc.renderPipeline = eRENDER_FORWARD;	
 	m_HUDRenderDesc.nSubsets = 1;
 	m_HUDRenderDesc.pSubsets = new SRenderSubset[1];
-	m_HUDRenderDesc.textureSampling = eTEX_SAMPLE_POINT; // to avoid incorrect alpha test due to "mixed" edges
 
 	SRenderSubset& subset = m_HUDRenderDesc.pSubsets[0];
 	subset.bOnce = false;
@@ -368,6 +377,78 @@ S_API void C3DEngine::RemoveHUDElement(SHUDElement** pHUDElement)
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::SetSunPosition(const Vec3f& sunPos)
+{
+	m_pRenderer->GetSceneConstants()->sunPosition = Vec4f(sunPos, 1.0f);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::UpdateSunViewProj()
+{
+	SSceneConstants* pSceneConstants = m_pRenderer->GetSceneConstants();
+
+	m_pRenderer->GetTargetViewport()->RecalculateCameraViewMatrix();
+	const Mat44& mtxView = m_pRenderer->GetTargetViewport()->GetCameraViewMatrix();
+	const Mat44& mtxProj = m_pRenderer->GetTargetViewport()->GetProjectionMatrix();
+
+	const float maxCamZ = -35.0f;
+	const Vec3f dirToSunNormalized = Vec3Normalize(pSceneConstants->sunPosition.xyz());
+
+	ViewFrustum frustum(mtxView, mtxProj); // camera view frustum
+	Vec3f camFrustumCorners[8]; // in view-space of camera
+	frustum.GetCorners(camFrustumCorners, true);
+	float nearZ = camFrustumCorners[0].z;
+	float farZ = camFrustumCorners[4].z;	
+	float farZScale = (farZ < maxCamZ) ? (maxCamZ / (farZ - nearZ)) : 1.0f; // Limit maximum z
+
+	Vec3f globalAABBCorners[8];
+	m_GlobalAABB.GetCorners(globalAABBCorners);
+
+	Mat44 mtxViewInv = SMatrixInvert(mtxView);
+	SMatrixTranspose(&mtxViewInv);
+
+	Mat44 mtxSunView;
+	SPMatrixLookAtRH(&mtxSunView, dirToSunNormalized, Vec3f(0), Vec3f(0, 1.0f, 0));
+	SMatrixTranspose(&mtxSunView);
+
+	AABB aabb; // in view-space of light
+	aabb.Reset();
+	for (int i = 0; i < 8; ++i)
+	{
+		// Cam frustum corner
+		if (i >= 4)
+			camFrustumCorners[i] = camFrustumCorners[i - 4] + farZScale * (camFrustumCorners[i] - camFrustumCorners[i - 4]);
+
+		aabb.AddPoint((mtxSunView * (mtxViewInv * Vec4f(camFrustumCorners[i], 1.0f))).xyz());
+
+		// Global aabb corner
+		float z =
+			mtxSunView._31 * globalAABBCorners[i].x +
+			mtxSunView._32 * globalAABBCorners[i].y +
+			mtxSunView._33 * globalAABBCorners[i].z +
+			mtxSunView._34;
+		Vec3f p = (mtxSunView * Vec4f(globalAABBCorners[i], 1.0f)).xyz();
+
+		if (z > aabb.vMax.z)
+			aabb.vMax.z = z;
+	}
+
+	Mat44 mtxSunViewInv = SMatrixInvert(mtxSunView);
+	Vec3f fittedSunPosVS = (Vec3f(aabb.vMin.x, aabb.vMin.y, aabb.vMax.z) + Vec3f(aabb.vMax.x, aabb.vMax.y, aabb.vMax.z)) * 0.5f;
+	Vec3f fittedSunPos = (mtxSunViewInv * Vec4f(fittedSunPosVS, 1.0f)).xyz();
+
+	SPMatrixLookAtRH(&mtxSunView, fittedSunPos, fittedSunPos - dirToSunNormalized, Vec3f(0, 1.0f, 0));
+
+	Mat44 mtxSunProj;
+	SPMatrixOrthoRH(&mtxSunProj, aabb.vMax.x - aabb.vMin.x, aabb.vMax.y - aabb.vMin.y, 0, (aabb.vMax.z - aabb.vMin.z));
+
+	pSceneConstants->mtxSunViewProj = mtxSunView * mtxSunProj;
+
+	m_pRenderer->UpdateSceneConstants();
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -375,57 +456,52 @@ S_API void C3DEngine::RenderCollected()
 {
 	unsigned int budgetTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected()");
 	{
+		UpdateSunViewProj();
 
-		//TODO: Render skybox deferred as well!
-
-		if (IS_VALID_PTR(m_pSkyBox))
-		{
-			unsigned int skyboxTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected() - Render Skybox");		
-			{
-
-				m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-				SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
-				m_pRenderer->Render(*rd);
-
-				ProfilingSystem::EndSection(skyboxTimer);
-			}
-		}
-
-
-
-		//TODO: Render terrain deferred as well!
-
-		unsigned int terrainTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected() - Render terrain");
-		{
-			m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
-			ProfilingSystem::EndSection(terrainTimer);
-		}
-
-
+		
+		// Shadowmap Prepass
+		// TODO: Only render objects that are inside the ViewFrustum !!!!!
+		m_pRenderer->BindShaderPass(eSHADERPASS_SHADOWMAP);
 		RenderMeshes();
 
-		unsigned int particleTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollection() - Render particles");
+		// Skybox
+		if (IS_VALID_PTR(m_pSkyBox))
 		{
-			m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
-			m_ParticleSystem.Render();
-			ProfilingSystem::EndSection(particleTimer);
+			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+			SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
+			m_pRenderer->Render(*rd);
 		}
 
+		// Terrain
+		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
+
+
+		// Meshes
 		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-		RenderHelpers();
-
-		RenderHUD();
+		RenderMeshes();
 
 		//TODO: Implement deferred shading pass
 		/*
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
 		foreach (light : lights)
 		{
-			m_pRenderer->Render(light->pRenderDesc);
+		m_pRenderer->Render(light->pRenderDesc);
 		}
 		*/
+
+		// Particles
+		m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
+		m_ParticleSystem.Render();
+
+		// Helpers
+		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+		RenderHelpers();
+
+		// HUD
+		RenderHUD();
+
+		// Debugging stuff
+		RenderDebugTexture();
 
 		ProfilingSystem::EndSection(budgetTimer);
 	}
@@ -443,16 +519,6 @@ S_API void C3DEngine::RenderMeshes()
 
 	unsigned int renderObjectsTimer = ProfilingSystem::StartSection(objectsTimerName.str().c_str());
 	{
-
-
-		//TODO: Use GBuffer Pass here to start rendering with the deferred pipeline
-		//m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
-		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
-
-
-
-
-
 		unsigned int itMesh;
 		CRenderMesh* pMesh = m_pMeshes->GetFirst(itMesh);
 		while (pMesh)
@@ -556,6 +622,30 @@ S_API void C3DEngine::RenderHUD()
 
 		pHUDElement = m_HUDElements.GetNextUsedObject(iHUDElement);
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::RenderDebugTexture()
+{
+	m_pRenderer->BindShaderPass(eSHADERPASS_GUI);
+
+	ITexture* pShadowmap = m_pRenderer->GetResourcePool()->GetTexture("$shadowmap");
+	if (!pShadowmap)
+		return;
+
+	SIZE vpSz = m_pRenderer->GetTargetViewport()->GetSize();
+
+	unsigned int width = 250;
+	unsigned int size[] = { width, (unsigned int)((float)width * ((float)vpSz.cy / (float)vpSz.cx)) };
+	unsigned int pos[] = { (unsigned int)(size[0] * 0.5f), (unsigned int)(size[1] * 0.5f) };
+
+	m_HUDRenderDesc.transform =
+		SMatrix::MakeTranslationMatrix(Vec3f((float)pos[0] - 0.5f * vpSz.cx, (float)pos[1] - 0.5f * vpSz.cy, 1.0f))
+		* SMatrix::MakeScaleMatrix(Vec3f((float)size[0], (float)size[1], 1.0f));
+
+	m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = pShadowmap;
+	m_pRenderer->Render(m_HUDRenderDesc);
 }
 
 SP_NMSPACE_END

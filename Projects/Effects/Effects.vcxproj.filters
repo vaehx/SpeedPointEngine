@@ -30,5 +30,8 @@
     <FxCompile Include="..\..\Effects\gui.fx">
       <Filter>Effects</Filter>
     </FxCompile>
+    <FxCompile Include="..\..\Effects\shadow.fx">
+      <Filter>Effects</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -14,6 +14,9 @@ cbuffer SceneCB : register(b0)
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
+	float4x4 mtxSunViewProj;
+	uint2 shadowMapRes;
+	uint2 screenRes;
     float4 eyePos;
 }
 
@@ -29,12 +32,10 @@ Texture2D vtxHeightMap : register(t0);
 Texture2D colorMap : register(t1);
 Texture2D detailMap : register(t2);
 Texture2D alphaMask : register(t3);
-SamplerState MapSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+Texture2D shadowMap : register(t4);
+
+SamplerState PointSampler : register(s0);
+SamplerComparisonState ShadowMapSampler : register(s2);
 
 // ---------------------------------------------------------
 
@@ -168,6 +169,25 @@ float3 BlendOverlay(float3 b, float3 a)
 }
 
 
+float CalculateShadowMapFactor(float3 WorldPos)
+{
+	float4 sunPos = mul(mtxSunViewProj, float4(WorldPos, 1.0f));
+	sunPos /= sunPos.w;
+	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
+	sunPos.y = 1.0f - (sunPos.y + 1.0f) * 0.5f;
+	sunPos.z = saturate(sunPos.z - 0.001f);
+
+	float2 smTCOffset = 1.0f / screenRes;
+
+	float avgSample = 0.0f;
+	for (int x = -2; x <= 2; ++x)
+		for (int y = -2; y <= 2; ++y)
+			avgSample += saturate(shadowMap.SampleCmpLevelZero(ShadowMapSampler, sunPos.xy + float2(x, y) * smTCOffset, sunPos.z));
+
+	return (avgSample / 16.0f);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -182,14 +202,14 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float3 normal = normalize(IN.Normal);
 
     // Sample CM and DM
-    float3 sampleCM = colorMap.Sample(MapSampler, IN.TexCoord).rgb;
-    float3 sampleDM = detailMap.Sample(MapSampler, IN.WorldPos.xz).rgb;
+    float3 sampleCM = colorMap.Sample(PointSampler, IN.TexCoord).rgb;
+    float3 sampleDM = detailMap.Sample(PointSampler, IN.WorldPos.xz).rgb;
 
     // Calculate blended Diffuse Color
     float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
     float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
 
-    float3 coloredDiffuse = saturate(BlendOverlay(sampleDM, sampleCM));
+	float3 coloredDiffuse = saturate(BlendOverlay(sampleDM, sampleCM));
     float4 blendedDiffuse = lerp(float4(sampleCM, 0), float4(coloredDiffuse.rgb, 0), terrainFadeFactor);
 
     // Sample vtx Height
@@ -198,18 +218,21 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     // Light Dir is assumed to be OUTGING directed
     float3 lightDir = normalize(sunPos.xyz);
 
-    float monoLightIntensity = 5.0f;
-    float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
+    float monoLightIntensity = 2.0f;
+    float4 lightIntensity = monoLightIntensity * float4(1.0f, 0.95f, 0.95f, 0.0f);
+	lightIntensity *= CalculateShadowMapFactor(IN.WorldPos);
 
-    float monoAmbient = 0.12f;
+    float monoAmbient = 0.40f;
     float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
 
     float lambert = saturate(dot(normal, lightDir));
 
+
+	// Final color
     OUT.Color = lambert * (blendedDiffuse / PI) * lightIntensity + ambient * blendedDiffuse;
 
     // Sample alpha value
-    float4 sampleMask = alphaMask.Sample(MapSampler, IN.TexCoord);
+    float4 sampleMask = alphaMask.Sample(PointSampler, IN.TexCoord);
     //OUT.Color.a = 1.0f;
     OUT.Color.a = sampleMask.r;
 

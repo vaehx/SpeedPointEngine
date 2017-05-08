@@ -14,29 +14,14 @@
 SP_NMSPACE_BEG
 
 struct S_API IRenderer;
+struct S_API ITexture;
 
 
 enum S_API EFBOType
 {
 	eFBO_R8G8B8A8,
-	eFBO_F32 // 32bit Red Channel
-
-
-/*	// G-Buffer FBOs. See documentation for mapping of these values
-	eFBO_GBUFFER_ALBEDO,	// (deferred-shading)
-	eFBO_GBUFFER_NORMALS,	// (deferred-shading)
-	eFBO_GBUFFER_TANGENTS,	// (deferred-shading)
-	eFBO_GBUFFER_POSITION,	// WS-pos (deferred-shading)
-
-	eFBO_GBUFFER_SRT,	// single G-Buffer render target for deferred-rendering
-
-	// Lighting buffer
-	eFBO_LIGHT,		// (deferred-shading)
-	eFBO_LIGHT_SPECULAR,	// (deferred-rendering)
-	eFBO_LIGHT_DIFFUSE,	// (deferred-rendering)
-
-	eFBO_BACKBUFFER
-	*/
+	eFBO_F32, // 32bit float Red Channel
+	eFBO_F16 // 16bit float Red Channel
 };
 
 
@@ -49,22 +34,29 @@ public:
 	{
 	}
 
+	// To allow this FBO to be used as a texture, use InitializeAsTexture() instead
+	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height) = 0;
+	
 	// Summary:
-	//	Initialize with given renderer
+	//	Allows this FBO to be bound as a texture
 	// Arguments:
-	//	allowAsTexture - allows the FBO to be used as a texture
-	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, bool allowAsTexture = false) = 0;
+	//	specification - Specification of the ITexture in the resource pool of the renderer.
+	virtual SResult InitializeAsTexture(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, const string& specification) = 0;
 
 	// Summary:
-	//	Creates a hardware depth buffer for this FBO
+	//	Creates a hardware depth buffer for this initialized FBO
+	virtual SResult InitializeDepthBuffer() = 0;
+
+	// Summary:
+	//	Creates a hardware depth buffer for this initialized FBO and allows it to be used as a texture.
 	// Arguments:
-	//	allowAsTexture - allows the depth buffer to be used as a texture
-	virtual SResult InitializeDepthBuffer(bool allowAsTexture = false) = 0;
+	//	specification - Specification of the ITexture in the resource pool of the renderer
+	virtual SResult InitializeDepthBufferAsTexture(const string& specification) = 0;
 
 	virtual bool IsInitialized() const = 0;
-
-	// Get the handling renderer
 	virtual IRenderer* GetRenderer() = 0;
+	virtual ITexture* GetTexture() const = 0;
+	virtual ITexture* GetDepthBufferTexture() const = 0;
 
 	// Clear buffers
 	virtual void Clear(void) = 0;		

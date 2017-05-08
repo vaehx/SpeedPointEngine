@@ -12,6 +12,7 @@
 #include "DX11Texture.h"
 #include "DX11Shader.h"
 #include "DX11Renderer.h"
+#include <Common\FileUtils.h>
 
 SP_NMSPACE_BEG
 
@@ -228,58 +229,34 @@ S_API SResult DX11ResourcePool::RemoveInstanceBuffer(IInstanceBufferResource** p
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API SResult DX11ResourcePool::AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT mipLevels, const ETextureType& ty, const SColor& clearcolor)
-{
-	if (specification.empty())
-		return CLog::Log(S_INVALIDPARAM, "DX11ResourcePool::AddTexture(): Empty specification");
-
-	if (w == 0 || h == 0)
-		return CLog::Log(S_INVALIDPARAM, "DX11ResourcePool::AddTexture(): width or height is 0");
-
-	DX11Texture* pTexture = m_plTextures.GetBySpecification(specification);
-	if (!pTexture)
-	{
-		m_plTextures.AddItem(&pTexture, specification);
-		pTexture->D3D11_SetRenderer(m_pDXRenderer);
-	}
-	else
-	{
-		pTexture->AddRef();
-	}
-
-	if (Failure(pTexture->CreateEmpty(specification, w, h, mipLevels, ty, clearcolor)))
-		return CLog::Log(S_ERROR, "DX11ResourcePool::AddTexture(): Failed DX11Texture::CreateEmpty()");
-
-	if (pTex)
-		*pTex = pTexture;
-
-	return S_SUCCESS;
-}
-
 S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 {
 	if (specification.empty())
 		return 0;
 
 	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
-	if (!pDXTexture)
-	{
-		m_plTextures.AddItem(&pDXTexture, specification);
-		pDXTexture->D3D11_SetRenderer(m_pDXRenderer);
-	}
-	else
+	if (pDXTexture)
 	{
 		pDXTexture->AddRef();
 	}
-
-	ITexture* pTexture = pDXTexture;
-	if (!pTexture->IsInitialized())
+	else
 	{
-		// This attempt may fail if the specification is not actually a filename
-		pTexture->LoadFromFile(specification, GetResourceSystemPath(specification));
+		m_plTextures.AddItem(&pDXTexture, specification);
+		pDXTexture->D3D11_SetRenderer(m_pDXRenderer);
+
+		// Try to load the texture.
+		// This attempt may fail if the specification is not actually a filename.
+		if (IsAbsoluteResourcePath(specification))
+		{
+			pDXTexture->LoadFromFile(specification, GetResourceSystemPath(specification));
+		}
+		else
+		{
+			CLog::Log(S_DEBUG, "Added texture '%s'", specification.c_str());
+		}
 	}
 
-	return pTexture;
+	return pDXTexture;
 }
 
 S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)

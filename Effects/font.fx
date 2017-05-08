@@ -12,12 +12,7 @@ cbuffer FontCB : register(b0)
 };
 
 Texture2D tex0 : register(t0);
-SamplerState Tex0Sampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+SamplerState PointSampler : register(s0);
 
 // ---------------------------------------------------------
 
@@ -70,7 +65,7 @@ PS_OUTPUT PS_font(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
 
-    float4 sample = tex0.Sample(Tex0Sampler, IN.TexCoord);
+    float4 sample = tex0.Sample(PointSampler, IN.TexCoord);
     OUT.Color = sample;
 
     return OUT;

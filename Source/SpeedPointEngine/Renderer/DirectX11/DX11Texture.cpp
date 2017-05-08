@@ -108,6 +108,20 @@ const char* GetWICPixelFormatName(WICPixelFormatGUID fmt)
 	else return "Unknown format";
 }
 
+S_API static ETextureType GetTextureTypeFromDXGIFormat(DXGI_FORMAT fmt)
+{
+	switch (fmt)
+	{
+	case DXGI_FORMAT_R32_FLOAT:
+	case DXGI_FORMAT_R32_TYPELESS:
+		return eTEXTURE_R32_FLOAT;
+	case DXGI_FORMAT_D32_FLOAT: return eTEXTURE_D32_FLOAT;
+	case DXGI_FORMAT_R8G8B8A8_UNORM:
+	default:
+		return eTEXTURE_R8G8B8A8_UNORM;
+	}
+}
+
 
 
 
@@ -677,14 +691,7 @@ S_API SResult DX11Texture::LoadFromFile(const string& specification, const strin
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Determine type
 	
-	switch (loadedTextureFmt)
-	{
-	case DXGI_FORMAT_R32_FLOAT: m_Type = eTEXTURE_R32_FLOAT; break;
-	case DXGI_FORMAT_D32_FLOAT: m_Type = eTEXTURE_D32_FLOAT; break;		
-	case DXGI_FORMAT_R8G8B8A8_UNORM:
-	default:
-		m_Type = eTEXTURE_R8G8B8A8_UNORM; break;
-	}
+	m_Type = GetTextureTypeFromDXGIFormat(loadedTextureFmt);
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Store staged data
@@ -871,6 +878,36 @@ S_API SResult DX11Texture::CreateEmpty(const string& specification, unsigned int
 	}
 
 	delete[] initData.pSysMem;
+
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::D3D11_InitializeFromExistingResource(const string& specification, ID3D11Texture2D* pResource, DXGI_FORMAT format /*= DXGI_FORMAT_UNKNOWN*/)
+{
+	if (!pResource)
+		return CLog::Log(S_ERROR, "DX11Texture::D3D11_InitializeFromExistingResource(): Invalid resource given");
+
+	Clear();
+
+	m_pDXTexture = pResource;
+	m_pDXTexture->AddRef();
+	m_pDXTexture->GetDesc(&m_DXTextureDesc);
+
+	m_Type = GetTextureTypeFromDXGIFormat(m_DXTextureDesc.Format);
+	m_Specification = specification;
+	m_bDynamic = false;
+	m_bStaged = false;
+
+	// Create SRV
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	memset(&srvDesc, 0, sizeof(srvDesc));
+	srvDesc.Format = (format == DXGI_FORMAT_UNKNOWN ? m_DXTextureDesc.Format : format);
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;		// maybe someday use MS?
+	srvDesc.Texture2D.MipLevels = 1;
+
+	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV)))
+		return CLog::Log(S_ERROR, "DX11Texture::D3D11_InitializeFromExistingResource(): Failed create SRV");
 
 	return S_SUCCESS;
 }
@@ -1154,6 +1191,9 @@ S_API void* DX11Texture::GetStagedData()
 S_API void DX11Texture::Clear(void)
 {
 	CLog::Log(S_DEBUG, "Tex(%s)::Clear()", m_Specification.c_str());
+
+	if (m_RefCount > 1)
+		CLog::Log(S_WARN, "Warning: DX11Texture::Clear() called with more than one reference to it!");
 
 	if (IS_VALID_PTR(m_pStagedData))
 		free(m_pStagedData);

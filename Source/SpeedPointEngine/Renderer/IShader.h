@@ -101,6 +101,7 @@ struct S_API IShaderPass
 	virtual void Clear() = 0;
 	virtual SResult Bind() = 0;
 	virtual void OnUnbind() {};
+	virtual void OnEndFrame() {};
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform) = 0;
 };
 

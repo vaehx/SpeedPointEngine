@@ -47,6 +47,35 @@ public:
 
 // TODO: GET THIS OUT OF THE DIRECTX11 IMPLEMENTATION PROJECT AND MOVE IT INTO A MORE GENERAL RENDERER
 
+///////////////////////////////////////////////////////////////////////////////////
+class S_API ShadowmapShaderPass : public IShaderPass
+{
+private:
+	IRenderer* m_pRenderer;
+	IFBO* m_pShadowmap;
+	IShader* m_pShader;
+	ConstantsBufferHelper<SObjectConstants> m_Constants;
+
+public:
+	ShadowmapShaderPass();
+
+	virtual ~ShadowmapShaderPass()
+	{
+		Clear();
+	}
+
+	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void Clear();
+	virtual void OnEndFrame();
+	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+
+	IFBO* GetShadowmap() const;
+};
+
+
+
+
 struct S_API SMatObjConstants : SObjectConstants
 {
 	float matAmbient;		// 4 Byte
@@ -119,27 +148,6 @@ public:
 	const vector<IFBO*>& GetGBuffer() const;
 
 	// IShaderPass:
-	virtual SResult Initialize(IRenderer* pRenderer);
-	virtual void Clear();
-
-	virtual SResult Bind();
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
-};
-
-
-///////////////////////////////////////////////////////////////////////////////////
-class S_API ShadowmapShaderPass : public IShaderPass
-{
-public:
-	ShadowmapShaderPass()
-	{
-	}
-
-	virtual ~ShadowmapShaderPass()
-	{
-		Clear();
-	}
-
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual void Clear();
 

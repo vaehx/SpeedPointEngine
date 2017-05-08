@@ -21,9 +21,6 @@ S_API SResult DX11Renderer::RenderInstanced(const SInstancedRenderDesc& renderDe
 	m_rsDesc.CullMode = D3D11_CULL_NONE;
 	UpdateRasterizerState();
 
-	// Set sampler state
-	SetSamplerState(eTEX_SAMPLE_BILINEAR);
-
 	// Set blend state
 	D3D11_SetBlendState(m_pAlphaTestBlendState);
 

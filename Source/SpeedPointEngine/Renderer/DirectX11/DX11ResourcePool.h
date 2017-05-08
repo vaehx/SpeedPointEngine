@@ -49,7 +49,6 @@ public:
 
 	virtual SResult RemoveInstanceBuffer(IInstanceBufferResource** pInstanceBuffer);
 
-	virtual SResult AddTexture(const string& specification, ITexture** pTex, UINT w, UINT h, UINT miplevels = 1, const ETextureType& ty = eTEXTURE_R8G8B8A8_UNORM, const SColor& clearcolor = SColor());
 	virtual ITexture* GetTexture(const string& specification);
 	virtual ITexture* GetCubeTexture(const string& file);
 	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);

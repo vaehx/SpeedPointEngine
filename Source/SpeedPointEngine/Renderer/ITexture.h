@@ -83,7 +83,7 @@ public:
 	// Summary:
 	//		Initialize an empty texture with specified size and type and fill it with clearcolor.
 	//		If type is a depth map, then clearcolor.r is used to fill.
-	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor) = 0;
+	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels = 1, ETextureType type = eTEXTURE_R8G8B8A8_UNORM, SColor clearcolor = SColor::White()) = 0;
 
 
 	// Status queries

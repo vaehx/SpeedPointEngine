@@ -7,6 +7,7 @@
 
 #include "DX11Shader.h"
 #include "DX11Renderer.h"
+#include "..\IResourcePool.h"
 #include <d3dcompiler.h>
 
 #include <fstream>
@@ -198,7 +199,9 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 		0,
 		&pVSBlob, &pErrorBlob)))
 	{
-		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), "Effect compile error (VS)!", MB_OK | MB_ICONERROR);
+		string msgBoxTitle = "Effect compile error of '";
+		msgBoxTitle += composedEntryName;
+		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), msgBoxTitle.c_str(), MB_OK | MB_ICONERROR);
 		return S_ERROR;
 	}
 
@@ -212,7 +215,9 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 		0,
 		&pPSBlob, &pErrorBlob)))
 	{
-		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), "Effect compile error (PS)!", MB_OK | MB_ICONERROR);
+		string msgBoxTitle = "Effect compile error of '";
+		msgBoxTitle += composedEntryName;
+		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), msgBoxTitle.c_str(), MB_OK | MB_ICONERROR);
 		return S_ERROR;
 	}
 
@@ -326,6 +331,120 @@ S_API SResult DX11Shader::Bind()
 
 
 
+/*
+
+Forward Render pipeline:
+	
+	Shadowmap -> Forward / Particles -> Post-FX -> GUI
+
+
+Deferred Render pipeline:
+	
+	Shadowmap -> GBuffer (Albedo, Normals, Depth) -> Shading -> Forward / Particles -> Post-FX -> GUI
+
+
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				Shadowmap Shader Pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+S_API ShadowmapShaderPass::ShadowmapShaderPass()
+	: m_pShadowmap(0)
+{
+}
+
+S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
+{
+	Clear();
+	m_pRenderer = pRenderer;
+
+	// Create shadowmap FBO
+	// TODO: We probably want to use a lower resolution shadow map than the viewport...
+	SIZE viewportSz = pRenderer->GetTargetViewport()->GetSize();
+
+	m_pShadowmap = pRenderer->CreateRT();
+	m_pShadowmap->Initialize(eFBO_F16, pRenderer, viewportSz.cx, viewportSz.cy);
+	m_pShadowmap->InitializeDepthBufferAsTexture("$shadowmap");
+
+	SSceneConstants* sceneConstants = m_pRenderer->GetSceneConstants();
+	sceneConstants->shadowMapRes[0] = viewportSz.cx;
+	sceneConstants->shadowMapRes[1] = viewportSz.cy;
+
+	// Create shadowmap shader
+	SShaderInfo si;
+	si.entry = "shadowmap";
+	si.filename = pRenderer->GetShaderPath(eSHADERFILE_SHADOW);
+	si.inputLayout = eSHADERINPUTLAYOUT_SIMPLE;
+
+	m_pShader = pRenderer->CreateShader();
+	m_pShader->Load(pRenderer, si);
+
+	// Initialize constants
+	m_Constants.Initialize(pRenderer);
+
+	return S_SUCCESS;
+}
+
+S_API void ShadowmapShaderPass::Clear()
+{
+	if (m_pShadowmap)
+	{
+		m_pShadowmap->Clear();
+		delete m_pShadowmap;
+		m_pShadowmap = 0;
+	}
+
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+		m_pShader = 0;
+	}
+	
+	m_Constants.Clear();
+}
+
+S_API SResult ShadowmapShaderPass::Bind()
+{
+	if (!m_pRenderer)
+		return S_ERROR;
+
+	m_pShader->Bind();
+	m_pRenderer->UnbindTexture(m_pShadowmap->GetDepthBufferTexture());
+	m_pRenderer->BindSingleRT(m_pShadowmap);
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
+
+	return S_SUCCESS;
+}
+
+S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+{
+	SObjectConstants* constants = m_Constants.GetConstants();
+	constants->mtxWorld = transform;
+	m_Constants.Update();
+}
+
+S_API void ShadowmapShaderPass::OnEndFrame()
+{
+	if (m_pShadowmap)
+	{
+		m_pRenderer->UnbindTexture(m_pShadowmap->GetDepthBufferTexture());
+		m_pRenderer->BindSingleRT(m_pShadowmap);
+		m_pRenderer->ClearBoundRTs(false, true);
+	}
+}
+
+S_API IFBO* ShadowmapShaderPass::GetShadowmap() const
+{
+	return m_pShadowmap;
+}
+
+
 
 
 
@@ -420,6 +539,9 @@ S_API SResult ForwardShaderPass::Bind()
 
 S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
 {
+	ShadowmapShaderPass* pShadowmapPass =
+		dynamic_cast<ShadowmapShaderPass*>(m_pRenderer->GetShaderPass(eSHADERPASS_SHADOWMAP));
+
 	if (sr.illumModel == eILLUM_HELPER)
 	{
 		m_pHelperShader->Bind();
@@ -444,9 +566,9 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 		m_pRenderer->BindTexture(sr.textureMap, 0);
 		m_pRenderer->BindTexture(sr.normalMap, 1);
+
+		m_pRenderer->BindDepthBufferAsTexture(pShadowmapPass->GetShadowmap(), 2);
 	}
-
-
 
 	// Set constants
 	SMatObjConstants* constants = m_Constants.GetConstants();
@@ -479,14 +601,18 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	Clear();
 	m_pGBuffer.resize(NUM_GBUFFER_LAYERS);
 
+	string spec = "";
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
 	{
+		spec = "$gbuffer_";
+		spec += std::to_string(i);
+
 		m_pGBuffer[i] = pRenderer->CreateRT();
-		m_pGBuffer[i]->Initialize(eFBO_R8G8B8A8, pRenderer, pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1], true);
+		m_pGBuffer[i]->InitializeAsTexture(eFBO_R8G8B8A8, pRenderer, pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1], spec.c_str());
 
 		// Make the first layer carry the depth buffer
 		if (i == 0)
-			m_pGBuffer[i]->InitializeDepthBuffer();
+			m_pGBuffer[i]->InitializeDepthBufferAsTexture("$gbuffer_depth");
 	}
 
 	SShaderInfo si;
@@ -643,37 +769,6 @@ S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShader
 
 	m_Constants.Update();
 }
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-//				Shadowmap Shader Pass
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
-{
-	return S_SUCCESS;
-}
-
-S_API void ShadowmapShaderPass::Clear()
-{
-
-}
-
-S_API SResult ShadowmapShaderPass::Bind()
-{
-	return S_SUCCESS;
-}
-
-S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
-{
-}
-
-
 
 
 
