@@ -30,12 +30,7 @@ cbuffer EmitterCB : register(b1)
 Texture2D textureMap : register(t0);
 Texture2D depthBuffer : register(t1);
 
-SamplerState PointSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+SamplerState PointSampler : register(s0);
 
 // ---------------------------------------------------------
 

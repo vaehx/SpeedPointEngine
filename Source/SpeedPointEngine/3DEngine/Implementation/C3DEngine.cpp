@@ -327,7 +327,6 @@ S_API void C3DEngine::CreateHUDRenderDesc()
 	m_HUDRenderDesc.renderPipeline = eRENDER_FORWARD;	
 	m_HUDRenderDesc.nSubsets = 1;
 	m_HUDRenderDesc.pSubsets = new SRenderSubset[1];
-	m_HUDRenderDesc.textureSampling = eTEX_SAMPLE_POINT; // to avoid incorrect alpha test due to "mixed" edges
 
 	SRenderSubset& subset = m_HUDRenderDesc.pSubsets[0];
 	subset.bOnce = false;
@@ -548,6 +547,8 @@ S_API void C3DEngine::RenderHUD()
 
 S_API void C3DEngine::RenderDebugTexture()
 {
+	return;
+
 	m_pRenderer->BindShaderPass(eSHADERPASS_GUI);
 
 	ITexture* pShadowmap = m_pRenderer->GetResourcePool()->GetTexture("$shadowmap");

@@ -24,28 +24,14 @@ cbuffer ObjectCB : register(b1)
     float3 matEmissive;
 }
 float4x4 mtxWorldViewProj;
+
 Texture2D textureMap : register(t0);
 Texture2D normalMap : register(t1);
 Texture2D shadowMap : register(t2);
-SamplerState PointSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
-SamplerState LinearSampler
-{
-    Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
-SamplerState ShadowMapSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = BORDER;
-	AddressV = BORDER;
-	BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-};
+
+SamplerState PointSampler : register(s0);
+SamplerState LinearSampler : register(s1);
+SamplerComparisonState ShadowMapSampler : register(s2);
 
 static float PI = 3.14159265358f;
 
@@ -160,6 +146,26 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
     return float3(intensityOut, intensityOut, intensityOut);
 }
 
+
+float CalculateShadowMapFactor(float3 WorldPos)
+{
+	float4 sunPos = mul(mtxSunViewProj, float4(WorldPos, 1.0f));
+	sunPos /= sunPos.w;
+	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
+	sunPos.y = 1.0f - (sunPos.y + 1.0f) * 0.5f;
+	sunPos.z = saturate(sunPos.z - 0.001f);
+
+	float2 smTCOffset = 1.0f / screenRes;
+
+	float avgSample = 0.0f;
+	for (int x = -2; x <= 2; ++x)
+		for (int y = -2; y <= 2; ++y)
+			avgSample += saturate(shadowMap.SampleCmpLevelZero(ShadowMapSampler, sunPos.xy + float2(x, y) * smTCOffset, sunPos.z));
+
+	return (avgSample / 16.0f);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -170,9 +176,6 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
 PS_OUTPUT PS_forward(PS_INPUT IN)
 {
     PS_OUTPUT OUT;
-    //OUT.Color = textureMap.Sample(PointSampler, IN.TexCoord);
-    //return OUT;
-
 
     // calc binormal. Everything in World space!
     float3 normal = IN.Normal;
@@ -205,19 +208,8 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
     float lambertBRDF = 1 / PI;
 
 	float3 irradiance = float3(1.0f, 1.0f, 1.0f) * 4.0f;
+	irradiance *= CalculateShadowMapFactor(IN.WorldPos);
 	float3 ambient = float3(1.0f, 1.0f, 1.0f) * 0.2f;
-
-	// Shadowing
-	float4 sunPos = mul(mtxSunViewProj, float4(IN.WorldPos, 1.0f));
-	sunPos /= sunPos.w;
-	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
-	sunPos.y = -(sunPos.y + 1.0f) * 0.5f;
-	float shadowMapSample = shadowMap.Sample(ShadowMapSampler, sunPos.xy).r;
-	float shadowMapFactor = 1.0f;
-	if (saturate(sunPos.z - 0.001f) > shadowMapSample)
-		shadowMapFactor = 0.0f;
-
-	irradiance *= shadowMapFactor;
 
     float3 LOut = IN.Color * saturate(albedo * (lambertBRDF * saturate(dot(normal, L)) * irradiance + ambient));
 

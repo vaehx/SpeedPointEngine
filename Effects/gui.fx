@@ -23,12 +23,7 @@ cbuffer ObjectCB : register(b1)
 }
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
-SamplerState PointSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+SamplerState PointSampler : register(s0);
 
 /////////////////////////////////////////////////////////////////////////
 

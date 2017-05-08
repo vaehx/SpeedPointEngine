@@ -144,6 +144,13 @@ enum S_API EAntiAliasingCount
 	eAACOUNT_16 = 16
 };
 
+enum S_API ETextureSamplingType
+{
+	eTEXTURE_SAMPLING_POINT,
+	eTEXTURE_SAMPLING_BILINEAR,
+	eTEXTURE_SAMPLING_SHADOWING, // comparative sampling for shadowmapping
+};
+
 /*
 enum EShaderType
 {

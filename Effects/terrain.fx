@@ -33,20 +33,9 @@ Texture2D colorMap : register(t1);
 Texture2D detailMap : register(t2);
 Texture2D alphaMask : register(t3);
 Texture2D shadowMap : register(t4);
-SamplerState PointSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
-SamplerComparisonState ShadowMapSamplerState
-{
-	Filter = FILTER_COMPARISON_MIN_MAG_MIP_POINT;
-	ComparisonFunc = GREATER;
-	AddressU = MIRROR;
-	AddressV = MIRROR;
-	//BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f);	
-};
+
+SamplerState PointSampler : register(s0);
+SamplerComparisonState ShadowMapSampler : register(s2);
 
 // ---------------------------------------------------------
 
@@ -185,25 +174,17 @@ float CalculateShadowMapFactor(float3 WorldPos)
 	float4 sunPos = mul(mtxSunViewProj, float4(WorldPos, 1.0f));
 	sunPos /= sunPos.w;
 	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
-	sunPos.y = -(sunPos.y + 1.0f) * 0.5f;
+	sunPos.y = 1.0f - (sunPos.y + 1.0f) * 0.5f;
+	sunPos.z = saturate(sunPos.z - 0.001f);
 
 	float2 smTCOffset = 1.0f / screenRes;
 
 	float avgSample = 0.0f;
-	float testZ = saturate(sunPos.z - 0.001f);
-	avgSample = shadowMap.SampleCmpLevelZero(ShadowMapSamplerState, sunPos.xy, -sunPos.z);
-	/*for (int x = -2; x <= 2; ++x)
-	{
+	for (int x = -2; x <= 2; ++x)
 		for (int y = -2; y <= 2; ++y)
-		{
-			if (shadowMap.SampleCmpLevelZero(ShadowMapSamplerState, sunPos.xy + float2(x, y) * smTCOffset, testZ))
-				//avgSample += (testZ <= smSample) * 1.0f;
-				avgSample += 1.0f;
-		}
-	}*/
+			avgSample += saturate(shadowMap.SampleCmpLevelZero(ShadowMapSampler, sunPos.xy + float2(x, y) * smTCOffset, sunPos.z));
 
-	return avgSample;
-	//return (avgSample / 16.0f);
+	return (avgSample / 16.0f);
 }
 
 
@@ -228,7 +209,7 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
     float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
 
-    float3 coloredDiffuse = saturate(BlendOverlay(sampleDM, sampleCM));
+	float3 coloredDiffuse = saturate(BlendOverlay(sampleDM, sampleCM));
     float4 blendedDiffuse = lerp(float4(sampleCM, 0), float4(coloredDiffuse.rgb, 0), terrainFadeFactor);
 
     // Sample vtx Height
@@ -237,8 +218,8 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     // Light Dir is assumed to be OUTGING directed
     float3 lightDir = normalize(sunPos.xyz);
 
-    float monoLightIntensity = 4.0f;
-    float4 lightIntensity = float4(monoLightIntensity, monoLightIntensity, monoLightIntensity, 0.0f);
+    float monoLightIntensity = 2.0f;
+    float4 lightIntensity = monoLightIntensity * float4(1.0f, 0.95f, 0.95f, 0.0f);
 	lightIntensity *= CalculateShadowMapFactor(IN.WorldPos);
 
     float monoAmbient = 0.40f;

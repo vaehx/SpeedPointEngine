@@ -199,7 +199,9 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 		0,
 		&pVSBlob, &pErrorBlob)))
 	{
-		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), "Effect compile error (VS)!", MB_OK | MB_ICONERROR);
+		string msgBoxTitle = "Effect compile error of '";
+		msgBoxTitle += composedEntryName;
+		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), msgBoxTitle.c_str(), MB_OK | MB_ICONERROR);
 		return S_ERROR;
 	}
 
@@ -213,7 +215,9 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 		0,
 		&pPSBlob, &pErrorBlob)))
 	{
-		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), "Effect compile error (PS)!", MB_OK | MB_ICONERROR);
+		string msgBoxTitle = "Effect compile error of '";
+		msgBoxTitle += composedEntryName;
+		MessageBox(0, (CHAR*)pErrorBlob->GetBufferPointer(), msgBoxTitle.c_str(), MB_OK | MB_ICONERROR);
 		return S_ERROR;
 	}
 

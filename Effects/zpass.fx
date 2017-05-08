@@ -26,18 +26,9 @@ cbuffer ObjectCB : register(b1)
 float4x4 mtxWorldViewProj;
 Texture2D textureMap : register(t0);
 Texture2D normalMap : register(t1);
-SamplerState PointSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
-SamplerState LinearSampler
-{
-    Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+
+SamplerState PointSampler : register(s0);
+SamplerState LinearSampler : register(s1);
 
 static float PI = 3.14159265358f;
 

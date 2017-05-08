@@ -59,6 +59,8 @@ enum EDepthTestFunction
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SpeedPoint DirectX 11 Renderer Implementation
 
+#define MAX_BOUND_SHADER_RESOURCES 8
+
 class S_API DX11Renderer : public IRenderer
 {
 private:
@@ -80,12 +82,12 @@ private:
 	D3D11_RASTERIZER_DESC m_rsDesc;	
 	ID3D11RasterizerState* m_pRSState;
 
-	// Sampler state
-	ETextureSampling m_SetSamplerState;
-	ID3D11SamplerState* m_pDefaultSamplerState;	// SamplerStates mainly set in shader, we need a default one though
+	// Sampler states
+	ID3D11SamplerState* m_pBilinearSamplerState;
 	ID3D11SamplerState* m_pPointSamplerState;
+	ID3D11SamplerState* m_pShadowSamplerState;	
 
-	// Blend state
+	// Blend states
 	D3D11_BLEND_DESC m_DefBlendDesc;
 	ID3D11BlendState* m_pDefBlendState;
 
@@ -94,7 +96,7 @@ private:
 
 	ID3D11BlendState* m_pSetBlendState;
 
-	// Depth Stencil state
+	// Depth Stencil states
 	D3D11_DEPTH_STENCIL_DESC m_depthStencilDesc;
 	ID3D11DepthStencilState* m_pDepthStencilState;
 
@@ -125,9 +127,8 @@ private:
 	EPrimitiveType m_SetPrimitiveType;
 	EShaderPassType m_EnabledShaderPass;
 
-	// TODO: Eliminate the static 8 there
-	ID3D11ShaderResourceView* m_BoundVSResources[8];
-	ID3D11ShaderResourceView* m_BoundPSResources[8];
+	ID3D11ShaderResourceView* m_BoundVSResources[MAX_BOUND_SHADER_RESOURCES];
+	ID3D11ShaderResourceView* m_BoundPSResources[MAX_BOUND_SHADER_RESOURCES];
 	unsigned int m_iMaxBoundVSResource;
 	unsigned int m_iMaxBoundPSResource;
 
@@ -184,8 +185,6 @@ private:
 
 	// Returns the lvl which the srv is bound on or -1 if it is not bound
 	int IsBoundAsTexture(ID3D11ShaderResourceView* srv);
-
-	void SetSamplerState(ETextureSampling sampling);
 
 	SResult DrawTerrainSubset(const STerrainDrawCallDesc& dcd);
 	SResult DrawSubsets(const SRenderDesc& renderDesc);

@@ -24,13 +24,10 @@ cbuffer IllumCB : register(b1)
     float3 matEmissive;
 }
 float4x4 mtxWorldViewProj;
+
 TextureCube textureMap : register(t0);
-SamplerState PointSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+
+SamplerState PointSampler : register(s0);
 
 static float PI = 3.14159265358f;
 
@@ -97,7 +94,6 @@ PS_OUTPUT PS_skybox(PS_INPUT IN)
     float4 blue = float4(0.6016f, 0.746f, 0.7539f, 1.0f);
     float4 yellow = float4(0.9218f, 0.9063f, 0.5156f, 1.0f) * 0.50f;
     OUT.Color = blue * (1.3f + 0.25f * intensity) + pow(saturate(intensity), 50.0f) * yellow;
-	OUT.Color = float4(0.05f, 0.05f, 0.05f, 1.0f);
 
 //	OUT.Color = float4(intensity, intensity, intensity, 1.0f);
 //	OUT.Color = float4(1.0f, 0, 0, 1.0f);

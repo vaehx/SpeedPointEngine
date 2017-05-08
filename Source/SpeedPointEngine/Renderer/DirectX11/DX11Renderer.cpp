@@ -50,8 +50,9 @@ m_pTerrainBlendState(0),
 m_pSetBlendState(0),
 m_pDepthStencilState(0),
 m_pTerrainDepthState(0),
-m_pDefaultSamplerState(0),
+m_pBilinearSamplerState(0),
 m_pPointSamplerState(0),
+m_pShadowSamplerState(0),
 m_pBoundCB(nullptr),
 m_bInScene(false),
 m_bDumpFrame(false),
@@ -341,34 +342,24 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	m_pD3DDeviceContext->RSSetState(m_pRSState);
 
 
-	// Setup default Sampler State
+	// Setup bilinear Sampler State
 	// NOTE: Currently using same default sampler state for Texturemap and Normalmap!
-	D3D11_SAMPLER_DESC defSamplerDesc;
-	defSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	defSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	defSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	defSamplerDesc.MinLOD = -FLT_MAX;
-	defSamplerDesc.MaxLOD = FLT_MAX;
-	defSamplerDesc.MipLODBias = 0.0f;
-	defSamplerDesc.MaxAnisotropy = 1;
-	defSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	defSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	defSamplerDesc.BorderColor[0] = 0;
-	defSamplerDesc.BorderColor[1] = 0;
-	defSamplerDesc.BorderColor[2] = 0;
-	defSamplerDesc.BorderColor[3] = 0;
+	D3D11_SAMPLER_DESC bilinearSamplerDesc;
+	bilinearSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	bilinearSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	bilinearSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	bilinearSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	bilinearSamplerDesc.MinLOD = -FLT_MAX;
+	bilinearSamplerDesc.MaxLOD = FLT_MAX;
+	bilinearSamplerDesc.MipLODBias = 0.0f;
+	bilinearSamplerDesc.MaxAnisotropy = 1;	
 
-	if (Failure(m_pD3DDevice->CreateSamplerState(&defSamplerDesc, &m_pDefaultSamplerState)))
-		return CLog::Log(S_ERROR, "Failed create default Sampler State!");
-
-	m_pD3DDeviceContext->PSSetSamplers(0, 1, &m_pDefaultSamplerState);
-	m_pD3DDeviceContext->PSSetSamplers(1, 1, &m_pDefaultSamplerState);
-
-	m_SetSamplerState = eTEX_SAMPLE_BILINEAR;
-
+	if (Failure(m_pD3DDevice->CreateSamplerState(&bilinearSamplerDesc, &m_pBilinearSamplerState)))
+		return CLog::Log(S_ERROR, "Failed create bilinear sampler state!");
 
 	// Nearest-Neighbor filtering Sampler state (used for skybox e.g.)
 	D3D11_SAMPLER_DESC pointSamplerDesc;
+	pointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	pointSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	pointSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	pointSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -376,15 +367,38 @@ S_API SResult DX11Renderer::SetRenderStateDefaults(void)
 	pointSamplerDesc.MaxLOD = FLT_MAX;
 	pointSamplerDesc.MipLODBias = 0.0f;
 	pointSamplerDesc.MaxAnisotropy = 1;
-	pointSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	pointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	pointSamplerDesc.BorderColor[0] = 0;
-	pointSamplerDesc.BorderColor[1] = 0;
-	pointSamplerDesc.BorderColor[2] = 0;
-	pointSamplerDesc.BorderColor[3] = 0;
 
 	if (Failure(m_pD3DDevice->CreateSamplerState(&pointSamplerDesc, &m_pPointSamplerState)))
 		return CLog::Log(S_ERROR, "Failed create point sampler state!");
+
+	// Shadowing sampler state
+	D3D11_SAMPLER_DESC shadowSamplerDesc;
+	shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL; // sample <= projCoord.z
+	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	for (int i = 0; i < 4; ++i)
+		shadowSamplerDesc.BorderColor[i] = 1.0f; // max depth
+	shadowSamplerDesc.MinLOD = -FLT_MAX;
+	shadowSamplerDesc.MaxLOD = FLT_MAX;
+	shadowSamplerDesc.MipLODBias = 0.0f;
+	shadowSamplerDesc.MaxAnisotropy = 1;
+
+	if (Failure(m_pD3DDevice->CreateSamplerState(&shadowSamplerDesc, &m_pShadowSamplerState)))
+		return CLog::Log(S_ERROR, "Failed create shadow sampler state!");
+
+
+	// Set samplers
+	unsigned int numSamplerStates = 3;
+	ID3D11SamplerState* samplerStates[] = 
+	{
+		/*s0*/ m_pPointSamplerState,
+		/*s1*/ m_pBilinearSamplerState,
+		/*s2*/ m_pShadowSamplerState
+	};	
+
+	m_pD3DDeviceContext->PSSetSamplers(0, numSamplerStates, samplerStates);
 
 	return S_SUCCESS;
 }
@@ -807,8 +821,9 @@ S_API SResult DX11Renderer::Shutdown(void)
 	SP_SAFE_RELEASE(m_pDefBlendState);
 	SP_SAFE_RELEASE(m_pAlphaTestBlendState);
 	SP_SAFE_RELEASE(m_pTerrainBlendState);
-	SP_SAFE_RELEASE(m_pDefaultSamplerState);
+	SP_SAFE_RELEASE(m_pBilinearSamplerState);
 	SP_SAFE_RELEASE(m_pPointSamplerState);
+	SP_SAFE_RELEASE(m_pShadowSamplerState);
 	SP_SAFE_RELEASE(m_pDepthStencilState);
 	SP_SAFE_RELEASE(m_pTerrainDepthState);
 	SP_SAFE_RELEASE(m_pRSState);
@@ -1104,6 +1119,9 @@ S_API SResult DX11Renderer::BindTexture(ITexture* pTex, usint32 lvl /*=0*/)
 {
 	SP_ASSERTR(IsInited(), S_NOTINIT);
 
+	if (lvl > MAX_BOUND_SHADER_RESOURCES)
+		return S_INVALIDPARAM;
+
 	if (!pTex)
 		pTex = GetDummyTexture();
 
@@ -1212,6 +1230,8 @@ S_API ITexture* DX11Renderer::GetDummyTexture() const
 {
 	return (ITexture*)&m_DummyTexture;
 }
+
+
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::CreateAdditionalViewport(IViewport** pViewport, const SViewportDescription& desc)
@@ -1350,15 +1370,12 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 		return S_INVALIDSTAGE;
 	}
 
-
 	// Skip render desc without subsets
 	if (renderDesc.nSubsets == 0 || !IS_VALID_PTR(renderDesc.pSubsets))
 	{
 		FrameDump("Skipping Render: No subsets");
 		return S_SUCCESS;
 	}
-
-
 
 	// Set correct depth stencil state
 	EnableDepthTest(renderDesc.bDepthStencilEnable);
@@ -1387,22 +1404,11 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 	}
 
 
-
 	// In case something else was bound to the slot before...
 	BindSceneCB(m_SceneConstants.GetCB());
 
 
-
-	// Set correct samplers
-	SetSamplerState(renderDesc.textureSampling);
-
-
-
-
-
-
 	DrawSubsets(renderDesc);
-
 
 
 	// Restore scene constants if necessary
@@ -1412,8 +1418,6 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 		memcpy(pSceneConstants, &origSceneConstants, sizeof(SSceneConstants));
 		m_SceneConstants.Update();
 	}
-
-
 
 	return S_SUCCESS;
 }
@@ -1463,7 +1467,7 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 
 		// ~~
 		// TODO: Avoid referencing a shader pass here
-		//			- probably fixed with deferred rendering!
+		//			- probably fixed with deferred rendering, because the shadowmap is then only bound in shading pass.
 		ShadowmapShaderPass* pShadowmapPass = dynamic_cast<ShadowmapShaderPass*>(GetShaderPass(eSHADERPASS_SHADOWMAP));
 		if (pShadowmapPass)
 			BindDepthBufferAsTexture(pShadowmapPass->GetShadowmap(), 4);
@@ -2221,30 +2225,6 @@ S_API void DX11Renderer::SetDepthTestFunction(EDepthTestFunction depthTestFunc)
 		m_depthStencilDesc.DepthFunc = d3dFunc;
 		UpdateDepthStencilState();
 	}
-}
-
-
-// -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::SetSamplerState(ETextureSampling sampling)
-{
-	if (m_SetSamplerState == sampling)
-		return;
-
-	ID3D11SamplerState* pSamplerState = 0;
-	switch (sampling)
-	{
-	case eTEX_SAMPLE_BILINEAR:
-		pSamplerState = m_pDefaultSamplerState;
-		break;
-	case eTEX_SAMPLE_POINT:
-		pSamplerState = m_pPointSamplerState;
-		break;
-	default:
-		return;
-	}
-
-	m_pD3DDeviceContext->PSSetSamplers(0, 1, &pSamplerState);
-	m_SetSamplerState = sampling;
 }
 
 // -----------------------------------------------------------------------------------------------
