@@ -37,8 +37,7 @@ struct S_API IEntity;
 struct S_API IEntityReceipt;
 struct S_API IComponent;
 struct S_API IMaterial;
-struct S_API SAxisAlignedBoundBox;
-typedef struct S_API SAxisAlignedBoundBox AABB;
+struct S_API AABB;
 struct S_API IGameEngine;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -855,7 +855,6 @@ S_API SResult DX11Renderer::Shutdown(void)
 #endif
 
 	m_FontRenderSchedule.Clear();
-	m_RenderSchedule.Clear();
 
 	return S_SUCCESS;
 }
@@ -1285,21 +1284,6 @@ S_API SResult DX11Renderer::BeginScene(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SRenderSlot* DX11Renderer::GetRenderSlot()
-{
-	if (!m_bInScene)
-		return 0;
-
-	return m_RenderSchedule.Get();
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::ReleaseRenderSlot(SRenderSlot** pSlot)
-{
-	m_RenderSchedule.Release(pSlot);
-}
-
-// -----------------------------------------------------------------------------------------------
 S_API STerrainRenderDesc* DX11Renderer::GetTerrainRenderDesc()
 {
 	return &m_TerrainRenderDesc;
@@ -1570,55 +1554,12 @@ S_API SResult DX11Renderer::RenderDeferredLight(const SLightDesc& light)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//		UNLEASH RENDER SCHEDULE
+//		DRAW
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-S_API SResult DX11Renderer::UnleashRenderSchedule()
-{
-	return S_SUCCESS;
-
-
-
-
-
-
-
-	if (m_RenderSchedule.GetUsedObjectCount() == 0)
-	{
-		FrameDump("Render schedule empty in UnleashRenderSchedule()");
-		return S_SUCCESS;
-	}
-
-	FrameDump("Unleashing render schedule now...");
-	FrameDump((unsigned int)m_RenderSchedule.GetUsedObjectCount(), "RenderScheduleSize");
-
-
-	bool bDepthEnableBackup = (m_depthStencilDesc.DepthEnable ? true : false);
-
-	unsigned int iRSIterator;
-	SRenderSlot* pSlot = m_RenderSchedule.GetFirstUsedObject(iRSIterator);
-	while (pSlot)
-	{
-		Render(pSlot->renderDesc);
-
-
-		// Remove RenderSlot item if it should not be kept anymore
-		if (!pSlot->keep)
-		{
-			m_RenderSchedule.Release(&pSlot);
-		}
-
-		pSlot = m_RenderSchedule.GetNextUsedObject(iRSIterator);
-	}
-
-	// Restore backed up depth stencil state
-	EnableDepthTest(bDepthEnableBackup);
-
-	return S_SUCCESS;
-}
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
@@ -1730,25 +1671,6 @@ S_API SResult DX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
 
 	return S_SUCCESS;
 }
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::DrawDeferred(const SDrawCallDesc& desc)
-{
-	return S_ERROR; // not supported yet
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::DrawDeferredLighting()
-{
-	return S_ERROR; // not supported yet
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::MergeDeferred()
-{
-	return S_ERROR; // not supported yet
-}
-
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::UnleashFontRenderSchedule()
@@ -1948,6 +1870,12 @@ S_API SSceneConstants* DX11Renderer::GetSceneConstants() const
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::UpdateSceneConstants()
+{
+	m_SceneConstants.Update();
+}
+
+// -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::D3D11_CreateConstantsBuffer(ID3D11Buffer** ppCB, usint32 byteSize)
 {
 	SP_ASSERTR(m_pD3DDevice, S_NOTINIT);
@@ -2006,70 +1934,12 @@ S_API void DX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::CalculateSunViewProj(Mat44* pMtxSunView, Mat44* pMtxSunProj)
-{
-	const SSceneConstants* sceneConstants = m_SceneConstants.GetConstants();
-
-	// Recalculate sun light viewProj matrix
-	ViewFrustum frustum(sceneConstants->mtxView, sceneConstants->mtxProj);
-	Vec3f corners[8]; // in view-space of camera
-	frustum.GetCorners(corners, true);
-	float nearZ = frustum.GetNearZ();
-
-	const float maxCamZ = -35.0f;
-	const Vec3f dirToSunNormalized = Vec3Normalize(sceneConstants->sunPosition.xyz());
-
-	Mat44 mtxViewInv = SMatrixInvert(sceneConstants->mtxView);
-	SMatrixTranspose(&mtxViewInv);
-
-	Mat44 mtxSunView;	
-	SPMatrixLookAtRH(&mtxSunView, dirToSunNormalized, Vec3f(0), Vec3f(0, 1.0f, 0));
-	SMatrixTranspose(&mtxSunView);
-
-	AABB aabb; // in view-space of light
-	aabb.Reset();
-	Vec3f cv;
-	for (int i = 0; i < 8; ++i)
-	{
-		if (i >= 4)
-		{
-			// Limit corner to a maximum z value
-			if (corners[i].z < maxCamZ)
-			{
-				cv = corners[i] - corners[i - 4];
-				corners[i] = corners[i - 4] + (maxCamZ / cv.z) * cv;
-			}
-		}
-
-		aabb.AddPoint((mtxSunView * (mtxViewInv * Vec4f(corners[i], 1.0f))).xyz());
-	}
-
-	Mat44 mtxSunViewInv = SMatrixInvert(mtxSunView);
-	Vec3f fittedSunPosVS = (Vec3f(aabb.vMin.x, aabb.vMin.y, aabb.vMax.z) + Vec3f(aabb.vMax.x, aabb.vMax.y, aabb.vMax.z)) * 0.5f;
-	Vec3f fittedSunPos = (mtxSunViewInv * Vec4f(fittedSunPosVS, 1.0f)).xyz();
-
-	SPMatrixLookAtRH(&mtxSunView, fittedSunPos, fittedSunPos - dirToSunNormalized, Vec3f(0, 1.0f, 0));
-
-	Mat44 mtxSunProj;
-	SPMatrixOrthoRH(&mtxSunProj, aabb.vMax.x - aabb.vMin.x, aabb.vMax.y - aabb.vMin.y, -1.0f, (aabb.vMax.z - aabb.vMin.z));
-
-	*pMtxSunView = mtxSunView;
-	*pMtxSunProj = mtxSunProj;
-}
-
 S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
 {
 	SSceneConstants* pConstants = m_SceneConstants.GetConstants();
 	pConstants->mtxView = mtxView;
 	pConstants->mtxProj = mtxProj;
 	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
-
-	Mat44 mtxSunView, mtxSunProj;
-	CalculateSunViewProj(&mtxSunView, &mtxSunProj);
-
-	pConstants->mtxSunViewProj = mtxSunView * (mtxSunProj);
-
-
 	m_SceneConstants.Update();
 }
 
@@ -2080,14 +1950,6 @@ S_API void DX11Renderer::SetEyePosition(const Vec3f& eyePos)
 
 	//FrameDump(m_ObjectConstants.mtxViewProj, "m_ObjectConstants.mtxViewProj");
 
-	m_SceneConstants.Update();
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::SetSunPosition(const Vec3f& pos)
-{
-	SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
-	pSceneConstants->sunPosition = float4(pos.x, pos.y, pos.z);
 	m_SceneConstants.Update();
 }
 

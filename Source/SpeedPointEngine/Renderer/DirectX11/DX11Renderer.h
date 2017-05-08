@@ -153,9 +153,6 @@ private:
 	bool m_bInScene;
 
 
-	// Render Schedule	
-	ChunkedObjectPool<SRenderSlot, 50> m_RenderSchedule;	
-	
 	STerrainRenderDesc m_TerrainRenderDesc;
 	D3D11_BLEND_DESC m_TerrainBlendDesc;	
 	ID3D11BlendState* m_pTerrainBlendState;
@@ -275,14 +272,7 @@ public:
 
 	void D3D11_SetBlendState(ID3D11BlendState* pBlendState, const float blendFactor[4] = 0, UINT sampleMask = 0xffffffff);
 
-
-	// Draw all things schedule in the render schedule
-	SResult UnleashRenderSchedule();
-
 	SResult UnleashFontRenderSchedule();
-
-
-	void CalculateSunViewProj(Mat44* pMtxSunView, Mat44* pMtxSunProj);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Derived:
@@ -366,26 +356,15 @@ public:
 	virtual IViewport* GetDefaultViewport(void);	
 
 
-	virtual IConstantsBuffer* CreateConstantsBuffer() const;
-	
+	virtual IConstantsBuffer* CreateConstantsBuffer() const;	
 	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false);
-
 	virtual SSceneConstants* GetSceneConstants() const;
-	virtual void SetSunPosition(const Vec3f& pos);
-
+	virtual void UpdateSceneConstants();
 	
-	virtual SRenderSlot* GetRenderSlot();
-	virtual void ReleaseRenderSlot(SRenderSlot** pSlot);
 	virtual STerrainRenderDesc* GetTerrainRenderDesc();
 
 	virtual SFontRenderSlot* GetFontRenderSlot();
 	virtual void ReleaseFontRenderSlot(SFontRenderSlot** pFRS);
-
-	// Summary:
-	//	Draws the given geometry desc to the GBuffer and its depth buffer
-	virtual SResult DrawDeferred(const SDrawCallDesc& desc);
-	virtual SResult DrawDeferredLighting();
-	virtual SResult MergeDeferred();
 
 	// Summary:
 	//	Draws the given geometry desc directly to the back buffer and the depth buffer

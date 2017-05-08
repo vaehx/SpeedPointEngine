@@ -190,9 +190,17 @@ S_API unsigned int C3DEngine::CollectVisibleObjects(const SCamera* pCamera)
 	// PARTICLES
 	m_ParticleSystem.Update(0.0f);
 
-	// RENDER OBJECTS
+	// MESHES
+	m_GlobalAABB.Reset();
+	unsigned int itMesh = 0;
+	CRenderMesh* pMesh = m_pMeshes->GetFirst(itMesh);
+	while (pMesh)
+	{
+		AABB aabb = pMesh->GetAABB().Transform(pMesh->GetRenderDesc()->transform);
+		m_GlobalAABB.AddAABB(aabb);
 
-	//TODO: Determine which render objects are visible!
+		pMesh = m_pMeshes->GetNext(itMesh);
+	}
 
 	ProfilingSystem::EndSection(budgetTimer);
 	return 0;
@@ -369,6 +377,78 @@ S_API void C3DEngine::RemoveHUDElement(SHUDElement** pHUDElement)
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::SetSunPosition(const Vec3f& sunPos)
+{
+	m_pRenderer->GetSceneConstants()->sunPosition = Vec4f(sunPos, 1.0f);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::UpdateSunViewProj()
+{
+	SSceneConstants* pSceneConstants = m_pRenderer->GetSceneConstants();
+
+	m_pRenderer->GetTargetViewport()->RecalculateCameraViewMatrix();
+	const Mat44& mtxView = m_pRenderer->GetTargetViewport()->GetCameraViewMatrix();
+	const Mat44& mtxProj = m_pRenderer->GetTargetViewport()->GetProjectionMatrix();
+
+	const float maxCamZ = -35.0f;
+	const Vec3f dirToSunNormalized = Vec3Normalize(pSceneConstants->sunPosition.xyz());
+
+	ViewFrustum frustum(mtxView, mtxProj); // camera view frustum
+	Vec3f camFrustumCorners[8]; // in view-space of camera
+	frustum.GetCorners(camFrustumCorners, true);
+	float nearZ = camFrustumCorners[0].z;
+	float farZ = camFrustumCorners[4].z;	
+	float farZScale = (farZ < maxCamZ) ? (maxCamZ / (farZ - nearZ)) : 1.0f; // Limit maximum z
+
+	Vec3f globalAABBCorners[8];
+	m_GlobalAABB.GetCorners(globalAABBCorners);
+
+	Mat44 mtxViewInv = SMatrixInvert(mtxView);
+	SMatrixTranspose(&mtxViewInv);
+
+	Mat44 mtxSunView;
+	SPMatrixLookAtRH(&mtxSunView, dirToSunNormalized, Vec3f(0), Vec3f(0, 1.0f, 0));
+	SMatrixTranspose(&mtxSunView);
+
+	AABB aabb; // in view-space of light
+	aabb.Reset();
+	for (int i = 0; i < 8; ++i)
+	{
+		// Cam frustum corner
+		if (i >= 4)
+			camFrustumCorners[i] = camFrustumCorners[i - 4] + farZScale * (camFrustumCorners[i] - camFrustumCorners[i - 4]);
+
+		aabb.AddPoint((mtxSunView * (mtxViewInv * Vec4f(camFrustumCorners[i], 1.0f))).xyz());
+
+		// Global aabb corner
+		float z =
+			mtxSunView._31 * globalAABBCorners[i].x +
+			mtxSunView._32 * globalAABBCorners[i].y +
+			mtxSunView._33 * globalAABBCorners[i].z +
+			mtxSunView._34;
+		Vec3f p = (mtxSunView * Vec4f(globalAABBCorners[i], 1.0f)).xyz();
+
+		if (z > aabb.vMax.z)
+			aabb.vMax.z = z;
+	}
+
+	Mat44 mtxSunViewInv = SMatrixInvert(mtxSunView);
+	Vec3f fittedSunPosVS = (Vec3f(aabb.vMin.x, aabb.vMin.y, aabb.vMax.z) + Vec3f(aabb.vMax.x, aabb.vMax.y, aabb.vMax.z)) * 0.5f;
+	Vec3f fittedSunPos = (mtxSunViewInv * Vec4f(fittedSunPosVS, 1.0f)).xyz();
+
+	SPMatrixLookAtRH(&mtxSunView, fittedSunPos, fittedSunPos - dirToSunNormalized, Vec3f(0, 1.0f, 0));
+
+	Mat44 mtxSunProj;
+	SPMatrixOrthoRH(&mtxSunProj, aabb.vMax.x - aabb.vMin.x, aabb.vMax.y - aabb.vMin.y, 0, (aabb.vMax.z - aabb.vMin.z));
+
+	pSceneConstants->mtxSunViewProj = mtxSunView * mtxSunProj;
+
+	m_pRenderer->UpdateSceneConstants();
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -376,12 +456,13 @@ S_API void C3DEngine::RenderCollected()
 {
 	unsigned int budgetTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected()");
 	{
+		UpdateSunViewProj();
+
+		
 		// Shadowmap Prepass
 		// TODO: Only render objects that are inside the ViewFrustum !!!!!
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADOWMAP);
 		RenderMeshes();
-
-
 
 		// Skybox
 		if (IS_VALID_PTR(m_pSkyBox))
@@ -547,8 +628,6 @@ S_API void C3DEngine::RenderHUD()
 
 S_API void C3DEngine::RenderDebugTexture()
 {
-	return;
-
 	m_pRenderer->BindShaderPass(eSHADERPASS_GUI);
 
 	ITexture* pShadowmap = m_pRenderer->GetResourcePool()->GetTexture("$shadowmap");

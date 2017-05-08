@@ -40,19 +40,22 @@ S_API void ViewFrustum::GetEnclosingPlanes(SPlane _planes[4])
 		bEnclosingPlanesCalculated = true;
 	}
 
+	if (!_planes)
+		return;
+
 	for (int i = 0; i < 4; ++i)
 		_planes[i] = planes[i];
 }
 
 S_API float ViewFrustum::GetNearZ()
 {
-	GetCorners(corners);
+	GetCorners(0);
 	return corners[0].z;
 }
 
 S_API float ViewFrustum::GetFarZ()
 {
-	GetCorners(corners);
+	GetCorners(0);
 	return corners[4].z;
 }
 
@@ -93,6 +96,9 @@ S_API void ViewFrustum::CalculateCorners()
 S_API void ViewFrustum::GetCorners(Vec3f _corners[8], bool viewSpace /*= false*/)
 {
 	CalculateCorners();
+
+	if (!_corners)
+		return;
 
 	Mat44 mtxViewInv = Mat44::Identity;
 	if (!viewSpace)

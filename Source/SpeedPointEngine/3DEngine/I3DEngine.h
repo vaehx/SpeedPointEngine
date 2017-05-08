@@ -136,6 +136,8 @@ public:
 
 	ILINE virtual ISkyBox* GetSkyBox() = 0;
 
+	ILINE virtual void SetSunPosition(const Vec3f& sunPos) = 0;
+
 	ILINE virtual SHUDElement* CreateHUDElement() = 0;
 	ILINE virtual void RemoveHUDElement(SHUDElement** pHUDElement) = 0;
 

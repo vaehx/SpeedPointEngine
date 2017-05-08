@@ -338,17 +338,6 @@ struct S_API STerrainRenderDesc
 	}
 };
 
-struct S_API SRenderSlot
-{
-	SRenderDesc renderDesc;
-	bool keep; // true if slot may no be released after rendered
-
-	SRenderSlot()
-		: keep(true)
-	{
-	}
-};
-
 
 // Font Render Slot used in the Font renderer to render font.
 // Pass it to the actual Renderer which will keep a queue of all
@@ -580,10 +569,11 @@ public:
 	virtual SResult BeginScene(void) = 0;
 	virtual SResult EndScene(void) = 0;
 
+	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
+
 	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
-
 	virtual SResult RenderDeferredLight(const SLightDesc& light) = 0;
 
 	virtual SResult PresentTargetViewport(void) = 0;
@@ -604,19 +594,12 @@ public:
 	virtual void BindConstantsBuffer(const IConstantsBuffer* cb, bool vs = false) = 0;
 
 	virtual SSceneConstants* GetSceneConstants() const = 0;
-	virtual void SetSunPosition(const Vec3f& pos) = 0;
+	virtual void UpdateSceneConstants() = 0;
 
 
 	// Summary:
 	//	Get the specific resource pool. Will instanciate one if not done yet
 	virtual IResourcePool* GetResourcePool() = 0;
-
-	virtual SRenderSlot* GetRenderSlot() = 0;
-
-	// *pSlot is set to 0 after release
-	virtual void ReleaseRenderSlot(SRenderSlot** pSlot) = 0;
-
-	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
 
 
 	// *pFRS is set to 0 ptr after releases
