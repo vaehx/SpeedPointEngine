@@ -174,7 +174,7 @@ S_API const SHelperGeometryDesc* CPointHelper::GetBaseGeometry(bool outline)
 	if (!geomInited)
 	{
 		// Create a little diamond shape
-		const float sz = 0.5f;						// length of one side of the diamond
+		const float sz = 0.08f;						// length of one side of the diamond
 		const float hsz = sz * 0.5f;				// half-sz
 		const float hh = sqrtf(0.5f * sz * sz);	// half-height, i.e. distance from middle point to each point
 		const float normhsz = hsz / hh;					// normalized half-sz
@@ -464,8 +464,8 @@ S_API const SHelperGeometryDesc* CSphereHelper::GetBaseGeometry(bool outline)
 
 	if (!geomInited)
 	{
-		const unsigned int nStripes = 15;
-		const unsigned int nRings = 15;
+		const unsigned int nStripes = 25;
+		const unsigned int nRings = 25;
 
 
 

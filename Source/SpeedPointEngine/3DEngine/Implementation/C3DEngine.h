@@ -84,7 +84,7 @@ public:
 
 	ILINE virtual ISkyBox* GetSkyBox();
 
-	ILINE virtual void SetSunPosition(const Vec3f& sunPos);
+	ILINE virtual void SetEnvironmentSettings(const SEnvironmentSettings& settings);
 
 	// Render lastly collected visible objects
 	ILINE virtual void RenderCollected();

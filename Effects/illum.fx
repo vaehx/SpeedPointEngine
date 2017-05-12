@@ -16,6 +16,8 @@ cbuffer SceneCB : register(b0)
 	uint2 shadowMapRes;
 	uint2 screenRes;
     float4 eyePos;
+	float fogStart;
+	float fogEnd;
 }
 cbuffer ObjectCB : register(b1)
 {
@@ -153,7 +155,7 @@ float CalculateShadowMapFactor(float3 WorldPos)
 	sunPos /= sunPos.w;
 	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
 	sunPos.y = 1.0f - (sunPos.y + 1.0f) * 0.5f;
-	sunPos.z = saturate(sunPos.z - 0.001f);
+	sunPos.z = saturate(sunPos.z - 0.01f);
 
 	float2 smTCOffset = 1.0f / screenRes;
 
@@ -196,7 +198,7 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
 
 
     // Get texture map color
-    float3 albedo = textureMap.Sample(PointSampler, IN.TexCoord).rgb;
+    float3 albedo = textureMap.Sample(LinearSampler, IN.TexCoord).rgb;
 
     // Surface constants
     float matRoughness = 0.8f;
@@ -209,11 +211,20 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
 
 	float3 irradiance = float3(1.0f, 1.0f, 1.0f) * 4.0f;
 	irradiance *= CalculateShadowMapFactor(IN.WorldPos);
-	float3 ambient = float3(1.0f, 1.0f, 1.0f) * 0.2f;
+	float3 ambient = float3(0.8f, 0.8f, 0.8f) * 0.2f;
 
     float3 LOut = IN.Color * saturate(albedo * (lambertBRDF * saturate(dot(normal, L)) * irradiance + ambient));
 
-    OUT.Color = float4(LOut.r, LOut.g, LOut.b, 1.0f);
+
+	// Fog
+	float viewZ = -dot(mtxView[2], float4(IN.WorldPos, 1.0f));
+	float fogAmount = saturate((viewZ - fogStart) / (fogEnd - fogStart));
+	fogAmount *= fogAmount;
+	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
+
+
+    OUT.Color = float4(lerp(LOut, fogColor, fogAmount), 0.0f);
+
     return OUT;
 }
 

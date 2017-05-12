@@ -110,6 +110,9 @@ S_API SResult SpeedPointEngine::Initialize(const SGameEngineInitParams& params)
 
 	CLog::Log(S_INFO, "Initialized scene");
 
+	// Debug
+	m_pProfilingDebugView->Show(params.showDebugInfo);
+
 	return S_SUCCESS;
 }
 

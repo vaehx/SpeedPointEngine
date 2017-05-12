@@ -18,6 +18,8 @@ cbuffer SceneCB : register(b0)
 	uint2 shadowMapRes;
 	uint2 screenRes;
     float4 eyePos;
+	float fogStart;
+	float fogEnd;
 }
 
 cbuffer TerrainCB : register(b1)
@@ -26,6 +28,7 @@ cbuffer TerrainCB : register(b1)
     float terrainMaxHeight;
     uint terrainHeightmapSz;
     float terrainSegSz;
+	float2 detailmapSz;
 }
 
 Texture2D vtxHeightMap : register(t0);
@@ -35,6 +38,7 @@ Texture2D alphaMask : register(t3);
 Texture2D shadowMap : register(t4);
 
 SamplerState PointSampler : register(s0);
+SamplerState LinearSampler : register(s1);
 SamplerComparisonState ShadowMapSampler : register(s2);
 
 // ---------------------------------------------------------
@@ -202,15 +206,15 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float3 normal = normalize(IN.Normal);
 
     // Sample CM and DM
-    float3 sampleCM = colorMap.Sample(PointSampler, IN.TexCoord).rgb;
-    float3 sampleDM = detailMap.Sample(PointSampler, IN.WorldPos.xz).rgb;
+    float3 sampleCM = colorMap.Sample(LinearSampler, IN.TexCoord).rgb;
+    float3 sampleDM = detailMap.Sample(LinearSampler, IN.WorldPos.xz / detailmapSz).rgb;
 
     // Calculate blended Diffuse Color
     float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
     float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
 
 	float3 coloredDiffuse = saturate(BlendOverlay(sampleDM, sampleCM));
-    float4 blendedDiffuse = lerp(float4(sampleCM, 0), float4(coloredDiffuse.rgb, 0), terrainFadeFactor);
+    float3 blendedDiffuse = lerp(sampleCM, coloredDiffuse, terrainFadeFactor);
 
     // Sample vtx Height
     float vtxHeight = SampleVertexHeightmapBilinear(IN.TexCoord);
@@ -219,17 +223,24 @@ PS_OUTPUT PS_terrain(PS_INPUT IN)
     float3 lightDir = normalize(sunPos.xyz);
 
     float monoLightIntensity = 2.0f;
-    float4 lightIntensity = monoLightIntensity * float4(1.0f, 0.95f, 0.95f, 0.0f);
+    float3 lightIntensity = monoLightIntensity * float3(1.0f, 1.0f, 1.0f);
 	lightIntensity *= CalculateShadowMapFactor(IN.WorldPos);
 
     float monoAmbient = 0.40f;
-    float4 ambient = float4(monoAmbient, monoAmbient, monoAmbient, 0);
+    float3 ambient = float3(monoAmbient, monoAmbient, monoAmbient);
 
     float lambert = saturate(dot(normal, lightDir));
 
+	// Fog
+	float viewZ = -dot(mtxView[2], float4(IN.WorldPos, 1.0f));
+	float fogAmount = saturate((viewZ - fogStart) / (fogEnd - fogStart));
+	fogAmount *= fogAmount;
+	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
 
 	// Final color
-    OUT.Color = lambert * (blendedDiffuse / PI) * lightIntensity + ambient * blendedDiffuse;
+	float3 finalColor = lambert * (blendedDiffuse / PI) * lightIntensity + ambient * blendedDiffuse;
+	OUT.Color = float4((1.0f - fogAmount) * finalColor + fogAmount * fogColor, 0.0f);
+
 
     // Sample alpha value
     float4 sampleMask = alphaMask.Sample(PointSampler, IN.TexCoord);

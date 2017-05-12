@@ -350,11 +350,13 @@ struct S_API SFontRenderSlot
 	unsigned int screenPos[2];
 	bool alignRight;
 	bool keep;
+	bool render;
 	EFontSize fontSize;
 
 	SFontRenderSlot()
 		: color(1.0f, 1.0f, 1.0f),
 		keep(false),
+		render(true),
 		alignRight(false),
 		fontSize(eFONTSIZE_NORMAL)
 	{
@@ -379,6 +381,7 @@ struct S_API SFontRenderSlot
 		screenPos[0] = frs.screenPos[0];
 		screenPos[1] = frs.screenPos[1];
 		keep = frs.keep;
+		render = frs.render;
 		alignRight = frs.alignRight;
 		fontSize = frs.fontSize;
 	}

@@ -198,7 +198,7 @@ struct SIntersection
 {
 	Vec3f p;
 	Vec3f n;
-	bool interp; // shapes interpenetrated
+	float dist; // interpenetration distance. negative if interpenetrating
 	EIntersectionFeature feature;
 };
 

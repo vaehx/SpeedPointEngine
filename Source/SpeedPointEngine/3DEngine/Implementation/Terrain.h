@@ -38,7 +38,7 @@ private:
 	LodLevel* m_pLodLevels;
 
 	float m_fSegSz;
-	float m_fTexSz; // texcoord size of a segment
+	float m_fTexSz; // colormap texcoord size of a segment
 
 	float m_fMaxHeight; // cached calculated, w/o height scale
 	float m_fMinHeight; // cached calculated, w/o height scale

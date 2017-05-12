@@ -23,11 +23,14 @@ private:
 	SFontRenderSlot* m_pCamStatus;
 	SFontRenderSlot* m_pFPS;
 	SFontRenderSlot* m_pTerrain;
+	bool m_bShow;
 
 public:
 	ProfilingDebugView();
 
 	void Update(IRenderer* renderer);
+	void Show(bool show = true);
+	void Hide() { Show(false); }
 };
 
 SP_NMSPACE_END

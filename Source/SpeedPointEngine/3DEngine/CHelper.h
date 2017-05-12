@@ -94,6 +94,11 @@ public:
 		m_RenderParams.color = color;
 	}
 
+	virtual void SetColor(const SColor& color)
+	{
+		m_RenderParams.color = color.ToInt_ARGB();
+	}
+
 	virtual void Show(bool show = true) { m_RenderParams.visible = show; }
 	virtual void Hide() { Show(false); }
 

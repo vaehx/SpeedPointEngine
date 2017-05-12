@@ -42,7 +42,8 @@ void InitFontRenderSlot(SFontRenderSlot** pSlot, bool alignRight, bool keep, con
 
 S_API ProfilingDebugView::ProfilingDebugView()
 	: m_pCamStatus(0),
-	m_pFPS(0)
+	m_pFPS(0),
+	m_bShow(false)
 {
 }
 
@@ -53,49 +54,81 @@ S_API void ProfilingDebugView::Update(IRenderer* renderer)
 
 	ProfilingSystemIntrnl* profilingSystem = ProfilingSystem::Get();
 
-	// Cam status
-	ss.str("");
-	InitFontRenderSlot(&m_pCamStatus, true, true, SColor(1.0f, 1.0f, 1.0f), 0, 0);
-	SCamera* camera = renderer->GetTargetViewport()->GetCamera();
-	if (IS_VALID_PTR(camera))
-		ss << "CAM: pos=" << camera->position << " fwd=" << camera->GetForward();
-	else
-		ss << "CAM: undefined";
+	// Cam status		
+	if (m_bShow)
+	{
+		ss.str("");
+		InitFontRenderSlot(&m_pCamStatus, true, true, SColor(1.0f, 1.0f, 1.0f), 0, 0);
+		SCamera* camera = renderer->GetTargetViewport()->GetCamera();
+		if (IS_VALID_PTR(camera))
+			ss << "CAM: pos=" << camera->position << " fwd=" << camera->GetForward();
+		else
+			ss << "CAM: undefined";
 
-	m_pCamStatus->text = ss.str();
+		m_pCamStatus->text = ss.str();
+		m_pCamStatus->render = true;
+	}
+	else if (m_pCamStatus)
+	{
+		m_pCamStatus->render = false;
+	}
 
 	// FPS
-	ss.str("");
-	InitFontRenderSlot(&m_pFPS, true, true, SColor(1.0f, 1.0f, 0.3f), 0, 37, eFONTSIZE_MEDIUM);
-	ss	<< "FPS " << (1. / profilingSystem->GetLastFrameDuration())
-		<< " (" << (1. / profilingSystem->GetMaxRecentFrameDuration())
-		<< ".." << (1. / profilingSystem->GetMinRecentFrameDuration()) << ")";
-	m_pFPS->text = ss.str();
+	if (m_bShow)
+	{
+		ss.str("");
+		InitFontRenderSlot(&m_pFPS, true, true, SColor(1.0f, 1.0f, 0.3f), 0, 37, eFONTSIZE_MEDIUM);
+		ss << "FPS " << (1. / profilingSystem->GetLastFrameDuration())
+			<< " (" << (1. / profilingSystem->GetMaxRecentFrameDuration())
+			<< ".." << (1. / profilingSystem->GetMinRecentFrameDuration()) << ")";
+		m_pFPS->text = ss.str();
+		m_pFPS->render = true;
+	}
+	else if (m_pFPS)
+	{
+		m_pFPS->render = false;
+	}
 
 	// Terrain info
-	InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 65);
-	SpeedPoint::STerrainRenderDesc* pTerrainRenderDesc = renderer->GetTerrainRenderDesc();
-	ss.str("");
-	ss << "Terrain: " << pTerrainRenderDesc->nDrawCallDescs << " DCs";
-	m_pTerrain->text = ss.str();
+	if (m_bShow)
+	{
+		InitFontRenderSlot(&m_pTerrain, true, true, SpeedPoint::SColor(1.f, 1.f, 1.f), 0, 65);
+		SpeedPoint::STerrainRenderDesc* pTerrainRenderDesc = renderer->GetTerrainRenderDesc();
+		ss.str("");
+		ss << "Terrain: " << pTerrainRenderDesc->nDrawCallDescs << " DCs";
+		m_pTerrain->text = ss.str();
+		m_pTerrain->render = true;
+	}
+	else if (m_pFPS)
+	{
+		m_pTerrain->render = false;
+	}
 
 	// Profiling sections
-	ss << std::fixed;
-	SFontRenderSlot* frs = 0;
-	unsigned int line = 0;
-	const vector<ProfilingSection>* sections = profilingSystem->GetLastFrameSections();
-	for (auto itSection = sections->begin(); itSection != sections->end(); ++itSection, ++line)
+	if (m_bShow)
 	{
-		frs = 0;
-		InitFontRenderSlot(&frs, false, false, SColor(1.f, 1.f, 1.f), 10, line * 13);
-		ss.str("");
-		ss << itSection->timer.GetDuration() * 1000.0 << "ms    ";
-		for (int i = 0; i < itSection->level; ++i)
-			ss << "    ";
+		ss << std::fixed;
+		SFontRenderSlot* frs = 0;
+		unsigned int line = 0;
+		const vector<ProfilingSection>* sections = profilingSystem->GetLastFrameSections();
+		for (auto itSection = sections->begin(); itSection != sections->end(); ++itSection, ++line)
+		{
+			frs = 0;
+			InitFontRenderSlot(&frs, false, false, SColor(1.f, 1.f, 1.f), 10, line * 13);
+			ss.str("");
+			ss << itSection->timer.GetDuration() * 1000.0 << "ms    ";
+			for (int i = 0; i < itSection->level; ++i)
+				ss << "    ";
 
-		ss << itSection->name;
-		frs->text = ss.str();
+			ss << itSection->name;
+			frs->text = ss.str();
+		}
 	}
+}
+
+void ProfilingDebugView::Show(bool show)
+{
+	m_bShow = show;
 }
 
 SP_NMSPACE_END

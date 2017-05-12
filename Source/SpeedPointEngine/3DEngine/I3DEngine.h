@@ -51,6 +51,15 @@ struct S_API SHUDElement
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+struct S_API SEnvironmentSettings
+{
+	Vec3f sunPosition;
+	float fogStart;
+	float fogEnd;
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //TODO: Refactor this to the actual "IRenderer"
 struct S_API I3DEngine
 {
@@ -123,7 +132,7 @@ public:
 	template<typename T>
 	ILINE T* AddHelper(const typename T::Params& params, bool releaseAfterRender)
 	{
-		return AddHelper<T>(params, releaseAfterRender);
+		return AddHelper<T>(params, SHelperRenderParams(), releaseAfterRender);
 	}
 
 	ILINE virtual void ClearHelperRenderObjects() = 0;
@@ -136,7 +145,7 @@ public:
 
 	ILINE virtual ISkyBox* GetSkyBox() = 0;
 
-	ILINE virtual void SetSunPosition(const Vec3f& sunPos) = 0;
+	ILINE virtual void SetEnvironmentSettings(const SEnvironmentSettings& settings) = 0;
 
 	ILINE virtual SHUDElement* CreateHUDElement() = 0;
 	ILINE virtual void RemoveHUDElement(SHUDElement** pHUDElement) = 0;

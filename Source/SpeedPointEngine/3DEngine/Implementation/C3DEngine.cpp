@@ -379,9 +379,12 @@ S_API void C3DEngine::RemoveHUDElement(SHUDElement** pHUDElement)
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API void C3DEngine::SetSunPosition(const Vec3f& sunPos)
+S_API void C3DEngine::SetEnvironmentSettings(const SEnvironmentSettings& env)
 {
-	m_pRenderer->GetSceneConstants()->sunPosition = Vec4f(sunPos, 1.0f);
+	SSceneConstants* pSceneConstants = m_pRenderer->GetSceneConstants();
+	pSceneConstants->sunPosition = Vec4f(env.sunPosition, 1.0f);
+	pSceneConstants->fogStart = env.fogStart;
+	pSceneConstants->fogEnd = env.fogEnd;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -446,8 +449,6 @@ S_API void C3DEngine::UpdateSunViewProj()
 	SPMatrixOrthoRH(&mtxSunProj, aabb.vMax.x - aabb.vMin.x, aabb.vMax.y - aabb.vMin.y, 0, (aabb.vMax.z - aabb.vMin.z));
 
 	pSceneConstants->mtxSunViewProj = mtxSunView * mtxSunProj;
-
-	m_pRenderer->UpdateSceneConstants();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -457,7 +458,7 @@ S_API void C3DEngine::RenderCollected()
 	unsigned int budgetTimer = ProfilingSystem::StartSection("C3DEngine::RenderCollected()");
 	{
 		UpdateSunViewProj();
-
+		m_pRenderer->UpdateSceneConstants();
 		
 		// Shadowmap Prepass
 		// TODO: Only render objects that are inside the ViewFrustum !!!!!
@@ -628,6 +629,8 @@ S_API void C3DEngine::RenderHUD()
 
 S_API void C3DEngine::RenderDebugTexture()
 {
+	return;
+
 	m_pRenderer->BindShaderPass(eSHADERPASS_GUI);
 
 	ITexture* pShadowmap = m_pRenderer->GetResourcePool()->GetTexture("$shadowmap");

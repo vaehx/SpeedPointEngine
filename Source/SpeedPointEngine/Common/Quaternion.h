@@ -52,6 +52,7 @@ struct S_API Quat
 		w = 0; v = v0.GetOrthogonal().GetNormalized();
 	*/
 
+	// Rotation from v1 to v2
 	static Quat FromVectors(const Vec3f& v1, const Vec3f& v2)
 	{		
 		float dot = Vec3Dot(v1, v2) + 1.0f;

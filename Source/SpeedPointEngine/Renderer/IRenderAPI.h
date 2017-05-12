@@ -44,6 +44,11 @@ struct S_API SSceneConstants
 
 	float4 eyePosition;		// 4 * 4 Byte
 
+	float fogStart;
+	float fogEnd;
+
+	char __padding[8];
+
 	SSceneConstants& operator = (const SSceneConstants& b)
 	{
 		mtxView = b.mtxView;
@@ -61,6 +66,8 @@ struct S_API STerrainConstants
 	float fTerrainMaxHeight;		// 4 Byte
 	unsigned int vtxHeightMapSz;	// 4 Byte
 	float segmentSize;				// 4 Byte
+	float detailmapSz[2];			// 8 Byte
+	char __padding[8];
 
 	STerrainConstants& operator = (const STerrainConstants& b)
 	{

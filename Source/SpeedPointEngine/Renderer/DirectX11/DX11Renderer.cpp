@@ -1691,10 +1691,13 @@ S_API SResult DX11Renderer::UnleashFontRenderSchedule()
 	SFontRenderSlot* pFRS = m_FontRenderSchedule.GetFirstUsedObject(iFRSIterator);
 	while (pFRS)
 	{
-		SPixelPosition pp;
-		pp.x = pFRS->screenPos[0];
-		pp.y = pFRS->screenPos[1];
-		m_pFontRenderer->RenderText(pFRS->text, pFRS->color, pp, pFRS->fontSize, pFRS->alignRight);
+		if (pFRS->render)
+		{
+			SPixelPosition pp;
+			pp.x = pFRS->screenPos[0];
+			pp.y = pFRS->screenPos[1];
+			m_pFontRenderer->RenderText(pFRS->text, pFRS->color, pp, pFRS->fontSize, pFRS->alignRight);
+		}
 
 		if (!pFRS->keep)
 		{

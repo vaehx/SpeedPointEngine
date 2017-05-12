@@ -34,11 +34,13 @@ struct S_API SGameEngineInitParams
 	SRendererInitParams rendererParams;
 	IScene* pCustomScene; // If not set, the engine will create the scene. If set, the engine will NOT destruct the scene.
 	string logFilename;
+	bool showDebugInfo;
 
 	SGameEngineInitParams()
 		: rendererImplementation(S_DIRECTX11),
 		pCustomScene(0),
-		logFilename("SpeedPoint.log")
+		logFilename("SpeedPoint.log"),
+		showDebugInfo(false)
 	{
 	}
 };

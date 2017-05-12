@@ -24,6 +24,7 @@ cbuffer ObjectCB : register(b1)
 struct a2v
 {
     float3 Position : POSITION;
+	float3 Normal : NORMAL;
     float3 Color : COLOR0;
 };
 
@@ -31,6 +32,7 @@ struct v2f
 {
     float4 Position : SV_Position;
     float3 Color : COLOR0;
+	float3 Normal : TEXCOORD0;
 };
 
 /////////////////////////// vertex shader //////////////////////////////
@@ -39,7 +41,8 @@ v2f VS_helper(a2v IN)
     v2f OUT;
     float4 wPos = mul(mtxWorld, float4(IN.Position.xyz, 1.0f));
     OUT.Position = mul(mtxProj, mul(mtxView, wPos));
-    OUT.Color = IN.Color;
+	OUT.Normal = normalize(mul(mtxWorld, float4(IN.Normal, 0.0f)).xyz);
+	OUT.Color = IN.Color;
 
     return OUT;
 }
@@ -47,7 +50,11 @@ v2f VS_helper(a2v IN)
 //////////////////////////// pixel shader ////////////////////////////////
 float4 PS_helper(v2f IN) : SV_Target0
 {
-    float3 col = IN.Color * helperColor.rgb;
-    return float4(col.x, col.y, col.z, 0.5f);
+	float lambert = 1.0f;
+	if (length(IN.Normal) > 0)
+		lambert = saturate(dot(IN.Normal, normalize(float3(1.0f, 1.0f, 1.0f))) * 0.48f + 0.5f);
+
+	float3 col = IN.Color * helperColor.rgb * lambert;
+    return float4(col.x, col.y, col.z, 1.0f);
 }
 
