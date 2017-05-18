@@ -20,6 +20,10 @@ struct IComponentPool
 	virtual ICmp* GetNext(unsigned int& id) const = 0;
 
 	// Returns:
+	//	The component with the given index or 0 if idx is invalid
+	virtual ICmp* GetAt(unsigned int idx) const = 0;
+
+	// Returns:
 	//	The number of used objects in the pool
 	virtual unsigned int GetNumObjects() const = 0;
 
@@ -49,6 +53,11 @@ public:
 	virtual ICmp* GetNext(unsigned int& id) const
 	{
 		return dynamic_cast<ICmp*>(m_Pool.GetNextUsedObject(id));
+	}
+
+	virtual ICmp* GetAt(unsigned int idx) const
+	{
+		return dynamic_cast<ICmp*>(m_Pool.GetAt(idx));
 	}
 
 	virtual unsigned int GetNumObjects() const

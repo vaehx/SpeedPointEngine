@@ -8,7 +8,7 @@
 #pragma once
 
 #include "..\IOutputPlane.h"
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 #include <Common\SPrerequisites.h>
 
 SP_NMSPACE_BEG
@@ -30,8 +30,8 @@ private:
 	IVertexBuffer* m_pVertexBuffer;
 	IIndexBuffer* m_pIndexBuffer;
 
-	SMatrix m_mtxProjection;
-	SMatrix m_mtxView;	
+	Mat44 m_mtxProjection;
+	Mat44 m_mtxView;	
 
 public:
 	// Default constructor
@@ -69,11 +69,11 @@ public:
 		return m_pIndexBuffer;
 	}
 
-	virtual SMatrix& GetProjectionMatrix()
+	virtual Mat44& GetProjectionMatrix()
 	{
 		return m_mtxProjection;
 	}
-	virtual SMatrix& GetViewMatrix()
+	virtual Mat44& GetViewMatrix()
 	{
 		return m_mtxView;
 	}

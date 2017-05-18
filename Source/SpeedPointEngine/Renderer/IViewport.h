@@ -12,7 +12,7 @@
 #include "IRenderAPI.h"
 #include <Common\SPrerequisites.h>
 #include <Common\Vector2.h>
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 #include <Common\Camera.h>
 
 SP_NMSPACE_BEG
@@ -107,10 +107,10 @@ public:
 	
 	virtual SResult SetProjectionByDesc(const SProjectionDesc& desc) = 0;
 	virtual SProjectionDesc GetProjectionDesc() const = 0;
-	virtual const SMatrix4& GetProjectionMatrix() const = 0;
+	virtual const Mat44& GetProjectionMatrix() const = 0;
 	
 	virtual SResult RecalculateCameraViewMatrix() = 0;		
-	virtual SMatrix4& GetCameraViewMatrix() = 0;
+	virtual Mat44& GetCameraViewMatrix() = 0;
 	
 	virtual HWND GetWindow() = 0;		
 	virtual void SetWindow(HWND hWnd) = 0;		

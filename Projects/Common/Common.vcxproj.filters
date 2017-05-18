@@ -9,9 +9,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\MathGeom.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Matrix.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Quaternion.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -90,6 +87,12 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\FileUtils.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat44.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat33.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp">
@@ -110,7 +113,10 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Matrix.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat44.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat33.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

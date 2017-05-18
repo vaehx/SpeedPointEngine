@@ -7,6 +7,7 @@
 #pragma once
 #include "SAPI.h"
 #include "SPrerequisites.h"
+#include "Mat33.h"
 #include "Vector3.h"
 #include "Vector4.h"
 
@@ -15,7 +16,7 @@
 SP_NMSPACE_BEG
 
 // SpeedPoint 4x4 Matrix
-struct S_API SMatrix
+struct S_API Mat44
 {
 	union
 	{
@@ -31,19 +32,25 @@ struct S_API SMatrix
 	};
 
 	// Default Matrix constructor = Identity Matrix
-	SMatrix() :
+	Mat44() :
 		_11( 1 ), _12( 0 ), _13( 0 ), _14( 0 ),
 		_21( 0 ), _22( 1 ), _23( 0 ), _24( 0 ),
 		_31( 0 ), _32( 0 ), _33( 1 ), _34( 0 ),
 		_41( 0 ), _42( 0 ), _43( 0 ), _44( 1 ) {};
 
-	SMatrix(const SMatrix& o) :
+	Mat44(const Mat44& o) :
 		_11(o._11), _12(o._12), _13(o._13), _14(o._14),
 		_21(o._21), _22(o._22), _23(o._23), _24(o._24),
 		_31(o._31), _32(o._32), _33(o._33), _34(o._34),
 		_41(o._41), _42(o._42), _43(o._43), _44(o._44) {};
 
-	SMatrix(const SVector4& v1, const SVector4& v2, const SVector4& v3, const SVector4& v4)
+	Mat44(const Mat33& o) :
+		_11(o._11), _12(o._12), _13(o._13), _14(0),
+		_21(o._21), _22(o._22), _23(o._23), _24(0),
+		_31(o._31), _32(o._32), _33(o._33), _34(0),
+		_41(0), _42(0), _43(0), _44(1.0f) {}
+
+	Mat44(const SVector4& v1, const SVector4& v2, const SVector4& v3, const SVector4& v4)
 	{
 		m[0][0] = v1.x; m[0][1] = v1.y; m[0][2] = v1.z; m[0][3] = v1.w;
 		m[1][0] = v2.x; m[1][1] = v2.y; m[1][2] = v2.z; m[1][3] = v2.w;
@@ -51,7 +58,7 @@ struct S_API SMatrix
 		m[3][0] = v4.x; m[3][1] = v4.y; m[3][2] = v4.z; m[3][3] = v4.w;
 	}
 
-	SMatrix(float m11, float m12, float m13, float m14,
+	Mat44(float m11, float m12, float m13, float m14,
 		float m21, float m22, float m23, float m24,
 		float m31, float m32, float m33, float m34,
 		float m41, float m42, float m43, float m44)
@@ -62,7 +69,7 @@ struct S_API SMatrix
 	{
 	}
 
-	SMatrix& operator = ( const SMatrix& o )
+	Mat44& operator = ( const Mat44& o )
 	{
 		m[0][0] = o._11; m[0][1] = o._12; m[0][2] = o._13; m[0][3] = o._14;
 		m[1][0] = o._21; m[1][1] = o._22; m[1][2] = o._23; m[1][3] = o._24;
@@ -98,11 +105,11 @@ struct S_API SMatrix
 	}
 
 
-	static const SMatrix Identity;
+	static const Mat44 Identity;
 
-	static SMatrix MakeTranslationMatrix(const SVector3& translation)
+	static Mat44 MakeTranslationMatrix(const SVector3& translation)
 	{
-		return SMatrix(
+		return Mat44(
 			1, 0, 0, translation.x,
 			0, 1, 0, translation.y,
 			0, 0, 1, translation.z,
@@ -110,9 +117,9 @@ struct S_API SMatrix
 			);
 	}
 
-	static SMatrix MakeScaleMatrix(const SVector3& scale)
+	static Mat44 MakeScaleMatrix(const SVector3& scale)
 	{
-		return SMatrix(
+		return Mat44(
 			scale.x, 0, 0, 0,
 			0, scale.y, 0, 0,
 			0, 0, scale.z, 0,
@@ -120,20 +127,20 @@ struct S_API SMatrix
 			);
 	}
 
-	static SMatrix MakeRotationMatrix(const SVector3& rot)
+	static Mat44 MakeRotationMatrix(const SVector3& rot)
 	{
 		float ca = cosf(rot.x), sa = sinf(rot.x);	// alpha
 		float cb = cosf(rot.y), sb = sinf(rot.y);	// beta
 		float cg = cosf(rot.z), sg = sinf(rot.z);	// gamma
 		/*
-		return SMatrix(
+		return Mat44(
 			cb * cg,			-cb * sg,			 sb,		0,
 			sa * sb * cg + ca * sg,		-sa * sb * sg + ca * cg,	-sa * cb,	0,
 			-ca * sb * cg + sa * sg,	 ca * sb * sg + sa * cg,	 ca * cb,	0,
 			0,				 0,				 0,		1
 			);
 		*/
-		return SMatrix(
+		return Mat44(
 			cb * cg,	 sa * sb * cg + ca * sg,	-ca * sb * cg + sa * sg,	0,
 			-cb * sg,	-sa * sb * sg + ca * cg, 	 ca * sb * sg + sa * cg,	0,
 			sb,		-sa * cb,			 ca * cb,			0,
@@ -142,12 +149,9 @@ struct S_API SMatrix
 	}
 };
 
-typedef struct S_API SMatrix SMatrix4;
-typedef struct S_API SMatrix Mat44;
-
-static inline SMatrix operator * (const SMatrix& a, const SMatrix& b)
+static inline Mat44 operator * (const Mat44& a, const Mat44& b)
 {
-	SMatrix out;
+	Mat44 out;
 	out._11 = a._11*b._11 + a._12*b._21 + a._13*b._31 + a._14*b._41;
 	out._12 = a._11*b._12 + a._12*b._22 + a._13*b._32 + a._14*b._42;
 	out._13 = a._11*b._13 + a._12*b._23 + a._13*b._33 + a._14*b._43;
@@ -172,7 +176,7 @@ static inline SMatrix operator * (const SMatrix& a, const SMatrix& b)
 }
 
 
-static inline void SMatrixIdentity(SMatrix& pMtx)
+static inline void SMatrixIdentity(Mat44& pMtx)
 {	
 	pMtx._11 = 1; pMtx._12 = 0; pMtx._13 = 0; pMtx._14 = 0;
 	pMtx._21 = 0; pMtx._22 = 1; pMtx._23 = 0; pMtx._24 = 0;
@@ -187,19 +191,19 @@ static void SSwapFloat(float& f1, float& f2)
 	f2 = t;
 }
 
-#define __SMatrixTranspose_SwapFloat(f1, f2) t = f1; f1 = f2; f2 = t
+#define __Mat44Transpose_SwapFloat(f1, f2) t = f1; f1 = f2; f2 = t
 
-static void SMatrixTranspose( SMatrix* pMtx )
+static void SMatrixTranspose( Mat44* pMtx )
 {
 	if (pMtx != 0)
 	{
 		float t;
-		__SMatrixTranspose_SwapFloat(pMtx->_21, pMtx->_12);
-		__SMatrixTranspose_SwapFloat(pMtx->_31, pMtx->_13);
-		__SMatrixTranspose_SwapFloat(pMtx->_41, pMtx->_14);
-		__SMatrixTranspose_SwapFloat(pMtx->_42, pMtx->_24);
-		__SMatrixTranspose_SwapFloat(pMtx->_43, pMtx->_34);
-		__SMatrixTranspose_SwapFloat(pMtx->_32, pMtx->_23);
+		__Mat44Transpose_SwapFloat(pMtx->_21, pMtx->_12);
+		__Mat44Transpose_SwapFloat(pMtx->_31, pMtx->_13);
+		__Mat44Transpose_SwapFloat(pMtx->_41, pMtx->_14);
+		__Mat44Transpose_SwapFloat(pMtx->_42, pMtx->_24);
+		__Mat44Transpose_SwapFloat(pMtx->_43, pMtx->_34);
+		__Mat44Transpose_SwapFloat(pMtx->_32, pMtx->_23);
 		/*SSwapFloat(pMtx->_21, pMtx->_12);
 		SSwapFloat(pMtx->_31, pMtx->_13);
 		SSwapFloat(pMtx->_41, pMtx->_14);
@@ -209,17 +213,17 @@ static void SMatrixTranspose( SMatrix* pMtx )
 	}
 }
 
-static SMatrix SMatrixTranspose(const SMatrix& mtx)
+static Mat44 SMatrixTranspose(const Mat44& mtx)
 {
-	SMatrix res = mtx;
+	Mat44 res = mtx;
 	SMatrixTranspose(&res);
 	return res;
 }
 
 // Source: CryCommon Cry_Matrix.h
-static SMatrix SMatrixInvert(const SMatrix& m) {
+static Mat44 SMatrixInvert(const Mat44& m) {
 	float	tmp[12];
-	SMatrix res;
+	Mat44 res;
 
 	// Calculate pairs for first 8 elements (cofactors)
 	tmp[ 0] = m._33 * m._44;
@@ -300,7 +304,7 @@ static SMatrix SMatrixInvert(const SMatrix& m) {
 }
 
 template<typename F>
-static inline void Vec3TransformCoord(Vec3<F> *pout, const Vec3f &pv, const SMatrix &pm)
+static inline void Vec3TransformCoord(Vec3<F> *pout, const Vec3f &pv, const Mat44 &pm)
 {
 	float norm = pm.m[0][3] * pv.x + pm.m[1][3] * pv.y + pm.m[2][3] * pv.z + pm.m[3][3];
 	
@@ -320,7 +324,7 @@ static inline void Vec3TransformCoord(Vec3<F> *pout, const Vec3f &pv, const SMat
 
 // Deprecated
 template<typename F>
-static inline void SVector3TransformCoord(SVector3 *pout, const SVector3& pv, const SMatrix& pm)
+static inline void SVector3TransformCoord(SVector3 *pout, const SVector3& pv, const Mat44& pm)
 {
 	return Vec3TransformCoord(pout, pv, pm);
 }
@@ -334,10 +338,10 @@ struct S_API SVec3ProjectViewportDesc
 
 template<typename F>
 ILINE static void Vec3Project(Vec3<F>* pout, const Vec3<F>& pv,
-	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const Mat44& mtxProjection, const Mat44& mtxView, const Mat44& mtxWorld,
 	const SVec3ProjectViewportDesc& vpDesc, const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
 {
-	SMatrix m1, m2;
+	Mat44 m1, m2;
 	Vec3<F> vec;
 
 	m1 = mtxWorld * mtxView;
@@ -354,7 +358,7 @@ ILINE static void Vec3Project(Vec3<F>* pout, const Vec3<F>& pv,
 
 // Deprecated
 ILINE static void SVector3Project(SVector3* pout, const SVector3& pv,
-	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const Mat44& mtxProjection, const Mat44& mtxView, const Mat44& mtxWorld,
 	const SVec3ProjectViewportDesc& vpDesc, const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
 {
 	return Vec3Project(pout, pv, mtxProjection, mtxView, mtxWorld, vpDesc, subsetOffsetX, subsetOffsetY);
@@ -362,10 +366,10 @@ ILINE static void SVector3Project(SVector3* pout, const SVector3& pv,
 
 template<typename F>
 ILINE static void Vec3Unproject(Vec3<F> *pout, const Vec3<F>& pv, const SVec3ProjectViewportDesc& vpDesc,
-	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const Mat44& mtxProjection, const Mat44& mtxView, const Mat44& mtxWorld,
 	const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
 {
-	SMatrix m1, m2, m3;
+	Mat44 m1, m2, m3;
 	Vec3<F> vec;
 	
 	m1 = mtxWorld * mtxView;
@@ -381,7 +385,7 @@ ILINE static void Vec3Unproject(Vec3<F> *pout, const Vec3<F>& pv, const SVec3Pro
 
 // Deprecated
 ILINE static void SVector3Unproject(SVector3 *pout, const SVector3& pv, const SVec3ProjectViewportDesc& vpDesc,
-	const SMatrix& mtxProjection, const SMatrix& mtxView, const SMatrix& mtxWorld,
+	const Mat44& mtxProjection, const Mat44& mtxView, const Mat44& mtxWorld,
 	const unsigned int subsetOffsetX = 0, const unsigned int subsetOffsetY = 0)
 {
 	return Vec3Unproject(pout, pv, vpDesc, mtxProjection, mtxView, mtxWorld, subsetOffsetX, subsetOffsetY);
@@ -390,7 +394,7 @@ ILINE static void SVector3Unproject(SVector3 *pout, const SVector3& pv, const SV
 
 // calculate view matrix
 // up - up direction in world space
-ILINE static void SPMatrixLookAtRH(SMatrix* pMtx, const Vec3f& eye, const Vec3f& at, const Vec3f& up)
+ILINE static void SPMatrixLookAtRH(Mat44* pMtx, const Vec3f& eye, const Vec3f& at, const Vec3f& up)
 {
 	if (!pMtx)
 		return;
@@ -399,14 +403,14 @@ ILINE static void SPMatrixLookAtRH(SMatrix* pMtx, const Vec3f& eye, const Vec3f&
 	Vec3f xaxis = Vec3Normalize(Vec3Cross(up, zaxis));
 	Vec3f yaxis = Vec3Cross(zaxis, xaxis);
 
-	*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
+	*pMtx = Mat44(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
 		SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
 		SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
 		SVector4(-Vec3Dot(xaxis, eye), -Vec3Dot(yaxis, eye), -Vec3Dot(zaxis, eye), 1.0f));
 }
 
 // calculate view matrix
-static inline void SPMatrixLookAtLH(SMatrix* pMtx, const SVector3& eye, const SVector3& at, const SVector3& up)
+static inline void SPMatrixLookAtLH(Mat44* pMtx, const SVector3& eye, const SVector3& at, const SVector3& up)
 {
 	if (!pMtx)
 		return;
@@ -415,19 +419,19 @@ static inline void SPMatrixLookAtLH(SMatrix* pMtx, const SVector3& eye, const SV
 	SVector3 xaxis = Vec3Normalize(Vec3Cross(up, zaxis));
 	SVector3 yaxis = Vec3Cross(zaxis, xaxis);
 
-	*pMtx = SMatrix(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
+	*pMtx = Mat44(SVector4(xaxis.x, yaxis.x, zaxis.x, 0),
 		SVector4(xaxis.y, yaxis.y, zaxis.y, 0),
 		SVector4(xaxis.z, yaxis.z, zaxis.z, 0),
 		SVector4(Vec3Dot(xaxis, eye), Vec3Dot(yaxis, eye), Vec3Dot(zaxis, eye), 1.0f));
 }
 
 // calculate orthographic projection matrix
-static inline void SPMatrixOrthoRH(SMatrix* pMtx, float w, float h, float zn, float zf)
+static inline void SPMatrixOrthoRH(Mat44* pMtx, float w, float h, float zn, float zf)
 {
 	if (!pMtx)
 		return;
 
-	*pMtx = SMatrix(
+	*pMtx = Mat44(
 		2.0f / w,	0,		0,			0,
 		0,		2.0f / h,	0,			0,
 		0,		0,		1.0f / (zn - zf),	0,
@@ -435,13 +439,13 @@ static inline void SPMatrixOrthoRH(SMatrix* pMtx, float w, float h, float zn, fl
 }
 
 // calculate perspective projection matrix
-static inline void SPMatrixPerspectiveFovRH(SMatrix* pMtx, float fovy, float aspect, float zn, float zf)
+static inline void SPMatrixPerspectiveFovRH(Mat44* pMtx, float fovy, float aspect, float zn, float zf)
 {
 	if (!pMtx)
 		return;
 
 	float yScale = cotf(fovy * 0.5f);
-	*pMtx = SMatrix(
+	*pMtx = Mat44(
 		(float)(yScale / aspect),	0,		0,			0,
 		0,				(float)yScale,	0,			0,
 		0,				0,		zf / (zn-zf),		-1.0f,
@@ -449,7 +453,7 @@ static inline void SPMatrixPerspectiveFovRH(SMatrix* pMtx, float fovy, float asp
 		);
 }
 
-inline void EulerAnglesFromRotationMatrix(const SMatrix& matrix, Vec3f* pEulerAngles)
+inline void EulerAnglesFromRotationMatrix(const Mat44& matrix, Vec3f* pEulerAngles)
 {
 	if (IS_VALID_PTR(pEulerAngles))
 	{
@@ -484,13 +488,13 @@ inline static void MakeTransformationTRS(const Vec3f& translation, const Mat44& 
 //	Transformation description
 struct S_API STransformationDesc
 {
-	SMatrix4 scale;
-	SMatrix4 preRotation; // applied before the actual rotation. Use for e.g. pivot offset. Identity by default
-	SMatrix4 rotation;
-	SMatrix4 translation;
+	Mat44 scale;
+	Mat44 preRotation; // applied before the actual rotation. Use for e.g. pivot offset. Identity by default
+	Mat44 rotation;
+	Mat44 translation;
 
 	STransformationDesc() {}
-	STransformationDesc(const SMatrix& mtxTranslation, const SMatrix& mtxRotation, const SMatrix& mtxScale)
+	STransformationDesc(const Mat44& mtxTranslation, const Mat44& mtxRotation, const Mat44& mtxScale)
 		: translation(mtxTranslation), rotation(mtxRotation), scale(mtxScale)
 	{
 	}
@@ -500,12 +504,13 @@ struct S_API STransformationDesc
 	{
 	}
 
-	SMatrix4 BuildTRS() const
+	// Scale -> Pre-Rotation-Transform -> Rotate -> Undo Pre-Rotation Transform -> Translate
+	Mat44 BuildTRS() const
 	{
 		return translation * SMatrixInvert(preRotation) * rotation * preRotation * scale;
 	}
 
-	SMatrix4 BuildSRT() const
+	Mat44 BuildSRT() const
 	{
 		return scale * preRotation * rotation * SMatrixInvert(preRotation) * translation;
 	}

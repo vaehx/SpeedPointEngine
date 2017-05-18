@@ -14,7 +14,8 @@
 #pragma once
 
 #include "Vector3.h"
-#include "Matrix.h"
+#include "Mat33.h"
+#include "Mat44.h"
 #include "SPrerequisites.h"
 
 #include <cmath>
@@ -139,23 +140,25 @@ struct S_API Quat
 
 	inline Quat operator *(const Quat& r) const;
 
-	inline SMatrix ToRotationMatrix() const
+	inline Quat operator *(float f) const
+	{
+		return Quat(w * f, v.x * f, v.y * f, v.z * f);
+	}
+
+	inline Mat33 ToRotationMatrix33() const
 	{
 		Quat n = Normalized();
-		const float &a = n.w, &b = n.v.x, &c = n.v.y, &d = n.v.z;	
-		return SMatrix(
-			a*a + b*b - c*c - d*d,	2.f*(b*c - a*d),	2.f*(b*d + a*c),	0,
-			2.f*(b*c + a*d),	a*a - b*b + c*c - d*d,	2.f*(c*d - a*b),	0,
-			2.f*(b*d - a*c),	2.f*(c*d + a*b),	a*a - b*b - c*c + d*d,	0,
-			0,			0,			0,			1.0f
-			);
-		/*const float &qi = n.v.x, &qj = n.v.y, &qk = n.v.z, &qr = n.w;
-		return SMatrix(
-			1-2*(qj*qj + qk*qk), 2*(qi*qj - qk*qr), 2*(qi*qk + qj*qr), 0,
-			2*(qi*qj + qk*qr), 1 - 2*(qi*qi + qk*qk), 2*(qj*qk - qi*qr), 0,
-			2*(qi*qk - qj*qr), 2*(qi*qr + qj*qk), 1 - 2*(qi*qi - qj*qj), 0,
-			0, 0, 0, 1
-			);*/
+		const float &a = n.w, &b = n.v.x, &c = n.v.y, &d = n.v.z;
+		return Mat33(
+			a*a + b*b - c*c - d*d, 2.f*(b*c - a*d), 2.f*(b*d + a*c),
+			2.f*(b*c + a*d), a*a - b*b + c*c - d*d, 2.f*(c*d - a*b),
+			2.f*(b*d - a*c), 2.f*(c*d + a*b), a*a - b*b - c*c + d*d
+		);
+	}
+
+	inline Mat44 ToRotationMatrix() const
+	{
+		return Mat44(ToRotationMatrix33());
 	}
 
 	inline Vec3f GetForward() const

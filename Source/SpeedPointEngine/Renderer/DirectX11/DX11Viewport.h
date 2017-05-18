@@ -9,7 +9,7 @@
 
 #include "..\IViewport.h"
 #include "DX11FBO.h"
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 #include <Common\SPrerequisites.h>
 #include "DX11.h"
 
@@ -33,7 +33,7 @@ private:
 
 	SViewportDescription m_Desc;
 
-	SMatrix m_ProjectionMtx;
+	Mat44 m_ProjectionMtx;
 
 	SCamera m_OwnCamera;
 	SCamera* m_pCamera;
@@ -61,10 +61,10 @@ public:
 		
 	virtual SResult SetProjectionByDesc(const SProjectionDesc& desc);
 	virtual SProjectionDesc GetProjectionDesc() const;
-	virtual const SMatrix4& GetProjectionMatrix() const;
+	virtual const Mat44& GetProjectionMatrix() const;
 
 	virtual SResult RecalculateCameraViewMatrix();		
-	virtual SMatrix4& GetCameraViewMatrix();
+	virtual Mat44& GetCameraViewMatrix();
 
 	virtual HWND GetWindow() { return m_Desc.hWnd;  }
 	virtual void SetWindow(HWND hWnd) // does NOT update swapchain hwnd!

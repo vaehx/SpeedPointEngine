@@ -614,8 +614,8 @@ S_API void C3DEngine::RenderHUD()
 	while (pHUDElement)
 	{
 		m_HUDRenderDesc.transform =
-			SMatrix::MakeTranslationMatrix(Vec3f((float)pHUDElement->pos[0] - 0.5f * vpSz.cx, (float)pHUDElement->pos[1] - 0.5f * vpSz.cy, 1.0f))
-			* SMatrix::MakeScaleMatrix(Vec3f((float)pHUDElement->size[0], (float)pHUDElement->size[1], 1.0f));
+			Mat44::MakeTranslationMatrix(Vec3f((float)pHUDElement->pos[0] - 0.5f * vpSz.cx, (float)pHUDElement->pos[1] - 0.5f * vpSz.cy, 1.0f))
+			* Mat44::MakeScaleMatrix(Vec3f((float)pHUDElement->size[0], (float)pHUDElement->size[1], 1.0f));
 
 		m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = pHUDElement->pTexture;
 
@@ -644,8 +644,8 @@ S_API void C3DEngine::RenderDebugTexture()
 	unsigned int pos[] = { (unsigned int)(size[0] * 0.5f), (unsigned int)(size[1] * 0.5f) };
 
 	m_HUDRenderDesc.transform =
-		SMatrix::MakeTranslationMatrix(Vec3f((float)pos[0] - 0.5f * vpSz.cx, (float)pos[1] - 0.5f * vpSz.cy, 1.0f))
-		* SMatrix::MakeScaleMatrix(Vec3f((float)size[0], (float)size[1], 1.0f));
+		Mat44::MakeTranslationMatrix(Vec3f((float)pos[0] - 0.5f * vpSz.cx, (float)pos[1] - 0.5f * vpSz.cy, 1.0f))
+		* Mat44::MakeScaleMatrix(Vec3f((float)size[0], (float)size[1], 1.0f));
 
 	m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = pShadowmap;
 	m_pRenderer->Render(m_HUDRenderDesc);

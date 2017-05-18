@@ -156,7 +156,7 @@ S_API void SMeshKTree::GetIntersectingLeafs(const AABB& operand, vector<SMeshKTr
 // and any other collision shape.
 //
 // Warning: This function assumes that the id's of the faces are set correctly and are unique!
-S_API void SMeshKTree::GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const SMatrix& transform /*= SMatrix()*/, vector<u16>& foundIntersecting /*= vector<u16>()*/) const
+S_API void SMeshKTree::GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const Mat44& transform /*= SMatrix()*/, vector<u16>& foundIntersecting /*= vector<u16>()*/) const
 {
 	if (!aabb.Intersects(operand))
 		return;
@@ -214,7 +214,7 @@ S_API bool SMeshKTree::IsLeaf() const
 }
 
 // Multiplies each vertex with this matrix
-S_API void SMeshKTree::TransformVertices(const SMatrix& matrix)
+S_API void SMeshKTree::TransformVertices(const Mat44& matrix)
 {
 	if (IsLeaf())
 	{

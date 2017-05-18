@@ -1937,7 +1937,7 @@ S_API void DX11Renderer::SetViewProjMatrix(IViewport* pViewport)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj)
+S_API void DX11Renderer::SetViewProjMatrix(const Mat44& mtxView, const Mat44& mtxProj)
 {
 	SSceneConstants* pConstants = m_SceneConstants.GetConstants();
 	pConstants->mtxView = mtxView;

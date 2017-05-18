@@ -68,7 +68,7 @@ public:
 	virtual void Clear();
 	virtual void OnEndFrame();
 	virtual SResult Bind();
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 
 	IFBO* GetShadowmap() const;
 };
@@ -101,7 +101,7 @@ public:
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual void Clear();
 	virtual SResult Bind();
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 
 private:
 	IRenderer* m_pRenderer;
@@ -152,7 +152,7 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +187,7 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -221,7 +221,7 @@ public:
 	virtual void Clear();
 	virtual SResult Bind();
 	virtual void OnUnbind();
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 
 	void SetConstants(const SParticleEmitterConstants& constants);
 };
@@ -269,7 +269,7 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform);
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 };
 
 

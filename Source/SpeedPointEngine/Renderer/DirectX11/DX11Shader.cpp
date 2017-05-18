@@ -422,7 +422,7 @@ S_API SResult ShadowmapShaderPass::Bind()
 	return S_SUCCESS;
 }
 
-S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+S_API void ShadowmapShaderPass::SetShaderResources(const SShaderResources& sr, const Mat44& transform)
 {
 	SObjectConstants* constants = m_Constants.GetConstants();
 	constants->mtxWorld = transform;
@@ -537,7 +537,7 @@ S_API SResult ForwardShaderPass::Bind()
 	return S_SUCCESS;
 }
 
-S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, const Mat44& transform)
 {
 	ShadowmapShaderPass* pShadowmapPass =
 		dynamic_cast<ShadowmapShaderPass*>(m_pRenderer->GetShaderPass(eSHADERPASS_SHADOWMAP));
@@ -666,7 +666,7 @@ S_API SResult GBufferShaderPass::Bind()
 	return S_SUCCESS;
 }
 
-S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, const Mat44& transform)
 {
 	if (sr.illumModel == eILLUM_HELPER)
 		return; // helpers cannot be rendered deferred
@@ -761,7 +761,7 @@ S_API SResult ShadingShaderPass::Bind()
 	return S_SUCCESS;
 }
 
-S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform)
+S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform)
 {
 	// transform should be the transformation matrix of the light volume
 	SShadingPassConstants* constants = m_Constants.GetConstants();
@@ -825,7 +825,7 @@ S_API void ParticleShaderPass::OnUnbind()
 	m_pRenderer->UnbindTexture(1);
 }
 
-S_API void ParticleShaderPass::SetShaderResources(const SShaderResources& shaderResources, const SMatrix4& transform)
+S_API void ParticleShaderPass::SetShaderResources(const SShaderResources& shaderResources, const Mat44& transform)
 {
 	m_pRenderer->BindTexture(shaderResources.textureMap, 0);
 
@@ -927,7 +927,7 @@ S_API SResult PosteffectShaderPass::Bind()
 	return S_SUCCESS;
 }
 
-S_API void PosteffectShaderPass::SetShaderResources(const SShaderResources& sr, const SMatrix4& transform)
+S_API void PosteffectShaderPass::SetShaderResources(const SShaderResources& sr, const Mat44& transform)
 {
 }
 

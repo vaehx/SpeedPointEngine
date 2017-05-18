@@ -160,7 +160,7 @@ S_API SRenderDesc* CSkyBox::GetRenderDesc()
 S_API void CSkyBox::Update()
 {
 	STransformationDesc transformDesc;
-	transformDesc.translation = SMatrix::MakeTranslationMatrix(m_Position);
+	transformDesc.translation = Mat44::MakeTranslationMatrix(m_Position);
 	
 	m_RenderDesc.transform = transformDesc.BuildTRS();
 }

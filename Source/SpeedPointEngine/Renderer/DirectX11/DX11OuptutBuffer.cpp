@@ -11,7 +11,7 @@
 #include "DX11Renderer.h"
 #include "..\IVertexBuffer.h"
 #include "..\IIndexBuffer.h"
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 #include <Common\Vector3.h>
 #include <Common\SVertex.h>
 
@@ -39,10 +39,10 @@ S_API SResult DX11OutputPlane::Initialize(IRenderer* renderer, int nW, int nH)
 	float fWidth = (float)nW * 0.1f;
 	float fHeight = (float)nH * 0.1f;
 	
-	SMatrix mtxProj;
+	Mat44 mtxProj;
 	SPMatrixOrthoRH(&mtxProj, fWidth, fHeight, 2.0f, 200.0f);	
 
-	SMatrix mtxView;
+	Mat44 mtxView;
 	SPMatrixLookAtRH(&mtxView, SVector3(0, 0, -10.0f), SVector3(0, 0, 0.0f), SVector3(0, 1.0f, 0));	
 
 

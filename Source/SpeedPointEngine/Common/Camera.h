@@ -6,7 +6,7 @@
 
 #pragma once
 #include "SPrerequisites.h"
-#include "Matrix.h"
+#include "Mat44.h"
 #include "Quaternion.h"
 #include "MathGeom.h"
 #include <math.h>
@@ -60,7 +60,7 @@ public:
 struct S_API SCamera
 {
 	f32 fViewRadius;		// Keep it short for performant rendering	
-	SMatrix4 viewMatrix; // col0=left, col1=up, col2=forward
+	Mat44 viewMatrix; // col0=left, col1=up, col2=forward
 	Vec3f position;	
 
 	Quat d_turnQuat;
@@ -76,7 +76,7 @@ struct S_API SCamera
 
 	~SCamera()			
 	{		
-		viewMatrix = SMatrix4(1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f);
+		viewMatrix = Mat44(1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f, 0, 0, 0, 0, 1.0f);
 	}
 
 
@@ -125,7 +125,7 @@ struct S_API SCamera
 		Vec3f left = rotation * Vec3f(viewMatrix._11, viewMatrix._21, viewMatrix._31);
 		Vec3f up = rotation * Vec3f(viewMatrix._12, viewMatrix._22, viewMatrix._32);
 		Vec3f forward = rotation * Vec3f(viewMatrix._13, viewMatrix._23, viewMatrix._33);
-		viewMatrix = SMatrix(
+		viewMatrix = Mat44(
 			left.x, up.x, forward.x, 0,
 			left.y, up.y, forward.y, 0,
 			left.z, up.z, forward.z, 0,
@@ -141,7 +141,7 @@ struct S_API SCamera
 		Vec3f left = rotation * Vec3f(viewMatrix._11, viewMatrix._21, viewMatrix._31);
 		Vec3f up = rotation * Vec3f(viewMatrix._12, viewMatrix._22, viewMatrix._32);
 		Vec3f forward = rotation * Vec3f(viewMatrix._13, viewMatrix._23, viewMatrix._33);
-		viewMatrix = SMatrix(
+		viewMatrix = Mat44(
 			left.x, up.x, forward.x, 0,
 			left.y, up.y, forward.y, 0,
 			left.z, up.z, forward.z, 0,
@@ -165,7 +165,7 @@ struct S_API SCamera
 	//	- roll: Set to true if you also want to take roll into account (rotation.z)
 	// Return Value:
 	//	Returns new view matrix as const ref
-	SMatrix4& RecalculateViewMatrix(bool roll = false);
+	Mat44& RecalculateViewMatrix(bool roll = false);
 };
 
 

@@ -106,7 +106,7 @@ public:
 
 	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const;
 
-	virtual void CalculateBoundBox(AABB& aabb, const SMatrix& transform);
+	virtual void CalculateBoundBox(AABB& aabb, const Mat44& transform);
 };
 
 

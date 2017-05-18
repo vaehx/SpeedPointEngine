@@ -205,7 +205,7 @@ public:
 		if (m_bDumpFrame)
 			CLog::Log(S_DEBUG, "str %s: \"%s\"", strname.c_str(), str.c_str());
 	}
-	void FrameDump(const SMatrix4& mtx, const string& mtxname)
+	void FrameDump(const Mat44& mtx, const string& mtxname)
 	{
 		if (m_bDumpFrame)
 		{
@@ -394,7 +394,7 @@ public:
 
 protected:
 	virtual void SetViewProjMatrix(IViewport* pViewport = 0);
-	virtual void SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj);
+	virtual void SetViewProjMatrix(const Mat44& mtxView, const Mat44& mtxProj);
 };
 
 

@@ -22,7 +22,7 @@
 #include <Renderer\IIndexBuffer.h>	// because we cannot forward-declare SIndex (due to delete command)
 #include <Renderer\IRenderAPI.h> // for EPrimitiveType
 #include <Common\SVertex.h>	// because we cannot forward-declare SVertex (due to delete command)
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 #include <Common\IShutdownHandler.h>
 #include <Common\SPrerequisites.h>
 
@@ -242,7 +242,7 @@ struct S_API IGeometry : public IShutdownHandler
 
 	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const = 0;
 
-	virtual void CalculateBoundBox(AABB& aabb, const SMatrix& transform) = 0;
+	virtual void CalculateBoundBox(AABB& aabb, const Mat44& transform) = 0;
 
 	virtual void Clear() = 0;
 };

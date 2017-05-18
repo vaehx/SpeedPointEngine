@@ -10,7 +10,7 @@
 #pragma once
 
 #include <Common\SPrerequisites.h>
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 
 namespace SpeedPoint
 {
@@ -41,8 +41,8 @@ namespace SpeedPoint
 		virtual IVertexBuffer* GetVertexBuffer() = 0;
 		virtual IIndexBuffer* GetIndexBuffer() = 0;
 
-		virtual SMatrix& GetProjectionMatrix() = 0;
-		virtual SMatrix& GetViewMatrix() = 0;
+		virtual Mat44& GetProjectionMatrix() = 0;
+		virtual Mat44& GetViewMatrix() = 0;
 
 		virtual usint32 GetIndexCount() = 0;		
 	};

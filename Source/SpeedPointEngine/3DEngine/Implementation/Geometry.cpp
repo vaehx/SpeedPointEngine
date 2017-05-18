@@ -404,7 +404,7 @@ S_API unsigned long CGeometry::GetIndexCount() const
 
 
 // ----------------------------------------------------------------------------------------
-S_API void CGeometry::CalculateBoundBox(AABB& aabb, const SMatrix& transform)
+S_API void CGeometry::CalculateBoundBox(AABB& aabb, const Mat44& transform)
 {
 	if (!IS_VALID_PTR(m_pVertexBuffer) || m_pVertexBuffer->GetVertexCount() == 0)
 		return;

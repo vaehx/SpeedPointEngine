@@ -79,7 +79,37 @@ public:
 	unsigned int GetUsedObjectCount() const { return num_used_objects; }
 	unsigned int GetFreeCount() const { return num_chunks * chunk_size - num_used_objects; }
 
-	// objindex is set to the index of the first object
+	// Returns the object with the given index from the pool or 0 if not found
+	T* GetAt(unsigned int idx) const
+	{
+		unsigned int ic = 0;
+		for (; ic < num_chunks; ++ic)
+		{
+			if (idx >= chunks[ic]->num_used_objects)
+				idx -= chunks[ic]->num_used_objects;
+			else
+				break;
+		}
+
+		if (ic == num_chunks)
+			return 0;
+
+		Chunk& chunk = *chunks[ic];
+		for (unsigned int i = chunk.first_used_object; i < chunk.num_used_objects; ++i)
+		{
+			if (!chunk.objects[i].used)
+				continue;
+			
+			if (idx == 0)
+				return &chunk.objects[i].instance;
+			
+			idx--;
+		}
+
+		return 0;
+	}
+
+	// objindex is set to the index of the first object, regardless of its previous value
 	// Returns:
 	//	0 if no object is in the pool, pointer to the instance of the first used object otherwise
 	T* GetFirstUsedObject(unsigned int& objindex) const

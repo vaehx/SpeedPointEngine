@@ -10,7 +10,7 @@
 #pragma once
 
 #include <Common\SPrerequisites.h>
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 
 SP_NMSPACE_BEG
 
@@ -74,7 +74,7 @@ struct S_API IShader
 
 struct S_API SObjectConstants
 {
-	SMatrix4 mtxWorld;	// 16 * 4 Byte
+	Mat44 mtxWorld;	// 16 * 4 Byte
 };
 
 enum S_API EShaderPassType
@@ -102,7 +102,7 @@ struct S_API IShaderPass
 	virtual SResult Bind() = 0;
 	virtual void OnUnbind() {};
 	virtual void OnEndFrame() {};
-	virtual void SetShaderResources(const SShaderResources& pShaderResources, const SMatrix4& transform) = 0;
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform) = 0;
 };
 
 SP_NMSPACE_END

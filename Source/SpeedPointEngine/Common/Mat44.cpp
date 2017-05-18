@@ -1,8 +1,8 @@
-#include "Matrix.h"
+#include "Mat44.h"
 
 SP_NMSPACE_BEG
 
-const SMatrix SMatrix::Identity = SMatrix(
+const Mat44 Mat44::Identity = Mat44(
 	1.0f, 0, 0, 0,
 	0, 1.0f, 0, 0,
 	0, 0, 1.0f, 0,

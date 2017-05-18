@@ -11,7 +11,7 @@
 #include "IRenderAPI.h"
 #include "IShader.h"
 #include "IConstantsBuffer.h"
-#include <Common\Matrix.h> // for Matrix CB
+#include <Common\Mat44.h> // for Matrix CB
 #include <Common\SPrerequisites.h>
 
 using std::vector;
@@ -205,10 +205,10 @@ struct S_API SRenderDesc
 	unsigned int nSubsets;
 
 	//STransformationDesc transform;
-	SMatrix transform;
+	Mat44 transform;
 
-	SMatrix viewMtx; // custom view-mtx, only used if bCustomViewProjMtx is set to true
-	SMatrix projMtx; // custom proj-mtx, only used if bCustomViewProjMtx is set to true
+	Mat44 viewMtx; // custom view-mtx, only used if bCustomViewProjMtx is set to true
+	Mat44 projMtx; // custom proj-mtx, only used if bCustomViewProjMtx is set to true
 	bool bCustomViewProjMtx; // if false, uses current viewport view- and projection matrix
 
 	bool bDepthStencilEnable;
@@ -635,7 +635,7 @@ protected:
 	// Arguments:
 	//	If pViewport is 0 then the current target-viewport is used (default 0)
 	virtual void SetViewProjMatrix(IViewport* pViewport = 0) = 0;
-	virtual void SetViewProjMatrix(const SMatrix& mtxView, const SMatrix& mtxProj) = 0;
+	virtual void SetViewProjMatrix(const Mat44& mtxView, const Mat44& mtxProj) = 0;
 };
 
 

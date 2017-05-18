@@ -10,7 +10,7 @@
 #include "DX11FBO.h"
 #include "DX11Utilities.h"
 #include "..\IRenderer.h"
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 
 #ifdef _DEBUG
 #include <dxgi1_3.h>
@@ -280,13 +280,13 @@ S_API SProjectionDesc DX11Viewport::GetProjectionDesc() const
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API const SMatrix4& DX11Viewport::GetProjectionMatrix() const
+S_API const Mat44& DX11Viewport::GetProjectionMatrix() const
 {
 	return m_ProjectionMtx;
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SMatrix& DX11Viewport::GetCameraViewMatrix()
+S_API Mat44& DX11Viewport::GetCameraViewMatrix()
 {
 	return m_pCamera->viewMatrix;
 }

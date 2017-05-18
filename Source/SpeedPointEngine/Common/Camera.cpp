@@ -127,7 +127,7 @@ S_API void SCamera::Turn(float yaw, float pitch)
 	Vec3f up = (rotation * GetUp()).Normalized();
 	Vec3f forward = (rotation * GetForward()).Normalized();
 
-	viewMatrix = SMatrix(
+	viewMatrix = Mat44(
 		left.x, up.x, forward.x, 0,
 		left.y, up.y, forward.y, 0,
 		left.z, up.z, forward.z, 0,
@@ -152,7 +152,7 @@ S_API Vec3f SCamera::GetUp() const
 	return Vec3f(viewMatrix._12, viewMatrix._22, viewMatrix._32).Normalized();
 }
 
-S_API SMatrix& SCamera::RecalculateViewMatrix(bool roll/*=false*/)
+S_API Mat44& SCamera::RecalculateViewMatrix(bool roll/*=false*/)
 {	
 	viewMatrix._41 = -Vec3Dot(position, GetLeft());
 	viewMatrix._42 = -Vec3Dot(position, GetUp());

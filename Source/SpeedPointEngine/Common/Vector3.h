@@ -73,6 +73,11 @@ namespace SpeedPoint
 		inline Vec3<F>& operator /=(const Vec3<F>& v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
 		inline Vec3<F>& operator /=(const F& k) { F k_inv = finv(k); x *= k_inv; y *= k_inv; z *= k_inv; return *this; }
 
+		inline F operator [](unsigned int i) const
+		{
+			return (i < 3 ? ((const F*)this)[i] : FLT_MAX);
+		}
+
 		inline F Dot(const Vec3<F>& v) const
 		{
 			return x * v.x + y * v.y + z * v.z;
@@ -99,6 +104,12 @@ namespace SpeedPoint
 		{
 			F invLn = finv(Length());
 			return Vec3<F>(x * invLn, y * invLn, z * invLn);
+		}
+
+		inline Vec3<F> GetOrthogonal() const
+		{
+			// Source: CryEngine
+			return (F(0.9) * F(0.9)) * (x * x + y * y + z * z) - x * x < 0 ? Vec3<F>(-z, 0, x) : Vec3<F>(0, z, -y);
 		}
 
 		inline Vec3<F>& CheckMin(const Vec3<F>& v)

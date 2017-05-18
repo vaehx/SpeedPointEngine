@@ -166,7 +166,7 @@ S_API AABB CRenderMesh::GetAABB()
 	{
 		if (IS_VALID_PTR(m_pGeometry))
 		{
-			m_pGeometry->CalculateBoundBox(m_AABB, SMatrix());
+			m_pGeometry->CalculateBoundBox(m_AABB, Mat44::Identity);
 			m_bBoundBoxInvalid = false;
 		}
 		else

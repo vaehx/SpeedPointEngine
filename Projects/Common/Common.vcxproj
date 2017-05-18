@@ -27,9 +27,10 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ComponentPool.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\FileUtils.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\IShutdownHandler.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat33.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Math.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\MathGeom.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Matrix.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat44.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ProfilingSystem.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Quaternion.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\SAPI.h" />
@@ -52,8 +53,9 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Camera.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat33.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\MathGeom.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Matrix.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat44.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ProfilingSystem.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ShutdownManager.cpp" />
   </ItemGroup>

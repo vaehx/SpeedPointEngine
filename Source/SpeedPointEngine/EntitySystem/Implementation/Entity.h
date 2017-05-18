@@ -37,7 +37,7 @@ private:
 	Quat m_Rot;
 
 	bool m_bTransformInvalid;
-	SMatrix m_Transform;
+	Mat44 m_Transform;
 
 	void OnEntityTransformed();
 	void SetParent(IEntity* pEntity);

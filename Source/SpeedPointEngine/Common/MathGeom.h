@@ -15,7 +15,7 @@
 
 #include "SPrerequisites.h"
 #include "Vector3.h"
-#include "Matrix.h"
+#include "Mat44.h"
 #include "Quaternion.h"
 #include "BoundBox.h"
 
@@ -470,7 +470,7 @@ struct S_API SViewFrustum
 	}
 
 	// If vp equals the combined view and projection matrices, the frustum planes will be the clipping planes in world space.	
-	ILINE SViewFrustum& BuildFromViewProjMatrix(const SMatrix4& vp)
+	ILINE SViewFrustum& BuildFromViewProjMatrix(const Mat44& vp)
 	{
 		planes[eFRUSTUMPLANE_LEFT  ] = SPlane(vp._14 + vp._11,	vp._24 + vp._21,	vp._34 + vp._31,	vp._44 + vp._41);
 		planes[eFRUSTUMPLANE_RIGHT ] = SPlane(vp._14 - vp._11,	vp._24 - vp._21,	vp._34 - vp._31,	vp._44 - vp._41);
@@ -658,12 +658,12 @@ struct SMeshKTree
 	// and any other collision shape.
 	//
 	// Warning: This function assumes that the id's of the faces are set correctly and are unique!
-	void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const SMatrix& transform = SMatrix(), vector<u16>& foundIntersecting = vector<u16>()) const;
+	void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const Mat44& transform = Mat44(), vector<u16>& foundIntersecting = vector<u16>()) const;
 
 	bool IsLeaf() const;
 
 	// Multiplies each vertex with this matrix
-	void TransformVertices(const SMatrix& matrix);
+	void TransformVertices(const Mat44& matrix);
 
 	// Sets the given minY and maxY as the min/max values for ALL aabb's in the kTree
 	void UpdateAABBHeights(float minY, float maxY);
@@ -696,7 +696,7 @@ struct SMesh
 	}
 
 	// Fills the intersecting array with faces that intersect with the given AABB
-	void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const SMatrix4& transform = SMatrix()) const
+	void GetIntersectingFaces(const AABB& operand, vector<const SMeshFace*>& intersecting, const Mat44& transform = Mat44()) const
 	{
 		kTree.GetIntersectingFaces(operand, intersecting);
 	}
@@ -704,7 +704,7 @@ struct SMesh
 	// relative
 	inline SMesh& Translate(const Vec3f& v)
 	{
-		kTree.TransformVertices(SMatrix::MakeTranslationMatrix(v));
+		kTree.TransformVertices(Mat44::MakeTranslationMatrix(v));
 		return *this;
 	}
 
@@ -718,7 +718,7 @@ struct SMesh
 	// relative
 	inline SMesh& Scale(const Vec3f& factor)
 	{
-		kTree.TransformVertices(SMatrix::MakeScaleMatrix(factor));
+		kTree.TransformVertices(Mat44::MakeScaleMatrix(factor));
 		return *this;
 	}
 };

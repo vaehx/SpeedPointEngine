@@ -217,10 +217,10 @@ S_API Mat44 CEntity::GetTransform()
 	if (m_bTransformInvalid)
 	{
 		STransformationDesc transform;
-		transform.translation = SMatrix::MakeTranslationMatrix(m_Pos);
+		transform.translation = Mat44::MakeTranslationMatrix(m_Pos);
 		transform.rotation = m_Rot.ToRotationMatrix();
-		transform.scale = SMatrix::MakeScaleMatrix(m_Scale);
-		transform.preRotation = SMatrix::MakeTranslationMatrix(-m_Pivot);
+		transform.scale = Mat44::MakeScaleMatrix(m_Scale);
+		transform.preRotation = Mat44::MakeTranslationMatrix(-m_Pivot);
 		m_Transform = transform.BuildTRS();
 
 		m_bTransformInvalid = false;

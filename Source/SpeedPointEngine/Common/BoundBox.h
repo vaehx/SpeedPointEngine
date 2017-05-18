@@ -6,7 +6,7 @@
 
 #pragma once
 #include "Vector3.h"
-#include "Matrix.h"
+#include "Mat44.h"
 #include "SPrerequisites.h"
 
 
@@ -175,8 +175,8 @@ typedef struct S_API AABB SAxisAlignedBoundBox;
 
 struct S_API OBB
 {
-	Vec3f directions[3];	// rotated x, y, z axis
-	Vec3f dimensions;
+	Vec3f directions[3];	// rotated basis vectors, normalized
+	Vec3f dimensions; // half-dimensions in each direction
 	Vec3f center;	// center position
 
 	OBB()

@@ -13,24 +13,11 @@
 
 #include <Common\SPrerequisites.h>
 #include <Common\Vector3.h>
-#include <Common\Matrix.h>
+#include <Common\Mat44.h>
 #include <Common\MathGeom.h>
 
 SP_NMSPACE_BEG
 
-enum EPhysicalBeheaviour
-{
-	ePHYSBEHAVE_SOLID,
-	ePHYSBEHAVE_FOLIAGE,
-	ePHYSBEHAVE_LIQUID
-};
-
-struct SPhysicalState
-{
-	Vec3f x; // x(t) - Position
-	Vec3f v; // v(t) - Linear velocity
-			 // ... linear momentum, force, rotation, torque, angular velocity, angular momentum, inverse inertia tensor, ...
-};
 
 struct SPhysObjectParams
 {
@@ -49,7 +36,6 @@ struct SPhysObjectParams
 class S_API CPhysObject
 {
 protected:
-	SPhysicalState m_State;
 	SGeomShape m_CollisionShape;
 	float m_Mass;
 
