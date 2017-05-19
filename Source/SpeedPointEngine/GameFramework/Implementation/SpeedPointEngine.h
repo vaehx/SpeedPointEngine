@@ -16,6 +16,7 @@ SP_NMSPACE_BEG
 
 class S_API FileLogListener;
 class S_API ProfilingDebugView;
+struct S_API IPhysicsDebugRenderer;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +87,7 @@ private:
 	ISettings*		m_pSettings;		// Main Settings of the Game Engine	
 
 	ProfilingDebugView* m_pProfilingDebugView;
+	IPhysicsDebugRenderer* m_pPhysicsDebugRenderer;
 
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers

@@ -41,9 +41,7 @@ namespace EntityReceipts
 
 
 		IPhysics* pPhysics = SpeedPointEnv::GetPhysics();
-		CPhysObject* physical = entity->AddComponent(pPhysics->CreatePhysObject());
-
-		entity->RegisterProperty("mass", physical, &CPhysObject::GetMass);
+		PhysObject* physical = entity->AddComponent(pPhysics->CreatePhysObject());
 		return true;
 	}
 

@@ -545,6 +545,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	if (sr.illumModel == eILLUM_HELPER)
 	{
 		m_pHelperShader->Bind();
+		m_pRenderer->EnableDepthTest();
 
 		m_pRenderer->BindTexture((ITexture*)0, 0);
 		m_pRenderer->BindTexture((ITexture*)0, 1);
@@ -554,6 +555,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 		m_pSkyboxShader->Bind();
 
 		m_pRenderer->EnableBackfaceCulling(false);
+		m_pRenderer->EnableDepthTest(true, false);
 
 		m_pRenderer->BindTexture(sr.textureMap, 0);
 		m_pRenderer->BindTexture((ITexture*)0, 1);
@@ -563,6 +565,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 		m_pShader->Bind();
 
 		m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
+		m_pRenderer->EnableDepthTest();
 
 		m_pRenderer->BindTexture(sr.textureMap, 0);
 		m_pRenderer->BindTexture(sr.normalMap, 1);

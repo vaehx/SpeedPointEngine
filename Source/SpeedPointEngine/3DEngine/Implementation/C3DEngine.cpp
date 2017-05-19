@@ -24,9 +24,11 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 	m_MatMgr(this)
 {
 	CreateHelperPrefab<CPointHelper>();
-	CreateHelperPrefab<CLineHelper>();
+	CreateHelperPrefab<CVectorHelper>();
 	CreateHelperPrefab<CBoxHelper>();
 	CreateHelperPrefab<CSphereHelper>();
+	CreateHelperPrefab<CPlaneHelper>();
+	CreateHelperPrefab<CCylinderHelper>();
 
 	C3DEngine::Set(this);
 
@@ -277,7 +279,7 @@ S_API SResult C3DEngine::_CreateHelperPrefab(unsigned int id, const SHelperGeome
 
 S_API bool C3DEngine::_HelperPrefabExists(unsigned int id) const
 {
-	return (m_HelperPrefabs.find(id) != m_HelperPrefabs.end());
+	return (m_HelperPrefabs.find(id * 2) != m_HelperPrefabs.end());
 }
 
 S_API void C3DEngine::ClearHelperRenderObjects()
@@ -588,6 +590,8 @@ S_API void C3DEngine::RenderHelpers()
 
 		if (pHelper->releaseAfterRender || trash)
 		{
+			delete pHelper->pHelper;
+			pHelper->pHelper = 0;
 			m_HelperPool.Release(&pHelper);
 		}
 

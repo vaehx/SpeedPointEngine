@@ -17,6 +17,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EngineSettings.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileLogListener.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileSPW.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\ProfilingDebugView.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SpeedPointEngine.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\ISettings.h" />
@@ -29,6 +30,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileLogListener.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\FileSPW.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicalComponent.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\ProfilingDebugView.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SpeedPointEngine.cpp" />
   </ItemGroup>

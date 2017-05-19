@@ -21,16 +21,15 @@
 #include "PhysObject.h"
 #include <Common\ComponentPool.h>
 #include <Common\BoundBox.h>
+#include <Common\SColor.h>
 #include <Common\SPrerequisites.h>
 
 SP_NMSPACE_BEG
 
-
-
 struct S_API IPhysics
 {
 protected:
-	virtual void SetPhysObjectPool(IComponentPool<CPhysObject>* pPool) = 0;
+	virtual void SetPhysObjectPool(IComponentPool<PhysObject>* pPool) = 0;
 
 public:
 	virtual ~IPhysics() {}
@@ -38,27 +37,21 @@ public:
 	template<class PhysObjImpl>
 	ILINE void CreatePhysObjectPool()
 	{
-		SetPhysObjectPool(new ComponentPool<CPhysObject, PhysObjImpl>());
+		SetPhysObjectPool(new ComponentPool<PhysObject, PhysObjImpl>());
 	}
 
-	ILINE virtual CPhysObject* CreatePhysObject(const SPhysObjectParams& params = SPhysObjectParams()) = 0;
-
-	// Summary:
-	//	Releases the passed object in the pool and sets the pointer to 0
-	ILINE virtual void ReleasePhysObject(CPhysObject** pObject) = 0;
-
+	ILINE virtual PhysObject* CreatePhysObject() = 0;
 	ILINE virtual void ClearPhysObjects() = 0;
 
-	ILINE virtual void Update(double fTime) = 0;
-
-
-	// Ideas:
-	
-
-	//	- virtual SResult OnIntersection(IPhysicsObject* objA, IPhysicsObject* objB, const SIntersectionInfo& info) = 0;
-
+	ILINE virtual void Update(float fTime) = 0;
 };
 
+struct S_API IPhysicsDebugRenderer
+{
+	virtual void VisualizePoint(const Vec3f& p, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false) = 0;
+	virtual void VisualizeVector(const Vec3f& p, const Vec3f& v, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false) = 0;
+	virtual void VisualizePlane(const Vec3f& p, const Vec3f& n, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false) = 0;
+};
 
 SP_NMSPACE_END
 

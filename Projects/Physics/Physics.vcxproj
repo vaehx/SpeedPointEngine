@@ -12,11 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\Implementation\CPhysics.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysDebug.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\IPhysics.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\PhysObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\CPhysics.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysDebug.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysObject.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

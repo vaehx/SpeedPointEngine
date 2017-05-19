@@ -5,7 +5,7 @@
 
 SP_NMSPACE_BEG
 
-class S_API CPhysicalComponent : public IComponent, public CPhysObject
+class S_API CPhysicalComponent : public IComponent, public PhysObject
 {
 	DEFINE_COMPONENT
 
@@ -15,8 +15,13 @@ public:
 
 	// IComponent:
 public:
-	
-	virtual void OnEntityTransformed();
+	virtual void OnRelease();
+
+	// PhysObject:
+public:
+	virtual void OnSimulationPrepare();
+	virtual void OnSimulationFinished();
+	virtual void OnIntersection(const geo::SIntersection& contact, const PhysObject* other);
 };
 
 SP_NMSPACE_END

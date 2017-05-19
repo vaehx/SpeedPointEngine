@@ -226,69 +226,6 @@ S_API const Vec3f& CPointHelper::GetPos() const
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API const SHelperGeometryDesc* CLineHelper::GetBaseGeometry(bool outline)
-{
-	static SHelperGeometryDesc geom;
-	static bool geomInited = false;
-
-	if (!geomInited)
-	{
-		// Line of length 1 pointing upwards
-		geom.topology = PRIMITIVE_TYPE_LINES;
-		geom.vertices = {
-			SVertex(0, 0, 0, 0, 0, 0, 0, 0, 0),
-			SVertex(0, 1.0f, 0, 0, 0, 0, 0, 0, 0)
-		};
-
-		geomInited = true;
-	}
-
-	return &geom;
-}
-
-S_API void CLineHelper::RecalcTransform()
-{
-	Vec3f v = m_Params.p2 - m_Params.p1;
-	float ln = v.Length();
-	v /= ln;
-
-	Quat q = Quat::FromVectors(Vec3f(0, 1, 0), v);
-	Vec3f scale = Vec3f(1.0f, ln, 1.0f);
-
-	//MakeTransformationTRS(m_Params.p1, q, scale, &m_Transform);
-	MakeTransformationTRS(m_Params.p1, Quat(), Vec3f(1.0f), &m_Transform);
-}
-
-S_API void CLineHelper::SetParams(const CLineHelper::Params& params)
-{
-	m_Params = params;
-	RecalcTransform();
-}
-
-S_API void CLineHelper::SetP1(const Vec3f& p1)
-{
-	m_Params.p1 = p1;
-	RecalcTransform();
-}
-
-S_API const Vec3f& CLineHelper::GetP1() const
-{
-	return m_Params.p1;
-}
-
-S_API void CLineHelper::SetP2(const Vec3f& p2)
-{
-	m_Params.p2 = p2;
-	RecalcTransform();
-}
-
-S_API const Vec3f& CLineHelper::GetP2() const
-{
-	return m_Params.p2;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 S_API const SHelperGeometryDesc* CBoxHelper::GetBaseGeometry(bool outline)
 {
 	static SHelperGeometryDesc geom, outlineGeom;
@@ -554,198 +491,170 @@ S_API float CSphereHelper::GetRadius() const
 	return m_Params.radius;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-/*CHelperRenderObject::CHelperRenderObject()
-	: m_bAABBInvalid(true),
-	m_pRenderer(0),
-	m_bReleaseNextFrame(false)
+void CVectorHelper::SetParams(const Params& params)
 {
+	Mat44 mtxTranslation = Mat44::MakeTranslationMatrix(params.p);
+	Mat44 mtxRotation = Quat::FromVectors(Vec3f(0, 1.0f, 0), params.v.Normalized()).ToRotationMatrix();
+	Mat44 mtxScale = Mat44::MakeScaleMatrix(Vec3f(1.0f, params.length, 1.0f));
+
+	m_Transform = mtxTranslation * (mtxRotation * mtxScale);
 }
 
-CHelperRenderObject::~CHelperRenderObject()
-{	
-	Clear();
-}
-
-S_API void CHelperRenderObject::Clear()
+const SHelperGeometryDesc* CVectorHelper::GetBaseGeometry(bool outline)
 {
-	if (IS_VALID_PTR(m_pRenderer) && IS_VALID_PTR(m_pRenderer->GetRenderer()) && m_RenderDesc.pSubsets)
+	static SHelperGeometryDesc geom;
+	static bool geomInited = false;
+
+	if (!geomInited)
 	{
-		IResourcePool* pResourcePool = m_pRenderer->GetRenderer()->GetResourcePool();
-		if (IS_VALID_PTR(pResourcePool))
+		geom.topology = PRIMITIVE_TYPE_LINES;
+		Vec3f n = Vec3f(0);
+		geom.vertices =
 		{
-			SDrawCallDesc& dcd = m_RenderDesc.pSubsets[0].drawCallDesc;
-			if (IS_VALID_PTR(dcd.pVertexBuffer)) pResourcePool->RemoveVertexBuffer(&dcd.pVertexBuffer);
-			if (IS_VALID_PTR(dcd.pIndexBuffer)) pResourcePool->RemoveIndexBuffer(&dcd.pIndexBuffer);
-		}
+			SVertex(0, 0, 0, n.x, n.y, n.z, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f),
+			SVertex(0, 1.0f, 0, n.x, n.y, n.z, 0, 0, 0, 0, 0, 0.05f, 0.05f, 0.05f)
+		};
+
+		geomInited = true;
 	}
 
-	m_RenderDesc.Clear();
-	m_pRenderer = 0;
-	m_bAABBInvalid = true;
+	return &geom;
 }
 
-S_API void CHelperRenderObject::Init(const SHelperInfo& info)
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CPlaneHelper::SetParams(const Params& params)
 {
-	assert(m_pRenderer);
-	assert(m_pRenderer->GetRenderer());
+	STransformationDesc transform;
+	transform.scale = Mat44::MakeScaleMatrix(Vec3f(params.hsize, 1.0f, params.hsize));
+	transform.translation = Mat44::MakeTranslationMatrix(Vec3f(0, params.d + params.n.Length() - 1.0f, 0));
+	transform.rotation = Quat::FromVectors(Vec3f(0, 1.0f, 0), params.n.Normalized()).ToRotationMatrix();
 
-	IResourcePool* pRes = m_pRenderer->GetRenderer()->GetResourcePool();
-	assert(pRes);
+	m_Transform = transform.rotation * (transform.translation * transform.scale);
+}
 
-	m_RenderDesc.Clear();
-	m_RenderDesc.pSubsets = new SRenderSubset[1];
-	m_RenderDesc.nSubsets = 1;
-	m_RenderDesc.renderPipeline = eRENDER_FORWARD;
-	
-	SDrawCallDesc& dcd = m_RenderDesc.pSubsets[0].drawCallDesc;
-	dcd.primitiveType = (info.lines ? PRIMITIVE_TYPE_LINES : PRIMITIVE_TYPE_TRIANGLELIST);
+const SHelperGeometryDesc* CPlaneHelper::GetBaseGeometry(bool outline)
+{
+	static SHelperGeometryDesc geom;
+	static bool geomInited = false;
 
-	pRes->AddVertexBuffer(&dcd.pVertexBuffer);
-	dcd.pVertexBuffer->Initialize(m_pRenderer->GetRenderer(), eVBUSAGE_STATIC, info.pVertices, info.numVertices);
-	dcd.iStartVBIndex = 0;
-	dcd.iEndVBIndex = info.numVertices - 1;
-
-	if (!info.lines)
+	if (!geomInited)
 	{
-		pRes->AddIndexBuffer(&dcd.pIndexBuffer);
-		dcd.pIndexBuffer->Initialize(m_pRenderer->GetRenderer(), eIBUSAGE_STATIC, info.numIndices, info.pIndices);
-		dcd.iStartIBIndex = 0;
-		dcd.iEndIBIndex = info.numIndices - 1;
-	}
-
-
-	SShaderResources& srs = m_RenderDesc.pSubsets[0].shaderResources;
-	srs.diffuse = info.color;
-	srs.emissive = info.color;
-	srs.illumModel = eILLUM_HELPER;
-
-	m_RenderDesc.bDepthStencilEnable = info.depthTestEnable;
-
-	m_bAABBInvalid = true;
-}
-
-S_API void CHelperRenderObject::SetColor(const SColor& color)
-{
-	if (IS_VALID_PTR(m_RenderDesc.pSubsets) && m_RenderDesc.nSubsets > 0)
-	{
-		SShaderResources& srs = m_RenderDesc.pSubsets[0].shaderResources;
-		srs.diffuse = color.ToFloat3();
-		srs.emissive = srs.diffuse;
-	}
-}
-
-S_API void CHelperRenderObject::SetRenderer(I3DEngine* p3DEngine)
-{
-	m_pRenderer = p3DEngine;
-}
-
-S_API AABB CHelperRenderObject::GetAABB()
-{
-	if (m_bAABBInvalid)
-	{		
-		m_bAABBInvalid = false;
-		m_AABB.Reset();
-		if (IS_VALID_PTR(m_RenderDesc.pSubsets) && m_RenderDesc.nSubsets > 0)
+		geom.topology = PRIMITIVE_TYPE_TRIANGLELIST;
+		geom.vertices =
 		{
-			IVertexBuffer* pVB = m_RenderDesc.pSubsets[0].drawCallDesc.pVertexBuffer;
-			if (IS_VALID_PTR(pVB))
+			SVertex(-1.0f, 0, -1.0f, 0, 1.0f, 0, 1.0f, 0, 0),
+			SVertex(1.0f, 0, -1.0f, 0, 1.0f, 0, 1.0f, 0, 0),
+			SVertex(1.0f, 0, 1.0f, 0, 1.0f, 0, 1.0f, 0, 0),
+			SVertex(-1.0f, 0, 1.0f, 0, 1.0f, 0, 1.0f, 0, 0)
+		};
+		geom.indices =
+		{
+			0, 1, 2,
+			0, 2, 3
+		};
+
+		geomInited = true;
+	}
+
+	return &geom;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CCylinderHelper::SetParams(const Params& params)
+{
+	STransformationDesc transform;
+	transform.translation = Mat44::MakeTranslationMatrix(params.p[0]);
+	transform.rotation = Quat::FromVectors(Vec3f(0, 1.0f, 0), (params.p[1] - params.p[0]).Normalized()).ToRotationMatrix();
+	transform.scale = Mat44::MakeScaleMatrix(Vec3f(params.r, (params.p[1] - params.p[0]).Length(), params.r));
+
+	m_Transform = transform.translation * (transform.rotation * transform.scale);
+}
+
+const SHelperGeometryDesc* CCylinderHelper::GetBaseGeometry(bool outline)
+{
+	static SHelperGeometryDesc geom;
+	static bool geomInited = false;
+
+	if (!geomInited)
+	{
+		const Vec3f bottom(0, 0, 0);
+		const Vec3f top(0, 1.0f, 0);
+		const float radius = 1.0f;
+		const unsigned int segments = 35;
+
+
+		// MakeCylinder()
+		// TODO: Texture coordinates
+
+		geom.topology = PRIMITIVE_TYPE_TRIANGLELIST;
+
+		unsigned int numMantleVerts = (segments + 1) * 2;
+		unsigned int numCapVerts = 1 + segments; // including middle point
+		geom.vertices.resize(numMantleVerts + numCapVerts * 2);
+
+		unsigned int numMantleIndices = segments * 6;
+		unsigned int numCapIndices = segments * 3;
+		geom.indices.resize(numMantleIndices + numCapIndices * 2);
+
+		geom.vertices[numMantleVerts] = SVertex(bottom.x, bottom.y, bottom.z);
+		geom.vertices[numMantleVerts + numCapVerts] = SVertex(top.x, top.y, top.z);
+
+		Vec3f axis = top - bottom;
+		Vec3f naxis = axis.Normalized();
+		Vec3f perp = ((Vec3f(-naxis.y, -naxis.z, naxis.x) ^ naxis) ^ naxis).Normalized() * radius;
+
+		float dAlpha = (2.0f * SP_PI) / (float)segments;
+		float alpha;
+		Vec3f pbottom, ptop;
+		for (unsigned int seg = 0; seg <= segments; ++seg)
+		{
+			alpha = dAlpha * seg;
+			pbottom = bottom + Quat::FromAxisAngle(naxis, alpha) * perp;
+			ptop = pbottom + axis;
+
+			Vec3f n = (pbottom - bottom).Normalized();
+			Vec3f t = n ^ naxis;
+
+			unsigned int mantleVtx = seg * 2;
+			geom.vertices[mantleVtx] = SVertex(pbottom.x, pbottom.y, pbottom.z, n.x, n.y, n.z, t.x, t.y, t.z);
+			geom.vertices[mantleVtx + 1] = SVertex(ptop.x, ptop.y, ptop.z, n.x, n.y, n.z, t.x, t.y, t.z);
+
+			if (seg < segments)
 			{
-				for (unsigned long iVtx = 0; iVtx < pVB->GetVertexCount(); ++iVtx)
-				{
-					SVertex* pVtx = pVB->GetVertex(iVtx);
-					m_AABB.AddPoint(Vec3f(pVtx->x, pVtx->y, pVtx->z));
-				}
+				unsigned int capVtx1 = numMantleVerts + 1 + seg;
+				geom.vertices[capVtx1] = SVertex(pbottom.x, pbottom.y, pbottom.z, -naxis.x, -naxis.y, -naxis.z, perp.x, perp.y, perp.z);
+
+				unsigned int capVtx2 = numMantleVerts + numCapVerts + 1 + seg;
+				geom.vertices[capVtx2] = SVertex(ptop.x, ptop.y, ptop.z, naxis.x, naxis.y, naxis.z, perp.x, perp.y, perp.z);
+
+				unsigned int i = seg * 6;
+				geom.indices[i + 0] = mantleVtx;
+				geom.indices[i + 1] = mantleVtx + 1;
+				geom.indices[i + 2] = mantleVtx + 1 + 2;
+				geom.indices[i + 3] = mantleVtx;
+				geom.indices[i + 4] = mantleVtx + 1 + 2;
+				geom.indices[i + 5] = mantleVtx + 2;
+
+				i = numMantleIndices + seg * 3;
+				geom.indices[i + 0] = capVtx1;
+				geom.indices[i + 1] = numMantleVerts + 1;
+				geom.indices[i + 2] = (numMantleVerts + 1) + (seg + 1) % segments;
+
+				i = numMantleIndices + numCapIndices + seg * 3;
+				geom.indices[i + 0] = capVtx2;
+				geom.indices[i + 1] = numMantleVerts + numCapVerts + 1;
+				geom.indices[i + 2] = (numMantleVerts + numCapVerts + 1) + (seg + 1) % segments;
 			}
 		}
+
+		geomInited = true;
 	}
 
-	return m_AABB;
+	return &geom;
 }
-
-S_API IVertexBuffer* CHelperRenderObject::GetVertexBuffer()
-{
-	if (IS_VALID_PTR(m_RenderDesc.pSubsets) && m_RenderDesc.nSubsets > 0)
-		return m_RenderDesc.pSubsets[0].drawCallDesc.pVertexBuffer;
-	else
-		return 0;
-}
-S_API IIndexBuffer* CHelperRenderObject::GetIndexBuffer(unsigned int subset)
-{
-	if (IS_VALID_PTR(m_RenderDesc.pSubsets) && m_RenderDesc.nSubsets > subset)
-		return m_RenderDesc.pSubsets[subset].drawCallDesc.pIndexBuffer;
-	else
-		return 0;
-}
-
-S_API SRenderDesc* CHelperRenderObject::GetRenderDesc()
-{
-	return &m_RenderDesc;
-}
-
-S_API void CHelperRenderObject::SetTransform(const SMatrix& transform)
-{
-	m_RenderDesc.transform = transform;
-}
-
-S_API void CHelperRenderObject::SetCustomViewProjMatrix(const SMatrix* viewProj)
-{
-	if (IS_VALID_PTR(viewProj))
-	{
-		m_RenderDesc.bCustomViewProjMtx = true;
-		m_RenderDesc.viewProjMtx = *viewProj;
-	}
-	else
-	{
-		m_RenderDesc.bCustomViewProjMtx = false;
-	}
-}
-
-S_API void CHelperRenderObject::Show(bool show)
-{
-	//TODO: Store a m_bVisible variable on our own, which will be read by the Renderer before executing Render(renderDesc)
-
-	// Hide all subsets
-	if (m_RenderDesc.pSubsets && m_RenderDesc.nSubsets > 0)
-	{
-		for (unsigned int i = 0; i < m_RenderDesc.nSubsets; ++i)
-		{
-			SRenderSubset& subset = m_RenderDesc.pSubsets[i];
-
-			// do not show invalid subsets
-			if (IS_VALID_PTR(subset.drawCallDesc.pVertexBuffer) && IS_VALID_PTR(subset.drawCallDesc.pIndexBuffer))
-				subset.render = show;
-			else
-				subset.render = false;
-		}
-	}
-}
-
-S_API void CHelperRenderObject::Update()
-{
-}
-
-S_API void CHelperRenderObject::OnRelease()
-{
-	m_RenderDesc.Clear();
-}
-
-S_API void CHelperRenderObject::ReleaseNextFrame()
-{
-	m_bReleaseNextFrame = true;
-}
-
-S_API bool CHelperRenderObject::IsGarbage() const
-{
-	return m_bReleaseNextFrame;
-}*/
 
 SP_NMSPACE_END

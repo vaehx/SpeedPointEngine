@@ -48,6 +48,9 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\RenderableComponent.h">
       <Filter>Abstract\Components</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EngineSettings.cpp">
@@ -69,6 +72,9 @@
       <Filter>Implementation\Components</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EntityReceipts.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>

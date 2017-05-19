@@ -93,6 +93,9 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat33.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\geo.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp">
@@ -117,6 +120,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat33.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\geo.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

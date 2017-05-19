@@ -10,6 +10,7 @@
 #include "..\IApplication.h"
 #include "FileLogListener.h"
 #include "ProfilingDebugView.h"
+#include "PhysicsDebugRenderer.h"
 #include <GameFramework\Implementation\FileSPW.h>
 #include <GameFramework\PhysicalComponent.h>
 #include <GameFramework\RenderableComponent.h>
@@ -17,6 +18,7 @@
 #include <EntitySystem\Implementation\EntityReceipt.h>
 #include <EntitySystem\Implementation\Scene.h>
 #include <Physics\Implementation\CPhysics.h>
+#include <Physics\Implementation\PhysDebug.h>
 #include <3DEngine\Implementation\Material.h>
 #include <3DEngine\Implementation\C3DEngine.h>
 #include <Renderer\IRenderer.h>
@@ -35,7 +37,8 @@ IGameEngine* SpeedPointEnv::m_pEngine = 0;
 S_API SpeedPointEngine::SpeedPointEngine()
 : m_bRunning(false),
 m_bLoggedSkipstages(false),
-m_pApplication(nullptr)
+m_pApplication(nullptr),
+m_pPhysicsDebugRenderer(0)
 {
 	SpeedPointEnv::SetEngine(this);
 
@@ -96,9 +99,13 @@ S_API SResult SpeedPointEngine::Initialize(const SGameEngineInitParams& params)
 	CLog::Log(S_INFO, "Initialized 3D Engine");
 
 	// Physics
+	geo::FillIntersectionTestTable();
+	
 	m_pPhysics.SetOwn(new CPhysics());
-
 	m_pPhysics->CreatePhysObjectPool<CPhysicalComponent>();
+
+	m_pPhysicsDebugRenderer = new PhysicsDebugRenderer();
+	PhysDebug::SetRenderer(m_pPhysicsDebugRenderer);
 
 	CLog::Log(S_INFO, "Initialized physics");
 
@@ -205,6 +212,9 @@ S_API void SpeedPointEngine::Shutdown(void)
 	if (IS_VALID_PTR(m_pScene.pComponent))
 		m_pScene->Clear();
 
+	if (m_pPhysicsDebugRenderer) delete m_pPhysicsDebugRenderer;
+	m_pPhysicsDebugRenderer = 0;
+	PhysDebug::SetRenderer(0);
 	m_pPhysics.Clear();
 
 	// has to be called before clearing renderer (RenderAPI)

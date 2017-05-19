@@ -18,12 +18,18 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\Implementation\CPhysics.h">
       <Filter>Implementation</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysDebug.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysObject.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\CPhysics.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysDebug.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>
