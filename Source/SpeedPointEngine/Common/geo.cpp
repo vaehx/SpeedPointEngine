@@ -1,4 +1,5 @@
 #include "geo.h"
+#include <Physics\Implementation\PhysDebug.h> // TODO: Get this out of here.
 
 GEO_NMSPACE_BEG
 
@@ -73,7 +74,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_CapsulePlane;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_CapsuleSphere;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_CYLINDER] = 0;
-	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_CAPSULE] = 0;
+	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_CapsuleCapsule;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_TRIANGLE] = 0;
 
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_TriangleRay;
@@ -761,6 +762,62 @@ bool _CapsulePlane(const capsule* pcapsule, const plane* pplane, SIntersection* 
 	bool res = _PlaneCapsule(pplane, pcapsule, pinters);
 	pinters->n *= -1.0f;
 	return res;
+}
+
+bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SIntersection* pinters)
+{
+	const capsule* capsules[] = { pcapsule1, pcapsule2 };
+	Vec3f axis[] = { pcapsule1->p[1] - pcapsule1->p[0], pcapsule2->p[1] - pcapsule2->p[0] };
+	float axisln[] = { axis[0].Length(), axis[1].Length() };
+	axis[0] /= axisln[0]; axis[1] /= axisln[1];
+	
+	int inters = 0;
+	float t[2];
+
+	// Cap - Capsule
+	float s;
+	for (int i = 0; i < 2; ++i)
+		for (int c = 0; c < 2; ++c)
+		{
+			s = Vec3Dot(capsules[i]->p[c] - capsules[i ^ 1]->p[0], axis[i ^ 1]);
+			s = min(max(s, 0.0f), axisln[i ^ 1]);
+			if ((capsules[i]->p[c] - (capsules[i ^ 1]->p[0] + s * axis[i ^ 1])).LengthSq() <= sqr(pcapsule1->r + pcapsule2->r))
+			{
+				inters = 1;
+				pinters->feature = eINTERSECTION_FEATURE_CAP;
+				t[0] = c * axisln[i];
+				t[1] = s;
+			}
+		}
+
+	// Mantle-Mantle
+	float s0, s1;
+	Vec3f d = (axis[0] ^ axis[1]).Normalized(), n;
+	n = axis[1] ^ d;
+	s0 = Vec3Dot(pcapsule2->p[0] - pcapsule1->p[0], n) / Vec3Dot(axis[0], n);
+	s0 = min(max(s0, 0.0f), axisln[0]);
+	n = axis[0] ^ d;
+	s1 = Vec3Dot(pcapsule1->p[0] - pcapsule2->p[0], n) / Vec3Dot(axis[1], n);
+	s1 = min(max(s1, 0.0f), axisln[1]);
+
+	if (fabsf(Vec3Dot(axis[0], axis[1])) <= 1.0f - FLT_EPSILON
+		& ((pcapsule1->p[0] + s0 * axis[0]) - (pcapsule2->p[0] + s1 * axis[1])).LengthSq() <= sqr(pcapsule1->r + pcapsule2->r))
+	{		
+		inters = 1;
+		pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+		t[0] = s0;
+		t[1] = s1;
+	}
+
+	Vec3f p[2] = { pcapsule1->p[0] + t[0] * axis[0], pcapsule2->p[0] + t[1] * axis[1] };
+	PhysDebug::VisualizePoint(p[0], SColor::Turqouise(), true);
+	PhysDebug::VisualizePoint(p[1], SColor::Turqouise(), true);
+
+	float dln = (p[1] - p[0]).Length();
+	pinters->n = (p[1] - p[0]) / dln;
+	pinters->p = p[0] + pinters->n * pcapsule1->r;
+	pinters->dist = dln - pcapsule1->r - pcapsule2->r;
+	return inters;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

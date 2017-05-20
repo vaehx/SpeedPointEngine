@@ -213,6 +213,7 @@ bool _CylinderCylinder(const cylinder* pcyl1, const cylinder* pcyl2, SIntersecti
 bool _CapsuleRay(const capsule* pcapsule, const ray* pray, SIntersection* pinters);
 bool _CapsuleSphere(const capsule* pcapsule, const sphere* psphere, SIntersection* pinters);
 bool _CapsulePlane(const capsule* pcapsule, const plane* pplane, SIntersection* pinters);
+bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SIntersection* pinters);
 
 bool _TriangleRay(const triangle* ptri, const ray* pray, SIntersection* pinters);
 bool _TrianglePlane(const triangle* ptri, const plane* pplane, SIntersection* pinters);
