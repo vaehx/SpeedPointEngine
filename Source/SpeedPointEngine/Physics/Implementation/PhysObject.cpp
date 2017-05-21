@@ -131,11 +131,16 @@ void PhysObject::Update(float fTime)
 			}
 		case eSHAPE_CAPSULE:
 			{
-				capsule* pcyl = (capsule*)m_pShape;
+				capsule* pcapsule = (capsule*)m_pShape;
 				capsule* ptransformed = (capsule*)m_pTransformedShape;
-				ptransformed->p[0] = (mtx * Vec4f(pcyl->p[0], 1.0f)).xyz();
-				ptransformed->p[1] = (mtx * Vec4f(pcyl->p[1], 1.0f)).xyz();
-				ptransformed->r = pcyl->r;
+				Vec3f bottom = pcapsule->c - pcapsule->hh * pcapsule->axis, top = pcapsule->c + pcapsule->hh * pcapsule->axis;
+				bottom = (mtx * Vec4f(bottom, 1.0f)).xyz();
+				top = (mtx * Vec4f(top, 1.0f)).xyz();
+				ptransformed->c = (bottom + top) * 0.5f;
+				ptransformed->hh = (top - bottom).Length();
+				ptransformed->axis = (top - bottom) / ptransformed->hh;
+				ptransformed->hh *= 0.5f;
+				ptransformed->r = pcapsule->r;
 				break;
 			}
 		case eSHAPE_BOX:
@@ -220,7 +225,7 @@ void PhysObject::RecalculateInertia()
 	case eSHAPE_CAPSULE:
 		{
 			capsule* pcapsule = (capsule*)m_pShape;
-			float h = (pcapsule->p[1] - pcapsule->p[0]).Length();
+			float h = 2.0f * pcapsule->hh;
 			float hsq = h * h, rsq = pcapsule->r * pcapsule->r;
 			float Vcaps = (4.0f / 3.0f) * SP_PI * pcapsule->r * pcapsule->r * pcapsule->r; // 4/3 * pIbody * r^3
 			float Vcyl = SP_PI * pcapsule->r * pcapsule->r * h;

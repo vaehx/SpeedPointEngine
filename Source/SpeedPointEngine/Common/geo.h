@@ -97,15 +97,27 @@ struct cylinder : shape
 
 struct capsule : shape
 {
-	Vec3f p[2];
+	Vec3f c;
+	Vec3f axis; // normalized!
+	float hh;
 	float r;
 	capsule() { ty = eSHAPE_CAPSULE; }
 	capsule(const Vec3f& bottom, const Vec3f& top, float radius)
 	{
 		ty = eSHAPE_CAPSULE;
-		p[0] = bottom;
-		p[1] = top;
+		c = (bottom + top) * 0.5f;
+		hh = (top - bottom).Length();
+		axis = (top - bottom) / hh;
+		hh *= 0.5f;
 		r = radius;
+	}
+	capsule(const Vec3f& center, const Vec3f& naxis, float halfheight, float radius)
+	{
+		ty = eSHAPE_CAPSULE;
+		c = center;
+		hh = halfheight;
+		r = radius;
+		axis = naxis;
 	}
 	virtual OBB GetBoundBox() const;
 };

@@ -48,7 +48,16 @@ struct SHelperRenderParams
 	SHelperRenderParams(u32 _color, bool _outline, bool _depthTestEnable)
 		: color(_color),
 		outline(_outline),
-		depthTestEnable(_depthTestEnable)
+		depthTestEnable(_depthTestEnable),
+		visible(true)
+	{
+	}
+
+	SHelperRenderParams(const SColor& _color, bool _outline, bool _depthTestEnable)
+		: color(_color.ToInt_ARGB()),
+		outline(_outline),
+		depthTestEnable(depthTestEnable),
+		visible(true)
 	{
 	}
 };

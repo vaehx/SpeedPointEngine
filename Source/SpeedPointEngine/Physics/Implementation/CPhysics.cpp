@@ -68,6 +68,8 @@ S_API void CPhysics::Update(float fTime)
 
 		pObject->OnSimulationPrepare();
 		pObject->Update(fTime);
+
+		PhysDebug::VisualizeBox(pObject->GetTransformedCollisionShape()->GetBoundBox(), SColor::White(), true);
 	}
 
 	// Determine pairs of objects that possibly collide
@@ -95,7 +97,10 @@ S_API void CPhysics::Update(float fTime)
 		if (!_Intersection(pshape1, pshape2, &contact))
 			continue;
 
-//		PhysDebug::VisualizeVector(contact.p, contact.n, SColor::Red(), true);
+		if (pshape1->GetType() == eSHAPE_CAPSULE && pshape2->GetType() == eSHAPE_CAPSULE)
+			CLog::Log(S_DEBUG, "Intersection (feature = %s, dist = %.4f)", (contact.feature == eINTERSECTION_FEATURE_BASE_SHAPE ? "BASE_SHAPE" : "CAPS"), contact.dist);
+
+		PhysDebug::VisualizeVector(contact.p, contact.n, SColor::Red(), true);
 
 		SPhysObjectState *A = pobj1->GetState(), *B = pobj2->GetState();
 

@@ -28,6 +28,18 @@ public:
 			spRenderer->VisualizePlane(p, n, color, releaseAfterRender);
 	}
 
+	static void VisualizeAABB(const AABB& aabb, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false)
+	{
+		if (spRenderer)
+			spRenderer->VisualizeAABB(aabb, color, releaseAfterRender);
+	}
+
+	static void VisualizeBox(const OBB& obb, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false)
+	{
+		if (spRenderer)
+			spRenderer->VisualizeBox(obb, color, releaseAfterRender);
+	}
+
 	static void SetRenderer(IPhysicsDebugRenderer* pRenderer)
 	{
 		spRenderer = pRenderer;

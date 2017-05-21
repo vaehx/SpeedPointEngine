@@ -3,6 +3,7 @@
 
 GEO_NMSPACE_BEG
 
+// Returns the sign bit of x (x < 0)
 ILINE int isneg(f32 x)
 {
 	union
@@ -231,13 +232,13 @@ bool _RayCylinder(const ray* pray, const cylinder* pcyl, SIntersection* pinters)
 bool _RayCapsule(const ray* pray, const capsule* pcapsule, SIntersection* pinters)
 {
 	const Vec3f vr = pray->v.Normalized(); // normalized ray direction
-	const Vec3f vc = (pcapsule->p[1] - pcapsule->p[0]).Normalized(); // normalized cylinder ray direction
+	const Vec3f vc = pcapsule->axis; // normalized cylinder ray direction
 	const float rsq = pcapsule->r * pcapsule->r; // r^2
 
 												 // Mantle
 	float t[2];
 	const Vec3f U = vr - Vec3Dot(vr, vc) * vc;
-	const Vec3f V = (pray->p - pcapsule->p[0]) - Vec3Dot(pray->p - pcapsule->p[0], vc) * vc;
+	const Vec3f V = (pray->p - pcapsule->c) - Vec3Dot(pray->p - pcapsule->c, vc) * vc;
 	const float A = U.LengthSq();
 	const float B = 2.0f * Vec3Dot(U, V);
 	const float C = V.LengthSq() - rsq;
@@ -251,13 +252,13 @@ bool _RayCapsule(const ray* pray, const capsule* pcapsule, SIntersection* pinter
 		t[1] = (-B - sqrt_s) * invden;
 
 		Vec3f q, n;
-		float d0;
+		float s;
 		for (int i = 0; i < 2; ++i)
 		{
 			q = pray->p + vr * t[i];
-			d0 = Vec3Dot(q - pcapsule->p[0], vc);
-			n = q - (pcapsule->p[0] + d0 * vc);
-			if (d0 > 0 && Vec3Dot(q - pcapsule->p[1], vc) < 0 && Vec3Dot(n, vr) <= 0)
+			s = Vec3Dot(q - pcapsule->c, vc);
+			n = q - (pcapsule->c + s * vc);
+			if (fabsf(s) <= pcapsule->hh && Vec3Dot(n, vr) <= 0)
 			{
 				pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
 				pinters->dist = 0.0f;
@@ -269,18 +270,19 @@ bool _RayCapsule(const ray* pray, const capsule* pcapsule, SIntersection* pinter
 	}
 
 	// Caps
-	Vec3f u, v, capn;
+	Vec3f u, v, capn, capp;
 	for (int i = 0; i < 2; ++i)
 	{
 		capn = vc * (2.0f * (float)i - 1.0f);
-		u = (pray->p + Vec3Dot(pcapsule->p[i] - pray->p, vr) * vr) - pcapsule->p[i]; // cap center -> closest point on ray
+		capp = pcapsule->c + (-1.0f + 2.0f * i) * pcapsule->hh * pcapsule->axis;
+		u = (pray->p + Vec3Dot(capp - pray->p, vr) * vr) - capp;
 		float ulnsq = u.LengthSq();
 		if (ulnsq <= rsq && Vec3Dot(capn, vr) <= 0)
 		{
 			v = -vr * sqrtf(rsq - ulnsq);
 			pinters->feature = eINTERSECTION_FEATURE_CAP;
 			pinters->dist = 0.0f;
-			pinters->p = pcapsule->p[i] + u + v;
+			pinters->p = capp + u + v;
 			pinters->n = (u + v).Normalized();
 			return true;
 		}
@@ -388,21 +390,20 @@ bool _PlaneCylinder(const plane* pplane, const cylinder* pcyl, SIntersection* pi
 
 bool _PlaneCapsule(const plane* pplane, const capsule* pcapsule, SIntersection* pinters)
 {
-	Vec3f axis = pcapsule->p[1] - pcapsule->p[0];
-	quotient t(Vec3Dot(pplane->n * pplane->d - pcapsule->p[0], pplane->n), Vec3Dot(axis, pplane->n));
+	quotient t(Vec3Dot(pplane->n * pplane->d - pcapsule->c, pplane->n), Vec3Dot(pcapsule->axis, pplane->n));
 	if (fabsf(t.d) < FLT_EPSILON)
 	{
 		pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
 		pinters->n = pplane->n;
-		//pinters->p = (pcapsule->p[0] + pcapsule->p[1]) * 0.5f + pinters->n * pcapsule->r;
-		pinters->p = pcapsule->p[0] + t.n * pplane->n;
+		//pinters->p = pcapsule->c + pinters->n * pcapsule->r;
+		pinters->p = pcapsule->c + t.n * pplane->n;
 		pinters->dist = fabsf(t.n) - pcapsule->r;
 		return (pinters->dist <= 0);
 	}
 
 	float mint = t.val();
-	mint = min(max(mint, 0), 1.0f);
-	Vec3f q = pcapsule->p[0] + axis * mint;
+	mint = min(max(mint, -pcapsule->hh), pcapsule->hh);
+	Vec3f q = pcapsule->c + mint * pcapsule->axis;
 	pinters->feature = eINTERSECTION_FEATURE_CAP;
 	pinters->n = pplane->n;
 	pinters->p = q - pinters->n * pcapsule->r;
@@ -514,14 +515,11 @@ bool _SphereCylinder(const sphere* psphere, const cylinder* pcyl, SIntersection*
 
 bool _SphereCapsule(const sphere* psphere, const capsule* pcapsule, SIntersection* pinters)
 {
-	Vec3f a = pcapsule->p[1] - pcapsule->p[0]; // cyl axis
-	float a_ln = a.Length();
-	a /= a_ln;
-	float proj = Vec3Dot(psphere->c - pcapsule->p[0], a);
-	Vec3f d = psphere->c - (pcapsule->p[0] + proj * a); // perp vec from cyl ray to sphere center
+	float proj = Vec3Dot(psphere->c - pcapsule->c, pcapsule->axis);
+	Vec3f d = psphere->c - (pcapsule->c + proj * pcapsule->axis); // perp vec from cyl ray to sphere center
 
 	float dd;
-	if (proj > 0.0f && proj < a_ln)
+	if (fabsf(proj) <= pcapsule->hh)
 	{
 		dd = d.LengthSq() - sqr(pcapsule->r + psphere->r);
 		float dln = d.Length();
@@ -531,9 +529,9 @@ bool _SphereCapsule(const sphere* psphere, const capsule* pcapsule, SIntersectio
 	}
 	else
 	{
-		int cap = (proj > 0);
-		dd = (psphere->c - pcapsule->p[cap]).LengthSq() - sqr(pcapsule->r + psphere->r);
-		d = psphere->c - pcapsule->p[cap];
+		Vec3f capp = pcapsule->c + min(max(proj, -pcapsule->hh), pcapsule->hh) * pcapsule->axis;
+		dd = (psphere->c - capp).LengthSq() - sqr(pcapsule->r + psphere->r);
+		d = psphere->c - capp;
 		float dln = d.Length();
 		pinters->feature = eINTERSECTION_FEATURE_CAP;
 		pinters->n = -d / dln;
@@ -734,14 +732,12 @@ bool _CylinderCylinder(const cylinder* pcyl1, const cylinder* pcyl2, SIntersecti
 
 OBB capsule::GetBoundBox() const
 {
-	float axisln = (p[1] - p[0]).Length();
-	Vec3f naxis = (p[1] - p[0]) / axisln;
 	OBB bb;
-	bb.center = (p[0] + p[1]) * 0.5f;
-	bb.directions[1] = naxis;
-	bb.directions[0] = naxis.GetOrthogonal().Normalized();
-	bb.directions[2] = naxis ^ bb.directions[0];
-	bb.dimensions = Vec3f(r, axisln * 0.5f + r, r);
+	bb.center = c;
+	bb.directions[0] = axis.GetOrthogonal().Normalized();
+	bb.directions[1] = axis;
+	bb.directions[2] = axis ^ bb.directions[0];
+	bb.dimensions = Vec3f(r, hh + r, r);
 	return bb;
 }
 
@@ -767,50 +763,48 @@ bool _CapsulePlane(const capsule* pcapsule, const plane* pplane, SIntersection* 
 bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SIntersection* pinters)
 {
 	const capsule* capsules[] = { pcapsule1, pcapsule2 };
-	Vec3f axis[] = { pcapsule1->p[1] - pcapsule1->p[0], pcapsule2->p[1] - pcapsule2->p[0] };
-	float axisln[] = { axis[0].Length(), axis[1].Length() };
-	axis[0] /= axisln[0]; axis[1] /= axisln[1];
-	
 	int inters = 0;
-	float t[2], s, s0, s1;
+	float s[2];
 
 	// Cap - Capsule
+	pinters->dist = FLT_MAX;
+	pinters->feature = eINTERSECTION_FEATURE_CAP;
+	float distsq;
+	Vec3f cp;
 	for (int i = 0; i < 2; ++i)
 		for (int c = 0; c < 2; ++c)
 		{
-			s = Vec3Dot(capsules[i]->p[c] - capsules[i ^ 1]->p[0], axis[i ^ 1]);
-			s = min(max(s, 0.0f), axisln[i ^ 1]);
-			if ((capsules[i]->p[c] - (capsules[i ^ 1]->p[0] + s * axis[i ^ 1])).LengthSq() <= sqr(pcapsule1->r + pcapsule2->r))
+			s[i ^ 1] = Vec3Dot((cp = (capsules[i]->c + (s[i] = (-1.0f + 2.0f * (float)c)) * capsules[i]->hh) * capsules[i]->axis) - capsules[i ^ 1]->c, capsules[i ^ 1]->axis);
+			s[i ^ 1] = min(max(s[i ^ 1], -capsules[i ^ 1]->hh), capsules[i ^ 1]->hh);
+
+			distsq = (cp - (capsules[i ^ 1]->c + s[i ^ 1] * capsules[i ^ 1]->axis)).LengthSq();
+			if ((distsq <= sqr(pcapsule1->r + pcapsule2->r)) & (distsq < pinters->dist))
 			{
 				inters = 1;
-				pinters->feature = eINTERSECTION_FEATURE_CAP;
-				t[i] = (float)c * axisln[i];
-				t[i ^ 1] = s;
+				pinters->dist = distsq;
+				pinters->p = capsules[0]->c + s[0] * capsules[0]->axis;
+				pinters->n = (capsules[1]->c + s[1] * capsules[1]->axis) - pinters->p;
 			}
 		}
 
 	// Mantle-Mantle
-	Vec3f d = (axis[0] ^ axis[1]).Normalized(), n;
-	n = axis[1] ^ d;
-	s0 = Vec3Dot(pcapsule2->p[0] - pcapsule1->p[0], n) / Vec3Dot(axis[0], n);
-	n = axis[0] ^ d;
-	s1 = Vec3Dot(pcapsule1->p[0] - pcapsule2->p[0], n) / Vec3Dot(axis[1], n);
-
-	if ((fabsf(Vec3Dot(axis[0], axis[1])) <= 1.0f - FLT_EPSILON)
-		& (((pcapsule1->p[0] + s0 * axis[0]) - (pcapsule2->p[0] + s1 * axis[1])).LengthSq() <= sqr(pcapsule1->r + pcapsule2->r))
-		& (s0 >= 0.0f & s0 <= axisln[0]) & (s1 >= 0.0f & s1 <= axisln[1]))
-	{		
+	Vec3f dc = capsules[1]->c - capsules[0]->c;
+	Vec3f d = capsules[0]->axis ^ capsules[1]->axis;
+	float dlnsq = d.LengthSq();
+	if (isneg(fabsf(Vec3Dot(capsules[0]->axis, capsules[1]->axis)) - (1.0f - FLT_EPSILON))
+		& isneg(Vec3Dot(dc, d) - capsules[0]->r - capsules[1]->r)
+		& isneg(fabsf(s[0] = Vec3Dot(dc ^ capsules[1]->axis, d)) - capsules[0]->hh * dlnsq))
+	{
 		inters = 1;
 		pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
-		t[0] = s0;
-		t[1] = s1;
+		pinters->p = capsules[0]->c + s[0] * capsules[0]->axis;
+		pinters->n = d; // wrong sign possible!!!!!!
+		pinters->dist = sqr(Vec3Dot(dc, d)) / dlnsq;
 	}
 
-	Vec3f p[2] = { pcapsule1->p[0] + t[0] * axis[0], pcapsule2->p[0] + t[1] * axis[1] };
-	float dln = (p[1] - p[0]).Length();
-	pinters->n = (p[1] - p[0]) / dln;
-	pinters->p = p[0] + pinters->n * pcapsule1->r;
-	pinters->dist = dln - pcapsule1->r - pcapsule2->r;
+	pinters->dist = sqrtf(pinters->dist) - pcapsule1->r - pcapsule2->r;
+	pinters->n = pinters->n.Normalized();
+	pinters->p += pinters->n * capsules[0]->r;
 	return inters;
 }
 
@@ -857,6 +851,7 @@ bool _CircleCircle(const circle* pcircle1, const circle* pcircle2, SIntersection
 
 	Vec3f lnDir = pcircle1->n ^ pcircle2->n;
 	Vec3f lnPoint = dc ^ lnDir;
+
 	if (fabsf(Vec3Dot(pcircle1->n, pcircle2->n)) >= 1.0f - FLT_EPSILON) // parallel
 	{
 		if (fabsf(Vec3Dot(dc, pcircle2->n)) < FLT_EPSILON) // coincident
