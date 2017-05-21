@@ -772,10 +772,9 @@ bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SInters
 	axis[0] /= axisln[0]; axis[1] /= axisln[1];
 	
 	int inters = 0;
-	float t[2];
+	float t[2], s, s0, s1;
 
 	// Cap - Capsule
-	float s;
 	for (int i = 0; i < 2; ++i)
 		for (int c = 0; c < 2; ++c)
 		{
@@ -785,23 +784,21 @@ bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SInters
 			{
 				inters = 1;
 				pinters->feature = eINTERSECTION_FEATURE_CAP;
-				t[0] = c * axisln[i];
-				t[1] = s;
+				t[i] = (float)c * axisln[i];
+				t[i ^ 1] = s;
 			}
 		}
 
 	// Mantle-Mantle
-	float s0, s1;
 	Vec3f d = (axis[0] ^ axis[1]).Normalized(), n;
 	n = axis[1] ^ d;
 	s0 = Vec3Dot(pcapsule2->p[0] - pcapsule1->p[0], n) / Vec3Dot(axis[0], n);
-	s0 = min(max(s0, 0.0f), axisln[0]);
 	n = axis[0] ^ d;
 	s1 = Vec3Dot(pcapsule1->p[0] - pcapsule2->p[0], n) / Vec3Dot(axis[1], n);
-	s1 = min(max(s1, 0.0f), axisln[1]);
 
-	if (fabsf(Vec3Dot(axis[0], axis[1])) <= 1.0f - FLT_EPSILON
-		& ((pcapsule1->p[0] + s0 * axis[0]) - (pcapsule2->p[0] + s1 * axis[1])).LengthSq() <= sqr(pcapsule1->r + pcapsule2->r))
+	if ((fabsf(Vec3Dot(axis[0], axis[1])) <= 1.0f - FLT_EPSILON)
+		& (((pcapsule1->p[0] + s0 * axis[0]) - (pcapsule2->p[0] + s1 * axis[1])).LengthSq() <= sqr(pcapsule1->r + pcapsule2->r))
+		& (s0 >= 0.0f & s0 <= axisln[0]) & (s1 >= 0.0f & s1 <= axisln[1]))
 	{		
 		inters = 1;
 		pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
@@ -810,9 +807,6 @@ bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SInters
 	}
 
 	Vec3f p[2] = { pcapsule1->p[0] + t[0] * axis[0], pcapsule2->p[0] + t[1] * axis[1] };
-	PhysDebug::VisualizePoint(p[0], SColor::Turqouise(), true);
-	PhysDebug::VisualizePoint(p[1], SColor::Turqouise(), true);
-
 	float dln = (p[1] - p[0]).Length();
 	pinters->n = (p[1] - p[0]) / dln;
 	pinters->p = p[0] + pinters->n * pcapsule1->r;
