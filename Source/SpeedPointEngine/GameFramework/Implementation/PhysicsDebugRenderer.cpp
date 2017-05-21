@@ -20,7 +20,7 @@ S_API void PhysicsDebugRenderer::VisualizePlane(const Vec3f& p, const Vec3f& n, 
 	CPlaneHelper::Params params;
 	params.n = n;
 	params.d = Vec3Dot(p, n);
-	params.hsize = 3.0f;
+	params.hsize = 10.0f;
 	CHelper* helper = C3DEngine::Get()->AddHelper<CPlaneHelper>(params, releaseAfterRender);
 	helper->SetColor(color);
 }

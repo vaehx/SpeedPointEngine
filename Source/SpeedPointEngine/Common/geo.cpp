@@ -764,19 +764,18 @@ bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SInters
 {
 	const capsule* capsules[] = { pcapsule1, pcapsule2 };
 	int inters = 0;
-	float s[2];
+	float s[2], distsq;
 
-	// Cap - Capsule
+	// Cap-Capsule
 	pinters->dist = FLT_MAX;
 	pinters->feature = eINTERSECTION_FEATURE_CAP;
-	float distsq;
 	Vec3f cp;
 	for (int i = 0; i < 2; ++i)
-		for (int c = 0; c < 2; ++c)
+		for (int c = -1; c < 2; c += 2)
 		{
-			s[i ^ 1] = Vec3Dot((cp = (capsules[i]->c + (s[i] = (-1.0f + 2.0f * (float)c)) * capsules[i]->hh) * capsules[i]->axis) - capsules[i ^ 1]->c, capsules[i ^ 1]->axis);
+			cp = capsules[i]->c + (s[i] = c * capsules[i]->hh) * capsules[i]->axis;
+			s[i ^ 1] = Vec3Dot(cp - capsules[i ^ 1]->c, capsules[i ^ 1]->axis);
 			s[i ^ 1] = min(max(s[i ^ 1], -capsules[i ^ 1]->hh), capsules[i ^ 1]->hh);
-
 			distsq = (cp - (capsules[i ^ 1]->c + s[i ^ 1] * capsules[i ^ 1]->axis)).LengthSq();
 			if ((distsq <= sqr(pcapsule1->r + pcapsule2->r)) & (distsq < pinters->dist))
 			{
@@ -792,13 +791,14 @@ bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SInters
 	Vec3f d = capsules[0]->axis ^ capsules[1]->axis;
 	float dlnsq = d.LengthSq();
 	if (isneg(fabsf(Vec3Dot(capsules[0]->axis, capsules[1]->axis)) - (1.0f - FLT_EPSILON))
-		& isneg(Vec3Dot(dc, d) - capsules[0]->r - capsules[1]->r)
-		& isneg(fabsf(s[0] = Vec3Dot(dc ^ capsules[1]->axis, d)) - capsules[0]->hh * dlnsq))
+		& isneg(sqr(Vec3Dot(dc, d)) - sqr(capsules[0]->r + capsules[1]->r) * dlnsq)
+		& isneg(fabsf(s[0] = Vec3Dot(dc ^ capsules[1]->axis, d)) - capsules[0]->hh * dlnsq)
+		& isneg(fabsf(Vec3Dot(dc ^ capsules[0]->axis, d)) - capsules[1]->hh * dlnsq))
 	{
 		inters = 1;
 		pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
 		pinters->p = capsules[0]->c + s[0] * capsules[0]->axis;
-		pinters->n = d; // wrong sign possible!!!!!!
+		pinters->n = d * sgnnz(Vec3Dot(dc, d));
 		pinters->dist = sqr(Vec3Dot(dc, d)) / dlnsq;
 	}
 

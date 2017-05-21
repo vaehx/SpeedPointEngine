@@ -69,7 +69,7 @@ S_API void CPhysics::Update(float fTime)
 		pObject->OnSimulationPrepare();
 		pObject->Update(fTime);
 
-		PhysDebug::VisualizeBox(pObject->GetTransformedCollisionShape()->GetBoundBox(), SColor::White(), true);
+		//PhysDebug::VisualizeBox(pObject->GetTransformedCollisionShape()->GetBoundBox(), SColor::White(), true);
 	}
 
 	// Determine pairs of objects that possibly collide
@@ -97,10 +97,7 @@ S_API void CPhysics::Update(float fTime)
 		if (!_Intersection(pshape1, pshape2, &contact))
 			continue;
 
-		if (pshape1->GetType() == eSHAPE_CAPSULE && pshape2->GetType() == eSHAPE_CAPSULE)
-			CLog::Log(S_DEBUG, "Intersection (feature = %s, dist = %.4f)", (contact.feature == eINTERSECTION_FEATURE_BASE_SHAPE ? "BASE_SHAPE" : "CAPS"), contact.dist);
-
-		PhysDebug::VisualizeVector(contact.p, contact.n, SColor::Red(), true);
+		//PhysDebug::VisualizeVector(contact.p, -contact.n, SColor::Red(), true);
 
 		SPhysObjectState *A = pobj1->GetState(), *B = pobj2->GetState();
 
@@ -125,6 +122,9 @@ S_API void CPhysics::Update(float fTime)
 
 			if (fabsf(vrel_ln) <= RESTING_TOLERANCE) // resting or sliding contact
 			{
+				if (pshape1->GetType() == eSHAPE_CAPSULE && pshape2->GetType() == eSHAPE_SPHERE)
+					CLog::Log(S_DEBUG, "Resting (feature = %s, dist = %.4f)", (contact.feature == eINTERSECTION_FEATURE_BASE_SHAPE ? "BASE_SHAPE" : "CAPS"), contact.dist);
+
 				// Apply normal force
 				Vec3f AFnormal, BFnormal;
 				A->P += (AFnormal = Vec3Dot(contact.n, Apvel) * contact.n) * fTime;
@@ -132,6 +132,9 @@ S_API void CPhysics::Update(float fTime)
 			}
 			else // colliding contact
 			{
+				if (pshape1->GetType() == eSHAPE_CAPSULE && pshape2->GetType() == eSHAPE_SPHERE)
+					CLog::Log(S_DEBUG, "Colliding (feature = %s, dist = %.4f)", (contact.feature == eINTERSECTION_FEATURE_BASE_SHAPE ? "BASE_SHAPE" : "CAPS"), contact.dist);
+
 				//CLog::Log(S_DEBUG, "Collision (vrel_ln = %.4f)", vrel_ln);
 
 				// Apply impulse
@@ -139,7 +142,7 @@ S_API void CPhysics::Update(float fTime)
 				B->P -= force;
 				A->v = A->P * A->Minv;
 				B->v = B->P * B->Minv;
-			}
+			}	
 
 			// Apply friction
 			float frictionFactor = 0.95f;
@@ -158,14 +161,14 @@ S_API void CPhysics::Update(float fTime)
 			B->L -= r_b ^ force;
 			A->w = A->Iinv * A->L;
 			B->w = B->Iinv * B->L;
+		}
 
-			// Resolve interpenetration
-			if (contact.dist < 0)
-			{
-				Vec3f dv = (contact.n * contact.dist) / (A->Minv + B->Minv);
-				A->pos += dv * A->Minv;
-				B->pos -= dv * B->Minv;
-			}
+		// Resolve interpenetration
+		if (contact.dist < 0)
+		{
+			Vec3f dv = (contact.n * contact.dist) / (A->Minv + B->Minv);
+			A->pos += (dv * A->Minv) / 5.0f;
+			B->pos -= (dv * B->Minv) / 5.0f;
 		}
 	}
 
