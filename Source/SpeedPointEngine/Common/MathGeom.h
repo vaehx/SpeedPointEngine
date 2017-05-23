@@ -19,8 +19,10 @@
 #include "Quaternion.h"
 #include "BoundBox.h"
 
-#include "Math.h"
 #define FLOAT_TOLERANCE 0.00001f
+
+#define float_equal(a, b) (a == b)
+#define float_abs(x) fabsf(x)
 
 #include <vector>
 #include <xmmintrin.h>

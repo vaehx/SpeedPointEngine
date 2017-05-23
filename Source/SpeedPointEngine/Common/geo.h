@@ -168,6 +168,9 @@ struct mesh_tree_node
 	unsigned int num_tris;
 	mesh_tree_node* children; // if 0, this node is a leaf
 	unsigned int num_children;
+
+	mesh_tree_node() 
+		: tris(0), num_tris(0), children(0), num_children(0) {}
 };
 
 struct mesh : shape
@@ -179,7 +182,10 @@ struct mesh : shape
 	mesh_tree_node root; // contains the whole mesh
 	Mat44 transform;
 
-	mesh() { ty = eSHAPE_MESH; }
+	mesh() : points(0), indices(0) { ty = eSHAPE_MESH; }
+
+	void CreateTree(bool octree = true, unsigned int maxDepth = 5);
+	void ClearTree();
 };
 
 // --------------------------------------------------------------------------------------------------------------------

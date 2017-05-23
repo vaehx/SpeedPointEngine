@@ -122,9 +122,6 @@ S_API void CPhysics::Update(float fTime)
 
 			if (fabsf(vrel_ln) <= RESTING_TOLERANCE) // resting or sliding contact
 			{
-				if (pshape1->GetType() == eSHAPE_CAPSULE && pshape2->GetType() == eSHAPE_SPHERE)
-					CLog::Log(S_DEBUG, "Resting (feature = %s, dist = %.4f)", (contact.feature == eINTERSECTION_FEATURE_BASE_SHAPE ? "BASE_SHAPE" : "CAPS"), contact.dist);
-
 				// Apply normal force
 				Vec3f AFnormal, BFnormal;
 				A->P += (AFnormal = Vec3Dot(contact.n, Apvel) * contact.n) * fTime;
@@ -132,11 +129,6 @@ S_API void CPhysics::Update(float fTime)
 			}
 			else // colliding contact
 			{
-				if (pshape1->GetType() == eSHAPE_CAPSULE && pshape2->GetType() == eSHAPE_SPHERE)
-					CLog::Log(S_DEBUG, "Colliding (feature = %s, dist = %.4f)", (contact.feature == eINTERSECTION_FEATURE_BASE_SHAPE ? "BASE_SHAPE" : "CAPS"), contact.dist);
-
-				//CLog::Log(S_DEBUG, "Collision (vrel_ln = %.4f)", vrel_ln);
-
 				// Apply impulse
 				A->P += force;
 				B->P -= force;
@@ -174,6 +166,21 @@ S_API void CPhysics::Update(float fTime)
 
 	for (pObject = m_pObjects->GetFirst(iObject); pObject; pObject = m_pObjects->GetNext(iObject))
 		pObject->OnSimulationFinished();
+}
+
+S_API void CPhysics::CreateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params)
+{
+	m_Terrain.Create(heightmap, heightmapSz, params);
+}
+
+S_API void CPhysics::UpdateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds)
+{
+	m_Terrain.Update(heightmap, heightmapSz, bounds);
+}
+
+S_API void CPhysics::ClearTerrainProxy()
+{
+	m_Terrain.Clear();
 }
 
 SP_NMSPACE_END

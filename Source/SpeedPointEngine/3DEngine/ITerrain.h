@@ -212,21 +212,8 @@ public:
 	virtual ~ITerrain() {}
 
 	virtual bool IsInited() const = 0;
-	
-	// segments - Number of total segments on one side of the terrain. Must be a multiple of chunkSegments and a power of two.
-	// chunkSegments - number of segments on one side per chunk. numChunks = segments / chunkSegments
-	// size - world-space size on one side
-	// baseHeight - base height to initialize the terrain with
-	// fChunkStepDist - 
-	// nLodLevels - Number of total Lod levels. The higher, the higher the level of detail
-	// center - if set to true, the world origin (0, 0) will be used as the center of the terrain
-	// maxKTreeDepth - maximum recursion depth for the creation of the proxy mesh
 	virtual SResult Init(IRenderer* pRenderer, const STerrainParams& params) = 0;
-
 	virtual const STerrainParams& GetParams() const = 0;
-
-	// Uses height scale to scale the sampled heights! Call SetHeightScale() before calling this function!
-	virtual void CalculateProxyMesh(unsigned int maxKTreeRecDepth = 4) = 0;
 
 	virtual void GenLodLevelChunks(SCamera* pCamera) = 0;	
 	virtual void SetHeightmap(ITexture* heightmap) = 0;
@@ -241,14 +228,14 @@ public:
 	virtual float GetHeightScale() const = 0;
 	virtual void SetHeightScale(float f) = 0;	
 
-	// Get the minimum height in the vtx heightmap
-	virtual float GetMinHeight() const = 0;
+	// Returns raw (unscaled) heightmap array with coherent rows (row-major)
+	virtual const float* GetHeightData() const = 0;
 
-	// Get the maximum height in the vtx heightmap
+	virtual float GetMinHeight() const = 0;
 	virtual float GetMaxHeight() const = 0;
 
-	// Call this when the values of the heightmap changed inside the given area
-	ILINE virtual void MarkDirtyArea(Vec2f areaMin = Vec2f(0, 0), Vec2f areaMax = Vec2f(1.0f, 1.0f)) = 0;
+	// Call this when the values of the heightmap changed to update min/max height
+	ILINE virtual void MarkDirty() = 0;
 
 	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const = 0;
 
@@ -277,8 +264,6 @@ public:
 	virtual void RequireCBUpdate() = 0;
 
 	virtual void RequireRender() = 0;
-
-	ILINE virtual const SMesh* GetProxyMesh() const = 0;
 };
 
 SP_NMSPACE_END

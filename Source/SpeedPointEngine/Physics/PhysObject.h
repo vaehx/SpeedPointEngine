@@ -42,12 +42,12 @@ class S_API PhysObject
 private:
 	bool m_bTrash;
 	AABB m_AABB;
-	geo::shape* m_pShape; // collision shape, in object space
 	geo::shape* m_pTransformedShape; // collision shape, in world space
 
 	void RecalculateInertia();
 
 protected:
+	geo::shape* m_pShape; // collision shape, in object space
 	SPhysObjectState m_State;
 	Vec3f m_Scale;
 

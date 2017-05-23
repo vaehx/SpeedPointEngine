@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PhysTerrain.h"
 #include "..\IPhysics.h"
 #include <Common\SPrerequisites.h>
 
@@ -11,6 +12,7 @@ class S_API CPhysics : public IPhysics
 {
 private:
 	IComponentPool<PhysObject>* m_pObjects;
+	PhysTerrain m_Terrain;
 
 protected:
 	virtual void SetPhysObjectPool(IComponentPool<PhysObject>* pPool);
@@ -21,6 +23,9 @@ public:
 
 	ILINE virtual PhysObject* CreatePhysObject();
 	ILINE virtual void ClearPhysObjects();
+	ILINE virtual void CreateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params);
+	ILINE virtual void UpdateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds = AABB());
+	ILINE virtual void ClearTerrainProxy();
 	ILINE virtual void Update(float fTime);
 };
 

@@ -6,11 +6,13 @@
 
 #pragma once
 #include "..\ITerrain.h"
+#include <Common\geo.h>
 #include <Common\SPrerequisites.h>
+#include <vector>
 
+using std::vector;
 
 SP_NMSPACE_BEG
-
 
 // SpeedPoint Terrain
 class S_API Terrain : public ITerrain
@@ -30,7 +32,7 @@ private:
 	bool m_bCustomHeightmapSet;
 
 	ITexture* m_pColorMap;
-	std::vector<STerrainLayer*> m_Layers;
+	vector<STerrainLayer*> m_Layers;
 
 	STerrainChunk* m_pChunks;
 	unsigned int m_nChunks;
@@ -44,8 +46,6 @@ private:
 	float m_fMinHeight; // cached calculated, w/o height scale
 
 	// ------
-
-	SMesh m_ProxyMesh;
 
 	SResult GenerateFlatVertexHeightmap(float baseHeight);
 
@@ -76,24 +76,17 @@ public:
 
 	virtual const STerrainParams& GetParams() const;
 
-	virtual void CalculateProxyMesh(unsigned int maxKTreeRecDepth = 4);
-
 	virtual void UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc);
 
 	virtual void GenLodLevelChunks(SCamera* pCamera);	
 	virtual void SetHeightmap(ITexture* heightmap);
-
-	virtual ITexture* GetHeightmap() const
-	{
-		return m_pVtxHeightMap;
-	}
-
+	virtual ITexture* GetHeightmap() const { return m_pVtxHeightMap; }
+	virtual const float* GetHeightData() const;
 	virtual float SampleHeight(const Vec2f& texcoords, bool bilinear = false) const;
 
 	virtual float GetMinHeight() const;	
-	virtual float GetMaxHeight() const;
-	
-	ILINE virtual void MarkDirtyArea(Vec2f areaMin = Vec2f(0, 0), Vec2f areaMax = Vec2f(1.0f, 1.0f));
+	virtual float GetMaxHeight() const;	
+	ILINE virtual void MarkDirty();
 
 	ILINE virtual Vec2f GetMinXZ() const;
 	ILINE virtual Vec2f GetMaxXZ() const;
@@ -126,15 +119,9 @@ public:
 	ILINE virtual unsigned int GetLayerCount() const;
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
-
 	virtual void RequireRender() { m_bRequireRender = true; }
 	
 	virtual void Clear(void);
-
-	ILINE virtual const SMesh* GetProxyMesh() const
-	{
-		return &m_ProxyMesh;
-	}
 };
 
 SP_NMSPACE_END

@@ -29,7 +29,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\geo.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\IShutdownHandler.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat33.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Math.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\MathGeom.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat44.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ProfilingSystem.h" />

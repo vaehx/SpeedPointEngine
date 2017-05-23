@@ -1,5 +1,7 @@
 #include "geo.h"
 #include <Physics\Implementation\PhysDebug.h> // TODO: Get this out of here.
+#include <cstdlib>
+#include <time.h>
 
 GEO_NMSPACE_BEG
 
@@ -976,6 +978,113 @@ bool _BoxBox(const box* pbox1, const box* pbox2, SIntersection* pinters)
 //	Mesh
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigned int>& parentTris, bool octree, unsigned int maxDepth, unsigned int depth = 1)
+{
+	Vec3f p[3];
+	vector<unsigned int> tris;
+	for (const auto& i : parentTris)
+	{
+		p[0] = pmesh->points[pmesh->indices[i]];
+		p[1] = pmesh->points[pmesh->indices[i + 1]];
+		p[2] = pmesh->points[pmesh->indices[i + 2]];
+
+		if (pnode->aabb.ContainsPoint(p[0]) || pnode->aabb.ContainsPoint(p[1]) || pnode->aabb.ContainsPoint(p[2]) ||
+			pnode->aabb.HitsLineSegment(p[0], p[1]) || pnode->aabb.HitsLineSegment(p[1], p[2]) || pnode->aabb.HitsLineSegment(p[2], p[0]))
+		{
+			if (tris.size() == tris.capacity())
+				tris.reserve(tris.capacity() + 40);
+
+			tris.push_back(i);
+		}
+	}
+
+	if (depth < maxDepth && tris.size() > 1)
+	{
+		pnode->tris = 0;
+		pnode->num_tris = 0;
+		pnode->num_children = (octree ? 8 : 4);
+		pnode->children = new mesh_tree_node[pnode->num_children];
+
+		Vec3f vMin = pnode->aabb.vMin, vMax = pnode->aabb.vMax;
+		Vec3f vCenter = (vMin + vMax) * 0.5f;
+		if (octree)
+		{
+			pnode->children[0].aabb = AABB(vMin, vCenter);
+			pnode->children[1].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vCenter.y, vMax.z));
+			pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vCenter.y, vMax.z));
+			pnode->children[3].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vCenter.y, vCenter.z));
+			pnode->children[4].aabb = AABB(Vec3f(vMin.x, vCenter.y, vMin.z), Vec3f(vCenter.x, vMax.y, vCenter.z));
+			pnode->children[5].aabb = AABB(Vec3f(vMin.x, vCenter.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
+			pnode->children[6].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+			pnode->children[7].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
+		}
+		else
+		{
+			pnode->children[0].aabb = AABB(vMin, Vec3f(vCenter.x, vMax.y, vCenter.z));
+			pnode->children[1].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
+			pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+			pnode->children[3].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
+		}
+
+		for (unsigned int i = 0; i < pnode->num_children; ++i)
+			CreateMeshTreeNode(pmesh, &pnode->children[i], tris, octree, maxDepth, depth + 1);
+	}
+	else
+	{
+		pnode->num_children = 0;
+		pnode->children = 0;
+		pnode->num_tris = tris.size();
+		pnode->tris = new unsigned int[pnode->num_tris];
+		memcpy(pnode->tris, &tris[0], tris.size() * sizeof(unsigned int));
+
+		//PhysDebug::VisualizeAABB(pnode->aabb);
+	}
+}
+
+void mesh::CreateTree(bool octree, unsigned int maxDepth)
+{
+	ClearTree();
+	if (!points || !indices || num_points == 0 || num_indices == 0)
+		return;
+
+	for (unsigned int i = 0; i < num_points; ++i)
+		root.aabb.AddPoint(points[i]);
+
+	vector<unsigned int> tris;
+	for (unsigned int i = 0; i < num_indices; i += 3)
+		tris.push_back(i);
+
+	CreateMeshTreeNode(this, &root, tris, octree, maxDepth);
+}
+
+
+void ClearMeshTreeNode(mesh_tree_node* pnode)
+{
+	if (!pnode) return;
+	if (pnode->children)
+	{
+		for (unsigned int i = 0; i < pnode->num_children; ++i)
+			ClearMeshTreeNode(&pnode->children[i]);
+
+		delete[] pnode->children;
+	}
+
+	if (pnode->tris)
+		delete[] pnode->tris;
+
+	pnode->aabb.Reset();
+	pnode->children = 0;
+	pnode->num_children = 0;
+	pnode->tris = 0;
+	pnode->num_tris = 0;
+}
+
+void mesh::ClearTree()
+{
+	ClearMeshTreeNode(&root);
+}
+
 
 bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, const shape* pshape, SIntersection* pinters)
 {

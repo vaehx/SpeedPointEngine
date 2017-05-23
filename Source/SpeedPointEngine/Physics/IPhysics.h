@@ -26,6 +26,14 @@
 
 SP_NMSPACE_BEG
 
+struct S_API SPhysTerrainParams
+{
+	Vec3f offset; // translation of vtx (0,0)
+	float heightScale; // a value multiplied to each height sample
+	unsigned int segments[2]; // number of rows/colums to divide the world dimensions into. The heightmap will be sampled bilinearly.
+	float size[2]; // (x,z) world-dimensions of the terrain
+};
+
 struct S_API IPhysics
 {
 protected:
@@ -42,6 +50,12 @@ public:
 
 	ILINE virtual PhysObject* CreatePhysObject() = 0;
 	ILINE virtual void ClearPhysObjects() = 0;
+
+	// heightmap - one coherent row is w pixels and there are h rows.
+	// heightmapSz - (w,h) resolution of the heightmap data
+	ILINE virtual void CreateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params) = 0;
+	ILINE virtual void UpdateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds = AABB()) = 0;
+	ILINE virtual void ClearTerrainProxy() = 0;
 
 	ILINE virtual void Update(float fTime) = 0;
 };

@@ -311,7 +311,7 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 	if (!IsPowerOfTwo(params.segments) || params.chunkSegments == 0 || (params.segments % params.chunkSegments) > 0)
 		return S_INVALIDPARAM;
 
-	if (params.chunkSegments < (int)PowerOfTwo(params.nLodLevels - 1) * 2)
+	if (params.chunkSegments < (unsigned int)PowerOfTwo(params.nLodLevels - 1) * 2)
 		return CLog::Log(S_INVALIDPARAM, "Terrain::Init(): Too many lod levels (%u) for %u segments per quad", params.nLodLevels, params.chunkSegments);
 
 	m_fSegSz = params.size / (float)params.segments;
@@ -569,9 +569,7 @@ S_API void Terrain::SetHeightmap(ITexture* heightmap)
 	m_pVtxHeightMap = heightmap;
 	m_bCustomHeightmapSet = true;			
 
-	MarkDirtyArea(Vec2f(0, 0), Vec2f(1.0f, 1.0f));
-
-	//UpdateCollisionMesh();
+	MarkDirty();
 }
 
 
@@ -588,19 +586,22 @@ S_API float Terrain::GetMaxHeight() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API void Terrain::MarkDirtyArea(Vec2f areaMin /*= Vec2f(0, 0)*/, Vec2f areaMax /*= Vec2f(1.0f, 1.0f)*/)
+S_API const float* Terrain::GetHeightData() const
+{
+	if (!m_pVtxHeightMap || !m_pVtxHeightMap->IsStaged())
+		return 0;
+
+	return static_cast<float*>(m_pVtxHeightMap->GetStagedData());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API void Terrain::MarkDirty()
 {
 	if (!IS_VALID_PTR(m_pVtxHeightMap))
 	{
 		CLog::Log(S_ERROR, "Failed mark terrain dirty area: Heightmap not set!");
 		return;
 	}
-
-	// Just to make sure...
-	areaMin.x = max(min(areaMin.x, 1.0f), 0.0f);
-	areaMin.y = max(min(areaMin.y, 1.0f), 0.0f);
-	areaMax.x = max(min(areaMax.x, 1.0f), 0.0f);
-	areaMax.y = max(min(areaMax.y, 1.0f), 0.0f);
 
 	// Find new min and max height
 	unsigned int heightmapSz[2];
@@ -612,16 +613,6 @@ S_API void Terrain::MarkDirtyArea(Vec2f areaMin /*= Vec2f(0, 0)*/, Vec2f areaMax
 		return;
 	}
 
-	unsigned int area[] =
-	{
-		(unsigned int)(areaMin.x * (float)heightmapSz[0]),
-		(unsigned int)(areaMin.y * (float)heightmapSz[1]),
-		(unsigned int)(areaMax.x * (float)heightmapSz[0]),
-		(unsigned int)(areaMax.y * (float)heightmapSz[1])
-	};
-	
-	// We have to research the whole heightmap here, because we don't know if the specified area
-	// overrides the current min/max heights or not.	
 	m_fMaxHeight = -FLT_MAX;
 	m_fMinHeight = FLT_MAX;
 	for (unsigned int y = 0; y < heightmapSz[1]; ++y)
@@ -636,42 +627,6 @@ S_API void Terrain::MarkDirtyArea(Vec2f areaMin /*= Vec2f(0, 0)*/, Vec2f areaMax
 				m_fMaxHeight = h;
 		}
 	}
-
-
-	// Update proxy mesh
-	Vec2f extents = GetMaxXZ() - GetMinXZ();
-	Vec2f invExtents(1.0f / extents.x, 1.0f / extents.y);
-
-	Vec2f aabbMin = GetMinXZ() + extents * areaMin;
-	Vec2f aabbMax = GetMinXZ() + extents * areaMax;
-
-	vector<SMeshKTree*> affectedLeafs;
-	m_ProxyMesh.kTree.GetIntersectingLeafs(AABB(Vec3f(aabbMin.x, GetMinHeight(), aabbMin.y), Vec3f(aabbMax.x, GetMaxHeight(), aabbMax.y)), affectedLeafs);
-
-	//CLog::Log(S_DEBUG, "%.2f %.2f %.2f  -  %.2f %.2f %.2f", aabbMin.x, GetMinHeight(), aabbMin.y, aabbMax.x, GetMaxHeight(), aabbMax.y);
-	//CLog::Log(S_DEBUG, "MarkDirtyArea(): %u affected leafs", affectedLeafs.size());
-
-	for (auto itLeaf = affectedLeafs.begin(); itLeaf != affectedLeafs.end(); ++itLeaf)
-	{
-		SMeshKTree* pLeaf = *itLeaf;		
-		for (auto& itMeshFace = pLeaf->faces.begin(); itMeshFace != pLeaf->faces.end(); ++itMeshFace)
-		{			
-			for (int i = 0; i < 3; ++i)
-			{
-				//itMeshFace->vtx[i].y = SampleHeight(_ScaleToTexCoords(itMeshFace->vtx[i].x - GetMinXZ().x, itMeshFace->vtx[i].z - GetMinXZ().y, extents));
-				Vec2f texCoords = (Vec2f(itMeshFace->vtx[i].x, itMeshFace->vtx[i].z) - GetMinXZ()) * invExtents;
-
-				// Assuming random rounding should be fine
-				unsigned int x = (unsigned int)(texCoords.x * (float)heightmapSz[0]);
-				unsigned int y = (unsigned int)(texCoords.y * (float)heightmapSz[1]);
-
-				itMeshFace->vtx[i].y = pStagedData[y * heightmapSz[0] + x] * m_HeightScale;
-			}
-		}
-	}
-
-	float bias = 0.5f;
-	m_ProxyMesh.kTree.UpdateAABBHeights(GetMinHeight() - bias, GetMaxHeight() + bias);
 }
 
 
@@ -721,7 +676,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 		CLog::Log(S_ERROR, "Failed lock vtx height map for terrain!");
 	}
 
-	MarkDirtyArea(Vec2f(0, 0), Vec2f(1.0f, 1.0f));
+	MarkDirty();
 
 	return S_SUCCESS;
 }
@@ -739,101 +694,6 @@ S_API float Terrain::SampleHeight(const Vec2f& texcoords, bool bilinear /* = fal
 		return FLT_MIN;
 
 	return val * m_HeightScale;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-S_API void Terrain::CalculateProxyMesh(unsigned int maxKTreeRecDepth)
-{
-	CLog::Log(S_DEBUG, "Terrain::CalculateProxyMesh(maxKTreeRecDepth=%u):", maxKTreeRecDepth);	
-
-	vector<SMeshFace> faces;
-	faces.reserve(m_Params.segments * m_Params.segments * 2);
-
-	CLog::Log(S_DEBUG, "  max faces = %u", m_Params.segments * m_Params.segments * 2);
-
-	Vec2f minXZ = GetMinXZ(), maxXZ = GetMaxXZ();
-	Vec2f worldExtents = maxXZ - minXZ;
-
-	CLog::Log(S_DEBUG, "  minXZ = (%.2f, %.2f)   maxXZ = (%.2f, %.2f)    worldExtents = (%.2f, %.2f)", minXZ.x, minXZ.y, maxXZ.x, maxXZ.y, worldExtents.x, worldExtents.y);
-
-	float avgSampleHeight = 0.0f;
-	unsigned long samples = 0;
-
-	AABB testAABB;
-	testAABB.Reset();
-
-	for (unsigned long iSegX = 0; iSegX < m_Params.segments; ++iSegX)
-	{
-		for (unsigned long iSegY = 0; iSegY < m_Params.segments; ++iSegY)
-		{
-			// face1	face2
-			//  1     	1-----2
-			//  | \   	  \   |
-			//  |   \ 	    \ |
-			//  0-----2	      0
-
-			// Base pos (minimum index vertex)
-			Vec3f bp(minXZ.x + iSegX * m_fSegSz, 0, minXZ.y + iSegY * m_fSegSz);
-
-			SMeshFace face1, face2;
-			face1.vtx[0].x = bp.x;
-			face1.vtx[0].z = bp.z;
-			face1.vtx[0].y = SampleHeight(_ScaleToTexCoords(face1.vtx[0].x, face1.vtx[0].z, worldExtents));			
-
-			face1.vtx[2].x = bp.x + m_fSegSz;
-			face1.vtx[2].z = bp.z;
-			face1.vtx[2].y = SampleHeight(_ScaleToTexCoords(face1.vtx[2].x, face1.vtx[2].z, worldExtents));		
-
-			face1.vtx[1].x = bp.x;
-			face1.vtx[1].z = bp.z + m_fSegSz;
-			face1.vtx[1].y = SampleHeight(_ScaleToTexCoords(face1.vtx[1].x, face1.vtx[1].z, worldExtents));
-
-			face2.vtx[0] = face1.vtx[2];
-
-			face2.vtx[2].x = bp.x + m_fSegSz;
-			face2.vtx[2].z = bp.z + m_fSegSz;
-			face2.vtx[2].y = SampleHeight(_ScaleToTexCoords(face2.vtx[2].x, face2.vtx[2].z, worldExtents));
-
-			face2.vtx[1] = face1.vtx[1];
-
-			faces.push_back(face1);
-			faces.push_back(face2);
-
-			for (int i = 0; i < 3; ++i)
-			{
-				testAABB.AddPoint(Vec3f(face1.vtx[i].x, face1.vtx[i].y, face1.vtx[i].z));
-				testAABB.AddPoint(Vec3f(face2.vtx[i].x, face2.vtx[i].y, face2.vtx[i].z));
-			}
-
-			avgSampleHeight += face1.vtx[0].y;
-			avgSampleHeight += face1.vtx[1].y;
-			avgSampleHeight += face1.vtx[2].y;
-			avgSampleHeight += face2.vtx[1].y;
-			samples += 4;
-		}
-	}
-
-	avgSampleHeight /= (float)samples;
-	CLog::Log(S_DEBUG, "  avgSampleHeight = %.2f  (%u samples)", avgSampleHeight, samples);
-
-	CLog::Log(S_DEBUG, "  faces.size() = %ul   (= %.2f MB)", faces.size(), faces.size() * sizeof(SMeshFace) / 1000.f / 1000.f);
-
-	CLog::Log(S_DEBUG, "  testAABB:   min = (%.2f, %.2f, %.2f)    max = (%.2f, %.2f, %.2f)", testAABB.vMin.x, testAABB.vMin.y, testAABB.vMin.z, testAABB.vMax.x, testAABB.vMax.y, testAABB.vMax.z);
-
-	float minHeight = GetMinHeight(),
-		  maxHeight = GetMaxHeight();
-	CLog::Log(S_DEBUG, "  minHeight = %.2f     maxHeight = %.2f", minHeight, maxHeight);
-
-	float bias = 1.0f;
-	CLog::Log(S_DEBUG, "  bias = %.2f", bias);
-
-	AABB aabb;
-	aabb.vMin = Vec3f(minXZ.x, minHeight - bias, minXZ.y);
-	aabb.vMax = Vec3f(maxXZ.x, maxHeight + bias, maxXZ.y);
-
-	m_ProxyMesh.Init(faces, aabb, eMESH_KTREE_QUADTREE, maxKTreeRecDepth);
 }
 
 

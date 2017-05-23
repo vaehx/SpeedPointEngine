@@ -69,9 +69,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ComponentPool.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Math.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Camera.h">
       <Filter>Source</Filter>
     </ClInclude>

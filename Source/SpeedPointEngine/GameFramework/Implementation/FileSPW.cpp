@@ -1,4 +1,5 @@
 #include "FileSPW.h"
+#include "..\IGameEngine.h"
 #include <EntitySystem\IEntity.h>
 #include <EntitySystem\IScene.h>
 #include <3DEngine\IGeometry.h>
@@ -333,11 +334,24 @@ S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const 
 	ITerrain* pTerrain = m_p3DEngine->CreateTerrain(terrain);
 	
 	pTerrain->SetHeightScale(10.0f);
-	pTerrain->CalculateProxyMesh(5);
-
 	pTerrain->SetHeightmap(LoadRawTexture(DeserializeString(params["heightmap"]), eTEXTURE_R32_FLOAT, pResources));
-	pTerrain->SetColorMap(LoadRawTexture(DeserializeString(params["colormap"]), eTEXTURE_R8G8B8A8_UNORM, pResources));
+	
+	// Initialize terrain proxy
+	Vec2f minXZ = pTerrain->GetMinXZ();
+	SPhysTerrainParams physTerrain;
+	physTerrain.heightScale	= pTerrain->GetHeightScale();
+	physTerrain.offset		= Vec3f(minXZ.x, 0, minXZ.y);
+	physTerrain.segments[0]	= terrain.segments; // Currently using the same resolution for rendering and proxy mesh
+	physTerrain.segments[1]	= terrain.segments;
+	physTerrain.size[0]		= terrain.size;
+	physTerrain.size[1]		= terrain.size;
 
+	unsigned int heightmapSz[2];
+	pTerrain->GetHeightmap()->GetSize(&heightmapSz[0], &heightmapSz[1]);
+	SpeedPointEnv::GetPhysics()->CreateTerrainProxy(pTerrain->GetHeightData(), heightmapSz, physTerrain);
+	
+	
+	pTerrain->SetColorMap(LoadRawTexture(DeserializeString(params["colormap"]), eTEXTURE_R8G8B8A8_UNORM, pResources));
 
 	unsigned int nextBlockIndent = ReadIndent();
 	while (nextBlockIndent > blockIndent)

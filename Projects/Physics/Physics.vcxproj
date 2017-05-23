@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\Implementation\CPhysics.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysDebug.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysTerrain.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\IPhysics.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Physics\PhysObject.h" />
   </ItemGroup>
@@ -20,6 +21,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\CPhysics.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysDebug.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysObject.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Physics\Implementation\PhysTerrain.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{015CA3F9-A1AC-4B4D-B133-798E1FB5D98A}</ProjectGuid>

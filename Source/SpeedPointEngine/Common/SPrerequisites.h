@@ -117,6 +117,9 @@ static inline float cotf(float val) { return (1.0f / tanf(val)); }
 static inline double cot(double val) { return (1.0f / tan(val)); }
 static inline double cot(float val) { return (1.0f / tan((double)val)); }
 
+// (1-k)*a + k*b
+#define lerp(a, b, k) ((1.0f - k) * a + k * b)
+
 #define SP_ONE_THIRD 0.33333333333333f
 
 #define SP_PI 3.14159265358979323f
