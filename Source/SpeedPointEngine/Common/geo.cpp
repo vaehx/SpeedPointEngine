@@ -237,7 +237,7 @@ bool _RayCapsule(const ray* pray, const capsule* pcapsule, SIntersection* pinter
 	const Vec3f vc = pcapsule->axis; // normalized cylinder ray direction
 	const float rsq = pcapsule->r * pcapsule->r; // r^2
 
-												 // Mantle
+	// Mantle
 	float t[2];
 	const Vec3f U = vr - Vec3Dot(vr, vc) * vc;
 	const Vec3f V = (pray->p - pcapsule->c) - Vec3Dot(pray->p - pcapsule->c, vc) * vc;
@@ -709,18 +709,18 @@ bool _CylinderCylinder(const cylinder* pcyl1, const cylinder* pcyl2, SIntersecti
 	caps[0].r = pcyl1->r;
 	caps[1].r = pcyl2->r;
 	for (int cap1 = 0; cap1 < 2; ++cap1)
-	for (int cap2 = 0; cap2 < 2; ++cap2)
-	{
-	caps[0].c = cylinders[0]->p[cap1];
-	caps[0].n = axis[0] * (-1.0f + 2.0f * cap1);
-	caps[1].c = cylinders[1]->p[cap2];
-	caps[1].n = axis[1] * (-1.0f + 2.0f * cap2);
-	if (_CircleCircle(&caps[0], &caps[1], pinters))
-	{
-	pinters->feature = eINTERSECTION_FEATURE_CAP;
-	return true;
-	}
-	}*/
+		for (int cap2 = 0; cap2 < 2; ++cap2)
+		{
+			caps[0].c = cylinders[0]->p[cap1];
+			caps[0].n = axis[0] * (-1.0f + 2.0f * cap1);
+			caps[1].c = cylinders[1]->p[cap2];
+			caps[1].n = axis[1] * (-1.0f + 2.0f * cap2);
+			if (_CircleCircle(&caps[0], &caps[1], pinters))
+			{
+				pinters->feature = eINTERSECTION_FEATURE_CAP;
+				return true;
+			}
+		}*/
 
 	return false;
 }
