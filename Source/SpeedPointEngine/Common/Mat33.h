@@ -42,6 +42,58 @@ namespace SpeedPoint
 			_21(m21), _22(m22), _23(m23),
 			_31(m31), _32(m32), _33(m33) {}
 
+		inline static Mat33 FromColumns(const Vec3f& c1, const Vec3f& c2, const Vec3f& c3)
+		{
+			return Mat33(
+				c1.x, c2.x, c3.x,
+				c1.y, c2.y, c3.y,
+				c1.z, c2.z, c3.z
+			);
+		}
+
+		inline static Mat33 FromRows(const Vec3f& c1, const Vec3f& c2, const Vec3f& c3)
+		{
+			return Mat33(
+				c1.x, c1.y, c1.z,
+				c2.x, c2.y, c2.z,
+				c3.x, c3.y, c3.z
+			);
+		}
+
+		Mat33 operator + (const Mat33& m) const
+		{
+			return Mat33(
+				_11 + m._11, _12 + m._12, _13 + m._13,
+				_21 + m._21, _22 + m._22, _23 + m._23,
+				_31 + m._31, _32 + m._32, _33 + m._33
+			);
+		}
+
+		Mat33& operator += (const Mat33& m)
+		{
+			_11 += m._11; _12 += m._12; _13 += m._13;
+			_21 += m._21; _22 += m._22; _23 += m._23;
+			_31 += m._31; _32 += m._32; _33 += m._33;
+			return *this;
+		}
+
+		Mat33 operator - (const Mat33& m) const
+		{
+			return Mat33(
+				_11 - m._11, _12 - m._12, _13 - m._13,
+				_21 - m._21, _22 - m._22, _23 - m._23,
+				_31 - m._31, _32 - m._32, _33 - m._33
+			);
+		}
+
+		Mat33& operator -= (const Mat33& m)
+		{
+			_11 -= m._11; _12 -= m._12; _13 -= m._13;
+			_21 -= m._21; _22 -= m._22; _23 -= m._23;
+			_31 -= m._31; _32 -= m._32; _33 -= m._33;
+			return *this;
+		}
+
 		Mat33 operator * (float f) const
 		{
 			return Mat33(
@@ -112,5 +164,30 @@ namespace SpeedPoint
 
 			return C;
 		}
+
+		float Determinant() const
+		{
+			return _11 * _22 * _33 + _12 * _23 * _31 + _13 * _21 * _32 - _13 * _22 * _31 - _12 * _21 * _33 - _11 * _23 * _32;
+		}
+
+		float Trace() const
+		{
+			return _11 + _22 + _33;
+		}
 	};
+
+	inline Mat33 operator *(float f, const Mat33& m)
+	{
+		return m * f;
+	}
+
+	// a * b^T
+	static inline Mat33 Vec3MulT(const Vec3f& a, const Vec3f& b)
+	{
+		return Mat33(
+			a.x * b.x, a.y * b.x, a.z * b.x,
+			a.x * b.y, a.y * b.y, a.z * b.y,
+			a.x * b.z, a.y * b.z, a.z * b.z
+		);
+	}
 }
