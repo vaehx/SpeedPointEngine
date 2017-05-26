@@ -176,7 +176,7 @@ typedef struct S_API AABB SAxisAlignedBoundBox;
 struct S_API OBB
 {
 	Vec3f directions[3];	// rotated basis vectors, normalized
-	Vec3f dimensions; // half-dimensions in each direction
+	float dimensions[3]; // half-dimensions in each direction
 	Vec3f center;	// center position
 
 	OBB()
@@ -184,6 +184,7 @@ struct S_API OBB
 		directions[0] = Vec3f(1.0f, 0, 0);
 		directions[1] = Vec3f(0, 1.0f, 0);
 		directions[2] = Vec3f(0, 0, 1.0f);
+		dimensions[0] = dimensions[1] = dimensions[2] = FLT_MAX;
 	}
 
 	OBB(const OBB& bb)
@@ -191,8 +192,9 @@ struct S_API OBB
 		directions[0] = bb.directions[0];
 		directions[1] = bb.directions[1];
 		directions[2] = bb.directions[2];
-
-		dimensions = bb.dimensions;
+		dimensions[0] = bb.dimensions[0];
+		dimensions[1] = bb.dimensions[1];
+		dimensions[2] = bb.dimensions[2];
 		center = bb.center;
 	}
 
@@ -202,7 +204,9 @@ struct S_API OBB
 		directions[1] = Vec3f(0, 1.0f, 0);
 		directions[2] = Vec3f(0, 0, 1.0f);
 
-		dimensions = aabb.vMax - aabb.vMin;
+		dimensions[0] = (aabb.vMax.x - aabb.vMin.x) * 0.5f;
+		dimensions[1] = (aabb.vMax.y - aabb.vMin.y) * 0.5f;
+		dimensions[2] = (aabb.vMax.z - aabb.vMin.z) * 0.5f;
 		center = (aabb.vMin + aabb.vMax) * 0.5f;
 	}
 
@@ -213,7 +217,19 @@ struct S_API OBB
 			directions[i] = (rotMat * Vec4f(directions[i], 0.0f)).xyz();
 
 		center += position;
-		dimensions += size;
+		dimensions[0] += size.x;
+		dimensions[1] += size.y;
+		dimensions[2] += size.z;
+	}
+
+	void Transform(const Mat44& mtx)
+	{
+		center = (mtx * Vec4f(center, 1.0f)).xyz();
+		for (unsigned int i = 0; i < 3; ++i)
+		{
+			directions[i] = (mtx * Vec4f(directions[i] * dimensions[i], 0)).xyz();
+			directions[i] /= (dimensions[i] = directions[i].Length());
+		}
 	}
 };
 typedef struct S_API OBB SOrientedBoundBox;

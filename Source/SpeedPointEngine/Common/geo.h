@@ -153,10 +153,10 @@ struct box : shape
 		ty = eSHAPE_BOX;
 		c = obb.center;
 		for (int i = 0; i < 3; ++i)
+		{
 			axis[i] = obb.directions[i];
-		dim[0] = obb.dimensions.x;
-		dim[1] = obb.dimensions.y;
-		dim[2] = obb.dimensions.z;
+			dim[i] = obb.dimensions[i];
+		}
 	}
 	virtual OBB GetBoundBox() const;
 };

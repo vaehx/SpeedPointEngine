@@ -452,7 +452,7 @@ OBB sphere::GetBoundBox() const
 {
 	OBB obb;
 	obb.center = c;
-	obb.dimensions = Vec3f(r, r, r);
+	obb.dimensions[0] = obb.dimensions[1] = obb.dimensions[2] = r;
 	return obb;
 }
 
@@ -622,7 +622,8 @@ OBB cylinder::GetBoundBox() const
 	bb.directions[1] = naxis;
 	bb.directions[0] = naxis.GetOrthogonal().Normalized();
 	bb.directions[2] = naxis ^ bb.directions[0];
-	bb.dimensions = Vec3f(r, axisln * 0.5f, r);
+	bb.dimensions[0] = bb.dimensions[2] = r;
+	bb.dimensions[1] = axisln * 0.5f;
 	return bb;
 }
 
@@ -739,7 +740,8 @@ OBB capsule::GetBoundBox() const
 	bb.directions[0] = axis.GetOrthogonal().Normalized();
 	bb.directions[1] = axis;
 	bb.directions[2] = axis ^ bb.directions[0];
-	bb.dimensions = Vec3f(r, hh + r, r);
+	bb.dimensions[0] = bb.dimensions[2] = r;
+	bb.dimensions[1] = hh + r;
 	return bb;
 }
 
@@ -901,9 +903,9 @@ OBB box::GetBoundBox() const
 {
 	OBB bb;
 	bb.center = c;
-	bb.dimensions.x = dim[0];
-	bb.dimensions.y = dim[1];
-	bb.dimensions.z = dim[2];
+	bb.dimensions[0] = dim[0];
+	bb.dimensions[1] = dim[1];
+	bb.dimensions[2] = dim[2];
 	bb.directions[0] = axis[0];
 	bb.directions[1] = axis[1];
 	bb.directions[2] = axis[2];
