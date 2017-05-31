@@ -73,19 +73,19 @@ S_API void CPhysics::Update(float fTime)
 	}
 
 	// Determine pairs of objects that possibly collide
-	vector<std::pair<PhysObject*, PhysObject*>> colliding;
 	PhysObject *pobj1, *pobj2;
+	m_Colliding.clear();
 	for (int i = 0; i < m_pObjects->GetNumObjects(); ++i)
 		for (int j = i + 1; j < m_pObjects->GetNumObjects(); ++j)
 		{
 			pobj1 = m_pObjects->GetAt(i);
 			pobj2 = m_pObjects->GetAt(j);
 			if (pobj1->GetAABB().Intersects(pobj2->GetAABB()))
-				colliding.push_back(std::make_pair(pobj1, pobj2));
+				m_Colliding.push_back(std::make_pair(pobj1, pobj2));
 		}
 
 	// Find and resolve actual collisions
-	for (auto& collidingPair : colliding)
+	for (auto& collidingPair : m_Colliding)
 	{
 		PhysObject *pobj1 = collidingPair.first, *pobj2 = collidingPair.second;
 		const shape* pshape1 = pobj1->GetTransformedCollisionShape();

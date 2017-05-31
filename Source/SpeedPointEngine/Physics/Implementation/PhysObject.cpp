@@ -45,6 +45,16 @@ void PhysObject::SetUnmoveable()
 	m_State.gravity = false;
 }
 
+const shape* PhysObject::GetTransformedCollisionShape() const
+{
+	if (!m_pShape)
+		return 0;
+	else if (m_pShape->GetType() == eSHAPE_MESH)
+		return m_pShape;
+	else
+		return m_pTransformedShape;
+}
+
 Mat33 Star(const Vec3f& v)
 {
 	return Mat33(
@@ -101,10 +111,10 @@ void PhysObject::Update(float fTime)
 
 
 
-	if (m_pShape && m_pTransformedShape)
+	if (m_pShape)
 	{
 		STransformationDesc transform;
-		transform.translation = Mat44::MakeTranslationMatrix(m_State.pos);
+		transform.translation = Mat44::MakeTranslationMatrix(m_State.pos - m_State.centerOfMass);
 		transform.rotation = m_State.rotation.ToRotationMatrix();
 		transform.scale = Mat44::MakeScaleMatrix(m_Scale);
 		Mat44 mtx = transform.BuildTRS();
@@ -155,6 +165,7 @@ void PhysObject::Update(float fTime)
 		case eSHAPE_MESH:
 			{
 				mesh* pmesh = (mesh*)m_pShape;
+				m_pTransformedShape = 0;
 				pmesh->transform = mtx;
 				break;
 			}
@@ -172,12 +183,17 @@ void PhysObject::Update(float fTime)
 
 		// Update AABB
 		m_AABB.Reset();
-		OBB obb = m_pTransformedShape->GetBoundBox();
-		for (int i = 0; i < 3; ++i)
-		{
-			m_AABB.AddPoint(obb.center + obb.dimensions[i] * obb.directions[i]);
-			m_AABB.AddPoint(obb.center - obb.dimensions[i] * obb.directions[i]);
-		}
+		OBB obb = (m_pTransformedShape ? m_pTransformedShape->GetBoundBox() : m_pShape->GetBoundBox());
+
+		for (int x = -1; x < 2; x += 2)
+			for (int y = -1; y < 2; y += 2)
+				for (int z = -1; z < 2; z += 2)
+				{
+					m_AABB.AddPoint(obb.center 
+						+ (float)x * obb.dimensions[0] * obb.directions[0]
+						+ (float)y * obb.dimensions[1] * obb.directions[1]
+						+ (float)z * obb.dimensions[2] * obb.directions[2]);
+				}
 	}
 }
 
@@ -191,6 +207,7 @@ void PhysObject::RecalculateInertia()
 
 	Mat33 Ibody;
 	float V;
+	Vec3f centerOfMass;
 	switch (m_pShape->GetType())
 	{
 	case eSHAPE_BOX:
@@ -239,12 +256,92 @@ void PhysObject::RecalculateInertia()
 			V = 1.0f;
 			break;
 		}
+	case eSHAPE_MESH:
+		{
+			mesh* pmesh = (mesh*)m_pShape;
+			if (pmesh->points && pmesh->num_points > 0 && pmesh->indices && pmesh->num_indices > 0)
+			{
+				// reference point = Vec3f(0)
+
+				const float ONE_SIXTH = 1.0f / 6.0f;
+				Vec3f p[3], Xtet;
+				float Vtet, Adet;
+				Mat33 A, C;
+				Mat33 Ccan; // covariance of canonical tetrahedron
+				Ccan._11 = Ccan._22 = Ccan._33 = 1.0f / 60.0f;
+				Ccan._12 = Ccan._13 = Ccan._21 = Ccan._23 = Ccan._31 = Ccan._32 = 1.0f / 120.0f;
+
+				V = 0;
+
+				for (int tri = 0; tri < pmesh->num_indices; tri += 3)
+				{
+					for (int i = 0; i < 3; ++i)
+						p[i] = pmesh->points[pmesh->indices[tri + i]];
+
+					A = Mat33::FromColumns(p[0], p[1], p[2]);
+					Adet = A.Determinant();
+
+					C += Adet * A * Ccan * A.Transposed();
+					Vtet = ONE_SIXTH * Adet; // might be negative
+					Xtet = (p[0] + p[1] + p[2] + Vec3f(0)) * 0.25f;
+					if (V + Vtet < FLT_EPSILON)
+						continue;
+
+					centerOfMass = (centerOfMass * V + Xtet * Vtet) / (V + Vtet);
+					V += Vtet;
+				}
+
+				// Translate covariance by -centerOfMass
+				C += V * (2.0f * Vec3MulT(-centerOfMass, centerOfMass) + Vec3MulT(-centerOfMass, -centerOfMass));
+
+				Ibody = Mat33::Identity * C.Trace() - C;
+			}
+			else
+			{
+				V = 1.0f;
+			}
+			break;
+		}
 	default:
 		break;
 	}
 
-	m_State.Ibodyinv = Ibody.Inverted();
-	m_State.V = V;
+	m_State.Ibodyinv		= Ibody.Inverted();
+	m_State.V				= V;
+	m_State.centerOfMass	= centerOfMass;
+}
+
+void PhysObject::SetMeshCollisionShape(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree, u16 maxTreeDepth)
+{
+	SetCollisionShape<mesh>();
+	mesh* pmesh = dynamic_cast<mesh*>(m_pShape);
+	if (!pmesh)
+		return;
+
+	pmesh->points = 0;
+	if ((pmesh->num_points = npoints) > 0 && ppoints)
+	{
+		pmesh->points = new Vec3f[pmesh->num_points];
+		memcpy(pmesh->points, ppoints, sizeof(Vec3f) * pmesh->num_points);
+	}
+
+	pmesh->indices = 0;
+	if ((pmesh->num_indices = nindices) > 0 && pindices)
+	{
+		pmesh->indices = new unsigned int[pmesh->num_indices];
+		memcpy(pmesh->indices, pindices, sizeof(unsigned int) * pmesh->num_indices);
+	}
+
+	pmesh->transform = Mat44::Identity;
+	pmesh->root.children = 0;
+	pmesh->root.num_children = 0;
+	pmesh->root.tris = 0;
+	pmesh->root.num_tris = 0;
+	
+	if (pmesh->points && pmesh->indices)
+		pmesh->CreateTree(octree, maxTreeDepth);
+
+	RecalculateInertia();
 }
 
 S_API void PhysObject::Release()

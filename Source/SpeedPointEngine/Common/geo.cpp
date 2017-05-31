@@ -51,20 +51,26 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_RAY][eSHAPE_CYLINDER] = (_IntersectionTestFnPtr)&_RayCylinder;
 	_intersectionTestTable[eSHAPE_RAY][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_RayCapsule;
 	_intersectionTestTable[eSHAPE_RAY][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_RayTriangle;
+	_intersectionTestTable[eSHAPE_RAY][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
+	_intersectionTestTable[eSHAPE_RAY][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_RayBox;
 
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_PlaneRay;
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_PlanePlane;
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_PlaneSphere;
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_CYLINDER] = 0;
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_PlaneCapsule;
-	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_PlaneTriangle;
+	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
+	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_PlaneBox;
 
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_SphereRay;
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_SpherePlane;
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_SphereSphere;
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_CYLINDER] = (_IntersectionTestFnPtr)&_SphereCylinder;
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_SphereCapsule;
-	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_SphereTriangle;
+	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
+	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_SphereBox;
 
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_CylinderRay;
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_PLANE] = 0;
@@ -72,20 +78,37 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_CYLINDER] = (_IntersectionTestFnPtr)&_CylinderCylinder;
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_CAPSULE] = 0;
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
 
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_CapsuleRay;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_CapsulePlane;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_CapsuleSphere;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_CYLINDER] = 0;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_CapsuleCapsule;
+	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_CapsuleBox;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
+
+	_intersectionTestTable[eSHAPE_BOX][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_BoxBox;
+	_intersectionTestTable[eSHAPE_BOX][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_BoxRay;
+	_intersectionTestTable[eSHAPE_BOX][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_BoxPlane;
+	_intersectionTestTable[eSHAPE_BOX][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_BoxSphere;
+	_intersectionTestTable[eSHAPE_BOX][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_BoxCapsule;
 
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_TriangleRay;
-	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_PLANE] = 0;
-	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_SPHERE] = 0;
+	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_TrianglePlane;
+	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_TriangleSphere;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_CYLINDER] = 0;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_CAPSULE] = 0;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_TRIANGLE] = 0;
+
+	_intersectionTestTable[eSHAPE_MESH][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_MeshShape;
+	_intersectionTestTable[eSHAPE_MESH][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_MeshShape;
+	_intersectionTestTable[eSHAPE_MESH][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_MeshShape;
+	_intersectionTestTable[eSHAPE_MESH][eSHAPE_CYLINDER] = (_IntersectionTestFnPtr)&_MeshShape;
+	_intersectionTestTable[eSHAPE_MESH][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_MeshShape;
+	_intersectionTestTable[eSHAPE_MESH][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_MESH][eSHAPE_MESH] = 0;
 
 	_intersectionTestTable[eSHAPE_CIRCLE][eSHAPE_CIRCLE] = (_IntersectionTestFnPtr)&_CircleCircle;
 }
@@ -104,6 +127,21 @@ bool _Intersection(const shape* pshape1, const shape* pshape2, SIntersection* pi
 //	Ray
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+shape* ray::Clone() const
+{
+	ray* pray = new ray();
+	pray->p = p;
+	pray->v = v;
+	return pray;
+}
+
+void ray::Transform(const Mat44& mtx)
+{
+	Vec3f p2 = p + v;
+	p = (mtx * Vec4f(p, 1.0f)).xyz();
+	v = (mtx * Vec4f(p2, 1.0f)).xyz() - p;
+}
 
 bool _RayPlane(const ray* pray, const plane* pplane, SIntersection* pinters)
 {
@@ -293,6 +331,31 @@ bool _RayCapsule(const ray* pray, const capsule* pcapsule, SIntersection* pinter
 	return false;
 }
 
+bool _RayBox(const ray* pray, const box* pbox, SIntersection* pinters)
+{
+	int inters = 0;
+	Vec3f p, n;
+	quotient t;
+	for (int i = 0; i < 3; ++i)
+	{
+		n = pbox->axis[i] * sgnnz(-Vec3Dot(pray->v, pbox->axis[i]));
+		p = pbox->c + n * pbox->dim[i];
+
+		t.set(Vec3Dot(p - pray->p, n), Vec3Dot(pray->v, n));
+		if (fabsf(t.d) >= FLT_EPSILON)
+		{
+			pinters->p = pray->p + t.val() * pray->v;
+			pinters->n = n;
+			inters |= (isneg(fabsf(Vec3Dot(pinters->p - p, pbox->axis[(i + 1) % 3])) - pbox->dim[(i + 1) % 3])
+				& isneg(fabsf(Vec3Dot(pinters->p - p, pbox->axis[(i + 2) % 3])) - pbox->dim[(i + 2) % 3]));
+		}
+	}
+
+	pinters->dist = 0.0f;
+	pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+	return inters;
+}
+
 bool _RayTriangle(const ray* pray, const triangle* ptri, SIntersection* pinters)
 {
 	Vec3f v[3], n, q;
@@ -334,7 +397,36 @@ bool _RayTriangle(const ray* pray, const triangle* ptri, SIntersection* pinters)
 
 OBB plane::GetBoundBox() const
 {
-	return OBB(AABB(Vec3f(-FLT_MAX), Vec3f(FLT_MAX)));
+	OBB obb;
+	obb.center = n * d;
+	obb.directions[1] = n;
+	obb.directions[0] = n.GetOrthogonal().Normalized();
+	obb.directions[2] = obb.directions[1] ^ obb.directions[0];
+	obb.dimensions[0] = obb.dimensions[2] = FLT_MAX;
+	obb.dimensions[1] = 1.0f;
+	return obb;
+}
+
+shape* plane::Clone() const
+{
+	plane* pplane = new plane();
+	pplane->d = d;
+	pplane->n = n;
+	return pplane;
+}
+
+void plane::Transform(const Mat44& mtx)
+{
+	Vec3f p[3];
+	p[0] = n * d;
+	p[1] = p[0] + n.GetOrthogonal();
+	p[2] = p[0] + (n ^ (p[1] - p[0]));
+
+	for (int i = 0; i < 3; ++i)
+		p[i] = (mtx * Vec4f(p[i], 1.0f)).xyz();
+
+	n = (p[1] - p[0] ^ p[2] - p[0]).Normalized();
+	d = Vec3Dot(p[0], n);
 }
 
 bool _PlaneRay(const plane* pplane, const ray* pray, SIntersection* pinters)
@@ -413,19 +505,57 @@ bool _PlaneCapsule(const plane* pplane, const capsule* pcapsule, SIntersection* 
 	return (pinters->dist <= 0);
 }
 
+bool _PlaneBox(const plane* pplane, const box* pbox, SIntersection* pinters)
+{
+	Vec3f ce[3], cp = pbox->c;
+	for (int i = 0; i < 3; ++i)
+		cp += (ce[i] = pbox->axis[i] * sgnnz(-Vec3Dot(pplane->n, pbox->axis[i]))) * pbox->dim[i];
+
+	int n = 0;
+	Vec3f ep, ev, q[3];
+	quotient t;
+	float tt;
+	for (int i = 0; i < 3; ++i)
+	{
+		ep = cp - ce[i] * pbox->dim[i];
+		ev = ce[i] * pbox->dim[i];
+
+		t.set(Vec3Dot(pplane->n * pplane->d - ep, pplane->n), Vec3Dot(ev, pplane->n));
+		if (fabsf(t.d) >= FLT_EPSILON || fabsf(t.n) < FLT_EPSILON)
+		{
+			if (fabsf(tt = t.val()) <= 1.0f)
+				q[n++] = cp + tt * ev;
+		}
+	}
+
+	if (n == 0)
+		return false;
+
+	pinters->p = q[0];
+	for (int i = 1; i < n; ++i)
+		pinters->p += q[i];
+
+	pinters->p /= (float)n;
+	pinters->n = pplane->n;
+	pinters->dist = -fabsf(Vec3Dot(cp - pplane->n * pplane->d, pplane->n));
+	pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+	return true;
+}
+
 bool _PlaneTriangle(const plane* pplane, const triangle* ptri, SIntersection* pinters)
 {
 	Vec3f q[3]; // intersection points
-	float t, den;
+	quotient t;
+	float tt, den;
 	int n = 0;
 	for (int i = 0; i < 3; ++i)
 	{
-		den = Vec3Dot(ptri->p[(i + 1) % 3] - ptri->p[i], pplane->n);
-		if (true)
+		t.set(Vec3Dot(pplane->n * pplane->d - ptri->p[i], pplane->n), Vec3Dot(ptri->p[(i + 1) % 3] - ptri->p[i], pplane->n));
+		if (fabsf(t.d) >= FLT_EPSILON || fabsf(t.n) < FLT_EPSILON)
 		{
-			t = (den) ? Vec3Dot(pplane->n * pplane->d - ptri->p[i], pplane->n) / den : 0.0f;
-			if (t >= 0.0f && t <= 1.0f)
-				q[n++] = ptri->p[i] + t * (ptri->p[(i + 1) % 3] - ptri->p[i]);
+			tt = t.val();
+			if (tt >= 0.0f && tt <= 1.0f)
+				q[n++] = ptri->p[i] + tt * (ptri->p[(i + 1) % 3] - ptri->p[i]);
 		}
 	}
 
@@ -437,7 +567,15 @@ bool _PlaneTriangle(const plane* pplane, const triangle* ptri, SIntersection* pi
 	else
 		pinters->p = (q[0] + q[1]) * 0.5f;
 	pinters->n = pplane->n;
+	
+	float d;
 	pinters->dist = 0.0f;
+	for (int i = 0; i < 3; ++i)
+	{
+		if ((d = Vec3Dot(ptri->p[i] - pplane->n * pplane->d, pplane->n)) < pinters->dist)
+			pinters->dist = d;
+	}
+
 	pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
 	return true;
 }
@@ -454,6 +592,22 @@ OBB sphere::GetBoundBox() const
 	obb.center = c;
 	obb.dimensions[0] = obb.dimensions[1] = obb.dimensions[2] = r;
 	return obb;
+}
+
+shape* sphere::Clone() const
+{
+	sphere* psphere = new sphere();
+	psphere->c = c;
+	psphere->r = r;
+	return psphere;
+}
+
+void sphere::Transform(const Mat44& mtx)
+{
+	Vec3f p = (mtx * Vec4f(c + Vec3f(0, r, 0), 1.0f)).xyz();
+	c = (mtx * Vec4f(c, 1.0f)).xyz();
+	if (fabsf(r) >= FLT_EPSILON)
+		r = (p - c).Length();
 }
 
 bool _SphereRay(const sphere* psphere, const ray* pray, SIntersection* pinters)
@@ -544,6 +698,23 @@ bool _SphereCapsule(const sphere* psphere, const capsule* pcapsule, SIntersectio
 	return dd < -FLT_EPSILON;
 }
 
+bool _SphereBox(const sphere* psphere, const box* pbox, SIntersection* pinters)
+{
+	Vec3f dc = psphere->c - pbox->c, q = pbox->c;
+	float d;
+	for (int i = 0; i < 3; ++i)
+	{
+		d = Vec3Dot(dc, pbox->axis[i]);
+		q += min(max(d, -pbox->dim[i]), pbox->dim[i]) * pbox->axis[i];
+	}
+
+	pinters->dist = (d = (psphere->c - q).Length()) - psphere->r;
+	pinters->n = -(psphere->c - q) / d;
+	pinters->p = q;
+	pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+	return pinters->dist < FLT_EPSILON;
+}
+
 bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection* pinters)
 {
 	int inters = 0, i;
@@ -557,15 +728,17 @@ bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection*
 	// Check if sphere center inside triangle
 	inters = 1;
 	for (i = 0; i < 3; ++i)
+	{
 		inters &= (Vec3Dot((ptri->p[(i + 1) % 3] - ptri->p[i]) ^ ptri->n, psphere->c - ptri->p[i]) <= 0.0f);
+	}
 
 	if (inters)
 	{
 		pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
 		pinters->dist = (psphere->c - fp).Length() - psphere->r;
-		pinters->p = psphere->c - ptri->n * psphere->r;
-		pinters->n = ptri->n;
-		return true;
+		pinters->n = -ptri->n;
+		pinters->p = psphere->c + pinters->n * psphere->r;
+		return pinters->dist <= 0.0f;
 	}
 
 	// Intersect with triangle vertices
@@ -625,6 +798,25 @@ OBB cylinder::GetBoundBox() const
 	bb.dimensions[0] = bb.dimensions[2] = r;
 	bb.dimensions[1] = axisln * 0.5f;
 	return bb;
+}
+
+shape* cylinder::Clone() const
+{
+	cylinder* pcyl = new cylinder();
+	pcyl->p[0] = p[0];
+	pcyl->p[1] = p[1];
+	pcyl->r = r;
+	return pcyl;
+}
+
+void cylinder::Transform(const Mat44& mtx)
+{
+	Vec3f q = p[0] + (p[1] - p[0]).Normalized().GetOrthogonal() * r;
+	q = (mtx * Vec4f(q, 1.0f)).xyz();
+	p[0] = (mtx * Vec4f(p[0], 1.0f)).xyz();
+	p[1] = (mtx * Vec4f(p[1], 1.0f)).xyz();
+	if (fabsf(r) >= FLT_EPSILON)
+		r = (q - p[0]).Length();
 }
 
 bool _CylinderRay(const cylinder* pcylinder, const ray* pray, SIntersection* pinters)
@@ -745,6 +937,28 @@ OBB capsule::GetBoundBox() const
 	return bb;
 }
 
+shape* capsule::Clone() const
+{
+	capsule* pcapsule = new capsule();
+	pcapsule->c = c;
+	pcapsule->axis = axis;
+	pcapsule->hh = hh;
+	pcapsule->r = r;
+	return pcapsule;
+}
+
+void capsule::Transform(const Mat44& mtx)
+{
+	Vec3f p[2] = { c - axis * hh, c + axis * hh };
+	for (int i = 0; i < 2; ++i)
+		p[i] = (mtx * Vec4f(p[i], 1.0f)).xyz();
+	
+	Vec3f q = (mtx * Vec4f(c + axis.GetOrthogonal() * r, 1.0f)).xyz();
+	c = (p[0] + p[1]) * 0.5f;
+	hh = 0.5f * (p[1] - p[0]).Length();
+	r = (q - c).Length();
+}
+
 bool _CapsuleRay(const capsule* pcapsule, const ray* pray, SIntersection* pinters)
 {
 	return _RayCapsule(pray, pcapsule, pinters);
@@ -810,6 +1024,117 @@ bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SInters
 	pinters->n = pinters->n.Normalized();
 	pinters->p += pinters->n * capsules[0]->r;
 	return inters;
+}
+
+bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinters)
+{
+	Vec3f ep, ev, d, dp, cp, pp, sc, n;
+	float dlnsq, dln, t[2], tt;
+	int i, i2, i3;
+	quotient q;
+
+	// Capsule Ray intersection - Box sides
+	t[0] = FLT_MAX; t[1] = -FLT_MAX;
+	for (i = 0; i < 3; ++i)
+	{
+		i2 = (i + 1) % 3; i3 = (i + 2) % 3;
+		for (int sg = -1; sg <= 1; sg += 2)
+		{
+			sc = pbox->c + sg * pbox->axis[i] * pbox->dim[i];
+			q.set(Vec3Dot(sc - pcapsule->c, sg * pbox->axis[i]), Vec3Dot(pcapsule->axis, sg * pbox->axis[i]));
+			if (fabsf(q.d) >= FLT_EPSILON)
+			{
+				tt = q.val();
+				pp = pcapsule->c + tt * pcapsule->axis;
+				if (isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i2])) - pbox->dim[i2]) &
+					isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i3])) - pbox->dim[i3]))
+				{
+					t[0] = min(t[0], tt);
+					t[1] = max(t[1], tt);
+					n = sg * pbox->axis[i];
+				}
+			}
+		}
+	}
+
+	if (t[0] < t[1] & isneg(t[0] - pcapsule->hh) & isneg(-pcapsule->hh - t[1]))
+	{
+		cp = pcapsule->c + sgnnz(Vec3Dot(pcapsule->axis, -n)) * pcapsule->axis * pcapsule->hh - n * pcapsule->r;
+		pinters->dist = Vec3Dot(cp - pinters->p, n);
+		pinters->p = pcapsule->c + t[0] * pcapsule->axis;
+		pinters->n = -n;
+		pinters->feature = eINTERSECTION_FEATURE_CAP;
+		return true;
+	}
+
+	// Caps - Box sides
+	pinters->feature = eINTERSECTION_FEATURE_CAP;
+	for (int cap = -1; cap <= 1; cap += 2)
+	{
+		cp = pcapsule->c + pcapsule->axis * pcapsule->hh * cap;
+		for (i = 0; i < 3; ++i)
+		{
+			i2 = (i + 1) % 3; i3 = (i + 2) % 3;
+			n = pbox->axis[i] * sgnnz(Vec3Dot(cp - pbox->c, pbox->axis[i]));
+			pp = cp - (dln = Vec3Dot(cp - (sc = pbox->c + n * pbox->dim[i]), n)) * n;
+			if (isneg(pinters->dist = dln - pcapsule->r)
+				& isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i2])) - pbox->dim[i2])
+				& isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i3])) - pbox->dim[i3]))
+			{
+				pinters->n = -n;
+				pinters->p = cp + pinters->n * pcapsule->r;
+				return true;
+			}
+		}
+	}
+
+	// All edges - capsule	
+	for (int a = 0; a < 3; ++a)
+	{
+		ev = pbox->axis[a];
+		for (int s1 = -1; s1 <= 1; s1 += 2)
+			for (int s2 = -1; s2 <= 1; s2 += 2)
+			{
+				ep = pbox->c - ev * pbox->dim[a]
+					+ (float)s1 * pbox->dim[(a + 1) % 3] * pbox->axis[(a + 1) % 3]
+					+ (float)s2 * pbox->dim[(a + 2) % 3] * pbox->axis[(a + 2) % 3];
+
+				// edge cylinder
+				dp = pcapsule->c - ep;
+				dlnsq = (d = ev ^ pcapsule->axis).LengthSq();
+				if (isneg(fabsf(Vec3Dot(ev, pcapsule->axis)) - (1.0f - FLT_EPSILON))
+					& isneg(sqr(Vec3Dot(dp, d)) - pcapsule->r * pcapsule->r * dlnsq)
+					& isneg(fabsf(t[0] = Vec3Dot(dp ^ ev, d)) - pcapsule->hh * dlnsq)
+					& isneg(fabsf(Vec3Dot(dp ^ pcapsule->axis, d)) - pbox->dim[a] * 2 * dlnsq))
+				{
+					dln = sqrtf(dlnsq);
+					pinters->p = pcapsule->c + t[0] * pcapsule->axis;
+					pinters->n = (d / dln) * sgnnz(Vec3Dot(-dp, d));
+					pinters->dist = fabsf(Vec3Dot(dp, d) / dln) - pcapsule->r;
+					pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+					return true;
+				}
+
+				// edge cap
+				for (i = -1; i <= 1; i += 2)
+				{
+					cp = pcapsule->c + pcapsule->axis * pcapsule->hh * i;
+					pp = ep + min(max(Vec3Dot(cp - ep, ev), 0), pbox->dim[a] * 2.0f) * ev;
+					dlnsq = (d = cp - pp).LengthSq();
+					if (dlnsq <= pcapsule->r * pcapsule->r)
+					{
+						dln = sqrtf(dlnsq);
+						pinters->n = -d / dln;
+						pinters->p = cp + pinters->n * pcapsule->r;
+						pinters->dist = dln - pcapsule->r;
+						pinters->feature = eINTERSECTION_FEATURE_CAP;
+						return true;
+					}
+				}
+			}
+	}
+
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -912,66 +1237,270 @@ OBB box::GetBoundBox() const
 	return bb;
 }
 
-bool _BoxBox(const box* pbox1, const box* pbox2, SIntersection* pinters)
+shape* box::Clone() const
 {
-	const box* boxes[] = { pbox1, pbox2 }, *box1, *box2;
-	Vec3f n[3], ce[3], points[4], pp, pv;
-	for (int box = 0; box < 2; ++box)
+	box* pbox = new box();
+	pbox->c = c;
+	for (int i = 0; i < 3; ++i)
 	{
-		box1 = boxes[box]; box2 = boxes[box ^ 1];
-		Vec3f dc = box2->c - box1->c; // from box1 to box2
-
-		for (int i = 0; i < 3; ++i)
-			n[i] = box1->axis[i] * sgnnz(Vec3Dot(box1->axis[i], dc));
-		for (int i = 0; i < 3; ++i)
-			ce[i] = box2->axis[i] * sgnnz(Vec3Dot(box2->axis[i], dc));
-
-		Vec3f cp = box2->c - ce[0] * box2->dim[0] - ce[1] * box2->dim[1] - ce[2] * box2->dim[2];
-
-		// Test intersection of the 3 edges vs the 3 closest planes.
-		// This results in a maximum of 2 * 3 * 3 = 18 Tests
-		quotient t;
-		float tt;
-		int npoints = 1, s0 = -1;
-		points[0] = cp;
-		for (int e = 0; e < 3; ++e) // edge
-			for (int s = 0; s < 3; ++s) // side
-			{
-				pp = box1->c + n[s] * box1->dim[s];
-				t.set(Vec3Dot(pp - cp, n[s]), Vec3Dot(ce[e], n[s]));
-				tt = t.val();
-				if (fabsf(t.d) >= FLT_EPSILON && tt >= 0.0f && tt <= box2->dim[e])
-				{
-					// Check if intersection point inside box side plane limits
-					pv = (cp + ce[e] * tt) - pp;
-					if ((fabsf(Vec3Dot(pv, n[(s + 1) % 3])) <= box1->dim[(s + 1) % 3]) &
-						(fabsf(Vec3Dot(pv, n[(s + 2) % 3])) <= box1->dim[(s + 2) % 3]))
-					{
-						s0 = (s0 < 0 ? s : s0);
-						points[npoints++] = cp + ce[e] * tt;
-						break;
-					}
-				}
-			}
-
-		if (npoints > 1)
-		{
-			pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
-			pinters->n = n[s0];
-			pinters->dist = 0.0f;
-			pinters->p = points[1];
-			pp = box1->c + n[s0] * box1->dim[s0];
-			float d;
-			for (int i = 0; i < npoints; ++i)
-			{
-				if ((d = Vec3Dot(points[i] - pp, n[s0])) < pinters->dist)
-					pinters->dist = d;
-			}
-			return true;
-		}
+		pbox->axis[i] = axis[i];
+		pbox->dim[i] = dim[i];
 	}
 
-	return false;
+	return pbox;
+}
+
+void box::Transform(const Mat44& mtx)
+{
+	c = (mtx * Vec4f(c, 1.0f)).xyz();
+	for (int i = 0; i < 3; ++i)
+	{
+		axis[i] = (mtx * Vec4f(axis[i], 0)).xyz();
+		axis[i] /= (dim[i] = axis[i].Length());
+	}
+}
+
+
+
+bool _BoxBoxExists(const box* pbox1, const box* pbox2)
+{
+	float ra, rb;
+	Mat33 R, AbsR;
+	Vec3f dc;
+	Vec3f n;
+	float d, dmin = FLT_MAX;
+
+	dc = pbox2->c - pbox1->c;
+	dc = Vec3f(Vec3Dot(dc, pbox1->axis[0]), Vec3Dot(dc, pbox1->axis[1]), Vec3Dot(dc, pbox1->axis[2]));
+
+	for (int i = 0; i < 3; ++i)
+		for (int j = 0; j < 3; ++j)
+			R.m[i][j] = Vec3Dot(pbox1->axis[i], pbox2->axis[j]);
+
+	for (int i = 0; i < 3; ++i)
+		for (int j = 0; j < 3; ++j)
+			AbsR.m[i][j] = fabsf(R.m[i][j]) + FLT_EPSILON;
+
+	for (int i = 0; i < 3; ++i)
+	{
+		ra = pbox1->dim[i];
+		rb = pbox2->dim[0] * AbsR.m[i][0] + pbox2->dim[1] * AbsR.m[i][1] + pbox2->dim[2] * AbsR.m[i][2];
+		if ((d = fabsf(dc[i]) - ra - rb) > 0) return false;
+		if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[i]; }
+	}
+
+	for (int i = 0; i < 3; ++i)
+	{
+		ra = pbox1->dim[0] * AbsR.m[0][i] + pbox1->dim[1] * AbsR.m[1][i] + pbox1->dim[2] * AbsR.m[2][i];
+		rb = pbox2->dim[i];
+		if ((d = fabsf(dc[0] * R.m[0][i] + dc[1] * R.m[1][i] + dc[2] * R.m[2][i]) - ra - rb) > 0) return false;
+		if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox2->axis[i]; }
+	}
+
+	// Test axis L = A0 x B0
+	ra = pbox1->dim[1] * AbsR.m[2][0] + pbox1->dim[2] * AbsR.m[1][0];
+	rb = pbox2->dim[1] * AbsR.m[0][2] + pbox2->dim[2] * AbsR.m[0][1];
+	if ((d = fabsf(dc[2] * R.m[1][0] - dc[1] * R.m[2][0]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[0] ^ pbox2->axis[0]; }
+
+	// Test axis L = A0 x B1
+	ra = pbox1->dim[1] * AbsR.m[2][1] + pbox1->dim[2] * AbsR.m[1][1];
+	rb = pbox2->dim[0] * AbsR.m[0][2] + pbox2->dim[2] * AbsR.m[0][0];
+	if ((d = fabsf(dc[2] * R.m[1][1] - dc[1] * R.m[2][1]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[0] ^ pbox2->axis[1]; }
+	
+	// Test axis L = A0 x B2
+	ra = pbox1->dim[1] * AbsR.m[2][2] + pbox1->dim[2] * AbsR.m[1][2];
+	rb = pbox2->dim[0] * AbsR.m[0][1] + pbox2->dim[1] * AbsR.m[0][0];
+	if ((d = fabsf(dc[2] * R.m[1][2] - dc[1] * R.m[2][2]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[0] ^ pbox2->axis[2]; }
+
+	// Test axis L = A1 x B0
+	ra = pbox1->dim[0] * AbsR.m[2][0] + pbox1->dim[2] * AbsR.m[0][0];
+	rb = pbox2->dim[1] * AbsR.m[1][2] + pbox2->dim[2] * AbsR.m[1][1];
+	if ((d = fabsf(dc[0] * R.m[2][0] - dc[2] * R.m[0][0]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[1] ^ pbox2->axis[0]; }
+
+	// Test axis L = A1 x B1
+	ra = pbox1->dim[0] * AbsR.m[2][1] + pbox1->dim[2] * AbsR.m[0][1];
+	rb = pbox2->dim[0] * AbsR.m[1][2] + pbox2->dim[2] * AbsR.m[1][0];
+	if ((d = fabsf(dc[0] * R.m[2][1] - dc[2] * R.m[0][1]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[1] ^ pbox2->axis[1]; }
+
+	// Test axis L = A1 x B2
+	ra = pbox1->dim[0] * AbsR.m[2][2] + pbox1->dim[2] * AbsR.m[0][2];
+	rb = pbox2->dim[0] * AbsR.m[1][1] + pbox2->dim[1] * AbsR.m[1][0];
+	if ((d = fabsf(dc[0] * R.m[2][2] - dc[2] * R.m[0][2]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[1] ^ pbox2->axis[2]; }
+
+	// Test axis L = A2 x B0
+	ra = pbox1->dim[0] * AbsR.m[1][0] + pbox1->dim[1] * AbsR.m[0][0];
+	rb = pbox2->dim[1] * AbsR.m[2][2] + pbox2->dim[2] * AbsR.m[2][1];
+	if ((d = fabsf(dc[1] * R.m[0][0] - dc[0] * R.m[1][0]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[2] ^ pbox2->axis[0]; }
+
+	// Test axis L = A2 x B1
+	ra = pbox1->dim[0] * AbsR.m[1][1] + pbox1->dim[1] * AbsR.m[0][1];
+	rb = pbox2->dim[0] * AbsR.m[2][2] + pbox2->dim[2] * AbsR.m[2][0];
+	if ((d = fabsf(dc[1] * R.m[0][1] - dc[0] * R.m[1][1]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[2] ^ pbox2->axis[1]; }
+
+	// Test axis L = A2 x B2
+	ra = pbox1->dim[0] * AbsR.m[1][2] + pbox1->dim[1] * AbsR.m[0][2];
+	rb = pbox2->dim[0] * AbsR.m[2][1] + pbox2->dim[1] * AbsR.m[2][0];
+	if ((d = fabsf(dc[1] * R.m[0][2] - dc[0] * R.m[1][2]) - ra - rb) > 0) return 0;
+	if (fabsf(d) < fabsf(dmin)) { dmin = d; n = pbox1->axis[2] ^ pbox2->axis[2]; }
+
+	return true;
+}
+
+void SetBasisFromMtx(Vec3f basis[3], const Mat33& mtx)
+{
+	basis[0] = Vec3f(mtx.m[0][0], mtx.m[0][1], mtx.m[0][2]);
+	basis[1] = Vec3f(mtx.m[1][0], mtx.m[1][1], mtx.m[1][2]);
+	basis[2] = Vec3f(mtx.m[2][0], mtx.m[2][1], mtx.m[2][2]);
+}
+
+#define _SWAP(x,y) t=x;x=y;y=t;
+void TransposeBasis(Vec3f basis[3])
+{
+	float t;
+	_SWAP(basis[0].y, basis[1].x);
+	_SWAP(basis[0].z, basis[2].x);
+	_SWAP(basis[1].z, basis[2].y);
+}
+
+#define BOXBOX_UPDATE_BEST(axis, cp, ee) \
+	if (fabsf(d) < fabsf(dmin)) { \
+		dmin = d; \
+		L = axis; \
+		P = cp; \
+	}
+
+#define ORANGE SColor(1.0f, 0.5f, 0.0f)
+#define YELLOW SColor::Yellow()
+
+bool _BoxBox(const box* pbox1, const box* pbox2, SIntersection* pinters)
+{
+	const box* boxes[2] = { pbox1, pbox2 }, *box1, *box2;
+	
+	float dmin = FLT_MAX, d;
+	Vec3f L; // separation axis with d closest to 0
+	Vec3f P; // contact point
+
+	Vec3f axes[3];
+	Mat33 basis[2];
+	basis[0] = Mat33::FromColumns(pbox1->axis[0], pbox1->axis[1], pbox1->axis[2]);
+	basis[1] = Mat33::FromColumns(pbox2->axis[0], pbox2->axis[1], pbox2->axis[2]);
+	SetBasisFromMtx(axes, basis[0] * basis[1].Transposed());
+
+	Vec3f dc[2], dcw[2];
+	dc[0] = basis[0] * (dcw[0] = pbox2->c - pbox1->c);
+	dc[1] = basis[1] * (dcw[1] = pbox1->c - pbox2->c);
+
+	// Face-Vertex
+	float sgcoord;
+	Vec3f origin, vtx;
+	int sg[3];
+	for (int ibox = 0; ibox < 2; ++ibox) // ibox provides face, ibox^1 provides vertex
+	{
+		box1 = boxes[ibox]; box2 = boxes[ibox ^ 1];
+		for (int icoord = 0; icoord < 3; ++icoord)
+		{
+			origin[icoord] = box1->dim[icoord] * (sgcoord = sgnnz(dc[ibox][icoord]));
+			sg[0] = sgnnz(axes[0][icoord]); sg[1] = sgnnz(axes[1][icoord]); sg[2] = sgnnz(axes[2][icoord]);
+			vtx = dc[ibox] + (axes[0] * (box2->dim[0] * sg[0]) + axes[1] * (box2->dim[1] * sg[1]) + axes[2] * (box2->dim[2] * sg[2])) * -sgcoord;
+
+			float ra = fabsf(origin[icoord]);
+			float rb = fabsf((vtx[icoord] - dc[ibox][icoord]));
+			float ToL = fabsf(dc[ibox][icoord]);
+
+			d = ToL - ra - rb;
+
+			if (d > 0)
+			{
+				return false;
+			}
+
+			BOXBOX_UPDATE_BEST((((ibox ^ 1) << 1) - 1) * box1->axis[icoord] * sgcoord, basis[ibox].Transposed() * vtx + box1->c);
+			origin[icoord] = 0;
+		}
+
+		TransposeBasis(axes);
+	}
+
+	// Edge-Edge
+	box1 = pbox1; box2 = pbox2;
+	Vec3f n, p[2];
+	int ie12, ie13, ie22, ie23;
+	for (int ie1 = 0; ie1 < 3; ++ie1)
+		for (int ie2 = 0; ie2 < 3; ++ie2)
+		{
+			ie12 = (ie1 + 1) % 3; ie13 = (ie1 + 2) % 3;
+			ie22 = (ie2 + 1) % 3; ie23 = (ie2 + 2) % 3;
+
+			Vec3f a;
+			a[ie1] = 1.0f;
+			n = a ^ axes[ie2];
+			if (n.LengthSq() < FLT_EPSILON)
+				continue; // axes are parallel
+
+			n = n.Normalized();
+			n *= sgnnz(Vec3Dot(n, dc[0]));
+
+			p[0][ie1] = 0;
+			p[0][ie12] = pbox1->dim[ie12] * sgnnz(n[ie12]);
+			p[0][ie13] = pbox1->dim[ie13] * sgnnz(n[ie13]);
+
+			Vec3f a11, a12;
+			p[1] = dc[0]
+				+ (a11 = axes[ie22] * pbox2->dim[ie22] * sgnnz(Vec3Dot(axes[ie22], -n)))
+				+ (a12 = axes[ie23] * pbox2->dim[ie23] * sgnnz(Vec3Dot(axes[ie23], -n)));
+
+			float ra = fabsf(Vec3Dot(p[0], n));
+			float rb = fabsf(Vec3Dot(p[1] - dc[0], n));
+			float ToL = fabsf(Vec3Dot(dc[0], n));
+
+			d = ToL - ra - rb;
+
+			if (d > 0)
+				return false;
+
+			Mat33 BT = basis[0].Transposed();
+			BOXBOX_UPDATE_BEST(basis[0].Transposed() * n, ((BT * p[0] + box1->c) + (BT * p[1] + box1->c)) * 0.5f);
+		}
+
+	pinters->dist = dmin;
+	pinters->n = L.Normalized();
+	pinters->p = P;
+	pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+	return true;
+}
+
+bool _BoxRay(const box* pbox, const ray* pray, SIntersection* pinters)
+{
+	return _RayBox(pray, pbox, pinters);
+}
+
+bool _BoxPlane(const box* pbox, const plane* pplane, SIntersection* pinters)
+{
+	bool res = _PlaneBox(pplane, pbox, pinters);
+	pinters->n *= -1.0f;
+	return res;
+}
+
+bool _BoxSphere(const box* pbox, const sphere* psphere, SIntersection* pinters)
+{
+	bool res = _SphereBox(psphere, pbox, pinters);
+	pinters->n *= -1.0f;
+	return res;
+}
+
+bool _BoxCapsule(const box* pbox, const capsule* pcapsule, SIntersection* pinters)
+{
+	bool res = _CapsuleBox(pcapsule, pbox, pinters);
+	pinters->n *= -1.0f;
+	return res;
 }
 
 
@@ -1001,7 +1530,7 @@ void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigne
 		}
 	}
 
-	if (depth < maxDepth && tris.size() > 1)
+	if (depth < maxDepth && tris.size() > 4) // min 4 triangles in one BV
 	{
 		pnode->tris = 0;
 		pnode->num_tris = 0;
@@ -1037,8 +1566,11 @@ void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigne
 		pnode->num_children = 0;
 		pnode->children = 0;
 		pnode->num_tris = tris.size();
-		pnode->tris = new unsigned int[pnode->num_tris];
-		memcpy(pnode->tris, &tris[0], tris.size() * sizeof(unsigned int));
+		if (!tris.empty())
+		{
+			pnode->tris = new unsigned int[pnode->num_tris];
+			memcpy(pnode->tris, &tris[0], tris.size() * sizeof(unsigned int));
+		}
 
 		//PhysDebug::VisualizeAABB(pnode->aabb);
 	}
@@ -1088,41 +1620,58 @@ void mesh::ClearTree()
 }
 
 
-bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, const shape* pshape, SIntersection* pinters)
+OBB mesh::GetBoundBox() const
 {
-	if (pshape->GetType() == eSHAPE_RAY)
+	OBB obb(root.aabb);
+	obb.Transform(transform);
+	return obb;
+}
+
+
+bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebox, const shape* pshape, const box* pshapebox, SIntersection* pinters)
+{
+	// Check against node bounding box
+	static SIntersection bbinters;
+	static triangle tri;
+	
+	OBB nodeBB(pnode->aabb);
+	pnodebox->c = nodeBB.center;
+	for (int i = 0; i < 3; ++i)
 	{
-		ray* pray = (ray*)pshape;
-		if (!pnode->aabb.HitsRay(pray->v, pray->p))
+		pnodebox->axis[i] = nodeBB.directions[i];
+		pnodebox->dim[i] = nodeBB.dimensions[i];
+	}
+
+	if (pshape->GetType() == eSHAPE_RAY || pshape->GetType() == eSHAPE_PLANE)
+	{
+		// Intersect infinite shapes directly with bound box
+		if (!_Intersection(pnodebox, pshape, &bbinters))
 			return false;
 	}
 	else
 	{
-
-
-		// TODO: Test shape Bound box vs node bound box
-
-
+		//if (!_Intersection(pnodebox, pshapebox, &bbinters))
+		if (!_BoxBoxExists(pnodebox, pshapebox))
+			return false;
 	}
 
 	if (pnode->children)
 	{
 		for (int i = 0; i < pnode->num_children; ++i)
 		{
-			if (_MeshNodeShape(pmesh, &pnode->children[i], pshape, pinters))
+			if (_MeshNodeShape(pmesh, &pnode->children[i], pnodebox, pshape, pshapebox, pinters))
 				return true;
 		}
 	}
 	else if (pnode->num_tris > 0 && pnode->tris)
 	{
-		triangle tri;
 		for (int i = 0; i < pnode->num_tris; ++i)
 		{
 			tri.p[0] = pmesh->points[pmesh->indices[pnode->tris[i] + 0]];
 			tri.p[1] = pmesh->points[pmesh->indices[pnode->tris[i] + 1]];
 			tri.p[2] = pmesh->points[pmesh->indices[pnode->tris[i] + 2]];
-			tri.n = (tri.p[1] - tri.p[0]) ^ (tri.p[2] - tri.p[0]);
-			if (_Intersection(pshape, &tri, pinters))
+			tri.n = ((tri.p[1] - tri.p[0]) ^ (tri.p[2] - tri.p[0])).Normalized();
+			if (_Intersection(&tri, pshape, pinters))
 				return true;
 		}
 	}
@@ -1132,7 +1681,55 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, const shape*
 
 bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters)
 {
-	return false;
+	box nodebox, shapebox;
+	Mat44 invTransform = SMatrixInvert(pmesh->transform);
+
+	shape* ptshape = pshape->Clone();
+	if (!ptshape)
+		return false;
+
+	if (ptshape->GetType() == eSHAPE_PLANE)
+		int a = 0;
+
+	ptshape->Transform(invTransform);
+
+	if (ptshape->GetType() == eSHAPE_PLANE)
+	{
+		plane* pplane = (plane*)ptshape;
+		//VisualizePlane(pplane->n * pplane->d, pplane->n, SColor(0.8f, 0.7f, 0.9f), true, 5.0f);
+	}
+	else if (ptshape->GetType() == eSHAPE_SPHERE)
+	{
+		CreateHelperForShape(ptshape, SColor(0.8f, 0.7f, 0.9f), true);
+	}
+
+	OBB shapebb = ptshape->GetBoundBox();
+	shapebox.c = shapebb.center;
+	for (int i = 0; i < 3; ++i)
+	{
+		shapebox.axis[i] = shapebb.directions[i];
+		shapebox.dim[i] = shapebb.dimensions[i];
+	}
+
+	VisualizeBox(shapebb, SColor::Yellow(), true);
+
+	bool res = _MeshNodeShape(pmesh, &pmesh->root, &nodebox, ptshape, &shapebox, pinters);
+	delete ptshape;
+
+	if (res)
+	{
+		pinters->p = (pmesh->transform * Vec4f(pinters->p, 1.0f)).xyz();
+		pinters->n = -(pmesh->transform * Vec4f(pinters->n, 0.0f)).xyz();
+	}
+
+	return res;
+}
+
+bool _ShapeMesh(const shape* pshape, const mesh* pmesh, SIntersection *pinters)
+{
+	bool res = _MeshShape(pmesh, pshape, pinters);
+	pinters->n *= -1.0f;
+	return res;
 }
 
 GEO_NMSPACE_END

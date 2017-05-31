@@ -44,6 +44,8 @@ protected:
 public:
 	EShapeType GetType() const { return ty; };
 	virtual OBB GetBoundBox() const { return OBB(); }
+	virtual shape* Clone() const { return 0; }
+	virtual void Transform(const Mat44& mtx) {};
 };
 
 struct ray : shape
@@ -52,6 +54,8 @@ struct ray : shape
 	Vec3f v;
 	ray() { ty = eSHAPE_RAY; }
 	ray(const Vec3f& _p, const Vec3f& _v) : p(_p), v(_v) { ty = eSHAPE_RAY; }
+	virtual shape* Clone() const;
+	virtual void Transform(const Mat44& mtx);
 };
 
 struct plane : shape
@@ -61,6 +65,8 @@ struct plane : shape
 	plane() { ty = eSHAPE_PLANE; }
 	plane(const Vec3f& normal, float _d) : n(normal), d(_d) { ty = eSHAPE_PLANE; }
 	virtual OBB GetBoundBox() const;
+	virtual shape* Clone() const;
+	virtual void Transform(const Mat44& mtx);
 };
 
 struct circle : shape
@@ -78,6 +84,8 @@ struct sphere : shape
 	sphere() { ty = eSHAPE_SPHERE; }
 	sphere(const Vec3f& center, float radius) : c(center), r(radius) { ty = eSHAPE_SPHERE; }
 	virtual OBB GetBoundBox() const;
+	virtual shape* Clone() const;
+	virtual void Transform(const Mat44& mtx);
 };
 
 struct cylinder : shape
@@ -93,6 +101,8 @@ struct cylinder : shape
 		r = radius;
 	}
 	virtual OBB GetBoundBox() const;
+	virtual shape* Clone() const;
+	virtual void Transform(const Mat44& mtx);
 };
 
 struct capsule : shape
@@ -120,6 +130,8 @@ struct capsule : shape
 		axis = naxis;
 	}
 	virtual OBB GetBoundBox() const;
+	virtual shape* Clone() const;
+	virtual void Transform(const Mat44& mtx);
 };
 
 struct triangle : shape
@@ -159,6 +171,8 @@ struct box : shape
 		}
 	}
 	virtual OBB GetBoundBox() const;
+	virtual shape* Clone() const;
+	virtual void Transform(const Mat44& mtx);
 };
 
 struct mesh_tree_node
@@ -183,7 +197,13 @@ struct mesh : shape
 	Mat44 transform;
 
 	mesh() : points(0), indices(0) { ty = eSHAPE_MESH; }
+	~mesh()
+	{
+		if (points) delete[] points; points = 0;
+		if (indices) delete[] indices; indices = 0;
+	}
 
+	virtual OBB GetBoundBox() const;
 	void CreateTree(bool octree = true, unsigned int maxDepth = 5);
 	void ClearTree();
 };
@@ -208,6 +228,7 @@ bool _RayPlane(const ray* pray, const plane* pplane, SIntersection* pinters);
 bool _RaySphere(const ray* pray, const sphere* psphere, SIntersection* pinters);
 bool _RayCylinder(const ray* pray, const cylinder* pcyl, SIntersection* pinters);
 bool _RayCapsule(const ray* pray, const capsule* pcapsule, SIntersection* pinters);
+bool _RayBox(const ray* pray, const box* pbox, SIntersection* pinters);
 bool _RayTriangle(const ray* pray, const triangle* ptri, SIntersection* pinters);
 
 bool _PlaneRay(const plane* pplane, const ray* pray, SIntersection* pinters);
@@ -215,6 +236,7 @@ bool _PlanePlane(const plane* pplane1, const plane* pplane2, SIntersection* pint
 bool _PlaneSphere(const plane* pplane, const sphere* psphere, SIntersection* pinters);
 bool _PlaneCylinder(const plane* pplane, const cylinder* pcyl, SIntersection* pinters);
 bool _PlaneCapsule(const plane* pplane, const capsule* pcapsule, SIntersection* pinters);
+bool _PlaneBox(const plane* pplane, const box* pbox, SIntersection* pinters);
 bool _PlaneTriangle(const plane* pplane, const triangle* ptri, SIntersection* pinters);
 
 bool _SphereRay(const sphere* psphere, const ray* pray, SIntersection* pinters);
@@ -222,6 +244,7 @@ bool _SpherePlane(const sphere* psphere, const plane* pplane, SIntersection* pin
 bool _SphereSphere(const sphere* psphere1, const sphere* psphere2, SIntersection* pinters);
 bool _SphereCylinder(const sphere* psphere, const cylinder* pcyl, SIntersection* pinters);
 bool _SphereCapsule(const sphere* psphere, const capsule* pcapsule, SIntersection* pinters);
+bool _SphereBox(const sphere* psphere, const box* pbox, SIntersection* pinters);
 bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection* pinters);
 
 bool _CylinderRay(const cylinder* pcyl, const ray* pray, SIntersection* pinters);
@@ -232,6 +255,7 @@ bool _CapsuleRay(const capsule* pcapsule, const ray* pray, SIntersection* pinter
 bool _CapsuleSphere(const capsule* pcapsule, const sphere* psphere, SIntersection* pinters);
 bool _CapsulePlane(const capsule* pcapsule, const plane* pplane, SIntersection* pinters);
 bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SIntersection* pinters);
+bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinters);
 
 bool _TriangleRay(const triangle* ptri, const ray* pray, SIntersection* pinters);
 bool _TrianglePlane(const triangle* ptri, const plane* pplane, SIntersection* pinters);
@@ -240,10 +264,15 @@ bool _TriangleSphere(const triangle* ptri, const sphere* psphere, SIntersection*
 bool _CircleCircle(const circle* pcircle1, const circle* pcircle2, SIntersection* pinters);
 
 bool _BoxBox(const box* pbox1, const box* pbox2, SIntersection* pinters);
+bool _BoxRay(const box* pbox, const ray* pray, SIntersection* pinters);
+bool _BoxPlane(const box* pbox, const plane* pplane, SIntersection* pinters);
+bool _BoxSphere(const box* pbox, const sphere* psphere, SIntersection* pinters);
+bool _BoxCapsule(const box* pbox, const capsule* pcapsule, SIntersection* pinters);
 
 bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters);
+bool _ShapeMesh(const shape* pshape, const mesh* pmesh, SIntersection* pinters);
 
-typedef bool(*_IntersectionTestFnPtr)(const shape* pshape1, const shape* pshape2, SIntersection* pinters);
+typedef bool (*_IntersectionTestFnPtr)(const shape* pshape1, const shape* pshape2, SIntersection* pinters);
 static _IntersectionTestFnPtr _intersectionTestTable[NUM_SHAPE_TYPES][NUM_SHAPE_TYPES];
 void FillIntersectionTestTable();
 

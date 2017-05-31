@@ -12,6 +12,7 @@ class S_API CPhysics : public IPhysics
 {
 private:
 	IComponentPool<PhysObject>* m_pObjects;
+	vector<std::pair<PhysObject*, PhysObject*>> m_Colliding;
 	PhysTerrain m_Terrain;
 
 protected:

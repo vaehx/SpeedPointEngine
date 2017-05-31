@@ -19,9 +19,8 @@ struct S_API SPhysObjectState
 {
 	float damping;
 
-	Vec3f centerOffs; // object position -> center of mass
-
-	Vec3f pos; // center of mass
+	Vec3f centerOfMass; // center point of mass in object space
+	Vec3f pos; // center point of mass in world-space
 	Vec3f v; // linear velocity
 	Vec3f P; // linear momentum
 
@@ -70,9 +69,11 @@ public:
 		RecalculateInertia();
 	}
 
+	void SetMeshCollisionShape(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree = true, u16 maxTreeDepth = 4);
+
 	void Update(float fTime);
 	const AABB& GetAABB() const { return m_AABB; }
-	const geo::shape* GetTransformedCollisionShape() const { return m_pTransformedShape; }
+	const geo::shape* GetTransformedCollisionShape() const;
 	const geo::shape* GetCollisionShape() const { return m_pShape; }
 	SPhysObjectState* GetState() { return &m_State; }
 	void SetMass(float m) { m_State.M = m; m_State.Minv = 1.0f / m; }
