@@ -728,9 +728,7 @@ bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection*
 	// Check if sphere center inside triangle
 	inters = 1;
 	for (i = 0; i < 3; ++i)
-	{
-		inters &= (Vec3Dot((ptri->p[(i + 1) % 3] - ptri->p[i]) ^ ptri->n, psphere->c - ptri->p[i]) <= 0.0f);
-	}
+		inters &= isneg(Vec3Dot((ptri->p[(i + 1) % 3] - ptri->p[i]) ^ psphere->c - ptri->p[i], ptri->n));
 
 	if (inters)
 	{
@@ -741,26 +739,22 @@ bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection*
 		return pinters->dist <= 0.0f;
 	}
 
-	// Intersect with triangle vertices
+	// Intersect with triangle vertices/edges
 	float d, dmin = FLT_MAX;
 	Vec3f pmin; // closest point on triangle to sphere
+	Vec3f ev, ep;
+	float ev_ln, ed;
 	for (i = 0; i < 3; ++i)
 	{
-		// Vertex
-		if ((d = (psphere->c - ptri->p[i]).LengthSq()) <= rsq && d < dmin)
-		{
-			inters = true;
-			dmin = d;
-			pmin = ptri->p[i];
-		}
+		ev = ptri->p[(i + 1) % 3] - ptri->p[i];
+		ev /= (ev_ln = ev.Length());
 
-		// Edge
-		Vec3f ev = ptri->p[(i + 1) % 3] - ptri->p[i];
-		float ev_ln = ev.Length();
-		ev /= ev_ln;
-		float ed = Vec3Dot(psphere->c - ptri->p[i], ev);
-		Vec3f ep = ptri->p[i] + ed * ev;
-		if (ed > 0.0f && ed < ev_ln && (d = (psphere->c - ep).LengthSq()) <= rsq && d < dmin)
+		ed = Vec3Dot(psphere->c - ptri->p[i], ev);
+		ed = min(max(ed, 0), ev_ln);
+
+		ep = ptri->p[i] + ed * ev;
+
+		if ((d = (psphere->c - ep).LengthSq()) <= rsq && d < dmin)
 		{
 			inters = true;
 			dmin = d;
@@ -771,9 +765,9 @@ bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection*
 	if (inters)
 	{
 		pinters->feature = eINTERSECTION_FEATURE_CAP;
+		pinters->n = -ptri->n;
+		pinters->p = pmin;
 		pinters->dist = sqrtf(dmin) - psphere->r;
-		pinters->n = ptri->n;
-		pinters->p = psphere->c + (pmin - psphere->c).Normalized() * psphere->r;
 		return true;
 	}
 
@@ -1155,7 +1149,9 @@ bool _TrianglePlane(const triangle* ptri, const plane* pplane, SIntersection* pi
 
 bool _TriangleSphere(const triangle* ptri, const sphere* psphere, SIntersection* pinters)
 {
-	return _SphereTriangle(psphere, ptri, pinters);
+	bool res = _SphereTriangle(psphere, ptri, pinters);
+	pinters->n *= -1.0f;
+	return res;
 }
 
 
@@ -1572,7 +1568,18 @@ void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigne
 			memcpy(pnode->tris, &tris[0], tris.size() * sizeof(unsigned int));
 		}
 
-		//PhysDebug::VisualizeAABB(pnode->aabb);
+		static bool seeded = false;
+		if (!seeded)
+		{
+			srand(static_cast<unsigned>(time(0)));
+			seeded = true;
+		}
+
+		pnode->_color.r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		pnode->_color.g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		pnode->_color.b = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+		//PhysDebug::VisualizeAABB(pnode->aabb, pnode->_color);
 	}
 }
 
@@ -1623,6 +1630,8 @@ void mesh::ClearTree()
 OBB mesh::GetBoundBox() const
 {
 	OBB obb(root.aabb);
+	for (int i = 0; i < 3; ++i)
+		if (obb.dimensions[i] < FLT_EPSILON) obb.dimensions[i] = 0.01f;
 	obb.Transform(transform);
 	return obb;
 }
@@ -1632,6 +1641,7 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebo
 {
 	// Check against node bounding box
 	static SIntersection bbinters;
+	static SIntersection tmpinters;
 	static triangle tri;
 	
 	OBB nodeBB(pnode->aabb);
@@ -1655,12 +1665,14 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebo
 			return false;
 	}
 
+	//PhysDebug::VisualizeBox(nodeBB, pnode->_color, true);
+
+	bool inters = false;
 	if (pnode->children)
 	{
 		for (int i = 0; i < pnode->num_children; ++i)
 		{
-			if (_MeshNodeShape(pmesh, &pnode->children[i], pnodebox, pshape, pshapebox, pinters))
-				return true;
+			inters |= _MeshNodeShape(pmesh, &pnode->children[i], pnodebox, pshape, pshapebox, pinters);
 		}
 	}
 	else if (pnode->num_tris > 0 && pnode->tris)
@@ -1671,12 +1683,26 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebo
 			tri.p[1] = pmesh->points[pmesh->indices[pnode->tris[i] + 1]];
 			tri.p[2] = pmesh->points[pmesh->indices[pnode->tris[i] + 2]];
 			tri.n = ((tri.p[1] - tri.p[0]) ^ (tri.p[2] - tri.p[0])).Normalized();
-			if (_Intersection(&tri, pshape, pinters))
-				return true;
+			
+			//PhysDebug::VisualizeVector(tri.p[0], tri.p[1] - tri.p[0], pnode->_color, true);
+			//PhysDebug::VisualizeVector(tri.p[1], tri.p[2] - tri.p[1], pnode->_color, true);
+			//PhysDebug::VisualizeVector(tri.p[2], tri.p[0] - tri.p[2], pnode->_color, true);
+
+			// TODO: Actually save all contacts instead finding the minimum here?
+			if (!_Intersection(&tri, pshape, &tmpinters))
+				continue;
+
+			//PhysDebug::VisualizeVector(tri.p[0], tri.n, pnode->_color, true);
+
+			if (tmpinters.dist < pinters->dist)
+			{
+				inters = true;
+				*pinters = tmpinters;
+			}
 		}
 	}
 
-	return false;
+	return inters;
 }
 
 bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters)
@@ -1693,16 +1719,6 @@ bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters)
 
 	ptshape->Transform(invTransform);
 
-	if (ptshape->GetType() == eSHAPE_PLANE)
-	{
-		plane* pplane = (plane*)ptshape;
-		//VisualizePlane(pplane->n * pplane->d, pplane->n, SColor(0.8f, 0.7f, 0.9f), true, 5.0f);
-	}
-	else if (ptshape->GetType() == eSHAPE_SPHERE)
-	{
-		CreateHelperForShape(ptshape, SColor(0.8f, 0.7f, 0.9f), true);
-	}
-
 	OBB shapebb = ptshape->GetBoundBox();
 	shapebox.c = shapebb.center;
 	for (int i = 0; i < 3; ++i)
@@ -1711,7 +1727,7 @@ bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters)
 		shapebox.dim[i] = shapebb.dimensions[i];
 	}
 
-	VisualizeBox(shapebb, SColor::Yellow(), true);
+	pinters->dist = FLT_MAX;
 
 	bool res = _MeshNodeShape(pmesh, &pmesh->root, &nodebox, ptshape, &shapebox, pinters);
 	delete ptshape;
@@ -1719,7 +1735,7 @@ bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters)
 	if (res)
 	{
 		pinters->p = (pmesh->transform * Vec4f(pinters->p, 1.0f)).xyz();
-		pinters->n = -(pmesh->transform * Vec4f(pinters->n, 0.0f)).xyz();
+		pinters->n = (pmesh->transform * Vec4f(pinters->n, 0.0f)).xyz();
 	}
 
 	return res;

@@ -13,7 +13,7 @@ private:
 public:
 	void Clear();
 	void Create(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params);
-	void Update(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds = AABB());
+	void UpdateHeightmap(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds = AABB());
 };
 
 SP_NMSPACE_END

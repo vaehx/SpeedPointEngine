@@ -6,7 +6,8 @@ SP_NMSPACE_BEG
 using namespace geo;
 
 S_API CPhysics::CPhysics()
-	: m_pObjects(0)
+	: m_pObjects(0),
+	m_bPaused(false)
 {
 }
 
@@ -49,10 +50,26 @@ S_API void CPhysics::ClearPhysObjects()
 	}
 }
 
+const char* GetIntersectionFeatureName(EIntersectionFeature f)
+{
+	switch (f)
+	{
+	case eINTERSECTION_FEATURE_BASE_SHAPE: return "BASE_SHAPE";
+	case eINTERSECTION_FEATURE_CAP: return "CAP";
+	default:
+		return "??";
+	}
+}
+
 S_API void CPhysics::Update(float fTime)
 {
 	if (!m_pObjects)
 		return;
+
+	//fTime *= 0.01f;
+
+	if (m_bPaused)
+		fTime = 0.0f;
 
 	unsigned int iObject = 0;
 	PhysObject* pObject = 0;
@@ -72,17 +89,29 @@ S_API void CPhysics::Update(float fTime)
 		//PhysDebug::VisualizeBox(pObject->GetTransformedCollisionShape()->GetBoundBox(), SColor::White(), true);
 	}
 
+	m_Terrain.Update(fTime);
+
+	const geo::shape* pTerrainShape = m_Terrain.GetTransformedCollisionShape();
+	if (pTerrainShape)
+		PhysDebug::VisualizeBox(pTerrainShape->GetBoundBox(), SColor::White(), true);
+
 	// Determine pairs of objects that possibly collide
 	PhysObject *pobj1, *pobj2;
 	m_Colliding.clear();
 	for (int i = 0; i < m_pObjects->GetNumObjects(); ++i)
+	{
+		pobj1 = m_pObjects->GetAt(i);
 		for (int j = i + 1; j < m_pObjects->GetNumObjects(); ++j)
 		{
-			pobj1 = m_pObjects->GetAt(i);
 			pobj2 = m_pObjects->GetAt(j);
 			if (pobj1->GetAABB().Intersects(pobj2->GetAABB()))
 				m_Colliding.push_back(std::make_pair(pobj1, pobj2));
 		}
+
+		//TODO: Use better bounding box hierarchy for terrain to prevent intersection test for each object
+		if (pobj1->GetAABB().Intersects(m_Terrain.GetAABB()))
+			m_Colliding.push_back(std::make_pair(pobj1, static_cast<PhysObject*>(&m_Terrain)));
+	}
 
 	// Find and resolve actual collisions
 	for (auto& collidingPair : m_Colliding)
@@ -98,6 +127,7 @@ S_API void CPhysics::Update(float fTime)
 			continue;
 
 		//PhysDebug::VisualizeVector(contact.p, -contact.n, SColor::Red(), true);
+		//m_bPaused = true;
 
 		SPhysObjectState *A = pobj1->GetState(), *B = pobj2->GetState();
 
@@ -156,7 +186,7 @@ S_API void CPhysics::Update(float fTime)
 		}
 
 		// Resolve interpenetration
-		if (contact.dist < 0)
+		if (contact.dist < 0 && !m_bPaused)
 		{
 			Vec3f dv = (contact.n * contact.dist) / (A->Minv + B->Minv);
 			A->pos += (dv * A->Minv) / 5.0f;
@@ -175,7 +205,7 @@ S_API void CPhysics::CreateTerrainProxy(const float* heightmap, unsigned int hei
 
 S_API void CPhysics::UpdateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds)
 {
-	m_Terrain.Update(heightmap, heightmapSz, bounds);
+	m_Terrain.UpdateHeightmap(heightmap, heightmapSz, bounds);
 }
 
 S_API void CPhysics::ClearTerrainProxy()

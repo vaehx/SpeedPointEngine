@@ -58,6 +58,9 @@ public:
 	ILINE virtual void ClearTerrainProxy() = 0;
 
 	ILINE virtual void Update(float fTime) = 0;
+
+	ILINE virtual void Pause(bool pause = true) = 0;
+	ILINE virtual bool IsPaused() const = 0;
 };
 
 struct S_API IPhysicsDebugRenderer

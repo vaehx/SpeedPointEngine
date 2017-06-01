@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector3.h"
+#include "SColor.h"
 #include "BoundBox.h"
 
 #define GEO_NMSPACE_BEG namespace SpeedPoint { namespace geo {
@@ -182,6 +183,7 @@ struct mesh_tree_node
 	unsigned int num_tris;
 	mesh_tree_node* children; // if 0, this node is a leaf
 	unsigned int num_children;
+	SColor _color;
 
 	mesh_tree_node() 
 		: tris(0), num_tris(0), children(0), num_children(0) {}

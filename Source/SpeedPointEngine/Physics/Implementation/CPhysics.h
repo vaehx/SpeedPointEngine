@@ -14,6 +14,7 @@ private:
 	IComponentPool<PhysObject>* m_pObjects;
 	vector<std::pair<PhysObject*, PhysObject*>> m_Colliding;
 	PhysTerrain m_Terrain;
+	bool m_bPaused;
 
 protected:
 	virtual void SetPhysObjectPool(IComponentPool<PhysObject>* pPool);
@@ -28,6 +29,9 @@ public:
 	ILINE virtual void UpdateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds = AABB());
 	ILINE virtual void ClearTerrainProxy();
 	ILINE virtual void Update(float fTime);
+
+	ILINE virtual void Pause(bool pause = true) { m_bPaused = pause; };
+	ILINE virtual bool IsPaused() const { return m_bPaused; };
 };
 
 SP_NMSPACE_END

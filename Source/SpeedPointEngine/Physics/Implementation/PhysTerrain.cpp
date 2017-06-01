@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "PhysTerrain.h"
+#include "PhysDebug.h"
 #include <Common\Vector2.h>
 
 #define TERRAIN_PROXY_Y_BOUNDS_BIAS 0.5f
@@ -48,6 +49,8 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 
 	m_Params = params;
 
+	SetUnmoveable();
+
 	geo::mesh* pmesh = (geo::mesh*)(m_pShape = new geo::mesh());
 	pmesh->transform = Mat44::Identity;
 	pmesh->num_points = (params.segments[1] + 1) * (params.segments[0] + 1);
@@ -76,7 +79,7 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 			miny = min(miny, y);
 			maxy = max(maxy, y);
 
-			pmesh->points[vtx = row * params.segments[0] + col] = Vec3f(col * segSz.x, y, row * segSz.y) + params.offset;
+			pmesh->points[vtx = row * (params.segments[0] + 1) + col] = Vec3f(col * segSz.x, y, row * segSz.y) + params.offset;
 
 			if (row < params.segments[1] && col < params.segments[0])
 			{
@@ -95,7 +98,7 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API void PhysTerrain::Update(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds)
+S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds)
 {
 	if (!m_pShape)
 	{
@@ -123,6 +126,10 @@ S_API void PhysTerrain::Update(const float* heightmap, unsigned int heightmapSz[
 	segMax[0] = ((unsigned int)ceilf(min(bounds.vMax.x - params.offset.x, params.size[0] + segSz.x) / segSz.x) * params.segments[0]);
 	segMax[1] = ((unsigned int)ceilf(min(bounds.vMax.y - params.offset.y, params.size[1] + segSz.y) / segSz.y) * params.segments[1]);
 
+	segMin[0] = segMin[1] = 0;
+	segMax[0] = params.segments[0];
+	segMax[1] = params.segments[1];
+
 	geo::mesh* pmesh = (geo::mesh*)m_pShape;
 	float miny = FLT_MAX, maxy = -FLT_MAX, y;
 	for (unsigned int row = 0; row < (params.segments[1] + 1); ++row)
@@ -139,10 +146,10 @@ S_API void PhysTerrain::Update(const float* heightmap, unsigned int heightmapSz[
 				samples[3] = SampleHeightmap(heightmap, tc + Vec2f(0.5f, 0.5f) * pixelSzTC, heightmapSz);
 				h = lerp(lerp(samples[0], samples[1], remainder.x), lerp(samples[2], samples[3], remainder.x), remainder.y);
 
-				pmesh->points[row * params.segments[0] + col].y = h * params.heightScale;
+				pmesh->points[row * (params.segments[0] + 1) + col].y = h * params.heightScale;
 			}
 
-			y = pmesh->points[row * params.segments[0] + col].y;
+			y = pmesh->points[row * (params.segments[0] + 1) + col].y;
 			miny = min(miny, y);
 			maxy = max(maxy, y);
 		}
