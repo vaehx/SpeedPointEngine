@@ -40,6 +40,12 @@ public:
 			spRenderer->VisualizeBox(obb, color, releaseAfterRender);
 	}
 
+	static IPhysDebugHelper* CreateHelper()
+	{
+		if (spRenderer)
+			return spRenderer->CreateHelper();
+	}
+
 	static void SetRenderer(IPhysicsDebugRenderer* pRenderer)
 	{
 		spRenderer = pRenderer;

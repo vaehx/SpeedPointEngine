@@ -26,12 +26,18 @@
 
 SP_NMSPACE_BEG
 
+namespace geo
+{
+	struct S_API shape;
+}
+
 struct S_API SPhysTerrainParams
 {
 	Vec3f offset; // translation of vtx (0,0)
 	float heightScale; // a value multiplied to each height sample
 	unsigned int segments[2]; // number of rows/colums to divide the world dimensions into. The heightmap will be sampled bilinearly.
 	float size[2]; // (x,z) world-dimensions of the terrain
+	unsigned int maxProxyTreeDepth;
 };
 
 struct S_API IPhysics
@@ -61,6 +67,18 @@ public:
 
 	ILINE virtual void Pause(bool pause = true) = 0;
 	ILINE virtual bool IsPaused() const = 0;
+	ILINE virtual void ShowHelpers(bool show = true) = 0;
+	ILINE virtual bool HelpersShown() const = 0;
+};
+
+struct S_API IPhysDebugHelper
+{
+	virtual ~IPhysDebugHelper() {}
+	virtual void CreateFromShape(const geo::shape* pshape, const SColor& color = SColor::White()) = 0;
+	virtual void UpdateFromShape(const geo::shape* pshape) = 0;
+	virtual void Show(bool show = true) = 0;
+	virtual bool IsShown() const = 0;
+	virtual void Clear() = 0;
 };
 
 struct S_API IPhysicsDebugRenderer
@@ -70,6 +88,8 @@ struct S_API IPhysicsDebugRenderer
 	virtual void VisualizePlane(const Vec3f& p, const Vec3f& n, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false) = 0;
 	virtual void VisualizeAABB(const AABB& aabb, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false) = 0;
 	virtual void VisualizeBox(const OBB& obb, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false) = 0;
+	
+	virtual IPhysDebugHelper* CreateHelper() const = 0;
 };
 
 SP_NMSPACE_END

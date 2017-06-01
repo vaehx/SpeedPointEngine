@@ -86,7 +86,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_CYLINDER] = 0;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_CapsuleCapsule;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_CapsuleBox;
-	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_CapsuleTriangle;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
 
 	_intersectionTestTable[eSHAPE_BOX][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_BoxBox;
@@ -99,7 +99,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_TrianglePlane;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_TriangleSphere;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_CYLINDER] = 0;
-	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_CAPSULE] = 0;
+	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_TriangleCapsule;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_TRIANGLE] = 0;
 
 	_intersectionTestTable[eSHAPE_MESH][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_MeshShape;
@@ -727,8 +727,9 @@ bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection*
 
 	// Check if sphere center inside triangle
 	inters = 1;
-	for (i = 0; i < 3; ++i)
-		inters &= isneg(Vec3Dot((ptri->p[(i + 1) % 3] - ptri->p[i]) ^ psphere->c - ptri->p[i], ptri->n));
+	/*for (i = 0; i < 3; ++i)
+		inters &= isneg(Vec3Dot((ptri->p[(i + 1) % 3] - ptri->p[i]) ^ psphere->c - ptri->p[i], ptri->n));*/
+	inters = (int)_PointIsInsideTriangle(ptri, fp);
 
 	if (inters)
 	{
@@ -1131,11 +1132,96 @@ bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinter
 	return false;
 }
 
+bool _CapsuleTriangle(const capsule* pcapsule, const triangle* ptri, SIntersection* pinters)
+{
+	pinters->dist = FLT_MAX;
+
+	// Clamped Capsule ray - Clamped Triangle edges
+	int cap;
+	Vec3f p1, p2, dp, d, ev, ep;
+	float t1, t2, dlnsqinv, distsq;
+	for (int i = 0; i < 3; ++i)
+	{
+		ev = ptri->p[(i + 1) % 3] - (ep = ptri->p[i]);
+		d = ev ^ pcapsule->axis; // v1 x v2
+		dlnsqinv = 1.0f / d.LengthSq();
+		dp = pcapsule->c - ep;
+
+		// Determine closest points on edge and capsule ray
+		// t1: edge, t2: capsule ray
+		t1 = Vec3Dot(dp ^ pcapsule->axis, d) * dlnsqinv;
+		p1 = ep + min(max(t1, 0), 1.0f) * ev;
+
+		t2 = Vec3Dot(dp ^ ev, d) * dlnsqinv;
+		cap = 0;
+		if (t2 < -pcapsule->hh) { t2 = -pcapsule->hh; cap = 1; }
+		if (t2 > pcapsule->hh) { t2 = pcapsule->hh; cap = 1; }
+		p2 = pcapsule->c + t2 * pcapsule->axis;
+
+		if ((distsq = (p2 - p1).LengthSq()) < pinters->dist)
+		{
+			pinters->p = p1;
+			pinters->n = -ptri->n;
+			pinters->feature = (cap ? eINTERSECTION_FEATURE_CAP : eINTERSECTION_FEATURE_BASE_SHAPE);
+			pinters->dist = distsq;
+		}
+	}
+
+	// Clamped Capsule ray - Triangle face
+	quotient t(Vec3Dot(ptri->p[0] - pcapsule->c, ptri->n), Vec3Dot(pcapsule->axis, ptri->n));
+	float tt = t.val();
+	cap = 0;
+	if (tt < -pcapsule->hh) { tt = -pcapsule->hh; cap = 1; }
+	if (tt > pcapsule->hh) { tt = pcapsule->hh; cap = 1; }
+	Vec3f cp = pcapsule->c + tt * pcapsule->axis;
+	Vec3f pp = cp - Vec3Dot(cp - ptri->p[0], ptri->n) * ptri->n;
+
+	int inside = 1;
+	/*for (int i = 0; i < 3; ++i)
+		inside &= isneg(Vec3Dot(pp - ptri->p[i], (ptri->p[(i + 1) % 3] - ptri->p[0]) ^ ptri->n));*/
+	inside = (int)_PointIsInsideTriangle(ptri, pp);
+
+	if (inside & (distsq = (pp - cp).LengthSq()) < pinters->dist)
+	{
+		pinters->dist = distsq;
+		pinters->feature = (cap ? eINTERSECTION_FEATURE_CAP : eINTERSECTION_FEATURE_BASE_SHAPE);
+		pinters->n = -ptri->n;
+		if (cap)
+			pinters->p = cp + pinters->n * pcapsule->r;
+		else
+			pinters->p = cp;
+	}
+
+	// TODO: Distance is not quite right if capsule ray intersected with triangle.
+	pinters->dist = sqrtf(pinters->dist) - pcapsule->r;	
+	return pinters->dist <= 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	Triangle
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool _PointIsInsideTriangle(const triangle* ptri, const Vec3f& P)
+{
+	const Vec3f
+		v0 = ptri->p[2] - ptri->p[0],
+		v1 = ptri->p[1] - ptri->p[0],
+		v2 = P - ptri->p[0];
+
+	const float dot00 = Vec3Dot(v0, v0),
+		dot01 = Vec3Dot(v0, v1),
+		dot02 = Vec3Dot(v0, v2),
+		dot11 = Vec3Dot(v1, v1),
+		dot12 = Vec3Dot(v1, v2);
+
+	const float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
+	const float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+	const float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+	return (u >= 0) && (v >= 0) && (u + v < 1.0f);
+}
 
 bool _TriangleRay(const triangle* ptri, const ray* pray, SIntersection* pinters)
 {
@@ -1154,6 +1240,12 @@ bool _TriangleSphere(const triangle* ptri, const sphere* psphere, SIntersection*
 	return res;
 }
 
+bool _TriangleCapsule(const triangle* ptri, const capsule* pcapsule, SIntersection* pinters)
+{
+	bool res = _CapsuleTriangle(pcapsule, ptri, pinters);
+	pinters->n *= -1.0f;
+	return res;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1526,7 +1618,7 @@ void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigne
 		}
 	}
 
-	if (depth < maxDepth && tris.size() > 4) // min 4 triangles in one BV
+	if (depth < maxDepth && tris.size() > 8) // min 8 triangles in one BV
 	{
 		pnode->tris = 0;
 		pnode->num_tris = 0;
@@ -1683,7 +1775,10 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebo
 			tri.p[1] = pmesh->points[pmesh->indices[pnode->tris[i] + 1]];
 			tri.p[2] = pmesh->points[pmesh->indices[pnode->tris[i] + 2]];
 			tri.n = ((tri.p[1] - tri.p[0]) ^ (tri.p[2] - tri.p[0])).Normalized();
-			
+
+			//for (int i = 0; i < 3; ++i)
+			//	PhysDebug::VisualizeVector(tri.p[i], tri.p[(i + 1) % 3] - tri.p[i], pnode->_color, true);
+
 			//PhysDebug::VisualizeVector(tri.p[0], tri.p[1] - tri.p[0], pnode->_color, true);
 			//PhysDebug::VisualizeVector(tri.p[1], tri.p[2] - tri.p[1], pnode->_color, true);
 			//PhysDebug::VisualizeVector(tri.p[2], tri.p[0] - tri.p[2], pnode->_color, true);

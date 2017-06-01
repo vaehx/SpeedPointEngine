@@ -15,6 +15,8 @@
 
 SP_NMSPACE_BEG
 
+struct S_API IPhysDebugHelper;
+
 struct S_API SPhysObjectState
 {
 	float damping;
@@ -49,8 +51,11 @@ protected:
 	geo::shape* m_pShape; // collision shape, in object space
 	SPhysObjectState m_State;
 	Vec3f m_Scale;
+	bool m_bHelperShown;
+	IPhysDebugHelper* m_pHelper;
 
 	void Clear();
+	virtual void UpdateHelper();
 
 public:
 	PhysObject();
@@ -78,6 +83,8 @@ public:
 	SPhysObjectState* GetState() { return &m_State; }
 	void SetMass(float m) { m_State.M = m; m_State.Minv = 1.0f / m; }
 	void SetUnmoveable();
+
+	void ShowHelper(bool show = true);
 
 	// These are implemented by the component and synchronize m_Pos, m_Rotation and m_Scale with the one of the entity
 	virtual void OnSimulationPrepare() {};

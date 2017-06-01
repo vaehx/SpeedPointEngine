@@ -824,7 +824,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 		pTerrainRenderDesc->bUpdateCB = true;
 		pTerrainRenderDesc->constants.fTerrainDMFadeRadius = m_Params.detailmapRange;
 		pTerrainRenderDesc->constants.fTerrainMaxHeight = m_HeightScale;
-		pTerrainRenderDesc->constants.vtxHeightMapSz = m_Params.segments + 1;
+		pTerrainRenderDesc->constants.vtxHeightMapSz = m_Params.segments;
 		pTerrainRenderDesc->constants.segmentSize = m_fSegSz;
 		pTerrainRenderDesc->constants.detailmapSz[0] = m_Params.detailmapSz[0];
 		pTerrainRenderDesc->constants.detailmapSz[1] = m_Params.detailmapSz[1];

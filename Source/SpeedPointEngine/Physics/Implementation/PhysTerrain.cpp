@@ -36,6 +36,12 @@ void UpdatePhysTerrainProxyNodeYBounds(geo::mesh_tree_node* pnode, float miny, f
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+S_API PhysTerrain::PhysTerrain()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params)
 {
 	if (!heightmap || params.segments[0] == 0 || params.segments[1] == 0)
@@ -59,15 +65,22 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 	pmesh->indices = new unsigned int[pmesh->num_indices];
 
 	Vec2f segSz(params.size[0] / params.segments[0], params.size[1] / params.segments[1]);
-	Vec2f pixelSzTC = 1.0f / Vec2f((float)heightmapSz[0], (float)heightmapSz[1]);
+	Vec2f pixelSzTC = 1.0f / Vec2f((float)heightmapSz[0] - 1, (float)heightmapSz[1] - 1);
 	Vec2f tc, remainder, roundedTC;
 	float samples[4], h, y, miny = FLT_MAX, maxy = -FLT_MAX;
 	unsigned int idx, vtx;
 	for (unsigned int row = 0; row < (params.segments[1] + 1); ++row)
 		for (unsigned int col = 0; col < (params.segments[0] + 1); ++col)
 		{
-			tc = Vec2f((float)col / params.segments[0], (float)row / params.segments[1]);
+			tc = Vec2f((float)col / (float)params.segments[0], (float)row / (float)params.segments[1]);
 			tc -= (remainder = tc % pixelSzTC);
+
+			remainder /= pixelSzTC;
+
+			if (row == params.segments[1] && col == params.segments[0])
+			{
+				int asd = 0;
+			}
 
 			samples[0] = SampleHeightmap(heightmap, tc + Vec2f(-0.5f, -0.5f) * pixelSzTC, heightmapSz);
 			samples[1] = SampleHeightmap(heightmap, tc + Vec2f( 0.5f, -0.5f) * pixelSzTC, heightmapSz);
@@ -92,7 +105,7 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 			}
 		}
 
-	pmesh->CreateTree(false, 5);
+	pmesh->CreateTree(false, params.maxProxyTreeDepth);
 	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
 }
 
@@ -156,6 +169,16 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 
 	// Update proxy bound boxes
 	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
+
+	// Update helper
+	if (m_pHelper && m_pHelper->IsShown())
+		m_pHelper->UpdateFromShape(pmesh);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void PhysTerrain::UpdateHelper()
+{
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +186,12 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 S_API void PhysTerrain::Clear()
 {
 	PhysObject::Clear();
+	if (m_pHelper)
+	{
+		m_pHelper->Clear();
+		delete m_pHelper;
+	}
+	m_pHelper = 0;
 }
 
 SP_NMSPACE_END

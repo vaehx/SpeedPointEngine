@@ -30,6 +30,7 @@ public:
 
 	void Update(IRenderer* renderer);
 	void Show(bool show = true);
+	bool IsShown() const { return m_bShow; }
 	void Hide() { Show(false); }
 };
 

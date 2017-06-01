@@ -6,15 +6,18 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "..\PhysObject.h"
+#include "PhysDebug.h"
 
 SP_NMSPACE_BEG
 
 using namespace geo;
 
-PhysObject::PhysObject()
+S_API PhysObject::PhysObject()
 	: m_pShape(0),
 	m_pTransformedShape(0),
-	m_bTrash(false)
+	m_bTrash(false),
+	m_pHelper(0),
+	m_bHelperShown(false)
 {
 	m_State.M = 0.0f;
 	m_State.Minv = 0.0f;
@@ -24,28 +27,36 @@ PhysObject::PhysObject()
 	m_Scale = Vec3f(1.0f, 1.0f, 1.0f);
 }
 
-PhysObject::~PhysObject()
+S_API PhysObject::~PhysObject()
 {
 	Clear();
 }
 
-void PhysObject::Clear()
+S_API void PhysObject::Clear()
 {
 	if (m_pShape) delete m_pShape;
 	m_pShape = 0;
 
 	if (m_pTransformedShape) delete m_pTransformedShape;
 	m_pTransformedShape = 0;
+
+	m_bHelperShown = false;
+	if (m_pHelper)
+	{
+		m_pHelper->Clear();
+		delete m_pHelper;
+		m_pHelper = 0;
+	}
 }
 
-void PhysObject::SetUnmoveable()
+S_API void PhysObject::SetUnmoveable()
 {
 	m_State.Minv = 0.0f;
 	m_State.Iinv = Mat33(0);
 	m_State.gravity = false;
 }
 
-const shape* PhysObject::GetTransformedCollisionShape() const
+S_API const shape* PhysObject::GetTransformedCollisionShape() const
 {
 	if (!m_pShape)
 		return 0;
@@ -55,7 +66,7 @@ const shape* PhysObject::GetTransformedCollisionShape() const
 		return m_pTransformedShape;
 }
 
-Mat33 Star(const Vec3f& v)
+S_API Mat33 Star(const Vec3f& v)
 {
 	return Mat33(
 		0, -v.z, v.y,
@@ -64,7 +75,7 @@ Mat33 Star(const Vec3f& v)
 	);
 }
 
-void PhysObject::Update(float fTime)
+S_API void PhysObject::Update(float fTime)
 {
 	if (m_State.Minv > 0)
 	{
@@ -194,13 +205,21 @@ void PhysObject::Update(float fTime)
 						+ (float)y * obb.dimensions[1] * obb.directions[1]
 						+ (float)z * obb.dimensions[2] * obb.directions[2]);
 				}
+
+		UpdateHelper();
 	}
+}
+
+S_API void PhysObject::UpdateHelper()
+{
+	if (m_pHelper && m_pHelper->IsShown())
+		m_pHelper->UpdateFromShape(m_pTransformedShape ? m_pTransformedShape : m_pShape);
 }
 
 float __sqr(float f) { return f * f; }
 float __cube(float f) { return f * f * f; }
 
-void PhysObject::RecalculateInertia()
+S_API void PhysObject::RecalculateInertia()
 {
 	if (!m_pShape)
 		return;
@@ -311,7 +330,7 @@ void PhysObject::RecalculateInertia()
 	m_State.centerOfMass	= centerOfMass;
 }
 
-void PhysObject::SetMeshCollisionShape(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree, u16 maxTreeDepth)
+S_API void PhysObject::SetMeshCollisionShape(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree, u16 maxTreeDepth)
 {
 	SetCollisionShape<mesh>();
 	mesh* pmesh = dynamic_cast<mesh*>(m_pShape);
@@ -352,6 +371,31 @@ S_API void PhysObject::Release()
 S_API bool PhysObject::IsTrash() const
 {
 	return m_bTrash;
+}
+
+S_API void PhysObject::ShowHelper(bool show)
+{
+	if (m_bHelperShown == show)
+		return;
+
+	m_bHelperShown = show;
+	if (!m_pShape)
+		return;
+
+	if (m_bHelperShown && !m_pHelper)
+	{
+		m_pHelper = PhysDebug::CreateHelper();
+		m_pHelper->CreateFromShape(m_pShape);
+	}
+
+	if (m_pHelper)
+	{
+		m_pHelper->Show(m_bHelperShown);
+		
+		// Update once when shown
+		if (m_bHelperShown)
+			m_pHelper->UpdateFromShape(m_pTransformedShape ? m_pTransformedShape : m_pShape);
+	}
 }
 
 SP_NMSPACE_END

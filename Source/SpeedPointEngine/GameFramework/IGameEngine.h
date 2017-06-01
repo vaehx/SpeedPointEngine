@@ -90,6 +90,9 @@ public: // Game / Application interface
 
 	// Executes an engine Update->Render cycle
 	virtual void DoFrame() = 0;
+
+	virtual void ShowDebugInfo(bool show = true) = 0;
+	virtual bool IsDebugInfoShown() const = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

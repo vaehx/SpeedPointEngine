@@ -235,6 +235,7 @@ private:
 	Params m_Params;
 
 public:
+	const Params& GetParams() const { return m_Params; }
 	void SetParams(const Params& params);
 
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
@@ -270,6 +271,7 @@ private:
 	void RecalcTransform();
 
 public:
+	const Params& GetParams() const { return m_Params; }
 	void SetParams(const Params& params);
 
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
@@ -306,6 +308,7 @@ private:
 	void RecalcTransform();
 
 public:
+	const Params& GetParams() const { return m_Params; }
 	void SetParams(const Params& params);
 
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
@@ -338,6 +341,7 @@ private:
 	Params m_Params;
 
 public:
+	const Params& GetParams() const { return m_Params; }
 	void SetParams(const Params& params);
 
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
@@ -364,6 +368,7 @@ private:
 	Params m_Params;
 
 public:
+	const Params& GetParams() const { return m_Params; }
 	void SetParams(const Params& params);
 
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
@@ -385,6 +390,7 @@ private:
 	Params m_Params;
 
 public:
+	const Params& GetParams() const { return m_Params; }
 	void SetParams(const Params& params);
 
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);

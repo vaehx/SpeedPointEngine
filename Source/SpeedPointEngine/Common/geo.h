@@ -258,10 +258,14 @@ bool _CapsuleSphere(const capsule* pcapsule, const sphere* psphere, SIntersectio
 bool _CapsulePlane(const capsule* pcapsule, const plane* pplane, SIntersection* pinters);
 bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SIntersection* pinters);
 bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinters);
+bool _CapsuleTriangle(const capsule* pcapsule, const triangle* ptri, SIntersection* pinters);
 
 bool _TriangleRay(const triangle* ptri, const ray* pray, SIntersection* pinters);
 bool _TrianglePlane(const triangle* ptri, const plane* pplane, SIntersection* pinters);
 bool _TriangleSphere(const triangle* ptri, const sphere* psphere, SIntersection* pinters);
+bool _TriangleCapsule(const triangle* ptri, const capsule* pcapsule, SIntersection* pinters);
+
+bool _PointIsInsideTriangle(const triangle* ptri, const Vec3f& P);
 
 bool _CircleCircle(const circle* pcircle1, const circle* pcircle2, SIntersection* pinters);
 

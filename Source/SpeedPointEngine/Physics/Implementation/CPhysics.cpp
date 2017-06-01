@@ -7,7 +7,8 @@ using namespace geo;
 
 S_API CPhysics::CPhysics()
 	: m_pObjects(0),
-	m_bPaused(false)
+	m_bPaused(false),
+	m_bHelpersShown(false)
 {
 }
 
@@ -65,8 +66,6 @@ S_API void CPhysics::Update(float fTime)
 {
 	if (!m_pObjects)
 		return;
-
-	//fTime *= 0.01f;
 
 	if (m_bPaused)
 		fTime = 0.0f;
@@ -126,8 +125,14 @@ S_API void CPhysics::Update(float fTime)
 		if (!_Intersection(pshape1, pshape2, &contact))
 			continue;
 
-		//PhysDebug::VisualizeVector(contact.p, -contact.n, SColor::Red(), true);
-		//m_bPaused = true;
+		if (m_bHelpersShown)
+		{
+			PhysDebug::VisualizePoint(pobj1->GetState()->pos, SColor::Green(), true);
+
+			PhysDebug::VisualizePoint(contact.p, SColor::Red(), true);
+			PhysDebug::VisualizeVector(contact.p, contact.n, SColor::Red(), true);
+			PhysDebug::VisualizeVector(contact.p, contact.n * contact.dist, SColor::Yellow(), true);
+		}
 
 		SPhysObjectState *A = pobj1->GetState(), *B = pobj2->GetState();
 
@@ -201,6 +206,7 @@ S_API void CPhysics::Update(float fTime)
 S_API void CPhysics::CreateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params)
 {
 	m_Terrain.Create(heightmap, heightmapSz, params);
+	ShowHelpers(m_bHelpersShown);
 }
 
 S_API void CPhysics::UpdateTerrainProxy(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds)
@@ -211,6 +217,24 @@ S_API void CPhysics::UpdateTerrainProxy(const float* heightmap, unsigned int hei
 S_API void CPhysics::ClearTerrainProxy()
 {
 	m_Terrain.Clear();
+}
+
+S_API void CPhysics::ShowHelpers(bool show)
+{
+	if (m_bHelpersShown == show)
+		return;
+
+	m_bHelpersShown = show;
+
+	unsigned int iobj;
+	PhysObject* pobj = m_pObjects->GetFirst(iobj);
+	while (pobj)
+	{
+		pobj->ShowHelper(m_bHelpersShown);
+		pobj = m_pObjects->GetNext(iobj);
+	}
+
+	m_Terrain.ShowHelper(m_bHelpersShown);
 }
 
 SP_NMSPACE_END

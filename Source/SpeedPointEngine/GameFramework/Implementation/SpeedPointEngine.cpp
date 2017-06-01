@@ -389,4 +389,21 @@ S_API void SpeedPointEngine::DoFrame()
 	pProfilingSystem->NextFrame();
 }
 
+
+
+// ----------------------------------------------------------------------------------
+S_API void SpeedPointEngine::ShowDebugInfo(bool show)
+{
+	if (m_pProfilingDebugView)
+		m_pProfilingDebugView->Show(show);
+}
+
+S_API bool SpeedPointEngine::IsDebugInfoShown() const
+{
+	if (m_pProfilingDebugView)
+		return m_pProfilingDebugView->IsShown();
+	else
+		return false;
+}
+
 SP_NMSPACE_END

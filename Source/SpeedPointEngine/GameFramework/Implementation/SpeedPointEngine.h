@@ -136,14 +136,15 @@ public: // Game / Application interface
 		return m_pApplication;
 	}
 
-//	virtual SMaterial* GetDefaultMaterial() { return &m_DefaultMaterial; }
-
 	virtual string GetShaderDirectoryPath() const;
 	virtual string GetResourceSystemPath(const string& absResourcePath = "") const;
 
 	virtual SResult LoadWorld(const string& absResourcePath);
 
 	virtual void DoFrame();
+
+	virtual void ShowDebugInfo(bool show = true);
+	virtual bool IsDebugInfoShown() const;
 };
 
 SP_NMSPACE_END
