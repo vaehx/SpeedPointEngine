@@ -55,9 +55,9 @@ S_API CGeometry::CGeometry()
 : m_pRenderer(0),
 m_pVertexBuffer(0),
 m_pSubsets(0),
-m_nSubsets(0)
+m_nSubsets(0),
+m_RefCount(0)
 {
-	//m_pMaterial = new Material();
 }
 
 // ----------------------------------------------------------------------------------------
@@ -67,8 +67,26 @@ S_API CGeometry::~CGeometry()
 }
 
 // ----------------------------------------------------------------------------------------
+S_API void CGeometry::AddRef()
+{
+	m_RefCount++;
+}
+
+// ----------------------------------------------------------------------------------------
+S_API void CGeometry::Release()
+{
+	if (m_RefCount > 0)
+		m_RefCount--;
+
+	if (m_RefCount == 0)
+		Clear();
+}
+
+// ----------------------------------------------------------------------------------------
 S_API void CGeometry::Clear()
 {
+	m_RefCount = 0; // !
+
 	if (IS_VALID_PTR(m_pRenderer))
 	{
 		if (m_nSubsets > 0 && IS_VALID_PTR(m_pSubsets))
@@ -195,7 +213,7 @@ S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* 
 
 	if (IS_VALID_PTR(pInitialGeom))
 	{
-		m_GeomFile = pInitialGeom->geomFile;
+		m_File = pInitialGeom->geomFile;
 		m_PrimitiveType = pInitialGeom->primitiveType;
 
 		vbUsage = ParseVBUsage(pInitialGeom->vertexUsage);
@@ -426,22 +444,7 @@ S_API void CGeometry::CalculateBoundBox(AABB& aabb, const Mat44& transform)
 
 
 
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
 
 S_API CGeometryManager::~CGeometryManager()
 {
@@ -449,13 +452,32 @@ S_API CGeometryManager::~CGeometryManager()
 }
 
 // ----------------------------------------------------------------------------------------
-S_API SInitialGeometryDesc* CGeometryManager::LoadModel(const string& spmResourcePath)
+S_API IGeometry* CGeometryManager::CreateGeometry(const SInitialGeometryDesc& desc, const string& name)
 {
-	auto found = m_Geometry.find(spmResourcePath);
-	if (found != m_Geometry.end())
-		return &found->second;
+	CGeometry* pGeom = m_Geom.Get();
+	pGeom->AddRef();
+	if (Failure(pGeom->Init(C3DEngine::Get()->GetRenderer(), &desc)))
+	{
+		pGeom->Release();
+		m_Geom.Release(&pGeom);
+		CLog::Log(S_ERROR, "Failed create geometry '%s': CGeometry::Init() failed", name);
+		return 0;
+	}
 
-	// Actually load the model:
+	m_NameCache.insert(std::make_pair(name, pGeom));
+
+	return pGeom;
+}
+
+// ----------------------------------------------------------------------------------------
+S_API IGeometry* CGeometryManager::LoadGeometry(const string& spmResourcePath)
+{
+	// Check if already loaded
+	auto found = m_NameCache.find(spmResourcePath);
+	if (found != m_NameCache.end())
+		return found->second;
+
+	// Actually load the model
 	CSPMLoader spmLoader;
 	string modelDir = GetDirectoryPath(spmResourcePath);
 	string filepath = C3DEngine::Get()->GetRenderer()->GetResourcePool()->GetResourceSystemPath(spmResourcePath);
@@ -467,11 +489,8 @@ S_API SInitialGeometryDesc* CGeometryManager::LoadModel(const string& spmResourc
 
 	const std::vector<SModelMeta>& models = spmLoader.GetModels();
 
-	auto geomDescIt = m_Geometry.insert(std::pair<string, SInitialGeometryDesc>(spmResourcePath.c_str(), SInitialGeometryDesc()));
-	SInitialGeometryDesc& geomDesc = geomDescIt.first->second;
-
+	SInitialGeometryDesc geomDesc;
 	geomDesc.geomFile = spmResourcePath;
-
 	geomDesc.bRequireNormalRecalc = true;
 	geomDesc.bRequireTangentRecalc = true;
 	geomDesc.indexUsage = eGEOMUSE_STATIC;
@@ -529,36 +548,43 @@ S_API SInitialGeometryDesc* CGeometryManager::LoadModel(const string& spmResourc
 		delete[] itModel->pVertices;
 	}
 
-	return &geomDesc;
+	return CreateGeometry(geomDesc, spmResourcePath);
+}
+
+// ----------------------------------------------------------------------------------------
+S_API void CGeometryManager::GarbageCollect()
+{
+	// Release objects with 0 refcount
+	unsigned int iGeom;
+	for (CGeometry* pGeom = m_Geom.GetFirstUsedObject(iGeom); pGeom; pGeom = m_Geom.GetNextUsedObject(iGeom))
+	{
+		if (pGeom->GetRefCount() == 0)
+			m_Geom.Release(&pGeom);
+	}
+
+	// Remove name cache entries with invalid pointer
+	for (auto itEntry = m_NameCache.begin(); itEntry != m_NameCache.end();)
+	{
+		if (!m_Geom.IsValidPtr(itEntry->second))
+			itEntry = m_NameCache.erase(itEntry);
+		else
+			itEntry++;
+	}
 }
 
 // ----------------------------------------------------------------------------------------
 S_API void CGeometryManager::Clear()
 {
-	for (auto itGeom = m_Geometry.begin(); itGeom != m_Geometry.end(); ++itGeom)
+	unsigned int numUsed = 0;
+	unsigned int iGeom;
+	for (CGeometry* pGeom = m_Geom.GetFirstUsedObject(iGeom); pGeom; pGeom = m_Geom.GetNextUsedObject(iGeom))
 	{
-		SInitialGeometryDesc& geomDesc = itGeom->second;
-		
-		delete[] geomDesc.pVertices;
-		geomDesc.pVertices = 0;
-		geomDesc.nVertices = 0;
-
-		if (IS_VALID_PTR(geomDesc.pSubsets))
-		{
-			if (geomDesc.nSubsets > 0)
-			{
-				for (u16 iSubset = 0; iSubset < geomDesc.nSubsets; ++iSubset)
-					delete[] geomDesc.pSubsets[iSubset].pIndices;
-			}
-
-			delete[] geomDesc.pSubsets;
-		}
-
-		geomDesc.pSubsets = 0;
-		geomDesc.nSubsets = 0;
+		if (pGeom->GetRefCount() > 0)
+			CLog::Log(S_WARN, "CGeometryManager::Clear(): Geometry still has %u references!", pGeom->GetRefCount());
 	}
 
-	m_Geometry.clear();
+	m_Geom.Clear();
+	m_NameCache.clear();
 }
 
 

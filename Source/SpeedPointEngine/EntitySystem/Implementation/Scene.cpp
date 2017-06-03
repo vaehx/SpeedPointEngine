@@ -1,6 +1,6 @@
 #include "Scene.h"
 #include "Entity.h"
-#include "..\IEntityReceipt.h"
+#include "..\IEntityClass.h"
 
 SP_NMSPACE_BEG
 
@@ -55,13 +55,13 @@ S_API void Scene::AddEntity(IEntity* pEntity)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API IEntity* Scene::SpawnEntity(const string& name, IEntityReceipt* receipt /*=0*/)
+S_API IEntity* Scene::SpawnEntity(const string& name, IEntityClass* pClass /*=0*/)
 {
 	CEntity* pEntity = m_Entities.Get();
 	pEntity->SetName(name.c_str());
 
-	if (receipt)
-		receipt->Apply(pEntity);
+	if (pClass)
+		pClass->Apply(pEntity);
 
 	return pEntity;
 }

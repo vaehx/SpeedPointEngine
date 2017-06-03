@@ -256,6 +256,24 @@ public:
 		return &freeobj->instance;
 	}
 
+	// Returns true if this pointer points to a used object in any chunk of this pool.
+	bool IsValidPtr(const T* ptr)
+	{
+		if (ptr)
+		{
+			long ptrOffs;
+			for (unsigned int ic = 0; ic < num_chunks; ++ic)
+			{
+				const Chunk& chunk = *chunks[ic];
+				ptrOffs = (long)ptr - (long)chunk.objects;
+				if (ptrOffs >= 0 && ptrOffs < (long)chunk_size)
+					return chunk.objects[ptrOffs].used;
+			}
+		}
+
+		return false;
+	}
+
 	// Summary:
 	//	Releases this object und flags it unused. Instance is not destructed.
 	void Release(T** pInstance)

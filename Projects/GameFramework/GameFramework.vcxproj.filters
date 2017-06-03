@@ -21,9 +21,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\ISettings.h">
       <Filter>Abstract</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\EntityReceipts.h">
-      <Filter>Abstract</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\IApplication.h">
       <Filter>Abstract</Filter>
     </ClInclude>
@@ -51,6 +48,9 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.h">
       <Filter>Implementation</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\EntityClasses.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EngineSettings.cpp">
@@ -71,10 +71,10 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicalComponent.cpp">
       <Filter>Implementation\Components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EntityReceipts.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.cpp">
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EntityClass.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>

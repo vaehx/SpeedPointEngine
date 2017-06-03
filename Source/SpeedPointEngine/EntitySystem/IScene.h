@@ -29,7 +29,7 @@ struct S_API IScene
 	virtual void SetName(const string& name) = 0;
 	virtual const string& GetName() const = 0;
 
-	virtual IEntity* SpawnEntity(const string& name, IEntityReceipt* receipt = 0) = 0;
+	virtual IEntity* SpawnEntity(const string& name, IEntityClass* recipe = 0) = 0;
 
 	// Adds the entity to the scene graph as an external entity. Ownership of the
 	// entity will not be taken over.

@@ -7,15 +7,15 @@
 
 #pragma once
 
-#include <EntitySystem\IEntityReceipt.h>
+#include <EntitySystem\IEntityClass.h>
 
 SP_NMSPACE_BEG
 
 class S_API CRenderMesh;
 
-namespace EntityReceipts
+namespace EntityClasses
 {
-	class S_API Physical : public IEntityReceipt
+	class S_API Physical : public IEntityClass
 	{
 	public:
 		virtual bool Apply(IEntity* entity);
@@ -25,20 +25,21 @@ namespace EntityReceipts
 		}
 	};
 
-	class S_API Renderable : public IEntityReceipt
+	class S_API Renderable : public IEntityClass
 	{
+	private:
+		const string& GetGeometryFile(CRenderMesh* mesh) const;
+		void SetGeometryFile(const string& file, CRenderMesh* mesh) const;
+	
 	public:
 		virtual bool Apply(IEntity* entity);
 		virtual const char* GetName() const
 		{
 			return "Mesh";
 		}
-
-		const string& GetGeomFile(CRenderMesh* mesh) const;
-		void SetGeomFile(const string& geomFile, CRenderMesh* mesh) const;
 	};
 
-	class S_API RigidBody : public IEntityReceipt
+	class S_API RigidBody : public IEntityClass
 	{
 	public:
 		RigidBody();

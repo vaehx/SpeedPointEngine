@@ -5,7 +5,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "..\EntityReceipts.h"
+#include "..\EntityClasses.h"
 #include "SpeedPointEngine.h"
 #include <EntitySystem\IEntity.h>
 #include <Physics\IPhysics.h>
@@ -13,9 +13,8 @@
 
 SP_NMSPACE_BEG
 
-namespace EntityReceipts
+namespace EntityClasses
 {
-
 	// ----------------------------------------------------------------------------------------
 
 	S_API bool Physical::Apply(IEntity* entity)
@@ -23,25 +22,8 @@ namespace EntityReceipts
 		if (!entity)
 			return false;
 
+		entity->AddComponent(SpeedPointEnv::GetPhysics()->CreatePhysObject());
 
-
-
-
-		// TODO:
-
-		//		- Merge "Game Facilities" and "Framework" into "GameFramework":
-		//			-> Move Receipt implementations to GameFramework. Let's us use SpeedPointEnv there.
-
-		//		- Create "EntitySystem" project including Scene and Entity
-		//			-> Move Object loading/bootstrapping + World File into GameFramework
-
-
-
-
-
-
-		IPhysics* pPhysics = SpeedPointEnv::GetPhysics();
-		PhysObject* physical = entity->AddComponent(pPhysics->CreatePhysObject());
 		return true;
 	}
 
@@ -56,20 +38,21 @@ namespace EntityReceipts
 		I3DEngine* p3DEngine = SpeedPointEnv::GetEngine()->Get3DEngine();
 		CRenderMesh* renderable = entity->AddComponent(p3DEngine->CreateMesh());
 
-		// RenderMesh does not provide a geomFile property, so we have to define it here
-		entity->RegisterProperty("geomFile", this, &Renderable::GetGeomFile, &Renderable::SetGeomFile, renderable);
+		// RenderMesh does not provide a geometry property, so we have to implement it here
+		entity->RegisterProperty("geometry", this, &Renderable::GetGeometryFile, &Renderable::SetGeometryFile, renderable);
 		return true;
 	}
 
-	S_API const string& Renderable::GetGeomFile(CRenderMesh* mesh) const
+	S_API const string& Renderable::GetGeometryFile(CRenderMesh* mesh) const
 	{
-		return mesh->GetGeometry()->GetGeomFile();
+		return mesh->GetGeometry()->GetFilePath();
 	}
 
-	S_API void Renderable::SetGeomFile(const string& geomFile, CRenderMesh* mesh) const
+	S_API void Renderable::SetGeometryFile(const string& geomFile, CRenderMesh* mesh) const
 	{
-		// TODO: As RenderMesh does not provide a geomFile property, we have to load the geometry here and
-		//		 update the RenderMesh ourselves
+		IGeometryManager* pGeometryMgr = SpeedPointEnv::Get3DEngine()->GetGeometryManager();
+		IGeometry* pGeom = pGeometryMgr->LoadGeometry(geomFile);
+		mesh->SetGeometry(pGeom);
 	}
 
 
@@ -83,8 +66,12 @@ namespace EntityReceipts
 
 	S_API bool RigidBody::Apply(IEntity* entity)
 	{
-		// Apply inherited receipts
-		return IEntityReceipt::Apply(entity);
+		if (!entity)
+			return false;
+
+		ApplyInherited(entity);
+
+		return true;
 	}
 }
 

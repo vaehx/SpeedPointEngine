@@ -14,8 +14,8 @@
 #include <GameFramework\Implementation\FileSPW.h>
 #include <GameFramework\PhysicalComponent.h>
 #include <GameFramework\RenderableComponent.h>
-#include <GameFramework\EntityReceipts.h>
-#include <EntitySystem\Implementation\EntityReceipt.h>
+#include <GameFramework\EntityClasses.h>
+#include <EntitySystem\Implementation\EntityClass.h>
 #include <EntitySystem\Implementation\Scene.h>
 #include <Physics\Implementation\CPhysics.h>
 #include <Physics\Implementation\PhysDebug.h>
@@ -142,10 +142,10 @@ S_API SResult SpeedPointEngine::CheckFinishInit()
 S_API SResult SpeedPointEngine::FinishInitialization()
 {
 	// Initialize entity receipts
-	m_pEntityReceiptManager.SetOwn(new EntityReceiptManager());
-	m_pEntityReceiptManager->RegisterReceipt<EntityReceipts::Renderable>();
-	m_pEntityReceiptManager->RegisterReceipt<EntityReceipts::Physical>();
-	m_pEntityReceiptManager->RegisterReceipt<EntityReceipts::RigidBody>();
+	m_pEntityClassManager.SetOwn(new EntityClassManager());
+	m_pEntityClassManager->RegisterEntityClass<EntityClasses::Renderable>();
+	m_pEntityClassManager->RegisterEntityClass<EntityClasses::Physical>();
+	m_pEntityClassManager->RegisterEntityClass<EntityClasses::RigidBody>();
 
 	// Check that all components where initialized
 	if (Failure(CheckFinishInit()))

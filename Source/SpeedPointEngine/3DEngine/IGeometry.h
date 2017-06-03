@@ -216,53 +216,48 @@ struct S_API IGeometry : public IShutdownHandler
 {
 	virtual ~IGeometry() {}
 
-	virtual SResult Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom = nullptr) = 0;	
+	virtual SResult Init(IRenderer* pRenderer, const SInitialGeometryDesc* pInitialGeom = nullptr) = 0;
 	
-	virtual const string& GetGeomFile() const = 0;
+	virtual void AddRef() = 0;
+	virtual void Release() = 0;
+	virtual unsigned int GetRefCount() const = 0;
+
+	// Returns absolute resource path to the model file or an empty string
+	// if this geometry was not loaded from a file.
+	virtual const string& GetFilePath() const = 0;
 
 	virtual IRenderer* GetRenderer() = 0;
-
-	virtual SGeomSubset* GetSubsets() = 0;	
+	virtual SGeomSubset* GetSubsets() = 0;
 	virtual unsigned short GetSubsetCount() const = 0;
 
 	// Returns 0 if not found
 	virtual SGeomSubset* GetSubset(unsigned int index) = 0;
 
-	virtual IVertexBuffer* GetVertexBuffer() = 0;	
-
+	virtual IVertexBuffer* GetVertexBuffer() = 0;
+	virtual SVertex* GetVertices() = 0;
 	virtual SVertex* GetVertex(unsigned long index) = 0;
 	virtual SIndex* GetIndex(unsigned long index) = 0;
-
-	virtual SVertex* GetVertices() = 0;	
-
 	virtual unsigned long GetVertexCount() const = 0;
 	virtual unsigned long GetIndexCount() const = 0;
-
 	virtual EPrimitiveType GetPrimitiveType() const = 0;	
-
 	virtual SResult CalculateNormalsGeometry(SInitialGeometryDesc& dsc, float fLineLength = 0.1f) const = 0;
-
 	virtual void CalculateBoundBox(AABB& aabb, const Mat44& transform) = 0;
-
-	virtual void Clear() = 0;
 };
-
-///////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 
 struct S_API IGeometryManager
 {
-	//TODO: Handle actual IGeometry instances, instead of initial geometry descs
-	//TODO:		However, we need to be able to initialize a RenderMesh with an existing Geometry before.
-
 	virtual ~IGeometryManager() {}
 
 	// If the geometry was loaded before, will return pointer to existing data, instead of loading it again
 	// spmResourcePath - Absolute resource path to the spm model file
-	virtual SInitialGeometryDesc* LoadModel(const string& spmResourcePath) = 0;
+	virtual IGeometry* LoadGeometry(const string& spmResourcePath) = 0;
 
+	// Returns 0 if creation failed or a geometry with this name already exists
+	virtual IGeometry* CreateGeometry(const SInitialGeometryDesc& desc, const string& name = "") = 0;
+
+	virtual void GarbageCollect() = 0;
 	virtual void Clear() = 0;
 };
 

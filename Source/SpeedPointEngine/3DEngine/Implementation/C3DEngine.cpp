@@ -122,14 +122,14 @@ S_API void C3DEngine::ClearRenderMeshes()
 	}
 }
 
-S_API CRenderMesh* C3DEngine::CreateMesh(const SRenderMeshParams& params)
+ILINE CRenderMesh* C3DEngine::CreateMesh(const SInitialGeometryDesc* pGeomDesc)
 {
 	if (!m_pMeshes)
 		return 0;
 
 	CRenderMesh* mesh = m_pMeshes->Get();
-	if (Failure(mesh->Init(params)))
-		CLog::Log(S_ERROR, "Failed init RenderMesh");
+	if (Failure(mesh->Init(pGeomDesc)))
+		CLog::Log(S_ERROR, "Failed init RenderMesh from initial geometry desc");
 
 	return mesh;
 }

@@ -21,7 +21,7 @@ struct S_API IScene;
 struct S_API IMaterial;
 struct S_API IMaterialManager;
 struct S_API ISettings;
-struct S_API IEntityReceiptManager;
+struct S_API IEntityClassManager;
 struct S_API IPhysics;
 struct S_API IShutdownHandler;
 class S_API ProfilingSystem;
@@ -70,7 +70,7 @@ public: // Component getter
 	ILINE virtual IResourcePool* GetResources() const = 0;
 	ILINE virtual ISettings* GetSettings() const = 0;
 	ILINE virtual IScene* GetScene() const = 0;
-	ILINE virtual IEntityReceiptManager* GetEntityReceiptManager() const = 0;
+	ILINE virtual IEntityClassManager* GetEntityClassManager() const = 0;
 	ILINE virtual IMaterialManager* GetMaterialManager() const = 0;
 
 public: // Game / Application interface
@@ -116,7 +116,7 @@ public:
 	inline static IRenderer* GetRenderer() { return m_pEngine->GetRenderer(); }
 	inline static I3DEngine* Get3DEngine() { return m_pEngine->Get3DEngine(); }
 	inline static IScene* GetScene() { return m_pEngine->GetScene(); }
-	inline static IEntityReceiptManager* GetEntityReceiptManager() { return m_pEngine->GetEntityReceiptManager(); }
+	inline static IEntityClassManager* GetEntityClassManager() { return m_pEngine->GetEntityClassManager(); }
 };
 
 SP_NMSPACE_END

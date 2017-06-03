@@ -80,7 +80,7 @@ public:
 	ILINE virtual IParticleSystem* GetParticleSystem() = 0;
 
 	template<class RenderMeshImpl> void SetRenderMeshImplementation() { SetRenderMeshPool(new ComponentPool<CRenderMesh, RenderMeshImpl>()); }
-	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params = SRenderMeshParams()) = 0;
+	ILINE virtual CRenderMesh* CreateMesh(const SInitialGeometryDesc* pGeomDesc = 0) = 0;
 	ILINE virtual void ClearRenderMeshes() = 0;
 
 	template<class RenderLightImpl> void SetRenderLightImplementation() { SetRenderLightPool(new ComponentPool<CRenderLight, RenderLightImpl>()); }

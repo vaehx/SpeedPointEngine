@@ -73,7 +73,7 @@ public:
 	
 	ILINE virtual unsigned int CollectVisibleObjects(const SCamera* pCamera);
 
-	ILINE virtual CRenderMesh* CreateMesh(const SRenderMeshParams& params = SRenderMeshParams());
+	ILINE virtual CRenderMesh* CreateMesh(const SInitialGeometryDesc* pGeomDesc = 0);
 	ILINE virtual void ClearRenderMeshes();
 
 	ILINE virtual CRenderLight* CreateLight();

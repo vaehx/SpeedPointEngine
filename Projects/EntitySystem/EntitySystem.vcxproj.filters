@@ -9,9 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntityReceipt.h">
-      <Filter>Abstract</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IScene.h">
       <Filter>Abstract</Filter>
     </ClInclude>
@@ -21,21 +18,24 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Entity.h">
       <Filter>Implementation</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityReceipt.h">
-      <Filter>Implementation</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Scene.h">
       <Filter>Implementation</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityClass.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntityClass.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityReceipt.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Scene.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Entity.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityClass.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>

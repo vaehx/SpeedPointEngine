@@ -17,11 +17,9 @@ S_API void CRenderMesh::Clear()
 {
 	if (IS_VALID_PTR(m_pGeometry))
 	{
-		m_pGeometry->Clear();
-		delete m_pGeometry;
+		m_pGeometry->Release();
+		m_pGeometry = 0;
 	}
-
-	m_pGeometry = 0;
 
 	if (m_RenderDesc.nSubsets > 0 && m_RenderDesc.pSubsets)
 	{
@@ -37,9 +35,36 @@ S_API void CRenderMesh::Clear()
 	m_RenderDesc.Clear();
 }
 
-// --------------------------------------------------------------------------------------------------------------
 
-S_API SResult CRenderMesh::Init(const SRenderMeshParams& params)
+S_API SResult CRenderMesh::Init(const SInitialGeometryDesc* pGeomDesc)
+{
+	IGeometry* pGeom = 0;
+	if (pGeomDesc)
+	{
+		IGeometryManager* pGeomMgr = C3DEngine::Get()->GetGeometryManager();
+		pGeom = pGeomMgr->CreateGeometry(*pGeomDesc);
+	}
+
+	return Init(pGeom);
+}
+
+S_API SResult CRenderMesh::Init(IGeometry* pGeometry)
+{
+	Clear();
+
+	if (!pGeometry)
+	{
+		// Do not initialize yet
+		return S_SUCCESS;
+	}
+
+	SetGeometry(pGeometry);
+
+	return S_SUCCESS;
+}
+
+
+S_API SResult CRenderMesh::SetGeometry(IGeometry* pGeometry)
 {
 	I3DEngine* p3DEngine = C3DEngine::Get();
 	if (!IS_VALID_PTR(p3DEngine))
@@ -50,24 +75,10 @@ S_API SResult CRenderMesh::Init(const SRenderMeshParams& params)
 
 	Clear();
 
-#ifdef _DEBUG
-	_name = params._name;
-#endif
-
-	if (!params.pGeomDesc)
-	{
-		// Do not initialize yet
-		return S_SUCCESS;
-	}
-
-	m_pGeometry = new CGeometry();
-	if (Failure(m_pGeometry->Init(pRenderer, params.pGeomDesc)))
-	{
-		return CLog::Log(S_ERROR, "Failed init RenderMesh geometry");
-	}
-
+	m_pGeometry = pGeometry;
 	m_bBoundBoxInvalid = true;
 
+	// Fill render desc from geometry
 	SRenderDesc* rd = GetRenderDesc();
 	rd->renderPipeline = eRENDER_FORWARD;
 	rd->bDepthStencilEnable = true;
@@ -148,16 +159,14 @@ S_API SResult CRenderMesh::Init(const SRenderMeshParams& params)
 	return S_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------------------------------------
+S_API IGeometry* CRenderMesh::GetGeometry()
+{
+	return m_pGeometry;
+}
 
 S_API SRenderDesc* CRenderMesh::GetRenderDesc()
 {
 	return &m_RenderDesc;
-}
-
-S_API IGeometry* CRenderMesh::GetGeometry()
-{
-	return m_pGeometry;
 }
 
 S_API AABB CRenderMesh::GetAABB()

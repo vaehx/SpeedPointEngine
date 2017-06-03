@@ -32,7 +32,7 @@ public:
 	virtual void SetName(const string& name);
 	virtual const string& GetName() const;
 
-	virtual IEntity* SpawnEntity(const string& name, IEntityReceipt* receipt = 0);
+	virtual IEntity* SpawnEntity(const string& name, IEntityClass* recipe = 0);
 	virtual void AddEntity(IEntity* pEntity);
 
 	virtual vector<IEntity*> GetEntities(const AABB& aabb = AABB(Vec3f(-FLT_MAX), Vec3f(FLT_MAX))) const;
