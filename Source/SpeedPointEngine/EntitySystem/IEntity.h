@@ -34,7 +34,7 @@ using std::map;
 SP_NMSPACE_BEG
 
 struct S_API IEntity;
-struct S_API IEntityReceipt;
+struct S_API IEntityRecipe;
 struct S_API IComponent;
 struct S_API IMaterial;
 struct S_API AABB;
