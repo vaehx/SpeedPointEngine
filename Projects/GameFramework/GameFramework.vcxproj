@@ -32,6 +32,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicalComponent.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\ProfilingDebugView.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\RenderableComponent.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SpeedPointEngine.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -23,6 +23,7 @@
 #include <Common\Vector3.h>
 #include <Common\Quaternion.h>
 #include <Common\SPrerequisites.h>
+#include <Common\SerializationTools.h>
 #include <vector>
 #include <string>
 #include <map>
@@ -371,6 +372,8 @@ struct S_API IEntity : public EntityPropertyContainer
 {
 	virtual ~IEntity() {}
 
+	ILINE virtual IEntityClass* GetClass() const = 0;
+
 	ILINE virtual const Vec3f& GetPos() const = 0;
 	ILINE virtual void SetPos(const Vec3f& pos) = 0;
 	ILINE virtual void Translate(const Vec3f& translate) = 0;
@@ -463,7 +466,6 @@ struct S_API IEntity : public EntityPropertyContainer
 	ILINE virtual void RemoveChild(IEntity* pEntity) = 0;
 	ILINE virtual IEntity* GetParent() const = 0;
 
-
 	ILINE virtual void Clear() = 0;
 
 protected:
@@ -481,7 +483,6 @@ struct S_API IReferenceObject : public IEntity
 	virtual IObject* GetBase() = 0;
 	virtual SResult SetBase(IObject* base) = 0;
 };
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -532,6 +533,11 @@ public:
 	}
 
 
+	// serialize - true when serializing, false when deserializing
+	virtual void Serialize(ISerContainer* ser, bool serialize = true) {}
+
+	virtual const char* GetName() const = 0;
+
 
 	// Events:
 
@@ -542,12 +548,10 @@ public:
 	ILINE virtual void OnEntityTransformed() {};
 };
 
-#define DEFINE_COMPONENT \
+#define DEFINE_COMPONENT(name) \
 	virtual void Release() { IComponent::Release(); } \
-	virtual bool IsTrash() const { return IComponent::IsTrash(); }
-
-
-
+	virtual bool IsTrash() const { return IComponent::IsTrash(); } \
+	virtual const char* GetName() const { return name; }
 
 
 SP_NMSPACE_END

@@ -77,5 +77,8 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EntityClass.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\RenderableComponent.cpp">
+      <Filter>Implementation\Components</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

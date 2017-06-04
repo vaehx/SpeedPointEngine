@@ -16,8 +16,6 @@ SP_NMSPACE_BEG
 template<class RenderObjImpl>
 class S_API CRenderObjectComponent : public IComponent, public RenderObjImpl
 {
-	DEFINE_COMPONENT
-
 protected:
 	typedef typename RenderObjImpl::IsDerivedFromIRenderObject IRenderObjectGuard;
 
@@ -40,32 +38,30 @@ public:
 	}
 };
 
+class S_API CRenderMeshComponent : public CRenderObjectComponent<CRenderMesh>
+{
+public:
+	DEFINE_COMPONENT("RenderMesh")
+	virtual void Serialize(ISerContainer* ser, bool serialize = true);
+};
 
-typedef S_API class CRenderObjectComponent<CRenderMesh> CRenderMeshComponent;
-typedef S_API class CRenderObjectComponent<CRenderLight> CRenderLightComponent;
+class S_API CRenderLightComponent : public CRenderObjectComponent<CRenderLight>
+{
+public:
+	DEFINE_COMPONENT("RenderLight")
+};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class S_API CParticleEmitterComponent : public IComponent, public CParticleEmitter
 {
-	DEFINE_COMPONENT
-
 	// CParticleEmitter:
 public:
-	virtual SInstancedRenderDesc* GetRenderDesc()
-	{
-		SInstancedRenderDesc* renderDesc = CParticleEmitter::GetRenderDesc();
-		if (m_pEntity)
-			renderDesc->transform = m_pEntity->GetTransform() * renderDesc->transform;
+	DEFINE_COMPONENT("ParticleEmitter");
 
-		return renderDesc;
-	}
-
-	virtual void Clear()
-	{
-		CParticleEmitter::Clear();
-		IComponent::Release();
-	}
+	virtual SInstancedRenderDesc* GetRenderDesc();
+	virtual void Clear();
+	virtual void Serialize(ISerContainer* ser, bool serialize = true);
 };
 
 

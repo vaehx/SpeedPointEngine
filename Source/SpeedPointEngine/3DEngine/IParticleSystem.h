@@ -30,7 +30,11 @@ struct S_API SParticleEmitterParams
 
 	SParticleEmitterParams()
 		: spawnAutomatically(true),
-		particleTexture(0)
+		particleTexture(0),
+		particleSize(1.0f),
+		particleMaxDistance(0),
+		particleSpeed(0),
+		numConcurrentParticles(1)
 	{
 	}
 };
@@ -43,14 +47,14 @@ struct S_API SParticleInstance
 
 class S_API CParticleEmitter
 {
-private:
+protected:
 	bool m_bTrash;
 	bool m_bStarted;
 	LARGE_INTEGER m_PerformanceFreq;
 	LARGE_INTEGER m_StartTimestamp;
 	unsigned __int32 m_CurTime;
 	unsigned __int32 m_ParticleLifetime;
-	unsigned __int32 m_SpawnDelay;
+	unsigned __int32 m_SpawnDelay; // delay between particle spawns
 	unsigned int m_nSpawnedParticles;
 	unsigned int m_nForceSpawnParticles;
 	SInstancedRenderDesc m_RenderDesc;
@@ -67,6 +71,7 @@ public:
 	void SpawnParticle();
 
 	const SParticleEmitterParams& GetParams() const { return m_Params; }
+	void SetParams(const SParticleEmitterParams& params);
 
 	const Vec3f& GetPos() const { return m_Params.position; }
 	void SetPos(const Vec3f& pos) { m_Params.position = pos; }

@@ -23,6 +23,7 @@ struct SChildEntity
 class S_API CEntity : public IEntity
 {
 private:
+	IEntityClass* m_pClass;
 	IEntity* m_pParent;
 	vector<SChildEntity> m_Childs;
 	vector<IComponent*> m_Components;
@@ -53,6 +54,8 @@ public:
 	}
 
 	ILINE virtual void Clear();
+
+	ILINE virtual IEntityClass* GetClass() const { return m_pClass; }
 
 	ILINE virtual const Vec3f& GetPos() const;
 	ILINE virtual void SetPos(const Vec3f& pos);

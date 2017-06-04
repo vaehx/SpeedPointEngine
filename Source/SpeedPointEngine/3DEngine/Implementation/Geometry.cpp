@@ -85,8 +85,6 @@ S_API void CGeometry::Release()
 // ----------------------------------------------------------------------------------------
 S_API void CGeometry::Clear()
 {
-	m_RefCount = 0; // !
-
 	if (IS_VALID_PTR(m_pRenderer))
 	{
 		if (m_nSubsets > 0 && IS_VALID_PTR(m_pSubsets))

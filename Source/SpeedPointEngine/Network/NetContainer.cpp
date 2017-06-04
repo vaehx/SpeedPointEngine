@@ -145,7 +145,7 @@ S_API void NetContainer::SetString(const string& attrname, const string& val)
 {
 	NC_GET_ATTR();
 	attr.type = ATTR_TYPE_STRING;
-	attr.bufsz = min(256, val.length() - 1);
+	attr.bufsz = (unsigned short)min(256, val.length() - 1);
 	memcpy(attr.buffer, val.c_str(), attr.bufsz);
 	attr.buffer[attr.bufsz - 1] = '\0';
 }

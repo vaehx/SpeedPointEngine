@@ -40,15 +40,28 @@ S_API void CParticleEmitter::Init(const SParticleEmitterParams& params)
 	m_RenderDesc.pVertexBuffer = 0; // will be set by ParticleSystem when rendering
 	m_RenderDesc.render = true;
 	m_RenderDesc.enableDepthWrite = false;
-	m_RenderDesc.shaderResources.textureMap = params.particleTexture;
 	SMatrixIdentity(m_RenderDesc.transform);
 
 	m_bStarted = false;
 	m_nSpawnedParticles = 0;
 	m_nForceSpawnParticles = 0;
 
+	SetParams(params);
+}
+
+S_API void CParticleEmitter::SetParams(const SParticleEmitterParams& params)
+{
+	m_Params = params;
+
+	m_RenderDesc.shaderResources.textureMap = params.particleTexture;
+
 	m_ParticleLifetime = (usint32)(1000000.0 * (double)m_Params.particleMaxDistance / (double)m_Params.particleSpeed); //us
 	m_SpawnDelay = (usint32)(m_ParticleLifetime / (usint32)m_Params.numConcurrentParticles);
+	if (m_SpawnDelay == 0)
+	{
+		CLog::Log(S_WARN, "numConcurrentParticles of particle emitter is too high (%u)!", m_Params.numConcurrentParticles);
+		m_SpawnDelay = 10;
+	}
 }
 
 S_API void CParticleEmitter::Update(float fTime)

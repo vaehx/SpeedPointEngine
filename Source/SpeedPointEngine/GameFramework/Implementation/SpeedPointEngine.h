@@ -95,6 +95,7 @@ private:
 	EngineComponent<I3DEngine> m_p3DEngine;
 	EngineComponent<IPhysics> m_pPhysics;
 	EngineComponent<IEntityClassManager> m_pEntityClassManager;
+	EngineComponent<IEntitySystem> m_pEntitySystem;
 	EngineComponent<FileLogListener> m_pFileLogListener;
 
 
@@ -127,6 +128,7 @@ public: // Component getters
 	ILINE virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 	ILINE virtual IScene* GetScene() const { return m_pScene; }
 	ILINE virtual IEntityClassManager* GetEntityClassManager() const { return m_pEntityClassManager; }
+	ILINE virtual IEntitySystem* GetEntitySystem() const { return m_pEntitySystem; }
 	ILINE virtual IMaterialManager* GetMaterialManager() const;
 
 public: // Game / Application interface

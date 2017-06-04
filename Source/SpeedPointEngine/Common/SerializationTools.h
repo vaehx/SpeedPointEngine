@@ -87,7 +87,7 @@ namespace SpeedPoint
 	}
 
 // expr - a std::string
-#define DeserializeNumeric(type, expr) ((unsigned int)strtoul(expr.c_str(), 0, 10))
+#define DeserializeNumeric(type, expr) ((type)strtoul(expr.c_str(), 0, 10))
 
 #define DeserializeShort(expr) DeserializeNumeric(short, expr)
 #define DeserializeUShort(expr) DeserializeNumeric(unsigned short, expr)

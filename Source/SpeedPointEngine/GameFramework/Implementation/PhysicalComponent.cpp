@@ -39,4 +39,20 @@ S_API void CPhysicalComponent::OnIntersection(const geo::SIntersection& contact,
 {
 }
 
+// ------------------------------------------------------------------------------------------------------------
+S_API void CPhysicalComponent::Serialize(ISerContainer* ser, bool serialize)
+{
+	if (serialize)
+	{
+		ser->SetFloat("mass", m_State.M);
+
+		// TODO: Serialize collision shape, ...
+	}
+	else
+	{
+		m_State.M = ser->GetFloat("mass", m_State.M);
+		m_State.Minv = 1.0f / m_State.M;
+	}
+}
+
 SP_NMSPACE_END

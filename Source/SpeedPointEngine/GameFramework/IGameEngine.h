@@ -22,6 +22,7 @@ struct S_API IMaterial;
 struct S_API IMaterialManager;
 struct S_API ISettings;
 struct S_API IEntityClassManager;
+struct S_API IEntitySystem;
 struct S_API IPhysics;
 struct S_API IShutdownHandler;
 class S_API ProfilingSystem;
@@ -71,6 +72,7 @@ public: // Component getter
 	ILINE virtual ISettings* GetSettings() const = 0;
 	ILINE virtual IScene* GetScene() const = 0;
 	ILINE virtual IEntityClassManager* GetEntityClassManager() const = 0;
+	ILINE virtual IEntitySystem* GetEntitySystem() const = 0;
 	ILINE virtual IMaterialManager* GetMaterialManager() const = 0;
 
 public: // Game / Application interface

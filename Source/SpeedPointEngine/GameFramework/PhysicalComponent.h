@@ -7,15 +7,16 @@ SP_NMSPACE_BEG
 
 class S_API CPhysicalComponent : public IComponent, public PhysObject
 {
-	DEFINE_COMPONENT
-
 public:
+	DEFINE_COMPONENT("Physical")
+
 	CPhysicalComponent();
 	virtual ~CPhysicalComponent() {}
 
 	// IComponent:
 public:
 	virtual void OnRelease();
+	virtual void Serialize(ISerContainer* ser, bool serialize = true);
 
 	// PhysObject:
 public:

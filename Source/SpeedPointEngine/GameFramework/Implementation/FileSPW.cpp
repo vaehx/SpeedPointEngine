@@ -2,9 +2,11 @@
 #include "..\IGameEngine.h"
 #include <EntitySystem\IEntity.h>
 #include <EntitySystem\IScene.h>
+#include <EntitySystem\IEntitySystem.h>
 #include <3DEngine\IGeometry.h>
 #include <3DEngine\IMaterial.h>
 #include <3DEngine\I3DEngine.h>
+#include <3DEngine\IParticleSystem.h>
 #include <Physics\IPhysics.h>
 #include <Renderer\IResourcePool.h>
 #include <Renderer\ITexture.h>
@@ -12,6 +14,143 @@
 #include <Common\FileUtils.h>
 
 SP_NMSPACE_BEG
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API CSPWSerContainer::CSPWSerContainer(const string& name)
+	: ISerContainer(name)
+{
+}
+
+S_API ISerContainer* CSPWSerContainer::CreateChildContainer(const string& name)
+{
+	m_Children.emplace_back(name);
+	ISerContainer* pChild = &m_Children.back();
+	m_ChildPointers.push_back(pChild);
+	return pChild;
+}
+
+S_API const vector<ISerContainer*>& CSPWSerContainer::GetChildContainers() const
+{
+	return m_ChildPointers;
+}
+
+S_API unsigned short CSPWSerContainer::GetNumChildren() const
+{
+	return (unsigned short)m_Children.size();
+}
+
+S_API void CSPWSerContainer::DestroyChildContainer(const string& name)
+{
+	auto itDestroyChild = m_Children.end();
+	for (auto itChild = m_Children.begin(); itChild != m_Children.end(); ++itChild)
+	{
+		if (itChild->GetName() == name)
+		{
+			itDestroyChild = itChild;
+			break;
+		}
+	}
+
+	if (itDestroyChild == m_Children.end())
+		return;
+
+	ISerContainer* pChild = &*itDestroyChild;
+	for (auto itChildPtr = m_ChildPointers.begin(); itChildPtr != m_ChildPointers.end(); ++itChildPtr)
+	{
+		if (*itChildPtr == pChild)
+		{
+			m_ChildPointers.erase(itChildPtr);
+			break;
+		}
+	}
+
+	m_Children.erase(itDestroyChild);
+}
+
+S_API unsigned short CSPWSerContainer::GetNumAttributes() const
+{
+	return (unsigned short)m_Attributes.size();
+}
+
+
+#define GET_AND_ASSERT_ATTR(name) \
+	auto attr = m_Attributes.find(name); \
+	if (attr == m_Attributes.end()) return def;
+
+S_API int CSPWSerContainer::GetInt(const string& attrname, int def)
+{
+	GET_AND_ASSERT_ATTR(attrname);
+	return DeserializeInt(attr->second);
+}
+
+S_API unsigned int CSPWSerContainer::GetUInt(const string& attrname, unsigned int def)
+{
+	GET_AND_ASSERT_ATTR(attrname);
+	return DeserializeUInt(attr->second);
+}
+
+S_API float CSPWSerContainer::GetFloat(const string& attrname, float def)
+{
+	GET_AND_ASSERT_ATTR(attrname);
+	return DeserializeFloat(attr->second);
+}
+
+S_API string CSPWSerContainer::GetString(const string& attrname, const string& def)
+{
+	GET_AND_ASSERT_ATTR(attrname);
+	return DeserializeString(attr->second);
+}
+
+S_API Vec3f CSPWSerContainer::GetVec3f(const string& attrname, const Vec3f& def)
+{
+	GET_AND_ASSERT_ATTR(attrname);
+	return DeserializeVec3f(attr->second);
+}
+
+
+S_API void CSPWSerContainer::SetRaw(const string& attrname, const string& val)
+{
+	if (!attrname.empty())
+		m_Attributes[attrname] = val;
+}
+
+S_API void CSPWSerContainer::SetInt(const string& attrname, int val)
+{
+	if (!attrname.empty())
+		m_Attributes[attrname] = SerializeInt(val);
+}
+
+S_API void CSPWSerContainer::SetUInt(const string& attrname, unsigned int val)
+{
+	if (!attrname.empty())
+		m_Attributes[attrname] = SerializeUInt(val);
+}
+
+S_API void CSPWSerContainer::SetFloat(const string& attrname, float val)
+{
+	if (!attrname.empty())
+		m_Attributes[attrname] = SerializeFloat(val);
+}
+
+S_API void CSPWSerContainer::SetString(const string& attrname, const string& val)
+{
+	if (!attrname.empty())
+		m_Attributes[attrname] = SerializeString(val);
+}
+
+S_API void CSPWSerContainer::SetVec3f(const string& attrname, const Vec3f& val)
+{
+	if (!attrname.empty())
+		m_Attributes[attrname] = SerializeVec3f(val);
+}
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API void CSPWLoader::LogError(const char* msg) const
 {
@@ -157,40 +296,39 @@ S_API void CSPWLoader::SkipSubBlocks(unsigned int blockIndent, unsigned int& tra
 
 S_API void CSPWLoader::DeserializeComponent(const map<string, string>& params, IComponent* pComponent) const
 {
-	//pComponent->Deserialize(params);
+	if (!pComponent)
+		return;
+
+	// Convert params to a serialization container
+	// TODO: Fix that.
+	CSPWSerContainer ser(pComponent->GetName());
+	for (auto itParam : params)
+		ser.SetRaw(itParam.first, itParam.second);
+
+	// Deserialize component
+	pComponent->Serialize(&ser, false);
 }
 
-S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity* pEntity, const string& paramsExpr, unsigned int& trailingIndent)
+S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, const string& paramsExpr, unsigned int& trailingIndent)
 {
-
-
-
-	//!!
-	//
-	//	TODO: Deserialize entity via receipt and properties
-	//
-	//		- Each entity has a receipt (Given when spawning: pScene->SpawnEntity(RigidBodyReceipt::sName))
-	//
-	//		- Receipts can add components (and properties) to the entity. (In IEntityReceipt::Apply())
-	//
-	//		- Components can add properties (and components) to the entity.
-	//			-> How? In IComponent::SetEntity()? Or something like IComponent::ApplyProperties()
-	//
-	//!!
-
-
+	IEntitySystem* pEntitySystem = SpeedPointEnv::GetEngine()->GetEntitySystem();
+	IScene* pScene = SpeedPointEnv::GetScene();
 
 	map<string, string> params;
-	params["name"] = "\"entity\"";
-	params["pos"] = "(0,0,0)";
-	params["rot"] = "(0,0,0,1.0f)";
-	params["scale"] = "(1.0f,1.0f,1.0f)";
+	params["name"] = SerializeString("entity");
+	params["pos"] = SerializeVector(Vec3f(0));
+	params["rot"] = SerializeQuaternion(Quat(1.0f, 0, 0, 0));
+	params["scale"] = SerializeVector(Vec3f(1.0f));
 	ParseParams(paramsExpr, params);
 
-	pEntity->SetName(DeserializeString(params["name"]).c_str());
+	string name = DeserializeString(params["name"]);
+	IEntity* pEntity = pScene->SpawnEntity(name);
+
 	pEntity->SetPos(DeserializeVector(params["pos"]));
 	pEntity->SetRotation(DeserializeQuaternion(params["rot"]));
 	pEntity->SetScale(DeserializeVector(params["scale"]));
+
+	CLog::Log(S_DEBUG, "Loading entity '%s'...", name.c_str());
 
 
 	unsigned int nextBlockIndent = ReadIndent();
@@ -204,12 +342,37 @@ S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity
 
 		unsigned int nextBlockTrailingIndent = 0;
 
-		// TODO....
+		if (nextBlockType == "Entity")
+		{
 
-		/*if (nextBlockType == "Renderable") DeserializeComponent(nextBlockParams, pEntity->AddComponent(pEngine->Get3DEngine()->CreateMesh()));
-		else if (nextBlockType == "Physical") DeserializeComponent(nextBlockParams, pEntity->AddComponent(pEngine->GetPhysics()->CreatePhysObject()));
-		else SkipSubBlocks(nextBlockIndent, nextBlockTrailingIndent);*/
 
+			// TODO: Child entities..
+
+
+		}
+		else
+		{
+
+			// TODO: Find some way to register components in a registry instead of hardcoding them here...
+			//		The problem is, that the components have to be created by the system.
+
+			//IComponent* pComponent = pEntitySystem->CreateComponent(nextBlockType);
+			IComponent *pComponent = 0;
+			if (nextBlockType == "RenderMesh")
+				pComponent = dynamic_cast<IComponent*>(SpeedPointEnv::Get3DEngine()->CreateMesh());
+			else if (nextBlockType == "ParticleEmitter")
+				pComponent = dynamic_cast<IComponent*>(SpeedPointEnv::Get3DEngine()->GetParticleSystem()->CreateEmitter());
+			else if (nextBlockType == "Physical")
+				pComponent = dynamic_cast<IComponent*>(SpeedPointEnv::GetPhysics()->CreatePhysObject());
+
+			if (pComponent)
+			{
+				DeserializeComponent(nextBlockParams, pComponent);
+				pEntity->AddComponent(pComponent);
+			}
+		}
+
+		// Components can't have sub-blocks currently..
 		SkipSubBlocks(nextBlockIndent, nextBlockTrailingIndent);
 
 		nextBlockIndent = ReadIndent() + nextBlockTrailingIndent;
@@ -400,9 +563,7 @@ S_API void CSPWLoader::ReadAndParseWorldBlock(unsigned int blockIndent, IScene* 
 		unsigned int nextBlockTrailingIndent = 0;
 		if (nextBlockType == "Entity")
 		{
-			IEntity* pEntity = pWorld->SpawnEntity("unnamed_spw_entity");
-			ReadAndParseEntityBlock(nextBlockIndent, pEntity, nextBlockParamsExpr, nextBlockTrailingIndent);
-			pWorld->AddEntity(pEntity);
+			ReadAndParseEntityBlock(nextBlockIndent, nextBlockParamsExpr, nextBlockTrailingIndent);
 		}
 		else if (nextBlockType == "Terrain")
 		{

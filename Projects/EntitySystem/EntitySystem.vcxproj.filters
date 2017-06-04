@@ -27,6 +27,12 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntityClass.h">
       <Filter>Abstract</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntitySystem.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntitySystem.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Scene.cpp">
@@ -36,6 +42,9 @@
       <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityClass.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntitySystem.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>

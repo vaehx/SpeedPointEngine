@@ -13,14 +13,17 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntity.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntityClass.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IEntitySystem.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Entity.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityClass.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntitySystem.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Scene.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\EntitySystem\IScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Entity.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntityClass.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\EntitySystem.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\EntitySystem\Implementation\Scene.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

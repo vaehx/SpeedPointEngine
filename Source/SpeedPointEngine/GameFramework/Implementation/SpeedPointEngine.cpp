@@ -17,6 +17,7 @@
 #include <GameFramework\EntityClasses.h>
 #include <EntitySystem\Implementation\EntityClass.h>
 #include <EntitySystem\Implementation\Scene.h>
+#include <EntitySystem\Implementation\EntitySystem.h>
 #include <Physics\Implementation\CPhysics.h>
 #include <Physics\Implementation\PhysDebug.h>
 #include <3DEngine\Implementation\Material.h>
@@ -109,13 +110,15 @@ S_API SResult SpeedPointEngine::Initialize(const SGameEngineInitParams& params)
 
 	CLog::Log(S_INFO, "Initialized physics");
 
-	// Scene
+	// Scene / Entity System
 	if (IS_VALID_PTR(params.pCustomScene))
 		m_pScene.SetCustom(params.pCustomScene);
 	else
 		m_pScene.SetOwn(new Scene());
 
-	CLog::Log(S_INFO, "Initialized scene");
+	m_pEntitySystem.SetOwn(new EntitySystem());
+
+	CLog::Log(S_INFO, "Initialized entity system");
 
 	// Debug
 	m_pProfilingDebugView->Show(params.showDebugInfo);
@@ -141,6 +144,12 @@ S_API SResult SpeedPointEngine::CheckFinishInit()
 // ----------------------------------------------------------------------------------
 S_API SResult SpeedPointEngine::FinishInitialization()
 {
+	// Register entity components
+	m_pEntitySystem->RegisterComponent<CRenderMeshComponent>();
+	m_pEntitySystem->RegisterComponent<CRenderLightComponent>();
+	m_pEntitySystem->RegisterComponent<CParticleEmitterComponent>();
+	m_pEntitySystem->RegisterComponent<CPhysicalComponent>();
+	
 	// Initialize entity receipts
 	m_pEntityClassManager.SetOwn(new EntityClassManager());
 	m_pEntityClassManager->RegisterEntityClass<EntityClasses::Renderable>();
