@@ -472,7 +472,7 @@ S_API void C3DEngine::RenderCollected()
 		{
 			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 			SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
-			//m_pRenderer->Render(*rd);
+			m_pRenderer->Render(*rd);
 		}
 
 		// Terrain

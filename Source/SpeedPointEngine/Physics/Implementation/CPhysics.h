@@ -6,8 +6,6 @@
 
 SP_NMSPACE_BEG
 
-#define RESTING_TOLERANCE 0.02f
-
 class S_API CPhysics : public IPhysics
 {
 private:

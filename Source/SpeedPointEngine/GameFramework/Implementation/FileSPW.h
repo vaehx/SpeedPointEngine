@@ -26,6 +26,8 @@ class S_API CSPWLoader
 {
 private:
 	std::ifstream m_Stream;
+	string m_WorldFile; // abs resource path
+	string m_WorldFileDir; // abs resource path
 	I3DEngine* m_p3DEngine;
 	IScene* m_pScene;
 
@@ -48,8 +50,8 @@ private:
 	void ReadAndParseFile();
 
 public:
-	// file - absolute system path to the SPW file
-	void Load(I3DEngine* p3DEngine, IScene* pScene, const string& file);
+	// file - absolute resource path to SPW file
+	void Load(I3DEngine* p3DEngine, IScene* pScene, const string& worldFile);
 };
 
 SP_NMSPACE_END

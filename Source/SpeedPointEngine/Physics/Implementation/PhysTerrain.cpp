@@ -55,7 +55,7 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 
 	m_Params = params;
 
-	SetUnmoveable();
+	SetBehavior(ePHYSOBJ_BEHAVIOR_STATIC);
 
 	geo::mesh* pmesh = (geo::mesh*)(m_pShape = new geo::mesh());
 	pmesh->transform = Mat44::Identity;

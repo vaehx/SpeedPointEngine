@@ -15,6 +15,7 @@ using namespace geo;
 S_API PhysObject::PhysObject()
 	: m_pShape(0),
 	m_pTransformedShape(0),
+	m_Behavior(ePHYSOBJ_BEHAVIOR_RIGID_BODY),
 	m_bTrash(false),
 	m_pHelper(0),
 	m_bHelperShown(false)
@@ -23,6 +24,7 @@ S_API PhysObject::PhysObject()
 	m_State.Minv = 0.0f;
 	m_State.damping = 0.95f;
 	m_State.gravity = true;
+	m_State.livingMoves = false;
 
 	m_Scale = Vec3f(1.0f, 1.0f, 1.0f);
 }
@@ -49,11 +51,24 @@ S_API void PhysObject::Clear()
 	}
 }
 
-S_API void PhysObject::SetUnmoveable()
+S_API void PhysObject::SetBehavior(EPhysObjectBehavior behavior)
 {
-	m_State.Minv = 0.0f;
-	m_State.Iinv = Mat33(0);
-	m_State.gravity = false;
+	switch (m_Behavior = behavior)
+	{
+	case ePHYSOBJ_BEHAVIOR_RIGID_BODY:
+		break;
+
+	case ePHYSOBJ_BEHAVIOR_STATIC:
+		m_State.Minv = 0.0f;
+		m_State.Iinv = Mat33(0);
+		m_State.gravity = false;
+		break;
+
+	case ePHYSOBJ_BEHAVIOR_LIVING:
+		m_State.L = Vec3f(0);
+		m_State.w = Vec3f(0);
+		break;
+	}
 }
 
 S_API const shape* PhysObject::GetTransformedCollisionShape() const
@@ -79,17 +94,19 @@ S_API void PhysObject::Update(float fTime)
 {
 	if (m_State.Minv > 0)
 	{
-		float density = m_State.M / m_State.V;
 		Mat33 R = m_State.rotation.ToRotationMatrix33();
 		Mat33 Ibodyinv = m_State.Ibodyinv;
-		/*Ibodyinv._11 *= density;
-		Ibodyinv._22 *= density;
-		Ibodyinv._33 *= density;*/
+		//float density = m_State.M / m_State.V;
+		//Ibodyinv._11 *= density; Ibodyinv._22 *= density; Ibodyinv._33 *= density;
 		m_State.Iinv = R * Ibodyinv * R.Transposed();
 
 		m_State.v = m_State.Minv * m_State.P;
 		m_State.w = m_State.Iinv * m_State.L;
 	}
+
+
+	if (m_Behavior == ePHYSOBJ_BEHAVIOR_LIVING)
+		m_State.w = Vec3f(0);
 
 	m_State.pos += m_State.v * fTime;
 
@@ -99,13 +116,6 @@ S_API void PhysObject::Update(float fTime)
 	else
 		m_State.rotation = Quat::FromAxisAngle(m_State.w / wln, wln * fTime) * m_State.rotation;
 
-	/*Quat Rdot = (Quat(0, m_State.w) * m_State.rotation) * 0.5f;
-	m_State.rotation.w += Rdot.w * fTime;
-	m_State.rotation.v.x += Rdot.v.x * fTime;
-	m_State.rotation.v.y += Rdot.v.y * fTime;
-	m_State.rotation.v.z += Rdot.v.z * fTime;*/
-
-
 	// TODO: Accumulate forces
 	Vec3f force;
 	if (m_State.gravity)
@@ -114,20 +124,30 @@ S_API void PhysObject::Update(float fTime)
 	m_State.P += force * fTime;
 	m_State.P *= powf(m_State.damping, fTime);
 
-
 	// TODO: Accumulate torque (rotational forces)
 	Vec3f torque = Vec3f(0);
 
 	m_State.L += torque * fTime;
 
+	if (m_Behavior == ePHYSOBJ_BEHAVIOR_LIVING)
+		m_State.L = Vec3f(0);
+
+
+	// Will be set after PhysObject::Update()
+	m_State.livingOnGround = false;
 
 
 	if (m_pShape)
 	{
 		STransformationDesc transform;
 		transform.translation = Mat44::MakeTranslationMatrix(m_State.pos - m_State.centerOfMass);
-		transform.rotation = m_State.rotation.ToRotationMatrix();
 		transform.scale = Mat44::MakeScaleMatrix(m_Scale);
+		
+		if (m_Behavior == ePHYSOBJ_BEHAVIOR_LIVING)
+			transform.rotation = Mat44::Identity;
+		else
+			transform.rotation = m_State.rotation.ToRotationMatrix();
+		
 		Mat44 mtx = transform.BuildTRS();
 
 		// Transform collision shape
@@ -216,6 +236,65 @@ S_API void PhysObject::UpdateHelper()
 		m_pHelper->UpdateFromShape(m_pTransformedShape ? m_pTransformedShape : m_pShape);
 }
 
+
+
+Vec3f CalculateClosestPointOnShape(const shape* pshape, const Vec3f& p)
+{
+	Vec3f cp = p;
+	switch (pshape->GetType())
+	{
+	case eSHAPE_SPHERE:
+		{
+			sphere* psphere = (sphere*)pshape;
+			cp = psphere->c + (p - psphere->c).Normalized() * psphere->r;
+			break;
+		}
+	case eSHAPE_CAPSULE:
+		{
+			capsule* pcapsule = (capsule*)pshape;
+			float t = min(max(Vec3Dot(p - pcapsule->c, pcapsule->axis), -pcapsule->hh), pcapsule->hh);
+			cp = pcapsule->c + t * pcapsule->axis;
+			break;
+		}
+
+		// TODO ...
+
+	default:
+		break;
+	}
+
+	return cp;
+}
+
+
+// pinters->n is supposed to be on the terrain
+S_API void PhysObject::ResolveLivingTerrainContact(const PhysTerrain* pterrain, const SIntersection* pinters, float fTime)
+{
+	const float LIVING_RESTING_TOLERANCE = 0.5f;
+	const float GROUND_FRICTION = 0.9f; // 1.0f = no friction, 0 = 100% friction
+
+	float vrel_ln = Vec3Dot(pinters->n, m_State.v);
+	if (vrel_ln <= LIVING_RESTING_TOLERANCE)
+	{
+		m_State.P += -vrel_ln * pinters->n * m_State.M;
+		m_State.v = m_State.P * m_State.Minv;
+
+		// Friction when living entity is not actively moving forward
+		if (!m_State.livingMoves)
+			m_State.P += -m_State.P * GROUND_FRICTION;
+	}
+
+	if (vrel_ln > 0 && vrel_ln < 0.9f) // moving forward, slightly down hill
+	{
+		m_State.P -= pinters->n * vrel_ln * 0.95f;
+	}
+	
+	// Resolve interpenetration
+	m_State.pos -= 0.95f * (pinters->n * pinters->dist);
+
+	m_State.livingOnGround = true;
+}
+
 float __sqr(float f) { return f * f; }
 float __cube(float f) { return f * f * f; }
 
@@ -240,6 +319,7 @@ S_API void PhysObject::RecalculateInertia()
 			Ibody._11 = c * (h * h + d * d);
 			Ibody._22 = c * (w * w + d * d);
 			Ibody._33 = c * (w * w + h * h);
+			centerOfMass = pbox->c;
 			break;
 		}
 	case eSHAPE_SPHERE:
@@ -247,6 +327,7 @@ S_API void PhysObject::RecalculateInertia()
 			sphere* psphere = (sphere*)m_pShape;
 			V = (4.0f / 3.0f) * SP_PI * psphere->r * psphere->r;
 			Ibody._11 = Ibody._22 = Ibody._33 = 0.4f * V * psphere->r * psphere->r;
+			centerOfMass = psphere->c;
 			break;
 		}
 	case eSHAPE_CYLINDER:
@@ -256,6 +337,7 @@ S_API void PhysObject::RecalculateInertia()
 			V = SP_PI * pcyl->r * pcyl->r * h;
 			Ibody._11 = Ibody._22 = (1.0f / 12.0f) * V * (3.0f * pcyl->r * pcyl->r + h * h);
 			Ibody._33 = 0.5f * V * pcyl->r * pcyl->r;
+			centerOfMass = (pcyl->p[0] + pcyl->p[1]) * 0.5f;
 			break;
 		}
 	case eSHAPE_CAPSULE:
@@ -268,6 +350,7 @@ S_API void PhysObject::RecalculateInertia()
 			V = Vcyl + Vcaps;
 			Ibody._11 = Ibody._33 = Vcyl * (hsq + 3.0f * rsq) / 12.0f + Vcaps * (0.4f * rsq + 0.5f * hsq + 0.375f * h * pcapsule->r);
 			Ibody._22 = Vcyl * 0.5f * rsq + Vcaps * 0.4f * rsq;
+			centerOfMass = pcapsule->c;
 			break;
 		}
 	case eSHAPE_PLANE:

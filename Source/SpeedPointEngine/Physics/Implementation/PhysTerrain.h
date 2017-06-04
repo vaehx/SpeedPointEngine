@@ -16,6 +16,7 @@ protected:
 
 public:
 	PhysTerrain();
+	virtual EPhysObjectType GetType() const { return ePHYSOBJ_TYPE_TERRAIN; }
 	void Clear();
 	void Create(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params);
 	void UpdateHeightmap(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds = AABB());

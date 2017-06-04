@@ -317,8 +317,7 @@ S_API SResult SpeedPointEngine::LoadWorld(const string& absResourcePath)
 	if (absResourcePath.empty())
 		return CLog::Log(S_ERROR, "Failed load world: Empty path given");
 
-	string file = GetResourceSystemPath(absResourcePath);
-	CLog::Log(S_DEBUG, "Attempting to load world '%s'...", file.c_str());
+	CLog::Log(S_DEBUG, "Attempting to load world '%s'...", absResourcePath.c_str());
 
 	GetScene()->Clear();
 	GetScene()->Initialize();
@@ -328,9 +327,9 @@ S_API SResult SpeedPointEngine::LoadWorld(const string& absResourcePath)
 	Get3DEngine()->ClearTerrain();
 
 	CSPWLoader loader;
-	loader.Load(m_p3DEngine, m_pScene, file);
+	loader.Load(m_p3DEngine, m_pScene, absResourcePath);
 	
-	CLog::Log(S_INFO, "Loaded world '%s'", file.c_str());
+	CLog::Log(S_INFO, "Loaded world '%s'", absResourcePath.c_str());
 	return S_SUCCESS;
 }
 

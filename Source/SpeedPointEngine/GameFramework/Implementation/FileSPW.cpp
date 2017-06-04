@@ -9,6 +9,7 @@
 #include <Renderer\IResourcePool.h>
 #include <Renderer\ITexture.h>
 #include <Common\SerializationTools.h>
+#include <Common\FileUtils.h>
 
 SP_NMSPACE_BEG
 
@@ -221,8 +222,9 @@ S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, IEntity
 
 
 
-// file - absolute resource path to .raw texture file
-ITexture* LoadRawTexture(const string& file, ETextureType type, IResourcePool* pResources)
+// file - path to .raw texture file. If relative is assumed to be relative to worldDir
+// worldDir - absolute resource path to a directory
+ITexture* LoadRawTexture(const string& file, const string& worldDir, ETextureType type, IResourcePool* pResources)
 {
 	if (!pResources)
 	{
@@ -230,11 +232,15 @@ ITexture* LoadRawTexture(const string& file, ETextureType type, IResourcePool* p
 		return 0;
 	}
 
+	string sysFile;
+	sysFile = pResources->GetAbsoluteResourcePath(file, worldDir);
+	sysFile = pResources->GetResourceSystemPath(sysFile);
+
 	std::ifstream stream;
-	stream.open(pResources->GetResourceSystemPath(file), stream.in | stream.binary);
+	stream.open(sysFile, stream.in | stream.binary);
 	if (!stream.good())
 	{
-		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Cannot open file", file.c_str());
+		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Cannot open file", sysFile.c_str());
 		return 0;
 	}
 
@@ -247,7 +253,7 @@ ITexture* LoadRawTexture(const string& file, ETextureType type, IResourcePool* p
 	ITexture* pTex = pResources->GetTexture(file);
 	if (Failure(pTex->CreateEmpty(file, sz[0], sz[1], 1, type, SColor::Black())))
 	{
-		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Failed CreateEmpty()", file.c_str());
+		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Failed CreateEmpty()", sysFile.c_str());
 		stream.close();
 		return 0;
 	}
@@ -275,7 +281,7 @@ ITexture* LoadRawTexture(const string& file, ETextureType type, IResourcePool* p
 	}
 	else
 	{
-		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Cannot lock texture", file.c_str());
+		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Cannot lock texture", sysFile.c_str());
 		stream.close();
 		return 0;
 	}
@@ -296,7 +302,7 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 
 	STerrainLayer layer;
 	layer.pDetailMap = pResources->GetTexture(DeserializeString(params["detailmap"]));
-	layer.pAlphaMask = LoadRawTexture(DeserializeString(params["alphamap"]), eTEXTURE_R8G8B8A8_UNORM, pResources);
+	layer.pAlphaMask = LoadRawTexture(DeserializeString(params["alphamap"]), m_WorldFileDir, eTEXTURE_R8G8B8A8_UNORM, pResources);
 
 	pTerrain->AddLayer(layer);
 
@@ -307,15 +313,15 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const string& paramsExpr, unsigned int& trailingIndent)
 {
 	map<string, string> params;
-	params["heightmap"] = "\"\"";
-	params["colormap"] = "\"\"";
-	params["segments"] = "512";
-	params["chunkSegments"] = "16";
-	params["size"] = "512.0f";
-	params["baseHeight"] = "0.0f";
-	params["chunkStepDist"] = "20.0f";
-	params["lodLevels"] = "4";
-	params["center"] = "true";
+	params["heightmap"]		= "\"\"";
+	params["colormap"]		= "\"\"";
+	params["segments"]		= "512";
+	params["chunkSegments"]	= "16";
+	params["size"]			= "512.0f";
+	params["baseHeight"]	= "0.0f";
+	params["chunkStepDist"]	= "20.0f";
+	params["lodLevels"]		= "4";
+	params["center"]		= "true";
 	ParseParams(paramsExpr, params);
 
 	STerrainParams terrain;
@@ -334,7 +340,7 @@ S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const 
 	ITerrain* pTerrain = m_p3DEngine->CreateTerrain(terrain);
 	
 	pTerrain->SetHeightScale(10.0f);
-	pTerrain->SetHeightmap(LoadRawTexture(DeserializeString(params["heightmap"]), eTEXTURE_R32_FLOAT, pResources));
+	pTerrain->SetHeightmap(LoadRawTexture(DeserializeString(params["heightmap"]), m_WorldFileDir, eTEXTURE_R32_FLOAT, pResources));
 	
 	// Initialize terrain proxy
 	Vec2f minXZ = pTerrain->GetMinXZ();
@@ -351,7 +357,7 @@ S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const 
 	SpeedPointEnv::GetPhysics()->CreateTerrainProxy(pTerrain->GetHeightData(), heightmapSz, physTerrain);
 	
 	
-	pTerrain->SetColorMap(LoadRawTexture(DeserializeString(params["colormap"]), eTEXTURE_R8G8B8A8_UNORM, pResources));
+	pTerrain->SetColorMap(LoadRawTexture(DeserializeString(params["colormap"]), m_WorldFileDir, eTEXTURE_R8G8B8A8_UNORM, pResources));
 
 	unsigned int nextBlockIndent = ReadIndent();
 	while (nextBlockIndent > blockIndent)
@@ -437,11 +443,15 @@ S_API void CSPWLoader::ReadAndParseFile()
 
 
 
-S_API void CSPWLoader::Load(I3DEngine* p3DEngine, IScene* pScene, const string& file)
+S_API void CSPWLoader::Load(I3DEngine* p3DEngine, IScene* pScene, const string& worldFile)
 {
 	m_p3DEngine = p3DEngine;
 	m_pScene = pScene;
 
+	m_WorldFile = worldFile;
+	m_WorldFileDir = GetDirectoryPath(worldFile);
+
+	string file = SpeedPointEnv::GetEngine()->GetResourceSystemPath(m_WorldFile);
 	m_Stream.open(file.c_str(), ifstream::in);
 	if (m_Stream.good())
 	{
@@ -450,7 +460,7 @@ S_API void CSPWLoader::Load(I3DEngine* p3DEngine, IScene* pScene, const string& 
 	}
 	else
 	{
-		LogError("Cannot open file");
+		CLog::Log(S_ERROR, "CSPWLoader: Cannot open file '%s'", file.c_str());
 	}
 }
 

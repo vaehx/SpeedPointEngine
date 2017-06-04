@@ -3,6 +3,8 @@
 
 SP_NMSPACE_BEG
 
+#define RESTING_TOLERANCE 0.02f
+
 using namespace geo;
 
 S_API CPhysics::CPhysics()
@@ -85,6 +87,9 @@ S_API void CPhysics::Update(float fTime)
 		pObject->OnSimulationPrepare();
 		pObject->Update(fTime);
 
+		if (m_bHelpersShown)
+			pObject->ShowHelper(m_bHelpersShown);
+
 		//PhysDebug::VisualizeBox(pObject->GetTransformedCollisionShape()->GetBoundBox(), SColor::White(), true);
 	}
 
@@ -121,46 +126,68 @@ S_API void CPhysics::Update(float fTime)
 		if (!pshape1 || !pshape2)
 			continue;
 
-		SIntersection contact;
-		if (!_Intersection(pshape1, pshape2, &contact))
+		SIntersection inters;
+		if (!_Intersection(pshape1, pshape2, &inters))
 			continue;
 
 		if (m_bHelpersShown)
 		{
 			PhysDebug::VisualizePoint(pobj1->GetState()->pos, SColor::Green(), true);
 
-			PhysDebug::VisualizePoint(contact.p, SColor::Red(), true);
-			PhysDebug::VisualizeVector(contact.p, contact.n, SColor::Red(), true);
-			PhysDebug::VisualizeVector(contact.p, contact.n * contact.dist, SColor::Yellow(), true);
+			PhysDebug::VisualizePoint(inters.p, SColor::Red(), true);
+			PhysDebug::VisualizeVector(inters.p, inters.n, SColor::Red(), true);
+			PhysDebug::VisualizeVector(inters.p, inters.n * inters.dist, SColor::Yellow(), true);
 		}
+
+		if ((pobj1->GetBehavior() == ePHYSOBJ_BEHAVIOR_LIVING && pobj2->GetType() == ePHYSOBJ_TYPE_TERRAIN) ||
+			(pobj1->GetType() == ePHYSOBJ_TYPE_TERRAIN && pobj2->GetBehavior() == ePHYSOBJ_BEHAVIOR_LIVING))
+		{
+			PhysTerrain* pterrain;
+			PhysObject* pliving;
+			if (pobj1->GetType() == ePHYSOBJ_TYPE_TERRAIN)
+			{
+				pterrain = (PhysTerrain*)pobj1;
+				pliving = pobj2;
+			}
+			else
+			{
+				pterrain = (PhysTerrain*)pobj2;
+				pliving = pobj1;
+				inters.n *= -1.0f;
+			}
+
+			pliving->ResolveLivingTerrainContact(pterrain, &inters, fTime);
+			continue;
+		}
+
 
 		SPhysObjectState *A = pobj1->GetState(), *B = pobj2->GetState();
 
-		Vec3f Apvel = A->v + (A->w ^ (contact.p - A->pos));
-		Vec3f Bpvel = B->v + (B->w ^ (contact.p - B->pos));
-		float vrel_ln = Vec3Dot(contact.n, Bpvel - Apvel);
+		Vec3f Apvel = A->v + (A->w ^ (inters.p - A->pos));
+		Vec3f Bpvel = B->v + (B->w ^ (inters.p - B->pos));
+		float vrel_ln = Vec3Dot(inters.n, Bpvel - Apvel);
 		if (vrel_ln <= RESTING_TOLERANCE) // not a separating contact
 		{
-			Vec3f r_a = contact.p - A->pos;
-			Vec3f r_b = contact.p - B->pos;
+			Vec3f r_a = inters.p - A->pos;
+			Vec3f r_b = inters.p - B->pos;
 
 			//~~
 			//TODO: Determine restitution coefficient by the combination of the colliding materials.
 			float rest_coeff = 0.2f; // 0 = no bounce,  1 = 100% bounce
 			//~~
 
-			float D_a = Vec3Dot(contact.n, (A->Iinv * (r_a ^ contact.n)) ^ r_a);
-			float D_b = Vec3Dot(contact.n, (B->Iinv * (r_b ^ contact.n)) ^ r_b);
+			float D_a = Vec3Dot(inters.n, (A->Iinv * (r_a ^ inters.n)) ^ r_a);
+			float D_b = Vec3Dot(inters.n, (B->Iinv * (r_b ^ inters.n)) ^ r_b);
 
 			float j = -(1.0f + rest_coeff) * vrel_ln / (A->Minv + B->Minv + D_a + D_b);
-			Vec3f force = j * -contact.n;
+			Vec3f force = j * -inters.n;
 
 			if (fabsf(vrel_ln) <= RESTING_TOLERANCE) // resting or sliding contact
 			{
 				// Apply normal force
 				Vec3f AFnormal, BFnormal;
-				A->P += (AFnormal = Vec3Dot(contact.n, Apvel) * contact.n) * fTime;
-				B->P += (BFnormal = Vec3Dot(contact.n, Bpvel) * contact.n) * fTime;
+				A->P += (AFnormal = Vec3Dot(inters.n, Apvel) * inters.n) * fTime;
+				B->P += (BFnormal = Vec3Dot(inters.n, Bpvel) * inters.n) * fTime;
 			}
 			else // colliding contact
 			{
@@ -173,8 +200,8 @@ S_API void CPhysics::Update(float fTime)
 
 			// Apply friction
 			float frictionFactor = 0.95f;
-			Vec3f AFfric = frictionFactor * (((contact.p - Apvel) - Vec3Dot(-Apvel, contact.n) * contact.n) - contact.p);
-			Vec3f BFfric = frictionFactor * (((contact.p - Bpvel) - Vec3Dot(-Bpvel, contact.n) * contact.n) - contact.p);
+			Vec3f AFfric = frictionFactor * (((inters.p - Apvel) - Vec3Dot(-Apvel, inters.n) * inters.n) - inters.p);
+			Vec3f BFfric = frictionFactor * (((inters.p - Bpvel) - Vec3Dot(-Bpvel, inters.n) * inters.n) - inters.p);
 
 			A->P += AFfric;
 			B->P += BFfric;
@@ -191,9 +218,9 @@ S_API void CPhysics::Update(float fTime)
 		}
 
 		// Resolve interpenetration
-		if (contact.dist < 0 && !m_bPaused)
+		if (inters.dist < 0 && !m_bPaused)
 		{
-			Vec3f dv = (contact.n * contact.dist) / (A->Minv + B->Minv);
+			Vec3f dv = (inters.n * inters.dist) / (A->Minv + B->Minv);
 			A->pos += (dv * A->Minv) / 5.0f;
 			B->pos -= (dv * B->Minv) / 5.0f;
 		}

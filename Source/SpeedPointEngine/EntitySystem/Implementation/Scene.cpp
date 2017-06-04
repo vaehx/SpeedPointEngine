@@ -13,8 +13,39 @@ Scene::Scene()
 S_API void Scene::Clear()
 {
 	m_Name = "Scene";
-	m_Entities.Clear();
+
 	m_ExternalEntities.clear();
+
+	// Cleanup non-child entities first until there are no more non-child entities
+	// In case there actually exist entities afterwards that still have a parent,
+	// they are forcefully deleted.
+	unsigned int numDeleted;
+	bool forceCleanup = false;
+	while (true)
+	{
+		numDeleted = 0;
+		unsigned int iEntity;
+		CEntity* pEntity = m_Entities.GetFirstUsedObject(iEntity);
+		while (pEntity)
+		{
+			if (pEntity->GetParent() == 0 || forceCleanup)
+			{
+				++numDeleted;
+				pEntity->Clear();
+				m_Entities.Release(&pEntity);
+			}
+
+			pEntity = m_Entities.GetNextUsedObject(iEntity);
+		}
+
+		if (forceCleanup)
+			break;
+
+		if (numDeleted == 0)
+			forceCleanup = true;
+	}
+
+	m_Entities.Clear();
 }
 
 // -------------------------------------------------------------------------------------------------
