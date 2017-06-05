@@ -15,140 +15,6 @@
 
 SP_NMSPACE_BEG
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-S_API CSPWSerContainer::CSPWSerContainer(const string& name)
-	: ISerContainer(name)
-{
-}
-
-S_API ISerContainer* CSPWSerContainer::CreateChildContainer(const string& name)
-{
-	m_Children.emplace_back(name);
-	ISerContainer* pChild = &m_Children.back();
-	m_ChildPointers.push_back(pChild);
-	return pChild;
-}
-
-S_API const vector<ISerContainer*>& CSPWSerContainer::GetChildContainers() const
-{
-	return m_ChildPointers;
-}
-
-S_API unsigned short CSPWSerContainer::GetNumChildren() const
-{
-	return (unsigned short)m_Children.size();
-}
-
-S_API void CSPWSerContainer::DestroyChildContainer(const string& name)
-{
-	auto itDestroyChild = m_Children.end();
-	for (auto itChild = m_Children.begin(); itChild != m_Children.end(); ++itChild)
-	{
-		if (itChild->GetName() == name)
-		{
-			itDestroyChild = itChild;
-			break;
-		}
-	}
-
-	if (itDestroyChild == m_Children.end())
-		return;
-
-	ISerContainer* pChild = &*itDestroyChild;
-	for (auto itChildPtr = m_ChildPointers.begin(); itChildPtr != m_ChildPointers.end(); ++itChildPtr)
-	{
-		if (*itChildPtr == pChild)
-		{
-			m_ChildPointers.erase(itChildPtr);
-			break;
-		}
-	}
-
-	m_Children.erase(itDestroyChild);
-}
-
-S_API unsigned short CSPWSerContainer::GetNumAttributes() const
-{
-	return (unsigned short)m_Attributes.size();
-}
-
-
-#define GET_AND_ASSERT_ATTR(name) \
-	auto attr = m_Attributes.find(name); \
-	if (attr == m_Attributes.end()) return def;
-
-S_API int CSPWSerContainer::GetInt(const string& attrname, int def)
-{
-	GET_AND_ASSERT_ATTR(attrname);
-	return DeserializeInt(attr->second);
-}
-
-S_API unsigned int CSPWSerContainer::GetUInt(const string& attrname, unsigned int def)
-{
-	GET_AND_ASSERT_ATTR(attrname);
-	return DeserializeUInt(attr->second);
-}
-
-S_API float CSPWSerContainer::GetFloat(const string& attrname, float def)
-{
-	GET_AND_ASSERT_ATTR(attrname);
-	return DeserializeFloat(attr->second);
-}
-
-S_API string CSPWSerContainer::GetString(const string& attrname, const string& def)
-{
-	GET_AND_ASSERT_ATTR(attrname);
-	return DeserializeString(attr->second);
-}
-
-S_API Vec3f CSPWSerContainer::GetVec3f(const string& attrname, const Vec3f& def)
-{
-	GET_AND_ASSERT_ATTR(attrname);
-	return DeserializeVec3f(attr->second);
-}
-
-
-S_API void CSPWSerContainer::SetRaw(const string& attrname, const string& val)
-{
-	if (!attrname.empty())
-		m_Attributes[attrname] = val;
-}
-
-S_API void CSPWSerContainer::SetInt(const string& attrname, int val)
-{
-	if (!attrname.empty())
-		m_Attributes[attrname] = SerializeInt(val);
-}
-
-S_API void CSPWSerContainer::SetUInt(const string& attrname, unsigned int val)
-{
-	if (!attrname.empty())
-		m_Attributes[attrname] = SerializeUInt(val);
-}
-
-S_API void CSPWSerContainer::SetFloat(const string& attrname, float val)
-{
-	if (!attrname.empty())
-		m_Attributes[attrname] = SerializeFloat(val);
-}
-
-S_API void CSPWSerContainer::SetString(const string& attrname, const string& val)
-{
-	if (!attrname.empty())
-		m_Attributes[attrname] = SerializeString(val);
-}
-
-S_API void CSPWSerContainer::SetVec3f(const string& attrname, const Vec3f& val)
-{
-	if (!attrname.empty())
-		m_Attributes[attrname] = SerializeVec3f(val);
-}
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -301,7 +167,7 @@ S_API void CSPWLoader::DeserializeComponent(const map<string, string>& params, I
 
 	// Convert params to a serialization container
 	// TODO: Fix that.
-	CSPWSerContainer ser(pComponent->GetName());
+	CBasicSerContainer ser(pComponent->GetName());
 	for (auto itParam : params)
 		ser.SetRaw(itParam.first, itParam.second);
 

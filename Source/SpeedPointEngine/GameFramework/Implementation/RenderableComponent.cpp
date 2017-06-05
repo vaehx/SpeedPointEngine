@@ -9,7 +9,8 @@ S_API void CRenderMeshComponent::Serialize(ISerContainer* ser, bool serialize /*
 {
 	if (serialize)
 	{
-		ser->SetString("geometry", GetGeometry()->GetFilePath());
+		IGeometry* pGeometry = GetGeometry();
+		ser->SetString("geometry", pGeometry ? pGeometry->GetFilePath() : "");
 	}
 	else
 	{

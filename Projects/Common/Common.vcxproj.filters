@@ -122,5 +122,8 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\geo.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\SerializationTools.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

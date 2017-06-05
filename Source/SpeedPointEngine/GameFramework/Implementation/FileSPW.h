@@ -23,38 +23,6 @@ struct S_API SInitialGeometryDesc;
 
 #define SPW_MAX_LINE_LENGTH 500
 
-class S_API CSPWSerContainer : public ISerContainer
-{
-private:
-	vector<CSPWSerContainer> m_Children;
-	vector<ISerContainer*> m_ChildPointers;
-	map<string, string> m_Attributes;
-
-public:
-	CSPWSerContainer(const string& name);
-
-	virtual ISerContainer* CreateChildContainer(const string& name);
-	virtual const vector<ISerContainer*>& GetChildContainers() const;
-	virtual unsigned short GetNumChildren() const;
-	virtual void DestroyChildContainer(const string& name);
-
-	virtual unsigned short GetNumAttributes() const;
-	virtual const map<string, string>& GetAttributes() const { return m_Attributes; }
-
-	virtual int GetInt(const string& attrname, int def = INT_MAX);
-	virtual unsigned int GetUInt(const string& attrname, unsigned int def = UINT_MAX);
-	virtual float GetFloat(const string& attrname, float def = FLT_MAX);
-	virtual string GetString(const string& attrname, const string& def = "???");
-	virtual Vec3f GetVec3f(const string& attrname, const Vec3f& def = Vec3f());
-
-	virtual void SetRaw(const string& attrname, const string& val);
-	virtual void SetInt(const string& attrname, int val);
-	virtual void SetUInt(const string& attrname, unsigned int val);
-	virtual void SetFloat(const string& attrname, float val);
-	virtual void SetString(const string& attrname, const string& val);
-	virtual void SetVec3f(const string& attrname, const Vec3f& val);
-};
-
 class S_API CSPWLoader
 {
 private:
