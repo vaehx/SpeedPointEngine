@@ -96,8 +96,8 @@ S_API void CPhysics::Update(float fTime)
 	m_Terrain.Update(fTime);
 
 	const geo::shape* pTerrainShape = m_Terrain.GetTransformedCollisionShape();
-	if (pTerrainShape)
-		PhysDebug::VisualizeBox(pTerrainShape->GetBoundBox(), SColor::White(), true);
+	//if (pTerrainShape)
+	//	PhysDebug::VisualizeBox(pTerrainShape->GetBoundBox(), SColor::White(), true);
 
 	// Determine pairs of objects that possibly collide
 	PhysObject *pobj1, *pobj2;

@@ -236,7 +236,7 @@ S_API void CPhysDebugHelper::CreateFromShape(const geo::shape* pshape, const SCo
 	}
 }
 
-S_API void CPhysDebugHelper::UpdateFromShape(const shape* pshape)
+S_API void CPhysDebugHelper::UpdateFromShape(const shape* pshape, const AABB& bounds)
 {
 	if (!m_pHelper || !pshape)
 		return;
@@ -341,23 +341,34 @@ S_API void CPhysDebugHelper::UpdateFromShape(const shape* pshape)
 			if (!pVerts)
 				return;
 
+			unsigned int minvtx = UINT_MAX, maxvtx = 0;
 			unsigned int ntris = (pmesh->num_indices - (pmesh->num_indices % 3)) / 3;
 			Vec3f n;
+			bool insideBounds;
 			for (unsigned int itri = 0; itri < ntris * 3; itri += 3)
 			{
+				insideBounds = false;
+				for (int i = 0; i < 3; ++i)
+					insideBounds |= bounds.ContainsPoint(Vec3f(pVerts[itri + i].x, pVerts[itri + i].y, pVerts[itri + i].z));
+
+				if (!insideBounds) continue;
+
 				const Vec3f &p1 = pmesh->points[pmesh->indices[itri]];
 				const Vec3f &p2 = pmesh->points[pmesh->indices[itri + 1]];
 				const Vec3f &p3 = pmesh->points[pmesh->indices[itri + 2]];
 				n = ((p2 - p1) ^ (p3 - p1)).Normalized();
 
-				for (int i = 0; i < 3; ++i)
+				for (unsigned int ivtx = itri; ivtx < itri + 3; ++ivtx)
 				{
-					const Vec3f& p = pmesh->points[pmesh->indices[itri + i]];
-					pVerts[itri + i] = SVertex(p.x, p.y, p.z, n.x, n.y, n.z, 0, 0, 0);
+					const Vec3f& p = pmesh->points[pmesh->indices[ivtx]];
+					pVerts[ivtx] = SVertex(p.x, p.y, p.z, n.x, n.y, n.z, 0, 0, 0);
 				}
+
+				minvtx = min(itri, minvtx);
+				maxvtx = max(itri + 2, maxvtx);
 			}
 
-			pVB->UploadVertexData();
+			pVB->UploadVertexData(minvtx, maxvtx - minvtx);
 			break;
 		}
 	case eSHAPE_BOX:

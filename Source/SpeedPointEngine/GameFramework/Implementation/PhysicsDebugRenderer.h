@@ -17,7 +17,7 @@ public:
 	CPhysDebugHelper();
 	virtual ~CPhysDebugHelper() { Clear(); }
 	virtual void CreateFromShape(const geo::shape* pshape, const SColor& color = SColor::White());
-	virtual void UpdateFromShape(const geo::shape* pshape);
+	virtual void UpdateFromShape(const geo::shape* pshape, const AABB& bounds = AABB());
 	virtual void Show(bool show = true);
 	virtual bool IsShown() const;
 	virtual void Clear();

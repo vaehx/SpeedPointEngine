@@ -172,7 +172,7 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 
 	// Update helper
 	if (m_pHelper && m_pHelper->IsShown())
-		m_pHelper->UpdateFromShape(pmesh);
+		m_pHelper->UpdateFromShape(pmesh, bounds);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
