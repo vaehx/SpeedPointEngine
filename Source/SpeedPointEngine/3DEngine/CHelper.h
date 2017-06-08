@@ -112,6 +112,7 @@ public:
 
 	virtual void Show(bool show = true) { m_RenderParams.visible = show; }
 	virtual void Hide() { Show(false); }
+	virtual bool IsShown() const { return m_RenderParams.visible; };
 
 	virtual unsigned int GetTypeId() const = 0;
 	
