@@ -13,24 +13,19 @@
 #include <string>
 #include <vector>
 
-
 using std::string;
 using std::vector;
 
 SP_NMSPACE_BEG
 
-struct S_API SInitialGeometryDesc;
-
-// Material Layer
-struct S_API SMaterialLayer
+struct S_API SMaterialDefinition
 {
+	string name;
 	string textureMap;
 	string normalMap;
 	string roughnessMap;
 	float roughness; // ignored if roughnessMap valid
 };
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // SpeedPoint Material
@@ -44,16 +39,18 @@ struct S_API IMaterial
 
 	virtual void SetName(const string& name) = 0;
 	virtual const string& GetName() const = 0;
+
+	// By default, 1 default definition is already allocated.
+	// There must be at least one definition.
+	// If numDefinitions is 0, it will be set to 1 first.
+	virtual void AllocateDefinitions(unsigned int numDefinitions) = 0;
+
+	virtual unsigned int GetDefinitionCount() const = 0;
+	virtual SMaterialDefinition* GetDefinition(unsigned int idx = 0) = 0;
+	virtual SMaterialDefinition* GetDefinition(const string& name) = 0;
 	
-	// Initially, the material has 1 layer
-	virtual void SetLayerCount(unsigned int layers) = 0;
-
-	virtual unsigned int GetLayerCount() const = 0;
-
-	// returns 0 if index > layer count. Initially, the material has 1 layer
-	virtual SMaterialLayer* GetLayer(unsigned int index) = 0;	
-
-	virtual void Clear() = 0;
+	// Returns UINT_MAX if not found
+	virtual unsigned int GetDefinitionIndex(const string& name) const = 0;
 };
 
 

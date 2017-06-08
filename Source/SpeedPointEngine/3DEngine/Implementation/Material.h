@@ -19,25 +19,21 @@ class S_API Material : public IMaterial
 {
 private:
 	string m_Name;
-	SMaterialLayer* m_pLayers;
-	unsigned int m_nLayers;
+	SMaterialDefinition* m_pDefinitions;
+	unsigned int m_nDefinitions;
 
 public:
 	Material();
-
-	virtual ~Material()
-	{
-		Clear();
-	}
+	virtual ~Material();
 
 	virtual void SetName(const string& name);
 	virtual const string& GetName() const;
 	
-	virtual void SetLayerCount(unsigned int layers);
-	virtual unsigned int GetLayerCount() const { return m_nLayers; }
-	virtual SMaterialLayer* GetLayer(unsigned int index);
-
-	virtual void Clear();
+	virtual void AllocateDefinitions(unsigned int numDefinitions);
+	virtual unsigned int GetDefinitionCount() const { return m_nDefinitions; }
+	virtual SMaterialDefinition* GetDefinition(unsigned int idx = 0);
+	virtual SMaterialDefinition* GetDefinition(const string& name);
+	virtual unsigned int GetDefinitionIndex(const string& name) const;
 };
 
 

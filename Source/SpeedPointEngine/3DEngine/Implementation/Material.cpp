@@ -13,73 +13,108 @@
 
 SP_NMSPACE_BEG
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API Material::Material()
 {
 	m_Name = "unknown";
-	m_pLayers = new SMaterialLayer[1];
-	m_nLayers = 1;
+	m_pDefinitions = new SMaterialDefinition[1];
+	m_nDefinitions = 1;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
+S_API Material::~Material()
+{
+	if (m_pDefinitions)
+		delete[] m_pDefinitions;
+
+	m_pDefinitions = 0;
+	m_nDefinitions = 0;
+}
+
+//---------------------------------------------------------------------------------------------------------------------
 S_API void Material::SetName(const string& name)
 {
 	m_Name = name;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API const string& Material::GetName() const
 {
 	return m_Name;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API void Material::SetLayerCount(unsigned int layers)
+//---------------------------------------------------------------------------------------------------------------------
+S_API void Material::AllocateDefinitions(unsigned int numDefinitions)
 {
-	SMaterialLayer* pOldLayers = m_pLayers;
-	unsigned int nOldLayers = m_nLayers;
-
-	m_nLayers = layers;
-	m_pLayers = new SMaterialLayer[m_nLayers];
-	if (IS_VALID_PTR(pOldLayers) && nOldLayers > 0)
+	if (numDefinitions < 1)
 	{
-		memcpy(m_pLayers, pOldLayers, sizeof(SMaterialLayer) * min(nOldLayers, m_nLayers));
-		delete[] pOldLayers;
-		pOldLayers = 0;
+		CLog::Log(S_WARNING, "Material::AllocateDefinitions(): numDefinitions = 0. There must be at least 1 definition.");
+		numDefinitions = 1;
 	}
+	
+	if (numDefinitions == m_nDefinitions)
+		return;
+
+	SMaterialDefinition* pNewDefinitions = new SMaterialDefinition[numDefinitions];
+	if (m_nDefinitions > 0 && m_pDefinitions)
+	{
+		// We can't memcpy here, as we will destroy the std::strings later...
+		for (unsigned int i = 0; i < m_nDefinitions; ++i)
+			pNewDefinitions[i] = m_pDefinitions[i];
+	}
+	
+	if (m_pDefinitions)
+		delete[] m_pDefinitions;
+
+	m_pDefinitions = pNewDefinitions;
+	m_nDefinitions = numDefinitions;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API SMaterialLayer* Material::GetLayer(unsigned int index)
+//---------------------------------------------------------------------------------------------------------------------
+S_API SMaterialDefinition* Material::GetDefinition(unsigned int index /*= 0*/)
 {	
-	if (index >= m_nLayers || !IS_VALID_PTR(m_pLayers))
-		return 0;	
-
-	return &m_pLayers[index];
+	if (index < m_nDefinitions && m_pDefinitions)
+		return &m_pDefinitions[index];
+	else
+		return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-S_API void Material::Clear()
+//---------------------------------------------------------------------------------------------------------------------
+S_API SMaterialDefinition* Material::GetDefinition(const string& name)
 {
-	if (IS_VALID_PTR(m_pLayers))
-		delete[] m_pLayers;
+	return GetDefinition(GetDefinitionIndex(name));
+}
 
-	m_nLayers = 0;
-	m_pLayers = 0;
-	m_Name = "?CLEARED?";
+//---------------------------------------------------------------------------------------------------------------------
+S_API unsigned int Material::GetDefinitionIndex(const string& name) const
+{
+	if (!name.empty() && m_pDefinitions)
+	{
+		for (unsigned int i = 0; i < m_nDefinitions; ++i)
+		{
+			if (m_pDefinitions[i].name == name)
+				return i;
+		}
+	}
+
+	return UINT_MAX;
 }
 
 
 
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//---------------------------------------------------------------------------------------------------------------------
 S_API MaterialManager::MaterialManager(I3DEngine* p3DEngine)
 	: m_p3DEngine(p3DEngine)
 {
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API IMaterial* MaterialManager::GetMaterial(const string& specification)
 {
 	if (specification.empty())
@@ -104,7 +139,7 @@ S_API IMaterial* MaterialManager::GetMaterial(const string& specification)
 	return 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API IMaterial* MaterialManager::LoadMaterial(const string& absResourcePath)
 {
 	if (absResourcePath.empty())
@@ -119,25 +154,36 @@ S_API IMaterial* MaterialManager::LoadMaterial(const string& absResourcePath)
 	MATFile mat;
 	if (!mat.ReadFromFile(pResources->GetResourceSystemPath(absResourcePath)))
 	{
-		CLog::Log(S_ERROR, "Failed load material '%s'", absResourcePath.c_str());
+		CLog::Log(S_ERROR, "Failed load material file '%s'", absResourcePath.c_str());
 		return 0;
 	}
 
 	pMaterial = m_Materials.Get();
 	pMaterial->SetName(absResourcePath);
+	
+	unsigned int numMaterials = mat.materials.size();
+	if (numMaterials > 0)
+	{
+		pMaterial->AllocateDefinitions(numMaterials);
 
-	SMaterialLayer* layer = pMaterial->GetLayer(0);
-	layer->roughness = mat.material.roughness;
-	layer->textureMap = mat.material.textureMap;
-	layer->normalMap = mat.material.normalMap;
-	layer->roughnessMap = mat.material.roughnessMap;
+		for (unsigned int i = 0; i < numMaterials; ++i)
+		{
+			auto& material = mat.materials[i];
+			SMaterialDefinition* definition = pMaterial->GetDefinition(i);
+			definition->name			= material.name;
+			definition->roughness		= material.roughness;
+			definition->textureMap		= material.textureMap;
+			definition->normalMap		= material.normalMap;
+			definition->roughnessMap	= material.roughnessMap;
+		}
+	}
 
-	CLog::Log(S_DEBUG, "Loaded material '%s'", absResourcePath.c_str());
+	CLog::Log(S_DEBUG, "Loaded material file '%s' (%u definitions)", absResourcePath.c_str(), numMaterials);
 
 	return pMaterial;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API IMaterial* MaterialManager::CreateMaterial(const string& specification)
 {
 	IMaterial* pMaterial = GetMaterial(specification);
@@ -147,19 +193,19 @@ S_API IMaterial* MaterialManager::CreateMaterial(const string& specification)
 	pMaterial = m_Materials.Get();
 	pMaterial->SetName(specification);
 
-	CLog::Log(S_DEBUG, "Created material '%s'", specification);
+	CLog::Log(S_DEBUG, "Created material '%s'", specification.c_str());
 
 	return pMaterial;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API void MaterialManager::RemoveMaterial(const string& name)
 {
 	IMaterial* pMat = GetMaterial(name);
 	RemoveMaterial(&pMat);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API void MaterialManager::RemoveMaterial(IMaterial** ppMat)
 {
 	if (!IS_VALID_PTR(ppMat))
@@ -172,7 +218,7 @@ S_API void MaterialManager::RemoveMaterial(IMaterial** ppMat)
 	*ppMat = 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API void MaterialManager::GetAllMaterialSpecifications(vector<string>& list) const
 {
 	if (m_Materials.GetUsedObjectCount() > 0)
@@ -191,7 +237,7 @@ S_API void MaterialManager::GetAllMaterialSpecifications(vector<string>& list) c
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------------------------------------------
 S_API void MaterialManager::Clear()
 {
 	m_Materials.Clear();

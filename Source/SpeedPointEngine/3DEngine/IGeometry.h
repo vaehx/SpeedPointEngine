@@ -117,11 +117,13 @@ struct S_API SInitialSubsetGeometryDesc
 	SIndex* pIndices;
 	u32 nIndices;
 	IMaterial* pMaterial;
+	unsigned int iMaterialDefinition;
 
 	SInitialSubsetGeometryDesc()
 		: pIndices(0),
 		nIndices(0),
-		pMaterial(0)
+		pMaterial(0),
+		iMaterialDefinition(0)
 	{
 	}
 
@@ -199,6 +201,7 @@ struct S_API SGeomSubset
 	unsigned long indexOffset;
 	IIndexBuffer* pIndexBuffer;	
 	IMaterial* pMaterial; // must not be owned by SGeomSubset!
+	unsigned int iMaterialDefinition;
 
 	SGeomSubset()
 		: indexOffset(0),

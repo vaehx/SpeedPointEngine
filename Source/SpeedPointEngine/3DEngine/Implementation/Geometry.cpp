@@ -264,6 +264,7 @@ S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* 
 					RETURN_ON_ERR(pDefSubset->pIndexBuffer->Fill(subset.pIndices, subset.nIndices, false));
 
 				pDefSubset->pMaterial = subset.pMaterial;
+				pDefSubset->iMaterialDefinition = subset.iMaterialDefinition;
 			}
 		}
 		else
@@ -271,6 +272,7 @@ S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* 
 			if (IS_VALID_PTR(pInitialGeom) && IS_VALID_PTR(pInitialGeom->pSubsets) && pInitialGeom->nSubsets > 0)
 			{
 				pDefSubset->pMaterial = pInitialGeom->pSubsets[0].pMaterial;
+				pDefSubset->iMaterialDefinition = pInitialGeom->pSubsets[0].iMaterialDefinition;
 			}
 		}
 	}
@@ -296,6 +298,7 @@ S_API SResult CGeometry::Init(IRenderer* pRenderer, const SInitialGeometryDesc* 
 			RETURN_ON_ERR(subset.pIndexBuffer->Initialize(pRenderer, ibUsage));
 
 			subset.pMaterial = subsetGeom.pMaterial;
+			subset.iMaterialDefinition = subsetGeom.iMaterialDefinition;
 			subset.indexOffset = indexOffset;
 
 			// fill index buffer with according indices
@@ -517,6 +520,10 @@ S_API IGeometry* CGeometryManager::LoadGeometry(const string& spmResourcePath)
 			geomDesc.pVertices[vtxOffset + iVtx] = itModel->pVertices[iVtx];
 		}
 
+		// itModel->materialFile may already be absolute
+		string absMaterialFile = MakePathAbsolute(itModel->materialFile, modelDir);
+
+		IMaterial* pMaterial = pMatMgr->LoadMaterial(absMaterialFile);
 		for (u16 iModelSubset = 0; iModelSubset < itModel->nLoadedSubsets; ++iModelSubset)
 		{
 			const SSubset& modelSubset = itModel->pSubsets[iModelSubset];
@@ -528,8 +535,11 @@ S_API IGeometry* CGeometryManager::LoadGeometry(const string& spmResourcePath)
 			for (u32 iIndex = 0; iIndex < subset.nIndices; ++iIndex)
 				subset.pIndices[iIndex] = modelSubset.pIndices[iIndex] + vtxOffset;
 
-			if (pMatMgr)
-				subset.pMaterial = pMatMgr->LoadMaterial(MakePathAbsolute(modelSubset.materialName, modelDir));
+			if (pMaterial)
+			{
+				subset.pMaterial = pMaterial;
+				subset.iMaterialDefinition = pMaterial->GetDefinitionIndex(modelSubset.materialDefinition);
+			}
 
 			iSubset++;
 		}

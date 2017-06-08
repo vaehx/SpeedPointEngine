@@ -110,7 +110,8 @@ inline std::string strtrim(const std::string& s)
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Splits the given string into pieces delimited by the given delimiter character (exclusive).
 // If no delimiter was found in the string, the only part will be the string itself.
-inline std::vector<std::string> strexplode(const std::string& s, const char delimiter)
+// If keepEmpty is false, empty parts are not added to the list.
+inline std::vector<std::string> strexplode(const std::string& s, const char delimiter, bool keepEmpty = true)
 {
 	static std::vector<std::string> parts;
 
@@ -119,14 +120,16 @@ inline std::vector<std::string> strexplode(const std::string& s, const char deli
 	if (s.empty())
 		return parts;
 
-	std::size_t spos = 0;
-	std::size_t dpos;
+	std::size_t pos1 = 0;
+	std::size_t pos2;
 	do
 	{
-		dpos = s.find_first_of(delimiter, spos);
-		parts.push_back(s.substr(spos, dpos - spos));
-		spos = dpos + 1;
-	} while (dpos != s.npos);
+		pos2 = s.find_first_of(delimiter, pos1);
+		if (pos2 - pos1 > 0 || keepEmpty)
+			parts.push_back(s.substr(pos1, pos2 - pos1));
+		
+		pos1 = pos2 + 1;
+	} while (pos2 != s.npos);
 
 	return parts;
 }

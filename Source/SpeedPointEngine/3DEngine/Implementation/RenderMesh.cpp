@@ -137,21 +137,24 @@ S_API SResult CRenderMesh::SetGeometry(IGeometry* pGeometry)
 			if (IS_VALID_PTR(pMatMgr))
 				mat = pMatMgr->GetDefaultMaterial();
 		}
-
+		
 		if (mat)
 		{
 			// Material is copied over. Warning: Avoid modifying the material during rendering.
 			//TODO: To update a material, implement a method to flag a subset material to be updated,
 			//TODO:		then do it below when updating the transform.
 
-			SMaterialLayer* matLayer = mat->GetLayer(0);
-			renderSubset.shaderResources.roughness = matLayer->roughness;
-
-			if (pRes)
+			SMaterialDefinition* matDefinition = mat->GetDefinition(subset->iMaterialDefinition);
+			if (matDefinition)
 			{
-				renderSubset.shaderResources.textureMap = pRes->GetTexture(matLayer->textureMap);
-				renderSubset.shaderResources.normalMap = pRes->GetTexture(matLayer->normalMap);
-				renderSubset.shaderResources.roughnessMap = pRes->GetTexture(matLayer->textureMap);
+				renderSubset.shaderResources.roughness = matDefinition->roughness;
+
+				if (pRes)
+				{
+					renderSubset.shaderResources.textureMap = pRes->GetTexture(matDefinition->textureMap);
+					renderSubset.shaderResources.normalMap = pRes->GetTexture(matDefinition->normalMap);
+					renderSubset.shaderResources.roughnessMap = pRes->GetTexture(matDefinition->textureMap);
+				}
 			}
 		}
 	}
