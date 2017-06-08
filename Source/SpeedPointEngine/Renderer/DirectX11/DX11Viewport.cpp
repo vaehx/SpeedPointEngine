@@ -136,7 +136,12 @@ S_API SResult DX11Viewport::Initialize(IRenderer* pRenderer, const SViewportDesc
 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Viewport::Clear(void)
-{		
+{
+	if (m_pSwapChain && !m_Desc.windowed)
+	{
+		m_pSwapChain->SetFullscreenState(FALSE, 0);
+	}
+
 	m_FBO.Clear();
 
 	SP_SAFE_RELEASE(m_pSwapChain);
