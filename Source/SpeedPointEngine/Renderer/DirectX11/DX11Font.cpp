@@ -250,6 +250,8 @@ S_API void DX11FontRenderer::BeginRender()
 S_API void DX11FontRenderer::RenderText(const string& text, const SColor& color, const SPixelPosition& pixelPos,
 	EFontSize fontSize /*=eFONTSIZE_NORMAL*/, bool alignRight /*=false*/)
 {
+	HRESULT hr;
+
 	if (m_SkipFrameCounter >= 1 && m_SkipFrameCounter <= m_nKeepFrames)
 		return; // iteration is done in EndRender()
 
@@ -286,7 +288,13 @@ S_API void DX11FontRenderer::RenderText(const string& text, const SColor& color,
 
 	// Create layout
 	IDWriteTextLayout* pTextLayout;
-	m_pDWriteFactory->CreateTextLayout(wtext, wbufsz, pUsedTextFormat, drawRect.right - drawRect.left, drawRect.bottom - drawRect.top, &pTextLayout);		
+	hr = m_pDWriteFactory->CreateTextLayout(wtext, wbufsz, pUsedTextFormat, drawRect.right, drawRect.bottom, &pTextLayout);		
+	if (FAILED(hr))
+	{
+		DWORD err = GetLastError();
+		CLog::Log(S_ERROR, "DX11FontRenderer::RenderText(): Failed CreateTextLayout()");
+		return;
+	}
 
 	// Draw the shadow	
 	D2D1_COLOR_F fontColor = D2D1::ColorF(0.01f, 0.01f, 0.01f, 1.0f);
