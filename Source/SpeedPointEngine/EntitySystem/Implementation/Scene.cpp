@@ -1,3 +1,8 @@
+// -------------------------------------------------------------------------------------------------
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
+// -------------------------------------------------------------------------------------------------
+
 #include "Scene.h"
 #include "Entity.h"
 #include "..\IEntityClass.h"
@@ -56,14 +61,15 @@ S_API SResult Scene::Initialize()
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API void Scene::SetName(const string& name)
+S_API IEntity* Scene::SpawnEntity(const string& name, IEntityClass* pClass /*=0*/)
 {
-	m_Name = name;
-}
+	CEntity* pEntity = m_Entities.Get();
+	pEntity->SetName(name.c_str());
 
-S_API const string& Scene::GetName() const
-{
-	return m_Name;
+	if (pClass)
+		pClass->Apply(pEntity);
+
+	return pEntity;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -86,15 +92,36 @@ S_API void Scene::AddEntity(IEntity* pEntity)
 }
 
 // -------------------------------------------------------------------------------------------------
-S_API IEntity* Scene::SpawnEntity(const string& name, IEntityClass* pClass /*=0*/)
+S_API vector<IEntity*> Scene::GetEntitiesByName(const string& name)
 {
-	CEntity* pEntity = m_Entities.Get();
-	pEntity->SetName(name.c_str());
+	// TODO: Determine if it is necessary to cache the name queries.
 
-	if (pClass)
-		pClass->Apply(pEntity);
+	vector<IEntity*> entities;
+	if (!name.empty())
+	{
+		for (auto entity : m_Entities)
+		{
+			if (entity->GetName() == name)
+				entities.push_back(entity);
+		}
+	}
 
-	return pEntity;
+	return entities;
+}
+
+// -------------------------------------------------------------------------------------------------
+S_API IEntity* Scene::GetFirstEntityByName(const string& name)
+{
+	if (name.empty())
+		return 0;
+
+	for (auto entity : m_Entities)
+	{
+		if (entity->GetName() == name)
+			return entity;
+	}
+
+	return 0;
 }
 
 // -------------------------------------------------------------------------------------------------

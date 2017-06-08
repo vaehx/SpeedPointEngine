@@ -30,10 +30,15 @@ struct S_API IScene
 	virtual const string& GetName() const = 0;
 
 	virtual IEntity* SpawnEntity(const string& name, IEntityClass* recipe = 0) = 0;
-
+	
 	// Adds the entity to the scene graph as an external entity. Ownership of the
 	// entity will not be taken over.
 	virtual void AddEntity(IEntity* pEntity) = 0;
+
+	// Note: This procedure can be very slow as it iterates through all entities.
+	virtual vector<IEntity*> GetEntitiesByName(const string& name) = 0;
+
+	virtual IEntity* GetFirstEntityByName(const string& name) = 0;
 
 	// Returns a list of entities where each entity position lies inside the given aabb.
 	// This method does NOT take the extents of the entity into account.

@@ -1,3 +1,7 @@
+// -------------------------------------------------------------------------------------------------
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
+// -------------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -29,12 +33,14 @@ public:
 	virtual SResult Initialize();
 	virtual void Clear();
 
-	virtual void SetName(const string& name);
-	virtual const string& GetName() const;
+	virtual void SetName(const string& name) { m_Name = name; };
+	virtual const string& GetName() const { return m_Name; };
 
 	virtual IEntity* SpawnEntity(const string& name, IEntityClass* recipe = 0);
 	virtual void AddEntity(IEntity* pEntity);
 
+	virtual vector<IEntity*> GetEntitiesByName(const string& name);
+	virtual IEntity* GetFirstEntityByName(const string& name);
 	virtual vector<IEntity*> GetEntities(const AABB& aabb = AABB(Vec3f(-FLT_MAX), Vec3f(FLT_MAX))) const;
 };
 
