@@ -377,4 +377,55 @@ public:
 	{
 		Clear();
 	}
+
+
+public:
+	class Iterator
+	{
+	private:
+		ChunkedObjectPool<T, chunk_size>* pool;
+		T* ptr;
+		unsigned int i;
+	public:
+		Iterator(ChunkedObjectPool<T, chunk_size>* _pool)
+			: pool(_pool)
+		{
+			ptr = 0;
+			if (pool)
+				ptr = pool->GetFirstUsedObject(i = 0);
+			if (!ptr)
+				i = UINT_MAX;
+		}
+
+		Iterator(ChunkedObjectPool<T, chunk_size>* _pool, T* _ptr, unsigned int _i)
+			: pool(_pool), ptr(_ptr), i(_i)
+		{
+			if (!pool)
+				ptr = 0;
+			else if (!pool->IsValidPtr(ptr))
+				ptr = 0;
+			if (!ptr)
+				i = UINT_MAX;
+		}
+
+		T* operator ->() const { return ptr; }
+		T* operator *() const { return ptr; }
+		operator bool() const { return pool && ptr && i < UINT_MAX; }
+		bool operator ==(const Iterator& it) const { return (pool == it.pool) && (ptr == it.ptr) && (i == it.i); }
+		bool operator !=(const Iterator& it) const
+		{
+			return (pool != it.pool) || (ptr != it.ptr) || (i != it.i);
+		}
+		Iterator& operator ++()
+		{
+			if (pool)
+				ptr = pool->GetNextUsedObject(i);
+			if (!ptr)
+				i = UINT_MAX;
+			return *this;
+		}
+	};
+
+	inline Iterator begin() { return Iterator(this); }
+	inline Iterator end() { return Iterator(this, 0, UINT_MAX); }
 };
