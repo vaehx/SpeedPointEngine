@@ -546,7 +546,7 @@ bool _PlaneTriangle(const plane* pplane, const triangle* ptri, SIntersection* pi
 {
 	Vec3f q[3]; // intersection points
 	quotient t;
-	float tt, den;
+	float tt;
 	int n = 0;
 	for (int i = 0; i < 3; ++i)
 	{
@@ -1035,8 +1035,8 @@ bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinter
 		i2 = (i + 1) % 3; i3 = (i + 2) % 3;
 		for (int sg = -1; sg <= 1; sg += 2)
 		{
-			sc = pbox->c + sg * pbox->axis[i] * pbox->dim[i];
-			q.set(Vec3Dot(sc - pcapsule->c, sg * pbox->axis[i]), Vec3Dot(pcapsule->axis, sg * pbox->axis[i]));
+			sc = pbox->c + pbox->axis[i] * sg * pbox->dim[i];
+			q.set(Vec3Dot(sc - pcapsule->c, pbox->axis[i] * sg), Vec3Dot(pcapsule->axis, pbox->axis[i] * sg));
 			if (fabsf(q.d) >= FLT_EPSILON)
 			{
 				tt = q.val();
@@ -1046,15 +1046,15 @@ bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinter
 				{
 					t[0] = min(t[0], tt);
 					t[1] = max(t[1], tt);
-					n = sg * pbox->axis[i];
+					n = pbox->axis[i] * sg;
 				}
 			}
 		}
 	}
 
-	if (t[0] < t[1] & isneg(t[0] - pcapsule->hh) & isneg(-pcapsule->hh - t[1]))
+	if ((t[0] < t[1]) & isneg(t[0] - pcapsule->hh) & isneg(-pcapsule->hh - t[1]))
 	{
-		cp = pcapsule->c + sgnnz(Vec3Dot(pcapsule->axis, -n)) * pcapsule->axis * pcapsule->hh - n * pcapsule->r;
+		cp = pcapsule->c + pcapsule->axis * sgnnz(Vec3Dot(pcapsule->axis, -n)) * pcapsule->hh - n * pcapsule->r;
 		pinters->dist = Vec3Dot(cp - pinters->p, n);
 		pinters->p = pcapsule->c + t[0] * pcapsule->axis;
 		pinters->n = -n;
@@ -1181,7 +1181,7 @@ bool _CapsuleTriangle(const capsule* pcapsule, const triangle* ptri, SIntersecti
 		inside &= isneg(Vec3Dot(pp - ptri->p[i], (ptri->p[(i + 1) % 3] - ptri->p[0]) ^ ptri->n));*/
 	inside = (int)_PointIsInsideTriangle(ptri, pp);
 
-	if (inside & (distsq = (pp - cp).LengthSq()) < pinters->dist)
+	if (inside & ((distsq = (pp - cp).LengthSq()) < pinters->dist))
 	{
 		pinters->dist = distsq;
 		pinters->feature = (cap ? eINTERSECTION_FEATURE_CAP : eINTERSECTION_FEATURE_BASE_SHAPE);
@@ -1458,7 +1458,7 @@ void TransposeBasis(Vec3f basis[3])
 	_SWAP(basis[1].z, basis[2].y);
 }
 
-#define BOXBOX_UPDATE_BEST(axis, cp, ee) \
+#define BOXBOX_UPDATE_BEST(axis, cp) \
 	if (fabsf(d) < fabsf(dmin)) { \
 		dmin = d; \
 		L = axis; \
@@ -1510,7 +1510,7 @@ bool _BoxBox(const box* pbox1, const box* pbox2, SIntersection* pinters)
 				return false;
 			}
 
-			BOXBOX_UPDATE_BEST((((ibox ^ 1) << 1) - 1) * box1->axis[icoord] * sgcoord, basis[ibox].Transposed() * vtx + box1->c);
+			BOXBOX_UPDATE_BEST(box1->axis[icoord] * (((ibox ^ 1) << 1) - 1) * sgcoord, basis[ibox].Transposed() * vtx + box1->c);
 			origin[icoord] = 0;
 		}
 
@@ -1762,14 +1762,14 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebo
 	bool inters = false;
 	if (pnode->children)
 	{
-		for (int i = 0; i < pnode->num_children; ++i)
+		for (unsigned int i = 0; i < pnode->num_children; ++i)
 		{
 			inters |= _MeshNodeShape(pmesh, &pnode->children[i], pnodebox, pshape, pshapebox, pinters);
 		}
 	}
 	else if (pnode->num_tris > 0 && pnode->tris)
 	{
-		for (int i = 0; i < pnode->num_tris; ++i)
+		for (unsigned int i = 0; i < pnode->num_tris; ++i)
 		{
 			tri.p[0] = pmesh->points[pmesh->indices[pnode->tris[i] + 0]];
 			tri.p[1] = pmesh->points[pmesh->indices[pnode->tris[i] + 1]];

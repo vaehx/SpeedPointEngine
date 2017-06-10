@@ -93,6 +93,9 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Renderer.h">
       <Filter>DX11\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IResource.h">
+      <Filter>Abstract</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11ResourcePool.cpp">

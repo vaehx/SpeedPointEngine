@@ -82,7 +82,7 @@ public:
 	virtual SIndex* GetIndex(unsigned long iIndex);	
 	virtual SLargeIndex* GetLargeIndex(unsigned long iIndex);
 	virtual unsigned long GetIndexCount(void) const;	
-	virtual SResult Clear(void);
+	virtual void Clear();
 	virtual S_INDEXBUFFER_FORMAT GetFormat() const
 	{
 		return m_Format;

@@ -39,7 +39,8 @@ S_API SpeedPointEngine::SpeedPointEngine()
 : m_bRunning(false),
 m_bLoggedSkipstages(false),
 m_pApplication(nullptr),
-m_pPhysicsDebugRenderer(0)
+m_pPhysicsDebugRenderer(0),
+m_FramesSinceGC(0)
 {
 	SpeedPointEnv::SetEngine(this);
 
@@ -367,14 +368,15 @@ S_API string SpeedPointEngine::GetResourceSystemPath(const string& absResourcePa
 S_API void SpeedPointEngine::DoFrame()
 {
 	ProfilingSystemIntrnl* pProfilingSystem = ProfilingSystem::Get();
+	float fTime = (float)pProfilingSystem->GetLastFrameDuration();
 
 	// Update
 	m_pProfilingDebugView->Update(m_pRenderer);
 
 	if (m_pApplication)
-		m_pApplication->Update((float)pProfilingSystem->GetLastFrameDuration());
+		m_pApplication->Update(fTime);
 
-	m_pPhysics->Update(pProfilingSystem->GetLastFrameDuration());
+	m_pPhysics->Update(fTime);
 
 	// Render
 	m_pRenderer->BeginScene();
@@ -384,6 +386,15 @@ S_API void SpeedPointEngine::DoFrame()
 	m_p3DEngine->RenderCollected();
 
 	m_pRenderer->EndScene();
+
+	// Garbage collection
+	m_FramesSinceGC++;
+	if (m_FramesSinceGC >= 10)
+	{
+		m_FramesSinceGC = 0;
+		m_pRenderer->GetResourcePool()->RunGarbageCollection();
+		m_p3DEngine->GetGeometryManager()->GarbageCollect();
+	}
 
 	// Release File Log Queue
 	if (m_pFileLogListener)

@@ -52,6 +52,12 @@ namespace SpeedPoint
 		{
 		};
 
+		// r = vec.x, g = vec.y, b = vec.z, a = 0
+		SColor(const float3& vec)
+			: r(vec.x), g(vec.y), b(vec.z), a(0)
+		{
+		};
+
 		inline float3 ToFloat3() const
 		{
 			return float3(r, g, b);

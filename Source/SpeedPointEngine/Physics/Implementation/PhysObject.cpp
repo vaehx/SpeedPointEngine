@@ -375,7 +375,7 @@ S_API void PhysObject::RecalculateInertia()
 
 				V = 0;
 
-				for (int tri = 0; tri < pmesh->num_indices; tri += 3)
+				for (unsigned int tri = 0; tri < pmesh->num_indices; tri += 3)
 				{
 					for (int i = 0; i < 3; ++i)
 						p[i] = pmesh->points[pmesh->indices[tri + i]];

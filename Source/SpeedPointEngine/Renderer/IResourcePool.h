@@ -1,25 +1,26 @@
-// ********************************************************************************************
-
-//	SpeedPoint Resource Pool
-
-//	This is a virtual class. You cannot instantiate it.
-//	Please use Specific Implementation to instantiate.
-
-// ********************************************************************************************
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
 
-#include "ITexture.h"
 #include "IInstanceBuffer.h"
+#include "IResource.h"
 #include <Common\SPrerequisites.h>
 
 SP_NMSPACE_BEG
 
+struct S_API ITexture;
 struct S_API IVertexBuffer;
 struct S_API IIndexBuffer;
 struct S_API IRenderer;
 struct S_API SColor;
 struct S_API SMaterial;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct S_API IResourcePool
 {
@@ -30,6 +31,7 @@ protected:
 public:
 	virtual SResult Initialize(IRenderer* pRenderer) = 0;
 	virtual SResult	ClearAll(void) = 0;
+	virtual void RunGarbageCollection() = 0;
 
 	virtual const string& GetResourceRootPath() const = 0;
 	virtual void SetResourceRootPath(const string& rootSystemPath) = 0;
@@ -50,17 +52,10 @@ public:
 public:
 	virtual SResult	AddVertexBuffer(IVertexBuffer** pVBuffer) = 0;
 
-	// Remove VB by given ptr. After deletion the ptr is set to 0
-	virtual SResult RemoveVertexBuffer(IVertexBuffer** pVB) = 0;
-
-
 	// ------------------------------------------------------------------
 	// Index Buffers:
 public:
 	virtual SResult	AddIndexBuffer(IIndexBuffer** pIBuffer) = 0;
-
-	// Remove IB by given ptr. After deletion the ptr is set to 0
-	virtual SResult RemoveIndexBuffer(IIndexBuffer** pIB) = 0;
 
 
 	// ------------------------------------------------------------------
@@ -77,14 +72,6 @@ public:
 		OnInstanceBufferResourceCreated(*pInstanceBuffer);
 		return S_SUCCESS;
 	}
-
-	template<typename InstanceT>
-	SResult RemoveInstanceBuffer(IInstanceBuffer<InstanceT>** pInstanceBuffer)
-	{
-		return RemoveInstanceBuffer(reinterpret_cast<IInstanceBufferResource**>(pInstanceBuffer));
-	}
-
-	virtual SResult RemoveInstanceBuffer(IInstanceBufferResource** instanceBuffer) = 0;
 
 
 	// ------------------------------------------------------------------
@@ -108,9 +95,7 @@ public:
 	//		basePath - absolute resource path to the cube texture base name:   "/textures/sky" -> "/textures/sky_(pos|neg)(x|y|z).bmp"
 	virtual ITexture* GetCubeTexture(const string& basePath) = 0;
 
-	// Warning: The parameter of for each Handle() points to a ptr of ITexture which is destroyed
-	// after Handle() returns.
-	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler) = 0;
+	virtual void ForEachTexture(const std::function<void(ITexture*)>& fn) = 0;
 
 	// Returns a list of short description for each texture.
 	// E.g. "grassland_n (res\\textures\\grassland_n.png)"

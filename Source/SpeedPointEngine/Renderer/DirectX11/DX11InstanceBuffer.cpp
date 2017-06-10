@@ -18,6 +18,14 @@ S_API DX11InstanceBuffer::DX11InstanceBuffer(DX11Renderer* pDXRenderer)
 {
 }
 
+S_API DX11InstanceBuffer::~DX11InstanceBuffer()
+{
+	if (m_RefCount > 0)
+		CLog::Log(S_WARNING, "Warning: Destructing instance buffer with refcount = %u", m_RefCount);
+
+	Clear();
+}
+
 S_API void DX11InstanceBuffer::Init(unsigned int strideSz, unsigned int chunkSize /*= 10*/)
 {
 	Clear();

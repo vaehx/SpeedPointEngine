@@ -190,8 +190,34 @@ struct S_API SInitialGeometryDesc
 	}
 };
 
+// Deallocates vertex- and subset-arrays in the geometry desc
+inline void CleanupInitialGeometryDesc(SInitialGeometryDesc& geomDesc)
+{
+	if (geomDesc.pVertices)
+		delete[] geomDesc.pVertices;
 
+	if (geomDesc.pSubsets)
+	{
+		for (u16 i = 0; i < geomDesc.nSubsets; ++i)
+		{
+			if (geomDesc.pSubsets[i].pIndices)
+				delete[] geomDesc.pSubsets[i].pIndices;
+		}
 
+		delete[] geomDesc.pSubsets;
+	}
+
+	geomDesc.nVertices = 0;
+	geomDesc.pVertices = 0;
+	geomDesc.nSubsets = 0;
+	geomDesc.pSubsets = 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+// nStripes - horizontal
+// nRings - vertical
+S_API void MakeSphere(SInitialGeometryDesc* pGeomDesc, const Vec3f& pos, float radius, unsigned int nStripes, unsigned int nRings);
 
 ///////////////////////////////////////////////////////////////////////////////////
 

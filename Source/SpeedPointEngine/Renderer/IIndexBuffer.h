@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "IResource.h"
 #include <Common\SPrerequisites.h>
 
 
@@ -52,8 +53,8 @@ typedef unsigned int S_API SIndex;
 #endif
 
 
-// SpeedPoint IndexBuffer Resource (interface)
-struct S_API IIndexBuffer
+// SpeedPoint index buffer
+struct S_API IIndexBuffer : public IResource
 {
 public:
 	// Summary:
@@ -97,9 +98,6 @@ public:
 
 	// Get the Index Buffer format specified when creating the Index Buffer
 	virtual S_INDEXBUFFER_FORMAT GetFormat() const = 0;
-
-	// Clear everything and free memory
-	virtual SResult Clear( void ) = 0;
 };
 
 

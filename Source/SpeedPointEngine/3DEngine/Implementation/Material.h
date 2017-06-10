@@ -10,6 +10,7 @@
 #include "..\IMaterial.h"
 #include "..\I3DEngine.h"
 #include <Common\ChunkedObjectPool.h>
+#include <Renderer\IResource.h>
 
 SP_NMSPACE_BEG
 

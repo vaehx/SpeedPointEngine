@@ -44,6 +44,8 @@ public:
 	{
 		if (spRenderer)
 			return spRenderer->CreateHelper();
+		else
+			return 0;
 	}
 
 	static void SetRenderer(IPhysicsDebugRenderer* pRenderer)

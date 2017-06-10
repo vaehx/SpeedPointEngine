@@ -33,7 +33,9 @@ m_Usage(o.m_Usage)
 // -----------------------------------------------------------------------------------------------
 S_API DX11VertexBuffer::~DX11VertexBuffer()
 {
-	// Make sure resources are freed
+	if (m_RefCount > 0)
+		CLog::Log(S_WARNING, "Warning: Destructing vertex buffer with refcount = %u", m_RefCount);
+
 	Clear();
 }
 
@@ -240,7 +242,7 @@ S_API SResult DX11VertexBuffer::UploadVertexData(unsigned long iVtxStart /* = 0 
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11VertexBuffer::Clear(void)
+S_API void DX11VertexBuffer::Clear()
 {
 	if (IsInited())
 	{
@@ -251,8 +253,6 @@ S_API SResult DX11VertexBuffer::Clear(void)
 		m_nVertices = 0;
 		m_pShadowBuffer = 0;
 	}
-
-	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------

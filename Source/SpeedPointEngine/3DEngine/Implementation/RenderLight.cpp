@@ -9,34 +9,20 @@
 
 SP_NMSPACE_BEG
 
-// -----------------------------------------------------------------------------------------------
+S_API CRenderLight::CRenderLight()
+{
+	m_Params.radius = 1.0f;
+	m_Params.type = eLIGHT_TYPE_OMNIDIRECTIONAL;
+}
+
 S_API AABB CRenderLight::GetAABB()
 {
-
-	//TODO
-
-
-	return AABB();
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SRenderDesc* CRenderLight::GetRenderDesc()
-{
-
 	// TODO
-
-
-	return 0;
+	return AABB(Vec3f(-FLT_MAX), Vec3f(FLT_MAX));
 }
 
-// -----------------------------------------------------------------------------------------------
 S_API void CRenderLight::SetCustomViewProjMatrix(const Mat44& viewMtx, const Mat44& projMtx)
 {
-
-
-	// TODO
-
-
 }
 
 SP_NMSPACE_END

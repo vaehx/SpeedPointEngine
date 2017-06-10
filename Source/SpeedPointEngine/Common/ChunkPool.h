@@ -44,6 +44,8 @@ struct S_API ChunkPoolChunk
 
 
 
+// OBSOLETE!
+//
 // Notes:
 //	The T type should override the default constructor and assignment operator (=). Otherwise
 //	the newly created objects are not filled / constructed properly.

@@ -172,8 +172,8 @@ namespace SpeedPoint
 		return v.Length();
 	}
 
-	template<typename F1, typename F2>
-	S_API inline Vec3<F2> operator *(F1 f, const Vec3<F2>& v) {
+	template<typename F> S_API inline Vec3<F> operator *(F f, const Vec3<F>& v)
+	{
 		return v * f;
 	}
 
@@ -191,8 +191,7 @@ namespace SpeedPoint
 	typedef struct Vec3<float> S_API Vec3f;
 	typedef struct Vec3<float> S_API SVector3;
 	typedef struct Vec3<float> S_API float3;
-	typedef struct Vec3<double> S_API Vec3d;	
-
+	typedef struct Vec3<double> S_API Vec3d;
 
 
 	template<typename F>

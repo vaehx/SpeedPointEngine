@@ -435,8 +435,8 @@ S_API void Terrain::GenLodLevelChunks(SCamera* pCamera)
 		SP_SAFE_DELETE_ARR(lodLvl.pIndices, 1);
 
 		// Release old hardware vb and ib
-		if (IS_VALID_PTR(lodLvl.pVB)) pResources->RemoveVertexBuffer(&lodLvl.pVB);
-		if (IS_VALID_PTR(lodLvl.pIB)) pResources->RemoveIndexBuffer(&lodLvl.pIB);
+		SP_SAFE_RELEASE(lodLvl.pVB);
+		SP_SAFE_RELEASE(lodLvl.pIB);
 
 		// Create the merged buffers for the lod level.
 		// The IB is created with maxmimum size. It may happen, that payload is smaller than IB size.
@@ -649,7 +649,7 @@ S_API SResult Terrain::GenerateFlatVertexHeightmap(float baseHeight)
 	SColor baseColor(baseHeightScaled, baseHeightScaled, baseHeightScaled);	
 
 	m_pVtxHeightMap = pRes->GetTexture("terrain_vtxheightmap");
-	SResult res = m_pVtxHeightMap->CreateEmpty("terrain_vtxheightmap", m_Params.segments + 1, m_Params.segments + 1, 1, eTEXTURE_R32_FLOAT, baseColor);
+	SResult res = m_pVtxHeightMap->CreateEmpty(m_Params.segments + 1, m_Params.segments + 1, 1, eTEXTURE_R32_FLOAT, baseColor);
 	if (Failure(res))
 		return res;
 
@@ -990,11 +990,7 @@ S_API STerrainLayer* Terrain::GetLayer(unsigned int index)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API void Terrain::Clear(void)
-{	
-	IResourcePool* pResources = 0;
-	if (IS_VALID_PTR(m_pRenderer))
-		pResources = m_pRenderer->GetResourcePool();
-
+{
 	// Destruct lod levels
 	if (IS_VALID_PTR(m_pLodLevels))
 	{
@@ -1002,11 +998,8 @@ S_API void Terrain::Clear(void)
 		{
 			ITerrain::LodLevel& lodLvl = m_pLodLevels[iLodLvl];			
 
-			if (IS_VALID_PTR(pResources))
-			{
-				if (IS_VALID_PTR(lodLvl.pVB)) pResources->RemoveVertexBuffer(&lodLvl.pVB);
-				if (IS_VALID_PTR(lodLvl.pIB)) pResources->RemoveIndexBuffer(&lodLvl.pIB);
-			}
+			SP_SAFE_RELEASE(lodLvl.pVB);
+			SP_SAFE_RELEASE(lodLvl.pIB);
 
 			SP_SAFE_DELETE_ARR(lodLvl.pChunkVertices, 1);
 			SP_SAFE_DELETE_ARR(lodLvl.pIndices, 1);

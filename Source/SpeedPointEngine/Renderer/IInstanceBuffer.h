@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "IResource.h"
 #include <Common\SPrerequisites.h>
 
 SP_NMSPACE_BEG
@@ -15,10 +16,9 @@ struct S_API ITypelessInstanceBuffer;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct S_API IInstanceBufferResource
+struct S_API IInstanceBufferResource : public IResource
 {
 	virtual ~IInstanceBufferResource() {}
-	virtual void Clear() = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

@@ -132,8 +132,8 @@ private:
 	unsigned int m_iMaxBoundVSResource;
 	unsigned int m_iMaxBoundPSResource;
 
-	DX11Texture m_DummyTexture;
-	DX11Texture m_DummyNormalMap;	// contains pure (128,128,0) color.
+	ITexture *m_pDummyTexture;
+	ITexture *m_pDummyNormalMap;	// contains pure (128,128,0) color.
 
 	// The Frame Buffer objects
 
@@ -321,6 +321,7 @@ public:
 	virtual void UnbindTexture(ITexture* pTexture);
 
 	virtual ITexture* GetDummyTexture() const;
+	virtual ITexture* GetDummyNormalmap() const;
 
 	// Description:
 	//	creates an additional swap chain for the same window as the default viewport
@@ -340,8 +341,6 @@ public:
 	virtual SResult Render(const SRenderDesc& renderDesc);
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
-
-	virtual SResult RenderDeferredLight(const SLightDesc& light);
 
 	virtual SResult PresentTargetViewport(void);
 

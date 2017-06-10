@@ -652,17 +652,20 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 	InitShaderPasses();
 	m_CurrentPass = eSHADERPASS_NONE;
 
+	// Initialize resource pool
+	IResourcePool* pResources = GetResourcePool();
+
 	// Create unset texture dummy
-	m_DummyTexture.D3D11_SetRenderer(this);
-	if (Failure(m_DummyTexture.CreateEmpty("notexture", 64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.0f, 1.0f, 0.0f))))
+	m_pDummyTexture = pResources->GetTexture("no_texture");
+	if (Failure(m_pDummyTexture->CreateEmpty(64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.0f, 1.0f, 0.0f))))
 	{
 		CLog::Log(S_ERROR, "Could not create empty dummy texture (notexture)!");
 	}
 
 
 	// Create (128,128,0) replacement normal map
-	m_DummyNormalMap.D3D11_SetRenderer(this);
-	if (Failure(m_DummyNormalMap.CreateEmpty("normalmap", 64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.5f, 0.5f, 1.0f))))
+	m_pDummyNormalMap = pResources->GetTexture("no_normalmap");
+	if (Failure(m_pDummyNormalMap->CreateEmpty(64, 64, 1, eTEXTURE_R8G8B8A8_UNORM, SColor(0.5f, 0.5f, 1.0f))))
 	{
 		CLog::Log(S_ERROR, "Could not create empty dummy normal map (nonormalmap)!");
 	}
@@ -781,8 +784,6 @@ S_API SResult DX11Renderer::Shutdown(void)
 	delete m_pFontRenderer;
 	m_pFontRenderer = 0;
 
-	m_DummyTexture.Release();
-
 	SP_SAFE_RELEASE(m_pDXGIFactory);
 	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);
 
@@ -807,8 +808,8 @@ S_API SResult DX11Renderer::Shutdown(void)
 
 	m_Viewport.Clear();
 
-	m_DummyTexture.Release();
-	m_DummyNormalMap.Release();
+	SP_SAFE_RELEASE(m_pDummyTexture);
+	SP_SAFE_RELEASE(m_pDummyNormalMap);
 
 	if (IS_VALID_PTR(m_pResourcePool))
 	{
@@ -1227,9 +1228,14 @@ S_API int DX11Renderer::IsBoundAsTexture(ID3D11ShaderResourceView* srv)
 // -----------------------------------------------------------------------------------------------
 S_API ITexture* DX11Renderer::GetDummyTexture() const
 {
-	return (ITexture*)&m_DummyTexture;
+	return m_pDummyTexture;
 }
 
+// -----------------------------------------------------------------------------------------------
+S_API ITexture* DX11Renderer::GetDummyNormalmap() const
+{
+	return m_pDummyNormalMap;
+}
 
 
 // -----------------------------------------------------------------------------------------------
@@ -1517,35 +1523,6 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 
 	return S_SUCCESS;
 }
-
-
-
-
-S_API SResult DX11Renderer::RenderDeferredLight(const SLightDesc& light)
-{
-
-	// TODO
-
-
-
-
-
-
-
-
-
-
-	return S_SUCCESS;
-}
-
-
-
-
-
-
-
-
-
 
 
 

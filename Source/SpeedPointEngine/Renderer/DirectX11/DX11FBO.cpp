@@ -107,7 +107,8 @@ S_API SResult DX11FBO::InitializeAsTexture(EFBOType type, IRenderer* pRenderer, 
 	if (!m_pFrameBufferTexture)
 		return S_ERROR;
 
-	if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(specification, m_pFrameBuffer)))
+	m_pFrameBufferTexture->SetSpecification(specification);
+	if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(m_pFrameBuffer)))
 		return S_ERROR;
 
 	return S_SUCCESS;
@@ -138,7 +139,8 @@ S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResou
 		if (!m_pFrameBufferTexture)
 			return S_ERROR;
 
-		if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(specification, m_pFrameBuffer)))
+		m_pFrameBufferTexture->SetSpecification(specification);
+		if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(m_pFrameBuffer)))
 			return S_ERROR;
 	}
 
@@ -211,7 +213,8 @@ S_API SResult DX11FBO::InitializeDepthBufferIntrnl(bool allowAsTexture, const st
 		if (!m_pDepthBufferTexture)
 			return S_ERROR;
 
-		if (Failure(m_pDepthBufferTexture->D3D11_InitializeFromExistingResource(specification, m_pDepthBuffer, DXGI_FORMAT_R32_FLOAT)))
+		m_pDepthBufferTexture->SetSpecification(specification);
+		if (Failure(m_pDepthBufferTexture->D3D11_InitializeFromExistingResource(m_pDepthBuffer, DXGI_FORMAT_R32_FLOAT)))
 			return S_ERROR;
 	}
 

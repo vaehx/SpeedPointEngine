@@ -2,8 +2,14 @@
 #include <GameFramework\IGameEngine.h>
 #include <Renderer\ITexture.h>
 #include <Renderer\IResourcePool.h>
+#include <Common\strutils.h>
 
 SP_NMSPACE_BEG
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//	RenderMesh
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API void CRenderMeshComponent::Serialize(ISerContainer* ser, bool serialize /*= true*/)
 {
@@ -24,6 +30,70 @@ S_API void CRenderMeshComponent::Serialize(ISerContainer* ser, bool serialize /*
 	}
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//	RenderLight
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void CRenderLightComponent::OnRelease()
+{
+	CRenderLight::Clear();
+}
+
+S_API void CRenderLightComponent::OnRender()
+{
+	if (!m_pEntity)
+		return;
+
+	m_Params.position = m_pEntity->GetPos();
+	
+	const Vec3f& scale = m_pEntity->GetScale();
+	m_Params.radius = max(max(scale.x, scale.y), scale.z);
+}
+
+const char* SerializeLightType(ELightType type)
+{
+	switch (type)
+	{
+	case eLIGHT_TYPE_OMNIDIRECTIONAL:
+	default:
+		return "omni";
+	}
+}
+
+ELightType DeserializeLightType(const string& expr)
+{
+	/*if (striequals(expr, "spot"))
+		return eLIGHT_TYPE_SPOTLIGHT;
+	else*/
+		return eLIGHT_TYPE_OMNIDIRECTIONAL;
+}
+
+S_API void CRenderLightComponent::Serialize(ISerContainer* ser, bool serialize /*= true*/)
+{
+	if (serialize)
+	{
+		ser->SetString("type", SerializeLightType(m_Params.type));
+		ser->SetVec3f("position", m_Params.position);
+		ser->SetFloat("radius", m_Params.radius);
+		ser->SetVec3f("intensity", m_Params.intensity.ToFloat3());
+	}
+	else
+	{
+		string typeStr = ser->GetString("type", "");
+		if (!typeStr.empty())
+			m_Params.type = DeserializeLightType(typeStr);
+
+		m_Params.position = ser->GetVec3f("position", m_Params.position);
+		m_Params.radius = ser->GetFloat("radius", m_Params.radius);
+		m_Params.intensity = ser->GetVec3f("intensity", m_Params.intensity.ToFloat3());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//	ParticleEmitter
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API SInstancedRenderDesc* CParticleEmitterComponent::GetRenderDesc()

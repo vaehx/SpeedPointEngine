@@ -39,7 +39,9 @@ S_API DX11IndexBuffer::DX11IndexBuffer(const DX11IndexBuffer& o)
 // -----------------------------------------------------------------------------------------------
 S_API DX11IndexBuffer::~DX11IndexBuffer()
 {
-	// Make sure resources are freed
+	if (m_RefCount > 0)
+		CLog::Log(S_WARNING, "Warning: Destructing index buffer with refcount = %u", m_RefCount);
+
 	Clear();
 }
 
@@ -378,20 +380,15 @@ S_API SResult DX11IndexBuffer::Unlock(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11IndexBuffer::Clear(void)
+S_API void DX11IndexBuffer::Clear(void)
 {
-	if (IsInited())
-	{
-		SP_SAFE_RELEASE(m_pHWIndexBuffer);
-		if (m_pShadowBuffer)
-			free(m_pShadowBuffer);
+	SP_SAFE_RELEASE(m_pHWIndexBuffer);
+	if (m_pShadowBuffer)
+		free(m_pShadowBuffer);
 
-		m_nIndices = 0;
-		m_nIndicesWritten = 0;
-		m_pShadowBuffer = 0;
-	}
-
-	return S_SUCCESS;
+	m_nIndices = 0;
+	m_nIndicesWritten = 0;
+	m_pShadowBuffer = 0;
 }
 
 // -----------------------------------------------------------------------------------------------

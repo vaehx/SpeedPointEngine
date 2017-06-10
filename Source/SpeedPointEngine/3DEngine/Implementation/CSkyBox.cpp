@@ -134,12 +134,8 @@ S_API void CSkyBox::Clear()
 	if (IS_VALID_PTR(m_RenderDesc.pSubsets))
 	{
 		SDrawCallDesc* dcd = &m_RenderDesc.pSubsets[0].drawCallDesc;
-		if (IS_VALID_PTR(m_pRenderer))
-		{
-			IResourcePool* resources = m_pRenderer->GetResourcePool();
-			resources->RemoveVertexBuffer(&dcd->pVertexBuffer);
-			resources->RemoveIndexBuffer(&dcd->pIndexBuffer);
-		}
+		SP_SAFE_RELEASE(dcd->pVertexBuffer);
+		SP_SAFE_RELEASE(dcd->pIndexBuffer);
 
 		delete[] m_RenderDesc.pSubsets;
 	}

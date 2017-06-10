@@ -556,7 +556,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 		m_pRenderer->EnableBackfaceCulling(false);
 		m_pRenderer->EnableDepthTest(true, false);
 
-		m_pRenderer->BindTexture(sr.textureMap, 0);
+		m_pRenderer->BindTexture(sr.textureMap ? sr.textureMap : m_pRenderer->GetDummyTexture(), 0);
 		m_pRenderer->BindTexture((ITexture*)0, 1);
 	}
 	else
@@ -565,8 +565,8 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 		m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
 
-		m_pRenderer->BindTexture(sr.textureMap, 0);
-		m_pRenderer->BindTexture(sr.normalMap, 1);
+		m_pRenderer->BindTexture(sr.textureMap ? sr.textureMap : m_pRenderer->GetDummyTexture(), 0);
+		m_pRenderer->BindTexture(sr.normalMap ? sr.normalMap : m_pRenderer->GetDummyNormalmap(), 1);
 
 		m_pRenderer->BindDepthBufferAsTexture(pShadowmapPass->GetShadowmap(), 2);
 	}
@@ -676,7 +676,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 	// Bind textures
 	ITexture* pTextureMap = IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture();
-	ITexture* pNormalMap = IS_VALID_PTR(sr.normalMap) ? sr.normalMap : m_pRenderer->GetDummyTexture();
+	ITexture* pNormalMap = IS_VALID_PTR(sr.normalMap) ? sr.normalMap : m_pRenderer->GetDummyNormalmap();
 
 	m_pRenderer->BindTexture(pTextureMap, 0);
 	m_pRenderer->BindTexture(pNormalMap, 1);

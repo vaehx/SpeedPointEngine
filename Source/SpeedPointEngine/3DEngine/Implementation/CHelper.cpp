@@ -87,8 +87,8 @@ S_API void CDynamicMeshHelper::ClearRenderDesc()
 	if (IS_VALID_PTR(m_RenderDesc.pSubsets) && !IS_VALID_PTR(pResources))
 	{
 		SDrawCallDesc* dcd = &m_RenderDesc.pSubsets[0].drawCallDesc;
-		pResources->RemoveVertexBuffer(&dcd->pVertexBuffer);
-		pResources->RemoveIndexBuffer(&dcd->pIndexBuffer);
+		SP_SAFE_RELEASE(dcd->pVertexBuffer);
+		SP_SAFE_RELEASE(dcd->pIndexBuffer);
 	}
 
 	m_RenderDesc.Clear();

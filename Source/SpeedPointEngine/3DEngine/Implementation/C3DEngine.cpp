@@ -35,6 +35,17 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 	m_ParticleSystem.Init(pRenderer);
 }
 
+S_API void C3DEngine::Init()
+{
+	SInitialGeometryDesc geomDesc;
+
+	MakeSphere(&geomDesc, Vec3f(0), 1.0f, 25, 25);
+	CreateLightVolume(eLIGHT_TYPE_OMNIDIRECTIONAL, &geomDesc);
+	CleanupInitialGeometryDesc(geomDesc);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 S_API C3DEngine::~C3DEngine()
 {
 	Clear();
@@ -47,12 +58,31 @@ S_API void C3DEngine::Clear()
 	ClearHelperRenderObjects();
 
 	ClearRenderMeshes();
-	ClearRenderLights();
-
 	delete m_pMeshes;
-	delete m_pLights;
 	m_pMeshes = 0;
+
+	ClearRenderLights();
+	delete m_pLights;
 	m_pLights = 0;
+
+	for (auto& lightVolume : m_LightVolumes)
+	{
+		SRenderDesc* rd = &lightVolume.second;
+		if (!rd->pSubsets)
+			continue;
+
+		for (u16 iSubset = 0; iSubset < rd->nSubsets; ++iSubset)
+		{
+			SRenderSubset* subset = &rd->pSubsets[0];
+			SP_SAFE_RELEASE(subset->drawCallDesc.pVertexBuffer);
+			SP_SAFE_RELEASE(subset->drawCallDesc.pIndexBuffer);
+		}
+
+		delete[] rd->pSubsets;
+		rd->pSubsets = 0;
+	}
+
+	m_LightVolumes.clear();
 
 	m_pRenderer = 0;
 
@@ -80,13 +110,16 @@ S_API void C3DEngine::ClearHelperPrefabs()
 		for (auto itPrefab = m_HelperPrefabs.begin(); itPrefab != m_HelperPrefabs.end(); ++itPrefab)
 		{
 			SRenderDesc* prefab = &itPrefab->second;
-			if (prefab->nSubsets > 0 && IS_VALID_PTR(prefab->pSubsets))
+			if (IS_VALID_PTR(prefab->pSubsets))
 			{
 				for (unsigned int i = 0; i < prefab->nSubsets; ++i)
 				{
-					pResources->RemoveVertexBuffer(&prefab->pSubsets[i].drawCallDesc.pVertexBuffer);
-					pResources->RemoveIndexBuffer(&prefab->pSubsets[i].drawCallDesc.pIndexBuffer);
+					SP_SAFE_RELEASE(prefab->pSubsets[i].drawCallDesc.pVertexBuffer);
+					SP_SAFE_RELEASE(prefab->pSubsets[i].drawCallDesc.pIndexBuffer);
 				}
+
+				delete[] prefab->pSubsets;
+				prefab->pSubsets = 0;
 			}
 		}
 	}
@@ -168,6 +201,42 @@ S_API CRenderLight* C3DEngine::CreateLight()
 		return 0;
 
 	return m_pLights->Get();
+}
+
+S_API void C3DEngine::CreateLightVolume(ELightType type, const SInitialGeometryDesc* pGeomDesc)
+{
+	IResourcePool* pResourcePool = 0;
+	if (!m_pRenderer || !(pResourcePool = m_pRenderer->GetResourcePool()))
+	{
+		CLog::Log(S_ERROR, "Failed create light volume for type '%s': Renderer or resource pool not set or initialized", GetLightTypeName(type));
+		return;
+	}
+
+	SRenderDesc* rd = &m_LightVolumes[type];
+	rd->bCustomViewProjMtx = false;
+	rd->bDepthStencilEnable = true;
+	rd->bInverseDepthTest = false;
+	rd->nSubsets = 1;
+	rd->pSubsets = new SRenderSubset[1];
+	
+	SRenderSubset* subset = &rd->pSubsets[1];
+	subset->bOnce = false;
+	subset->enableAlphaTest = false;
+	subset->render = true;
+	
+	SDrawCallDesc* dcd = &subset->drawCallDesc;
+	SInitialSubsetGeometryDesc* subsetDesc = &pGeomDesc->pSubsets[0];
+	dcd->primitiveType = pGeomDesc->primitiveType;
+
+	pResourcePool->AddVertexBuffer(&dcd->pVertexBuffer);
+	dcd->pVertexBuffer->Initialize(m_pRenderer, eVBUSAGE_STATIC, pGeomDesc->pVertices, pGeomDesc->nVertices);
+	dcd->iStartVBIndex = 0;
+	dcd->iEndVBIndex = pGeomDesc->nVertices - 1;
+
+	pResourcePool->AddIndexBuffer(&dcd->pIndexBuffer);
+	dcd->pIndexBuffer->Initialize(m_pRenderer, eIBUSAGE_STATIC, subsetDesc->pIndices, subsetDesc->nIndices);
+	dcd->iStartIBIndex = 0;
+	dcd->iEndIBIndex = subsetDesc->nIndices - 1;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

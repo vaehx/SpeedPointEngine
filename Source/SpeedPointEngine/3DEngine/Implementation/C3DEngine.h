@@ -33,6 +33,8 @@ private:
 	ChunkedObjectPool<SHelperRenderObject> m_HelperPool;
 	map<unsigned int, SRenderDesc> m_HelperPrefabs; // index = (uint)type * 2 + (uint)bOutline
 
+	map<ELightType, SRenderDesc> m_LightVolumes;
+
 	ISkyBox* m_pSkyBox;
 	
 	STerrainRenderDesc m_TerrainRenderDesc;
@@ -40,6 +42,9 @@ private:
 
 	ChunkedObjectPool<SHUDElement> m_HUDElements;
 	SRenderDesc m_HUDRenderDesc;
+
+
+	void CreateLightVolume(ELightType type, const SInitialGeometryDesc* pGeomDesc);
 
 	void ClearHelperPrefabs();
 	void CreateHUDRenderDesc();
@@ -65,6 +70,8 @@ protected:
 public:
 	C3DEngine(IRenderer* pRenderer);
 	virtual ~C3DEngine();
+
+	virtual void Init();
 
 	ILINE virtual IRenderer* GetRenderer() const { return m_pRenderer; }	
 	ILINE virtual IGeometryManager* GetGeometryManager() { return &m_GeoMgr; }

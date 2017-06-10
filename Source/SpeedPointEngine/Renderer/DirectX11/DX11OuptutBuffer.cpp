@@ -124,22 +124,12 @@ S_API SResult DX11OutputPlane::Render(IFBO* pGBufferAlbedo, IFBO* pLightingBuffe
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11OutputPlane::Clear(void)
 {
-	SResult res = S_SUCCESS;	
-
-	if (m_pIndexBuffer && Failure(m_pIndexBuffer->Clear()))
-		res = CLog::Log(S_ERROR, "Failed Clear index Buffer of output plane!");
-
-	m_pIndexBuffer = 0;
-
-	if (m_pVertexBuffer && Failure(m_pVertexBuffer->Clear()))
-		res = CLog::Log(S_ERROR, "Failed Clear vertex buffer of output plane!");
-
-	m_pVertexBuffer = 0;
+	SP_SAFE_RELEASE(m_pIndexBuffer);
+	SP_SAFE_RELEASE(m_pVertexBuffer);
 
 	m_pDXRenderer = 0;
 
-	// okay done.
-	return res;
+	return S_SUCCESS;
 }
 
 

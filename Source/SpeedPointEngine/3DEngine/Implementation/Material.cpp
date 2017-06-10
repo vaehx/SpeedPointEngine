@@ -213,7 +213,9 @@ S_API void MaterialManager::RemoveMaterial(IMaterial** ppMat)
 
 	Material* pMat = dynamic_cast<Material*>(*ppMat);
 	if (IS_VALID_PTR(pMat))
+	{
 		m_Materials.Release(&pMat);
+	}
 
 	*ppMat = 0;
 }

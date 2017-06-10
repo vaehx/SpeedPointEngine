@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "IResource.h"
 #include <Common\SPrerequisites.h>
 
 SP_NMSPACE_BEG
@@ -37,8 +38,8 @@ enum S_API EVBUsage
 
 
 
-// SpeedPoint VertexBuffer Resource (abstract)
-struct S_API IVertexBuffer
+// SpeedPoint vertex buffer
+struct S_API IVertexBuffer : public IResource
 {
 public:
 	// Summary:
@@ -72,8 +73,6 @@ public:
 
 	virtual SVertex* GetVertex(unsigned long iVertex) = 0;	
 	virtual unsigned long GetVertexCount(void) const = 0;
-
-	virtual SResult Clear(void) = 0;
 };
 
 

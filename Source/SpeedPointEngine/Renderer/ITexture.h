@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "IResource.h"
 #include <Common\SPrerequisites.h>
 #include <Common\SColor.h>
 #include <Common\Vector2.h>
@@ -52,13 +53,10 @@ enum S_API ECubemapSide
 
 
 // SpeedPoint Texture Resource
-struct S_API ITexture
+struct S_API ITexture : public IResource
 {
 public:
 	virtual ~ITexture() {}
-
-	virtual void AddRef() = 0;
-	virtual void Release() = 0;
 
 	// Summary:
 	//		Load the texture contents from a file.
@@ -68,7 +66,7 @@ public:
 	//		If mipLevels == 0, the full mip chain will be generated
 	// Arguments:
 	//		filePath - system path to the texture file
-	virtual SResult LoadFromFile(const string& specification, const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0) = 0;
+	virtual SResult LoadFromFile(const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0) = 0;
 
 	// Summary:
 	//		Load the texture contents from a cubemap.
@@ -78,15 +76,14 @@ public:
 	// Parameters:
 	//		baseName - System path and base filename of the 6 cubemap images without File extension
 	//				   ("assets\\sky" -> "assets\\sky_(pos|neg)(x|y|z).bmp");	
-	virtual SResult LoadCubemapFromFile(const string& specification, const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0) = 0;
+	virtual SResult LoadCubemapFromFile(const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0) = 0;
 
 	// Summary:
 	//		Initialize an empty texture with specified size and type and fill it with clearcolor.
 	//		If type is a depth map, then clearcolor.r is used to fill.
-	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels = 1, ETextureType type = eTEXTURE_R8G8B8A8_UNORM, SColor clearcolor = SColor::White()) = 0;
+	virtual SResult CreateEmpty(unsigned int w, unsigned int h, unsigned int mipLevels = 1, ETextureType type = eTEXTURE_R8G8B8A8_UNORM, SColor clearcolor = SColor::White()) = 0;
 
 
-	// Status queries
 public:
 	virtual const string& GetSpecification(void) const = 0;
 	virtual ETextureType GetType(void) = 0;

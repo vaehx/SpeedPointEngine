@@ -33,6 +33,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IOutputPlane.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IRenderAPI.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IRenderer.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IResource.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IResourcePool.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\IShader.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Renderer\ITexture.h" />

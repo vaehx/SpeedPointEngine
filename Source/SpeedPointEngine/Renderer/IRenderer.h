@@ -11,6 +11,7 @@
 #include "IRenderAPI.h"
 #include "IShader.h"
 #include "IConstantsBuffer.h"
+#include "ITexture.h"
 #include <Common\Mat44.h> // for Matrix CB
 #include <Common\SPrerequisites.h>
 
@@ -387,21 +388,6 @@ struct S_API SFontRenderSlot
 	}
 };
 
-
-struct S_API SLightDesc
-{
-	SColor intensity; // spectral intensity
-
-	// Deferred Shading:
-	SRenderDesc renderDesc; // contains transformation matrix
-
-	// Forward:
-	float radius;
-	float range; // for spot lights
-	Vec3f position;
-	Vec3f direction;
-};
-
 ///////////////////////////////////////////////////////////////
 
 struct S_API SRenderBudgetTimer
@@ -553,7 +539,7 @@ public:
 
 
 	virtual ITexture* GetDummyTexture() const = 0;
-
+	virtual ITexture* GetDummyNormalmap() const = 0;
 
 	// Clearout everything (viewports, buffers, stop render Pipeline thread and task buffer)
 	virtual SResult Shutdown( void ) = 0;
@@ -577,7 +563,6 @@ public:
 	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
-	virtual SResult RenderDeferredLight(const SLightDesc& light) = 0;
 
 	virtual SResult PresentTargetViewport(void) = 0;
 

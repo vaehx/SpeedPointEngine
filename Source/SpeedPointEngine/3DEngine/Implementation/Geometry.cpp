@@ -49,6 +49,59 @@ EIBUsage ParseIBUsage(EGeomUsage geomUsage)
 	}
 }
 
+// ----------------------------------------------------------------------------------------
+S_API void MakeSphere(SInitialGeometryDesc* geom, const Vec3f& pos, float radius, unsigned int nStripes, unsigned int nRings)
+{
+	if (!geom)
+		return;
+
+	geom->nVertices = (nStripes + 1) * (nRings + 1);
+	geom->pVertices = new SVertex[geom->nVertices];
+
+	auto* subset = geom->GetZeroSubset();
+	subset->nIndices = (nStripes * nRings) * 6;
+	subset->pIndices = new SIndex[subset->nIndices];
+
+	geom->primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
+
+	float dTheta = (float)SP_PI / (float)nRings;
+	float dPhi = (float)SP_PI * 2.0f / (float)nStripes;
+
+	float dU = 1.0f / (float)nRings;
+	float dV = 1.0f / (float)nStripes;
+
+	unsigned int indexAccum = 0;
+	for (unsigned int ring = 0; ring <= nRings; ++ring)
+	{
+		float theta = (float)ring * dTheta;
+		for (unsigned int stripe = 0; stripe <= nStripes; ++stripe)
+		{
+			float phi = (float)stripe * dPhi;
+
+			Vec3f normal;
+			normal.x = sinf(theta) * cosf(phi);
+			normal.y = sinf(theta) * sinf(phi);
+			normal.z = cosf(theta);
+
+			geom->pVertices[ring * (nStripes + 1) + stripe] = SVertex(
+				radius * normal.x, radius * normal.y, radius * normal.z,
+				normal.x, normal.y, normal.z, 0, 0, 0, (float)stripe * dU, (float)ring * dV);
+
+			if (ring < nRings && stripe < nStripes)
+			{
+				subset->pIndices[indexAccum] = ring * (nStripes + 1) + stripe;
+				subset->pIndices[indexAccum + 1] = subset->pIndices[indexAccum] + (nStripes + 1) + 1;
+				subset->pIndices[indexAccum + 2] = subset->pIndices[indexAccum] + 1;
+				subset->pIndices[indexAccum + 3] = subset->pIndices[indexAccum];
+				subset->pIndices[indexAccum + 4] = subset->pIndices[indexAccum] + (nStripes + 1);
+				subset->pIndices[indexAccum + 5] = subset->pIndices[indexAccum + 1];
+				indexAccum += 6;
+			}
+		}
+	}
+}
+
+
 
 // ----------------------------------------------------------------------------------------
 S_API CGeometry::CGeometry()
@@ -75,8 +128,10 @@ S_API void CGeometry::AddRef()
 // ----------------------------------------------------------------------------------------
 S_API void CGeometry::Release()
 {
-	if (m_RefCount > 0)
-		m_RefCount--;
+	if (m_RefCount == 0)
+		return;
+	
+	m_RefCount--;
 
 	if (m_RefCount == 0)
 		Clear();
@@ -90,7 +145,7 @@ S_API void CGeometry::Clear()
 		if (m_nSubsets > 0 && IS_VALID_PTR(m_pSubsets))
 		{
 			for (unsigned short iSubset = 0; iSubset < m_nSubsets; ++iSubset)
-				m_pRenderer->GetResourcePool()->RemoveIndexBuffer(&m_pSubsets[iSubset].pIndexBuffer);
+				SP_SAFE_RELEASE(m_pSubsets[iSubset].pIndexBuffer);
 
 			delete[] m_pSubsets;
 		}
@@ -98,7 +153,7 @@ S_API void CGeometry::Clear()
 		m_pSubsets = 0;
 		m_nSubsets = 0;
 
-		m_pRenderer->GetResourcePool()->RemoveVertexBuffer(&m_pVertexBuffer);
+		SP_SAFE_RELEASE(m_pVertexBuffer);
 		m_pRenderer = nullptr;
 	}
 

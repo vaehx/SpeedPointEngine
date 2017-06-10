@@ -85,6 +85,7 @@ private:
 	bool			m_bRunning;		// Is the Game Engine started and initialized?
 	bool			m_bLoggedSkipstages;
 	ISettings*		m_pSettings;		// Main Settings of the Game Engine	
+	unsigned int m_FramesSinceGC;
 
 	ProfilingDebugView* m_pProfilingDebugView;
 	IPhysicsDebugRenderer* m_pPhysicsDebugRenderer;

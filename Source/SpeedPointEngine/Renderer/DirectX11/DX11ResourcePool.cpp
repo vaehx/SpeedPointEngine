@@ -39,7 +39,6 @@ S_API SResult DX11ResourcePool::ClearAll()
 	m_InstanceBuffers.clear();
 	m_plVertexBuffers.Clear();
 	m_plIndexBuffers.Clear();
-	//m_plShaders.Clear();
 	m_plTextures.Clear();
 
 	m_pDXRenderer = NULL;
@@ -48,6 +47,40 @@ S_API SResult DX11ResourcePool::ClearAll()
 
 	return res;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T, const unsigned int chunk_size>
+void RunGarbageCollectionOnResourcePool(ChunkedObjectPool<T, chunk_size>& pool)
+{
+	unsigned int i;
+	T* resource = pool.GetFirstUsedObject(i);
+	while (resource)
+	{
+		if (resource->GetRefCount() == 0)
+			pool.Release(&resource);
+
+		resource = pool.GetNextUsedObject(i);
+	}
+}
+
+S_API void DX11ResourcePool::RunGarbageCollection()
+{
+	for (auto itInstanceBuffer = m_InstanceBuffers.begin(); itInstanceBuffer != m_InstanceBuffers.end();)
+	{
+		IResource* instanceBuffer = static_cast<IResource*>(*itInstanceBuffer);
+		if (!instanceBuffer || instanceBuffer->GetRefCount() == 0)
+			itInstanceBuffer = m_InstanceBuffers.erase(itInstanceBuffer);
+		else
+			++itInstanceBuffer;
+	}
+	
+	RunGarbageCollectionOnResourcePool(m_plVertexBuffers);
+	RunGarbageCollectionOnResourcePool(m_plIndexBuffers);
+	RunGarbageCollectionOnResourcePool(m_plTextures);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API const string& DX11ResourcePool::GetResourceRootPath() const
 {
@@ -104,33 +137,15 @@ S_API SResult DX11ResourcePool::AddVertexBuffer(IVertexBuffer** pVBuffer)
 	if (m_pDXRenderer == NULL)
 		return CLog::Log(S_ERROR, "Cannot add Vertex Buffer Resource: Renderer not initialized!");
 
-	DX11VertexBuffer* pdxVertexBuffer;
+	if (!pVBuffer)
+		return S_INVALIDPARAM;
 
-	if (Failure(m_plVertexBuffers.AddItem(&pdxVertexBuffer)))
+	DX11VertexBuffer* pdxVertexBuffer = m_plVertexBuffers.Get();
+	if (!pdxVertexBuffer)
 		return S_ERROR;
 
-	SP_ASSERTR(IS_VALID_PTR(pdxVertexBuffer), S_ERROR);
-
-	if (IS_VALID_PTR(pVBuffer))
-		*pVBuffer = (IVertexBuffer*)pdxVertexBuffer;
-
-	return S_SUCCESS;
-}
-
-S_API SResult DX11ResourcePool::RemoveVertexBuffer(IVertexBuffer** pVB)
-{
-	SP_ASSERTR(IS_VALID_PTR(pVB), S_INVALIDPARAM);
-
-	if (IS_VALID_PTR(*pVB))
-	{
-		(*pVB)->Clear();
-		DX11VertexBuffer* pDXVB = dynamic_cast<DX11VertexBuffer*>(*pVB);
-		if (pDXVB && !m_plVertexBuffers.Delete(&pDXVB))
-			return S_ERROR;
-
-		*pVB = 0;
-	}
-
+	pdxVertexBuffer->AddRef();
+	*pVBuffer = pdxVertexBuffer;
 	return S_SUCCESS;
 }
 
@@ -147,33 +162,15 @@ S_API SResult DX11ResourcePool::RemoveVertexBuffer(IVertexBuffer** pVB)
 
 S_API SResult DX11ResourcePool::AddIndexBuffer(IIndexBuffer** pIBuffer)
 {
-	DX11IndexBuffer* pdxIndexBuffer;
-
-	if (Failure(m_plIndexBuffers.AddItem(&pdxIndexBuffer)))
+	if (!pIBuffer)
+		return S_INVALIDPARAM;
+	
+	DX11IndexBuffer* pdxIndexBuffer = m_plIndexBuffers.Get();
+	if (!pdxIndexBuffer)
 		return S_ERROR;
 
-	SP_ASSERTR(IS_VALID_PTR(pdxIndexBuffer), S_ERROR);
-
-	if (IS_VALID_PTR(pIBuffer))
-		*pIBuffer = (IIndexBuffer*)pdxIndexBuffer;
-
-	return S_SUCCESS;
-}
-
-S_API SResult DX11ResourcePool::RemoveIndexBuffer(IIndexBuffer** pIB)
-{
-	SP_ASSERTR(IS_VALID_PTR(pIB), S_INVALIDPARAM);
-
-	if (IS_VALID_PTR(*pIB))
-	{
-		(*pIB)->Clear();
-		DX11IndexBuffer* pDXIB = dynamic_cast<DX11IndexBuffer*>(*pIB);
-		if (pDXIB && !m_plIndexBuffers.Delete(&pDXIB))
-			return S_ERROR;
-
-		*pIB = 0;
-	}
-
+	pdxIndexBuffer->AddRef();
+	*pIBuffer = pdxIndexBuffer;
 	return S_SUCCESS;
 }
 
@@ -200,25 +197,6 @@ S_API void DX11ResourcePool::OnInstanceBufferResourceCreated(IInstanceBufferReso
 	m_InstanceBuffers.push_back(pInstanceBuffer);
 }
 
-S_API SResult DX11ResourcePool::RemoveInstanceBuffer(IInstanceBufferResource** pInstanceBuffer)
-{
-	if (!pInstanceBuffer || !*pInstanceBuffer)
-		return CLog::Log(S_ERROR, "Failed remove instance buffer: nullptr given");
-
-	for (auto itInstanceBuffer = m_InstanceBuffers.begin(); itInstanceBuffer != m_InstanceBuffers.end(); ++itInstanceBuffer)
-	{
-		if (*itInstanceBuffer == *pInstanceBuffer)
-		{
-			delete *pInstanceBuffer;
-			*pInstanceBuffer = 0;
-			m_InstanceBuffers.erase(itInstanceBuffer);
-			break;
-		}
-	}
-
-	return S_SUCCESS;
-}
-
 
 
 
@@ -229,26 +207,43 @@ S_API SResult DX11ResourcePool::RemoveInstanceBuffer(IInstanceBufferResource** p
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+S_API DX11Texture* DX11ResourcePool::FindTextureBySpecification(const string& specification)
+{
+	unsigned int iTexture;
+	DX11Texture* pTexture = m_plTextures.GetFirstUsedObject(iTexture);
+	while (pTexture)
+	{
+		if (pTexture->GetSpecification() == specification)
+			return pTexture;
+
+		pTexture = m_plTextures.GetNextUsedObject(iTexture);
+	}
+
+	return 0;
+}
+
 S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 {
 	if (specification.empty())
 		return 0;
 
-	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(specification);
-	if (pDXTexture)
+	DX11Texture* pTexture = FindTextureBySpecification(specification);
+	if (pTexture)
 	{
-		pDXTexture->AddRef();
+		pTexture->AddRef();
 	}
 	else
 	{
-		m_plTextures.AddItem(&pDXTexture, specification);
-		pDXTexture->D3D11_SetRenderer(m_pDXRenderer);
+		pTexture = m_plTextures.Get();
+		pTexture->AddRef();
+		pTexture->SetSpecification(specification);
+		pTexture->D3D11_SetRenderer(m_pDXRenderer);
 
 		// Try to load the texture.
 		// This attempt may fail if the specification is not actually a filename.
 		if (IsAbsoluteResourcePath(specification))
 		{
-			pDXTexture->LoadFromFile(specification, GetResourceSystemPath(specification));
+			pTexture->LoadFromFile(GetResourceSystemPath(specification));
 		}
 		else
 		{
@@ -256,7 +251,7 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 		}
 	}
 
-	return pDXTexture;
+	return pTexture;
 }
 
 S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
@@ -264,78 +259,50 @@ S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 	if (file.empty())
 		return 0;
 
-	DX11Texture* pDXTexture = m_plTextures.GetBySpecification(file);
-	if (!pDXTexture)
+	DX11Texture* pTexture = FindTextureBySpecification(file);
+	if (pTexture)
 	{
-		m_plTextures.AddItem(&pDXTexture, file);
-		pDXTexture->D3D11_SetRenderer(m_pDXRenderer);
+		pTexture->AddRef();
 	}
 	else
 	{
-		pDXTexture->AddRef();
+		pTexture = m_plTextures.Get();
+		pTexture->AddRef();
+		pTexture->SetSpecification(file);
+		pTexture->D3D11_SetRenderer(m_pDXRenderer);
 	}
 
-	ITexture* pTexture = pDXTexture;
 	if (!pTexture->IsCubemap())
 	{
-		if (Failure(pTexture->LoadCubemapFromFile(file, GetResourceSystemPath(file))))
+		if (Failure(pTexture->LoadCubemapFromFile(GetResourceSystemPath(file))))
 			CLog::Log(S_ERROR, "DX11ResourcePool::GetCubeTexture(): Failed DX11Texture::LoadCubemapFromFile()");
 	}
 
 	return pTexture;
 }
 
-S_API SResult DX11ResourcePool::ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler)
+S_API void DX11ResourcePool::ForEachTexture(const std::function<void(ITexture*)>& fn)
 {
-	if (!IS_VALID_PTR(pForEachHandler))
-		return S_INVALIDPARAM;
+	if (!fn)
+		return;
 
-	// need to wrap ForEach() function of ChunkPool here, because we cannot implicitly convert
-	// from DirectX11Texture* to ITexture*
-	if (m_plTextures.GetUsedSlotCount() == 0)
-		return S_SUCCESS;
-
-	auto pChunks = m_plTextures.GetChunks();
-	unsigned int nChunks = m_plTextures.GetChunkCount();
-	for (unsigned int iChnk = 0; iChnk < nChunks; ++iChnk)
+	unsigned int i;
+	DX11Texture* pTexture = m_plTextures.GetFirstUsedObject(i);
+	while (pTexture)
 	{
-		auto pChnk = pChunks[iChnk];
-		if (pChnk->nUsedSlots == 0) continue;
-
-		for (unsigned int iSlot = 0; iSlot < pChnk->nSlots; ++iSlot)
-		{
-			ChunkSlot<DX11Texture>* pSlot = &pChnk->pSlots[iSlot];
-			if (!pSlot->bUsed) continue;
-			
-			ITexture* pTex = (ITexture*)&pSlot->instance;
-			EForEachHandlerState state = pForEachHandler->Handle(&pTex);
-			if (state == FOREACH_ABORT_ERR)
-				return S_ERROR;
-			else if (state == FOREACH_BREAK)
-				return S_SUCCESS;
-		}
+		fn(pTexture);
+		pTexture = m_plTextures.GetNextUsedObject(i);
 	}
-
-	return S_SUCCESS;
 }
 
 S_API void DX11ResourcePool::ListTextures(vector<string>& list) const
 {
-	auto pChunks = m_plTextures.GetChunks();
-	unsigned int nChunks = m_plTextures.GetChunkCount();
-	for (unsigned int iChnk = 0; iChnk < nChunks; ++iChnk)
+	unsigned int i;
+	DX11Texture* pTexture = m_plTextures.GetFirstUsedObject(i);
+	while (pTexture)
 	{
-		auto pChnk = pChunks[iChnk];
-		if (pChnk->nUsedSlots == 0) continue;
-
-		for (unsigned int iSlot = 0; iSlot < pChnk->nSlots; ++iSlot)
-		{
-			ChunkSlot<DX11Texture>* pSlot = &pChnk->pSlots[iSlot];
-			if (!pSlot->bUsed) continue;
-
-			ITexture* pTex = (ITexture*)&pSlot->instance;
-			list.push_back(pTex->GetSpecification());
-		}
+		list.push_back(pTexture->GetSpecification());
+		pTexture = m_plTextures.GetNextUsedObject(i);
 	}
 }
 

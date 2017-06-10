@@ -137,14 +137,19 @@ m_nLockedBytes(0),
 m_pStagedData(0),
 m_bStaged(false),
 m_bLocked(false),
-m_bIsCubemap(false),
-m_RefCount(1)
+m_bIsCubemap(false)
 {
 }
 
 // -----------------------------------------------------------------------------------------------
 DX11Texture::~DX11Texture()
 {
+	if (m_RefCount > 0)
+	{
+		CLog::Log(S_WARNING, "Warning: Destructing texture 0x%08X ('%s') with refcount = %u",
+			(unsigned long)m_pDXTexture, m_Specification.c_str(), m_RefCount);
+	}
+
 	Clear();
 }
 
@@ -365,10 +370,9 @@ S_API unsigned int DX11Texture::GetDXCubemapArraySlice(ECubemapSide side)
 
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::LoadCubemapFromFile(const string& specification, const string& baseName, unsigned int singleW /*=0*/, unsigned int singleH /*=0*/)
+S_API SResult DX11Texture::LoadCubemapFromFile(const string& baseName, unsigned int singleW /*=0*/, unsigned int singleH /*=0*/)
 {
 	Clear();
-	m_Specification = specification;
 
 	if (!IS_VALID_PTR(m_pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::LoadCubemapFromFile(): Renderer not initialized");
@@ -574,10 +578,9 @@ assert(hr == S_OK);
 
 // -----------------------------------------------------------------------------------------------
 // remember that the w and h parameters will specify the output texture size to which the image will be scaled to
-S_API SResult DX11Texture::LoadFromFile(const string& specification, const string& cFileName, unsigned int w /*=0*/, unsigned int h /*=0*/, unsigned int mipLevels /*=0*/)
+S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w /*=0*/, unsigned int h /*=0*/, unsigned int mipLevels /*=0*/)
 {
 	Clear();
-	m_Specification = specification;
 
 	if (!IS_VALID_PTR(m_pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::LoadFromFile('%s'): Renderer not initialized", cFileName.c_str());
@@ -654,7 +657,7 @@ S_API SResult DX11Texture::LoadFromFile(const string& specification, const strin
 	}
 
 #ifdef _DEBUG
-	const string& nm = specification;
+	const string& nm = m_Specification;
 	m_pDXTexture->SetPrivateData(WKPDID_D3DDebugObjectName, nm.length(), nm.c_str());
 #endif
 
@@ -737,10 +740,9 @@ size_t DX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor)
+S_API SResult DX11Texture::CreateEmpty(unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor)
 {	
 	Clear();
-	m_Specification = specification;
 
 	if (!IS_VALID_PTR(m_pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::CreateEmpty(): Renderer not initialized");
@@ -840,7 +842,7 @@ S_API SResult DX11Texture::CreateEmpty(const string& specification, unsigned int
 		return CLog::Log(S_ERROR, "Failed to create empty DirectX11 Texture (CreateTexture2D failed)!");
 
 #ifdef _DEBUG
-	const string& nm = specification;
+	const string& nm = m_Specification;
 	m_pDXTexture->SetPrivateData(WKPDID_D3DDebugObjectName, nm.length(), nm.c_str());
 #endif
 
@@ -883,7 +885,7 @@ S_API SResult DX11Texture::CreateEmpty(const string& specification, unsigned int
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::D3D11_InitializeFromExistingResource(const string& specification, ID3D11Texture2D* pResource, DXGI_FORMAT format /*= DXGI_FORMAT_UNKNOWN*/)
+S_API SResult DX11Texture::D3D11_InitializeFromExistingResource(ID3D11Texture2D* pResource, DXGI_FORMAT format /*= DXGI_FORMAT_UNKNOWN*/)
 {
 	if (!pResource)
 		return CLog::Log(S_ERROR, "DX11Texture::D3D11_InitializeFromExistingResource(): Invalid resource given");
@@ -895,7 +897,6 @@ S_API SResult DX11Texture::D3D11_InitializeFromExistingResource(const string& sp
 	m_pDXTexture->GetDesc(&m_DXTextureDesc);
 
 	m_Type = GetTextureTypeFromDXGIFormat(m_DXTextureDesc.Format);
-	m_Specification = specification;
 	m_bDynamic = false;
 	m_bStaged = false;
 
@@ -930,7 +931,7 @@ S_API SResult DX11Texture::Fill(SColor color)
 // -----------------------------------------------------------------------------------------------
 S_API bool DX11Texture::IsInitialized() const
 {
-	return (IS_VALID_PTR(m_pDXTexture) && IS_VALID_PTR(m_pDXSRV));
+	return (m_RefCount > 0 && IS_VALID_PTR(m_pDXTexture) && IS_VALID_PTR(m_pDXSRV));
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1190,11 +1191,6 @@ S_API void* DX11Texture::GetStagedData()
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Texture::Clear(void)
 {
-	CLog::Log(S_DEBUG, "Tex(%s)::Clear()", m_Specification.c_str());
-
-	if (m_RefCount > 1)
-		CLog::Log(S_WARN, "Warning: DX11Texture::Clear() called with more than one reference to it!");
-
 	if (IS_VALID_PTR(m_pStagedData))
 		free(m_pStagedData);
 
@@ -1207,7 +1203,6 @@ S_API void DX11Texture::Clear(void)
 	m_nLockedBytes = 0;
 	m_bLocked = false;
 
-	m_Specification = "?cleared?";
 	m_Type = eTEXTURE_R8G8B8A8_UNORM;
 	m_bIsCubemap = false;
 }

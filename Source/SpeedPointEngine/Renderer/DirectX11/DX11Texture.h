@@ -89,8 +89,6 @@ private:
 
 	void* m_pStagedData;
 
-	unsigned int m_RefCount;
-
 	void Clear();
 
 public:
@@ -100,31 +98,20 @@ public:
 	virtual ~DX11Texture();
 
 	void D3D11_SetRenderer(DX11Renderer* renderer) { m_pDXRenderer = renderer; }
-	
-	virtual void AddRef() { m_RefCount++; }
-	virtual void Release()
-	{
-		if (m_RefCount > 0 && !IsLocked())
-		{
-			m_RefCount--;
-			if (m_RefCount == 0)
-				Clear();
-		}
-	}
 
 
 	// Initialization
 public:
-	virtual SResult LoadFromFile(const string& specification, const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0);
-	virtual SResult LoadCubemapFromFile(const string& specification, const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0);
-	virtual SResult CreateEmpty(const string& specification, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
+	virtual SResult LoadFromFile(const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0);
+	virtual SResult LoadCubemapFromFile(const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0);
+	virtual SResult CreateEmpty(unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
 
 	// Texture will be non-dynamic and non-staged.
 	// format - If DXGI_FORMAT_UNKNOWN, the same resource format will be used.
-	SResult D3D11_InitializeFromExistingResource(const string& specification, ID3D11Texture2D* pResource, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
+	SResult D3D11_InitializeFromExistingResource(ID3D11Texture2D* pResource, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
-	// Status queries
 public:
+	void SetSpecification(const string& specification) { m_Specification = specification; }
 	virtual const string& GetSpecification(void) const;
 	virtual ETextureType GetType(void);
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);

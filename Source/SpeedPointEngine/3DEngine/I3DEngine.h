@@ -74,6 +74,8 @@ protected:
 public:
 	virtual ~I3DEngine() {};
 
+	virtual void Init() = 0;
+
 	ILINE virtual IRenderer* GetRenderer() const = 0;
 	ILINE virtual IGeometryManager* GetGeometryManager() = 0;
 	ILINE virtual IMaterialManager* GetMaterialManager() = 0;

@@ -146,10 +146,11 @@ S_API void CParticleEmitter::SpawnParticle()
 
 S_API void CParticleEmitter::Clear()
 {
-	IResourcePool* pResources = C3DEngine::Get()->GetRenderer()->GetResourcePool();
-
 	if (m_pInstanceBuffer)
-		pResources->RemoveInstanceBuffer(&m_pInstanceBuffer);
+	{
+		m_pInstanceBuffer->Release();
+		m_pInstanceBuffer = 0;
+	}
 
 	m_bStarted = false;
 	m_bTrash = true;
@@ -298,9 +299,7 @@ S_API void CParticleSystem::Clear()
 
 	if (m_pPlaneVB)
 	{
-		if (m_pRenderer)
-			m_pRenderer->GetResourcePool()->RemoveVertexBuffer(&m_pPlaneVB);
-
+		m_pPlaneVB->Release();
 		m_pPlaneVB = 0;
 	}
 }

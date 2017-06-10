@@ -74,7 +74,7 @@ public:
 	virtual SVertex* GetVertex(unsigned long iVertex);	
 	virtual unsigned long GetVertexCount(void) const;
 
-	virtual SResult Clear(void);
+	virtual void Clear();
 
 
 

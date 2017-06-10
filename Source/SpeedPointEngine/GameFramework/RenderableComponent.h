@@ -45,10 +45,14 @@ public:
 	virtual void Serialize(ISerContainer* ser, bool serialize = true);
 };
 
-class S_API CRenderLightComponent : public CRenderObjectComponent<CRenderLight>
+class S_API CRenderLightComponent : public IComponent, public CRenderLight
 {
 public:
-	DEFINE_COMPONENT("RenderLight")
+	DEFINE_COMPONENT("RenderLight");
+
+	virtual void OnRelease();
+	virtual void Serialize(ISerContainer* ser, bool serialize = true);
+	virtual void OnRender();
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

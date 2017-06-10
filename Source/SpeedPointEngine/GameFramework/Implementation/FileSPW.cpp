@@ -280,7 +280,7 @@ ITexture* LoadRawTexture(const string& file, const string& worldDir, ETextureTyp
 	stream.read((char*)&bitsPerPixel, sizeof(unsigned int));
 
 	ITexture* pTex = pResources->GetTexture(file);
-	if (Failure(pTex->CreateEmpty(file, sz[0], sz[1], 1, type, SColor::Black())))
+	if (Failure(pTex->CreateEmpty(sz[0], sz[1], 1, type, SColor::Black())))
 	{
 		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Failed CreateEmpty()", sysFile.c_str());
 		stream.close();

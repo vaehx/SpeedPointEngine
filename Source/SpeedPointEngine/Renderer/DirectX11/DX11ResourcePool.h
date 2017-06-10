@@ -11,7 +11,7 @@
 #include "DX11Shader.h"
 #include "DX11Texture.h"
 #include <Renderer\IResourcePool.h>
-#include <Common\ChunkPool.h>
+#include <Common\ChunkedObjectPool.h>
 
 SP_NMSPACE_BEG
 
@@ -23,10 +23,9 @@ private:
 	string m_RootPath; // System path to resource root directory
 
 	vector<IInstanceBufferResource*> m_InstanceBuffers;
-	ChunkPool<DX11IndexBuffer>	m_plIndexBuffers;
-	ChunkPool<DX11VertexBuffer> m_plVertexBuffers;
-	ChunkPool<DX11Shader> m_plShaders;
-	ChunkPool<DX11Texture> m_plTextures;
+	ChunkedObjectPool<DX11IndexBuffer> m_plIndexBuffers;
+	ChunkedObjectPool<DX11VertexBuffer> m_plVertexBuffers;
+	ChunkedObjectPool<DX11Texture> m_plTextures;
 
 protected:
 	virtual ITypelessInstanceBuffer* CreateTypelessInstanceBuffer();
@@ -35,23 +34,22 @@ protected:
 public:		
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual SResult ClearAll();
+	virtual void RunGarbageCollection();
 
 	virtual const string& GetResourceRootPath() const;
 	virtual void SetResourceRootPath(const string& rootSystemPath);
 	virtual string GetResourceSystemPath(const string& file) const;
 	virtual string GetAbsoluteResourcePath(const string& relPath, const string& absReferenceDir) const;
 
-	virtual SResult AddVertexBuffer(IVertexBuffer** pVBuffer);	
-	virtual SResult RemoveVertexBuffer(IVertexBuffer** pVB);
-
+	virtual SResult AddVertexBuffer(IVertexBuffer** pVBuffer);
 	virtual SResult AddIndexBuffer(IIndexBuffer** pIBuffer);
-	virtual SResult RemoveIndexBuffer(IIndexBuffer** pIB);
 
-	virtual SResult RemoveInstanceBuffer(IInstanceBufferResource** pInstanceBuffer);
+	// Returns 0 if not found. Returns first one in the pool if there are multiple
+	DX11Texture* FindTextureBySpecification(const string& specification);
 
 	virtual ITexture* GetTexture(const string& specification);
 	virtual ITexture* GetCubeTexture(const string& file);
-	virtual SResult ForEachTexture(IForEachHandler<ITexture*>* pForEachHandler);
+	virtual void ForEachTexture(const std::function<void(ITexture*)>& fn);
 	virtual void ListTextures(vector<string>& list) const;
 };
 

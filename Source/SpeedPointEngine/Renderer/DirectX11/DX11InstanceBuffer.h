@@ -38,6 +38,7 @@ private:
 
 public:
 	DX11InstanceBuffer(DX11Renderer* pDXRenderer);
+	~DX11InstanceBuffer();
 
 	inline virtual ITypelessInstanceBuffer* GetTypelessInstanceBuffer() { return this; }
 	inline virtual unsigned int GetStrideSize() const { return m_StrideSz; }
