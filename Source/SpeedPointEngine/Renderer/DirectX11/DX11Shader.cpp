@@ -595,6 +595,28 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 //				GBuffer Shader Pass
 
+/*
+
+GBUFFER-LAYOUT:
+A - Albedo, N - Normal
+
+#1 GBUF0 RGBA8 [ Ar | Ag | Ab | Roughness ] + Depth
+#2 GBUF1 RGBA8 [ N00 | N01 | N10 | N11 ]
+	Compressing normal into 2*16bit components:
+		with WS-Normal:
+			to Gbuffer: G=(N.x,N.y)
+			from Gbuffer: N=(G.x, G.y, sqrt(1 - G.x*G.x - G.y*G.y)
+			(+) faster
+			(-) less precision on certain perspective cases
+		with VS-Normal (see 'A bit more deffered' presentation from Crytek):
+			to Gbuffer: G=normalize(N.xy) * sqrt(N.z * 0.5 + 0.5)
+			from Gbuffer: N.z=length2(G.xy)*2-1   N.xy=normalize(G.xy)*sqrt(1-N.z*N.z)
+			(+) "more precise where it matters"
+			(-) more ALUs -> possibly slower
+			(-) "wasted area"
+
+*/
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)

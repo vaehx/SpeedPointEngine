@@ -117,15 +117,6 @@ class S_API GBufferShaderPass : public IShaderPass
 {
 public:
 private:
-	/*
-	
-	GBUFFER-LAYOUT:
-	A - Albedo, N - Normal
-
-	GBUF0 [ Ar | Ag | Ab | Spec ]
-	GBUF1 [ Nx | Ny | Nz | ?? ]	
-
-	*/
 #define NUM_GBUFFER_LAYERS 2
 	vector<IFBO*> m_pGBuffer;
 
