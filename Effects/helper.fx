@@ -3,6 +3,7 @@
 cbuffer SceneCB : register(b0)
 {
     float4x4 mtxView;
+	float4x4 mtxViewInv;
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;

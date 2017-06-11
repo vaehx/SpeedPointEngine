@@ -54,6 +54,7 @@ struct S_API SHUDElement
 struct S_API SEnvironmentSettings
 {
 	Vec3f sunPosition;
+	SColor sunIntensity;
 	float fogStart;
 	float fogEnd;
 };

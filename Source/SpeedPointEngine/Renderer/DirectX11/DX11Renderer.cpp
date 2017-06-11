@@ -47,6 +47,7 @@ m_pBoundDSV(0),
 m_pDefBlendState(0),
 m_pAlphaTestBlendState(0),
 m_pTerrainBlendState(0),
+m_pDeferredLightBlendState(0),
 m_pSetBlendState(0),
 m_pDepthStencilState(0),
 m_pTerrainDepthState(0),
@@ -410,24 +411,16 @@ S_API void DX11Renderer::InitBlendStates()
 
 	// Default Blend Desc and Blend State
 	ZeroMemory(&m_DefBlendDesc, sizeof(m_DefBlendDesc));
-	m_DefBlendDesc.AlphaToCoverageEnable = false;
-	m_DefBlendDesc.IndependentBlendEnable = false;
 	m_DefBlendDesc.RenderTarget[0].BlendEnable = false;
-	m_DefBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	m_DefBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	m_DefBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	m_DefBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	m_DefBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	m_DefBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	m_DefBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	hr = m_pD3DDevice->CreateBlendState(&m_DefBlendDesc, &m_pDefBlendState);
+	if (FAILED(hr))
+		CLog::Log(S_ERROR, "Failed create default blend state");
 
 
 	// Terrain Blend Desc and Blend State
 	ZeroMemory(&m_TerrainBlendDesc, sizeof(m_TerrainBlendDesc));
-	m_TerrainBlendDesc.AlphaToCoverageEnable = false;
-	m_TerrainBlendDesc.IndependentBlendEnable = false;
 	m_TerrainBlendDesc.RenderTarget[0].BlendEnable = true;
 	m_TerrainBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 	m_TerrainBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -438,12 +431,12 @@ S_API void DX11Renderer::InitBlendStates()
 	m_TerrainBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	hr = m_pD3DDevice->CreateBlendState(&m_TerrainBlendDesc, &m_pTerrainBlendState);
+	if (FAILED(hr))
+		CLog::Log(S_ERROR, "Failed create terrain blend state");
 
 
 	// Alpha test Blend Desc and Blend State
 	ZeroMemory(&m_AlphaTestBlendDesc, sizeof(m_AlphaTestBlendDesc));
-	m_AlphaTestBlendDesc.AlphaToCoverageEnable = false;
-	m_AlphaTestBlendDesc.IndependentBlendEnable = false;
 	m_AlphaTestBlendDesc.RenderTarget[0].BlendEnable = true;
 	m_AlphaTestBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 	m_AlphaTestBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -454,6 +447,24 @@ S_API void DX11Renderer::InitBlendStates()
 	m_AlphaTestBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	hr = m_pD3DDevice->CreateBlendState(&m_AlphaTestBlendDesc, &m_pAlphaTestBlendState);
+	if (FAILED(hr))
+		CLog::Log(S_ERROR, "Failed create alpha-blend blend state");
+
+
+	// Deferred light
+	ZeroMemory(&m_DeferredLightBlendDesc, sizeof(m_DeferredLightBlendDesc));
+	m_DeferredLightBlendDesc.RenderTarget[0].BlendEnable = true;
+	m_DeferredLightBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	m_DeferredLightBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	m_DeferredLightBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	m_DeferredLightBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	m_DeferredLightBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	m_DeferredLightBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	m_DeferredLightBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	hr = m_pD3DDevice->CreateBlendState(&m_DeferredLightBlendDesc, &m_pDeferredLightBlendState);
+	if (FAILED(hr))
+		CLog::Log(S_ERROR, "Failed create deferred light accumulation blend state");
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -670,13 +681,13 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 		CLog::Log(S_ERROR, "Could not create empty dummy normal map (nonormalmap)!");
 	}
 
-
 	InitBlendStates();
 
 	// Reset bound-resources cache
 	memset(m_BoundVSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 	memset(m_BoundPSResources, 0, sizeof(ID3D11ShaderResourceView*) * 8);
 
+	InitFullscreenQuad();
 
 	// Initialize font renderer
 	m_pFontRenderer = new DX11FontRenderer();
@@ -769,6 +780,48 @@ S_API IShaderPass* DX11Renderer::GetShaderPass(EShaderPassType type) const
 	return m_Passes[type];
 }
 
+
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::InitFullscreenQuad()
+{
+	SPMatrixOrthoRH(&m_FullscreenPlane.projMtx, 1.0f, 1.0f, 1.0f, 3.0f);
+	m_FullscreenPlane.transform = Mat44::Identity;
+	m_FullscreenPlane.bCustomViewProjMtx = true;
+	m_FullscreenPlane.bDepthStencilEnable = false;
+	m_FullscreenPlane.bInverseDepthTest = false;
+	m_FullscreenPlane.nSubsets = 1;
+	m_FullscreenPlane.pSubsets = new SRenderSubset[1];
+	m_FullscreenPlane.pSubsets[0].bOnce = false;
+	m_FullscreenPlane.pSubsets[0].render = true;
+	m_FullscreenPlane.pSubsets[0].enableAlphaTest = false;
+
+	SVertex fsPlaneVerts[] =
+	{
+		SVertex(-1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(-1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0)
+	};
+
+	SIndex fsPlaneIndices[] =
+	{
+		0, 1, 2,
+		0, 2, 3
+	};
+
+	m_pResourcePool->AddVertexBuffer(&m_FullscreenPlane.pSubsets[0].drawCallDesc.pVertexBuffer);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.pVertexBuffer->Initialize(this, eVBUSAGE_STATIC, fsPlaneVerts, 4);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iStartVBIndex = 0;
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iEndVBIndex = 3;
+
+	m_pResourcePool->AddIndexBuffer(&m_FullscreenPlane.pSubsets[0].drawCallDesc.pIndexBuffer);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.pIndexBuffer->Initialize(this, eIBUSAGE_STATIC, fsPlaneIndices, 6);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iStartIBIndex = 0;
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iEndIBIndex = 5;
+}
+
+
+
 // -----------------------------------------------------------------------------------------------
 S_API IFontRenderer* DX11Renderer::GetFontRenderer() const
 {
@@ -814,6 +867,7 @@ S_API SResult DX11Renderer::Shutdown(void)
 	m_pSetBlendState = 0;
 	SP_SAFE_RELEASE(m_pDefBlendState);
 	SP_SAFE_RELEASE(m_pAlphaTestBlendState);
+	SP_SAFE_RELEASE(m_pDeferredLightBlendState);
 	SP_SAFE_RELEASE(m_pTerrainBlendState);
 	SP_SAFE_RELEASE(m_pBilinearSamplerState);
 	SP_SAFE_RELEASE(m_pPointSamplerState);
@@ -1337,206 +1391,6 @@ S_API SResult DX11Renderer::EndScene(void)
 
 
 
-
-
-
-
-
-
-
-
-
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
-{
-	if (!m_bInScene)
-	{
-		FrameDump("Cannot Render Object: Not in scene!");
-		return S_INVALIDSTAGE;
-	}
-
-	// Skip render desc without subsets
-	if (renderDesc.nSubsets == 0 || !IS_VALID_PTR(renderDesc.pSubsets))
-	{
-		FrameDump("Skipping Render: No subsets");
-		return S_SUCCESS;
-	}
-
-	// Set correct depth stencil state
-	EnableDepthTest(renderDesc.bDepthStencilEnable);
-
-	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
-	SetDepthTestFunction(depthTestFunc);
-
-	// Set rasterizer state
-	EnableBackfaceCulling(false);
-
-	// Set blend state
-	D3D11_SetBlendState(m_pDefBlendState);
-
-
-	// Set the viewport matrices
-	SSceneConstants origSceneConstants;
-	if (renderDesc.bCustomViewProjMtx)
-	{
-		FrameDump("Setting custom viewproj mtx");
-
-		// Backup current scene constants, so we can restore them later
-		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
-		memcpy(&origSceneConstants, pSceneConstants, sizeof(SSceneConstants));
-
-		SetViewProjMatrix(renderDesc.viewMtx, renderDesc.projMtx);
-	}
-
-
-	// In case something else was bound to the slot before...
-	BindSceneCB(m_SceneConstants.GetCB());
-
-
-	DrawSubsets(renderDesc);
-
-
-	// Restore scene constants if necessary
-	if (renderDesc.bCustomViewProjMtx)
-	{
-		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
-		memcpy(pSceneConstants, &origSceneConstants, sizeof(SSceneConstants));
-		m_SceneConstants.Update();
-	}
-
-	return S_SUCCESS;
-}
-
-
-
-
-
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRenderDesc)
-{
-	if (!m_bInScene)
-	{
-		FrameDump("Cannot Render Terrain: Not in scene!");
-		return S_INVALIDSTAGE;
-	}
-
-
-	// Update Per-Scene Constants Buffer
-	SetViewProjMatrix(m_pTargetViewport);
-
-	// In case something else was bound to the slot before...
-	BindSceneCB(m_SceneConstants.GetCB());
-
-
-	// Render Terrain
-	if (terrainRenderDesc.bRender)
-	{
-		bool bTerrainRenderState = true;	// true = success
-		FrameDump("Rendering Terrain...");
-
-		// TODO: Make terrain rendering deferred as well
-		m_CurrentPass = eSHADERPASS_NONE;
-
-		// Render Terrain directly to the backbuffer
-		BindSingleRT(m_pTargetViewport);
-
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pVtxHeightMap))) CLog::Log(S_ERROR, "Invalid terrain vtx heightmap in render desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pColorMap))) CLog::Log(S_ERROR, "Invalid color map in Terrin render Desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pLayerMasks))) CLog::Log(S_ERROR, "Invalid layer masks array in Terarin Render Desc!");
-		if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pDetailMaps))) CLog::Log(S_ERROR, "Invalid detail maps array in Terarin Render Desc!");
-		if (!(bTerrainRenderState = (terrainRenderDesc.nLayers > 0))) CLog::Log(S_ERROR, "Invalid layer count in Terrain Render Desc!");
-
-		BindTexture(terrainRenderDesc.pVtxHeightMap, 0);
-		BindVertexShaderTexture(terrainRenderDesc.pVtxHeightMap, 0);
-		BindTexture(terrainRenderDesc.pColorMap, 1);
-
-		// ~~
-		// TODO: Avoid referencing a shader pass here
-		//			- probably fixed with deferred rendering, because the shadowmap is then only bound in shading pass.
-		ShadowmapShaderPass* pShadowmapPass = dynamic_cast<ShadowmapShaderPass*>(GetShaderPass(eSHADERPASS_SHADOWMAP));
-		if (pShadowmapPass)
-			BindDepthBufferAsTexture(pShadowmapPass->GetShadowmap(), 4);
-
-		if (terrainRenderDesc.bUpdateCB)
-		{
-			memcpy(m_TerrainConstants.GetConstants(), &terrainRenderDesc.constants, sizeof(terrainRenderDesc.constants));
-			m_TerrainConstants.Update();
-		}
-
-		EnableDepthTest(true);
-		SetDepthTestFunction(eDEPTH_TEST_LESS);
-
-		EnableBackfaceCulling(true);
-
-		// bind terrain cb
-		BindConstantsBuffer(m_TerrainConstants.GetCB());
-
-		// render all chunks
-		if (IS_VALID_PTR(terrainRenderDesc.pDrawCallDescs) && terrainRenderDesc.nDrawCallDescs > 0)
-		{
-			for (unsigned int c = 0; c < terrainRenderDesc.nDrawCallDescs; ++c)
-			{
-				// Draw first layer without alpha blend and default depth state
-				D3D11_SetBlendState(m_pDefBlendState);
-				m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
-
-				// For each layer
-				for (unsigned int iLayer = 0; iLayer < terrainRenderDesc.nLayers; ++iLayer)
-				{
-					if (iLayer == 1)
-					{
-						// Draw each further layer with alpha blending and terrain depth stencil state
-						D3D11_SetBlendState(m_pTerrainBlendState);
-						m_pD3DDeviceContext->OMSetDepthStencilState(m_pTerrainDepthState, 1);
-					}
-
-					// Bind textures
-					BindTexture(terrainRenderDesc.pDetailMaps[iLayer], 2);
-					BindTexture(terrainRenderDesc.pLayerMasks[iLayer], 3);
-
-					// Draw the subset
-					DrawTerrainSubset(terrainRenderDesc.pDrawCallDescs[c]);
-				}
-			}
-
-			// Unbind terrain layer textures
-			UnbindTexture(2);
-			UnbindTexture(3);
-
-			// Unbind Vertex Shader texture
-			BindVertexShaderTexture((ITexture*)0, 0);
-		}
-
-		UnbindTexture(4);
-
-		D3D11_SetBlendState(m_pDefBlendState);
-	}
-	else
-	{
-		FrameDump("Terrain not scheduled to be rendered this frame.");
-	}
-
-	return S_SUCCESS;
-}
-
-// -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::RenderFullScreenQuad()
-{
-
-
-
-
-	// TODO
-
-
-
-
-}
-
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1548,7 +1402,7 @@ S_API SResult DX11Renderer::RenderFullScreenQuad()
 
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
+S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc, bool overrideBlendState)
 {
 	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
 	{
@@ -1566,7 +1420,10 @@ S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc)
 			continue;
 		}
 
-		D3D11_SetBlendState(subset.enableAlphaTest ? m_pAlphaTestBlendState : m_pDefBlendState);
+		if (overrideBlendState)
+		{
+			D3D11_SetBlendState(subset.enableAlphaTest ? m_pAlphaTestBlendState : m_pDefBlendState);
+		}
 
 		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, SMatrixTranspose(renderDesc.transform));
 
@@ -1927,6 +1784,7 @@ S_API void DX11Renderer::SetViewProjMatrix(const Mat44& mtxView, const Mat44& mt
 {
 	SSceneConstants* pConstants = m_SceneConstants.GetConstants();
 	pConstants->mtxView = mtxView;
+	pConstants->mtxViewInv = SMatrixInvert(mtxView);
 	pConstants->mtxProj = mtxProj;
 	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
 	m_SceneConstants.Update();

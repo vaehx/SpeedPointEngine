@@ -9,6 +9,7 @@
 cbuffer SceneCB : register(b0)
 {
     float4x4 mtxView;
+	float4x4 mtxViewInv;
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
@@ -100,8 +101,11 @@ PS_OUTPUT PS_zpass(PS_INPUT IN)
 	float3 albedo = textureMap.Sample(LinearSampler, IN.TexCoord).rgb;
 	OUT.Buffer0 = float4(albedo, matRoughness);
 
+	// TODO: Normal-mapping 
+	float3 N = IN.Normal;
+
 	// Pack normal into two 16bit components
-	OUT.Buffer1 = normalize(IN.Normal.xy) * sqrt(IN.Normal.z * 0.5 + 0.5);
+	OUT.Buffer1 = normalize(N.xy) * sqrt(N.z * 0.5 + 0.5);
 
 	return OUT;
 }

@@ -200,8 +200,6 @@ struct SRenderSubset
 // Do not copy with memcpy or std::copy!
 struct S_API SRenderDesc
 {
-	ERenderPipeline renderPipeline;
-
 	SRenderSubset* pSubsets;
 	unsigned int nSubsets;
 
@@ -243,7 +241,6 @@ struct S_API SRenderDesc
 	{
 		Clear();
 
-		renderPipeline = rd.renderPipeline;
 		nSubsets = rd.nSubsets;
 		transform = rd.transform;
 		viewMtx = rd.viewMtx;
@@ -261,6 +258,7 @@ struct S_API SRenderDesc
 		}
 	}
 
+	// Does not release resources
 	void Clear()
 	{
 		if (IS_VALID_PTR(pSubsets))
@@ -557,12 +555,20 @@ public:
 
 	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
 
+	//---
+
 	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
 	
+	// Sets proper device states for rendering deferred lights and calls the common Render() method
+	virtual SResult RenderDeferredLight(const SRenderDesc& renderDesc) = 0;
+	
 	// Can be used for full-screen shader passes
 	virtual SResult RenderFullScreenQuad() = 0;
+	
+	//---
+
 
 	virtual SResult PresentTargetViewport(void) = 0;
 

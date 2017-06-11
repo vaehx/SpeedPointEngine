@@ -9,6 +9,7 @@
 cbuffer SceneCB : register(b0)
 {
     float4x4 mtxView;
+	float4x4 mtxViewInv;
     float4x4 mtxProj;
     float4x4 mtxProjInv;
     float4 sunPos;
@@ -46,6 +47,23 @@ struct VS_INPUT_SIMPLE
 };
 
 // ---------------------------------------------------------
+// Helper methods
+
+// ss.xy - screen space pixel position (from SV_Position)
+// ss.z - non-linear depth
+float3 ReconstructWSFromSS(float3 ss)
+{
+	float4 vs = mul(mtxProjInv, float4(ss, 1.0f));
+	vs /= vs.w;
+	vs.x = (vs.x + 1.0f) * 0.5f;
+	vs.y = 1.0f - (vs.y + 1.0f) * 0.5f;
+
+	return mul(mtxViewInv, vs);
+}
+
+
+// ---------------------------------------------------------
+// Physically Based Rendering
 
 float RoughnessToAlpha(float roughness)
 {
@@ -75,7 +93,7 @@ float BRDF_Blinn(float3 L, float3 V, float3 N, float3 H, float alpha, float cspe
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined(ENTRY_forward)
+#ifdef ENTRY_forward
 cbuffer ObjectCB : register(b1)
 {
 	float4x4 mtxWorld;
@@ -255,7 +273,9 @@ cbuffer LightCB : register(b1)
 {
 	float4x4 mtxWorld;
 	float3 lightPos;
+	float3 lightDirection; // for spot, directional
 	float3 lightIntensity;
+	uint lightType; // 0 = sun, 1 = point
 	float lightMaxDistance;
 	float lightDecay;
 };
@@ -287,37 +307,53 @@ VS_OUTPUT VS_LightPrepass(VS_INPUT IN)
 	return OUT;
 }
 
+#define FALLOFF_EPSILON 0.01f
+
 float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 {
-	// TODO
-	float2 screenTC;
-	
+	// Note: IN.Position.xy is offset by 0.5
+	float2 screenTC = IN.Position.xy / screenRes;
+
+	// --------------------------
+	// Unpack GBuffer
 	float4 G0 = GBuffer0.Sample(PointSampler, screenTC);
 	float4 G1 = GBuffer1.Sample(PointSampler, screenTC);
 	float GDepth = GBufferDepth.Sample(PointSampler, screenTC).r;
 
 	float matRoughness = G0.z;
 	float3 N = float3(G0.x, G0.y, sqrt(1.0f - G0.x*G0.x - G0.y*G0.y));
+	float3 wpos = ReconstructWSFromSS(float3(IN.Position.xy, GDepth));
 
-	// TODO: Reconstruct from SV_Position and GBufferDepth sample
-	float3 wpos;
-
+	// --------------------------
 	float3 V = normalize(eyePos - wpos);
-	float3 L = lightPos - wpos;
-	float distance = length(L);
-	L /= distance;
+	float3 L;
+	float falloff = 1.0f;
+	float shadowFactor = 1.0f;
+	if (lightType == 0) // sun
+	{
+		L = -lightDirection;
+		falloff = 1.0f;
+		shadowFactor = CalculateShadowMapFactor(wpos);
+	}
+	else // point, unknown
+	{
+		L = lightPos - wpos;
+		float distance = length(L);
+		L /= distance;
+
+		falloff = pow(saturate(1 - pow(distance / lightMaxDistance, 4)), 2) / pow(max(distance, FALLOFF_EPSILON), lightDecay);
+	}
 
 	float alpha = RoughnessToAlpha(matRoughness);
 	float cspec = 0.2f; // TODO
 
 	float brdf = BRDF_Blinn(L, V, N, IN.H, alpha, cspec);
 
-	float epsilon = 0.01f; // 1cm
-	float falloff = pow(saturate(1 - pow(distance / lightMaxDistance, 4)), 2) / pow(max(distance, epsilon), lightDecay);
+	float3 irradiance = lightIntensity * falloff * shadowFactor;
 
-	float3 irradiance = lightIntensity * falloff;
-
-	return float4(brdf * irradiance * dot(V, N), 0);
+	// --------------------------
+	// Calculate radiance at the surface point for the current light
+	return float4(brdf * irradiance * saturate(dot(V, N)), 0);
 }
 
 
@@ -361,15 +397,15 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(PS_INPUT IN)
 {
 	PS_OUTPUT OUT;
 
-	// TODO: Determine FBO texture coordinates from SV_Position
-	float2 screenTC;
+	// Note: IN.Position.xy is offset by 0.5
+	float2 screenTC = IN.Position.xy / screenRes;
 
-	// Determine final pixel color
+	// Determine final radiance
 	float3 lightBufferSample = LightBuffer.Sample(PointSampler, screenTC);
 	float3 Lemissive	= float3(0, 0, 0);
 	float3 Lglobal		= float3(0.1f); // TODO
 	float3 Lout			= Lemissive + Lglobal + lightBufferSample;
-	
+
 	OUT.Color = float4(Lout, 1.0f);
 
 	// Copy depth from gbuffer

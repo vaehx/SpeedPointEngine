@@ -31,6 +31,7 @@ struct S_API ITexture;
 struct S_API SSceneConstants
 {
 	Mat44 mtxView;	// 16 * 4 Byte
+	Mat44 mtxViewInv;
 	Mat44 mtxProj;
 	Mat44 mtxProjInv;
 	

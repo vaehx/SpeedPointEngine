@@ -153,7 +153,9 @@ public:
 	struct SLightObjectConstants : public SObjectConstants
 	{
 		Vec3f lightPos;
+		Vec3f lightDirection; // for spot, directional. Points away from light source
 		Vec3f lightIntensity;
+		unsigned int lightType; // 0 = sun, 1 = point
 		float lightMaxDistance;
 		float lightDecay;
 	};

@@ -5,6 +5,7 @@
 #include "Material.h"
 #include "ParticleSystem.h"
 #include <Renderer\IRenderer.h>
+#include <Renderer\IOutputPlane.h>
 #include <Common\ChunkedObjectPool.h>
 #include <Common\SPrerequisites.h>
 #include <map>
@@ -34,8 +35,10 @@ private:
 	map<unsigned int, SRenderDesc> m_HelperPrefabs; // index = (uint)type * 2 + (uint)bOutline
 
 	map<ELightType, SRenderDesc> m_LightVolumes;
+	SRenderDesc m_FullscreenPlane;
 
 	ISkyBox* m_pSkyBox;
+	SEnvironmentSettings m_EnvironmentSettings;
 	
 	STerrainRenderDesc m_TerrainRenderDesc;
 	ITerrain* m_pTerrain;
@@ -44,6 +47,7 @@ private:
 	SRenderDesc m_HUDRenderDesc;
 
 
+	void CreateFullscreenPlane();
 	void CreateLightVolume(ELightType type, const SInitialGeometryDesc* pGeomDesc);
 
 	void ClearHelperPrefabs();
@@ -52,7 +56,7 @@ private:
 
 	void RenderMeshes();
 	void RenderHelpers();
-	void RenderDeferredLight(CRenderLight* pLight);
+	void RenderDeferredLights();
 	void RenderHUD();
 	void RenderDebugTexture();
 

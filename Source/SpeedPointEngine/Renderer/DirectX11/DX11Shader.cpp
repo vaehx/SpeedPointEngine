@@ -820,6 +820,8 @@ S_API SResult DeferredLightShaderPass::Bind()
 	ITexture* pGBufferDepthTexture = m_pGBufferPass->GetDepthBufferTexture();
 	m_pRenderer->BindTexture(pGBufferDepthTexture, NUM_GBUFFER_LAYERS);
 
+	m_pRenderer->EnableDepthTest(false, false);
+
 	return S_SUCCESS;
 }
 

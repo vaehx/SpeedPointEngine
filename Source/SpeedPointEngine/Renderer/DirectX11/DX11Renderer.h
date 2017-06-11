@@ -94,6 +94,9 @@ private:
 	D3D11_BLEND_DESC m_AlphaTestBlendDesc;
 	ID3D11BlendState* m_pAlphaTestBlendState;
 
+	D3D11_BLEND_DESC m_DeferredLightBlendDesc;
+	ID3D11BlendState* m_pDeferredLightBlendState;
+
 	ID3D11BlendState* m_pSetBlendState;
 
 	// Depth Stencil states
@@ -143,6 +146,7 @@ private:
 
 	bool m_bInScene;
 
+	SRenderDesc m_FullscreenPlane;
 
 	STerrainRenderDesc m_TerrainRenderDesc;
 	D3D11_BLEND_DESC m_TerrainBlendDesc;	
@@ -165,6 +169,7 @@ private:
 
 	void InitShaderPasses();
 	void InitBlendStates();
+	void InitFullscreenQuad();
 
 	SResult UpdateRasterizerState();
 	SResult UpdateDepthStencilState();
@@ -174,8 +179,13 @@ private:
 	// Returns the lvl which the srv is bound on or -1 if it is not bound
 	int IsBoundAsTexture(ID3D11ShaderResourceView* srv);
 
+	// Does not apply blend state etc., called from public Render() methods
+	void RenderGeometry(const SRenderDesc& renderDesc, bool overrideBlendState = true);
+
 	SResult DrawTerrainSubset(const STerrainDrawCallDesc& dcd);
-	SResult DrawSubsets(const SRenderDesc& renderDesc);
+	
+	// overrideBlendState - if false, will NOT override the currently set blend state
+	SResult DrawSubsets(const SRenderDesc& renderDesc, bool overrideBlendState);
 
 	void SetEyePosition(const Vec3f& eyePos);
 	void SetDepthTestFunction(EDepthTestFunction depthTestFunc);
@@ -332,6 +342,7 @@ public:
 	virtual SResult Render(const SRenderDesc& renderDesc);
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
+	virtual SResult RenderDeferredLight(const SRenderDesc& renderDesc);
 	virtual SResult RenderFullScreenQuad();
 
 	virtual SResult PresentTargetViewport(void);

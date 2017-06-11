@@ -5,6 +5,7 @@
 #include <Common\SPrerequisites.h>
 #include <Common\ProfilingSystem.h>
 #include <sstream>
+#include <Windows.h>
 
 #include <Renderer\DirectX11\DX11Renderer.h>
 
@@ -42,6 +43,49 @@ S_API void C3DEngine::Init()
 	MakeSphere(&geomDesc, Vec3f(0), 1.0f, 25, 25);
 	CreateLightVolume(eLIGHT_TYPE_OMNIDIRECTIONAL, &geomDesc);
 	CleanupInitialGeometryDesc(geomDesc);
+
+	CreateFullscreenPlane();
+}
+
+S_API void C3DEngine::CreateFullscreenPlane()
+{
+	IResourcePool* pResourcePool = m_pRenderer->GetResourcePool();
+
+	SPMatrixOrthoRH(&m_FullscreenPlane.projMtx, 1.0f, 1.0f, 1.0f, 3.0f);
+	m_FullscreenPlane.transform = Mat44::Identity;
+
+	m_FullscreenPlane.bCustomViewProjMtx = true;
+	m_FullscreenPlane.bDepthStencilEnable = false;
+	m_FullscreenPlane.bInverseDepthTest = false;
+	m_FullscreenPlane.nSubsets = 1;
+	m_FullscreenPlane.pSubsets = new SRenderSubset[1];
+	m_FullscreenPlane.pSubsets[0].bOnce = false;
+	m_FullscreenPlane.pSubsets[0].render = true;
+	m_FullscreenPlane.pSubsets[0].enableAlphaTest = false;
+
+	SVertex fsPlaneVerts[] =
+	{
+		SVertex(-1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(-1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0)
+	};
+
+	SIndex fsPlaneIndices[] =
+	{
+		0, 1, 2,
+		0, 2, 3
+	};
+
+	pResourcePool->AddVertexBuffer(&m_FullscreenPlane.pSubsets[0].drawCallDesc.pVertexBuffer);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.pVertexBuffer->Initialize(m_pRenderer, eVBUSAGE_STATIC, fsPlaneVerts, 4);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iStartVBIndex = 0;
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iEndVBIndex = 3;
+
+	pResourcePool->AddIndexBuffer(&m_FullscreenPlane.pSubsets[0].drawCallDesc.pIndexBuffer);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.pIndexBuffer->Initialize(m_pRenderer, eIBUSAGE_STATIC, fsPlaneIndices, 6);
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iStartIBIndex = 0;
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.iEndIBIndex = 5;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,7 +342,6 @@ S_API SResult C3DEngine::_CreateHelperPrefab(unsigned int id, const SHelperGeome
 	rd->bCustomViewProjMtx = false;
 	rd->bDepthStencilEnable = true;
 	rd->bInverseDepthTest = false;
-	rd->renderPipeline = eRENDER_FORWARD;
 
 	bool lines = (geometry->topology == PRIMITIVE_TYPE_LINES || geometry->topology == PRIMITIVE_TYPE_LINESTRIP);
 
@@ -402,8 +445,7 @@ S_API void C3DEngine::CreateHUDRenderDesc()
 	SPMatrixOrthoRH(&m_HUDRenderDesc.projMtx, (float)vpSz.cx, (float)vpSz.cy, 0.1f, 1000.f);
 
 	m_HUDRenderDesc.bCustomViewProjMtx = true;
-	m_HUDRenderDesc.bDepthStencilEnable = false;	
-	m_HUDRenderDesc.renderPipeline = eRENDER_FORWARD;	
+	m_HUDRenderDesc.bDepthStencilEnable = false;
 	m_HUDRenderDesc.nSubsets = 1;
 	m_HUDRenderDesc.pSubsets = new SRenderSubset[1];
 
@@ -452,6 +494,8 @@ S_API void C3DEngine::RemoveHUDElement(SHUDElement** pHUDElement)
 
 S_API void C3DEngine::SetEnvironmentSettings(const SEnvironmentSettings& env)
 {
+	m_EnvironmentSettings = env;
+
 	SSceneConstants* pSceneConstants = m_pRenderer->GetSceneConstants();
 	pSceneConstants->sunPosition = Vec4f(env.sunPosition, 1.0f);
 	pSceneConstants->fogStart = env.fogStart;
@@ -462,6 +506,8 @@ S_API void C3DEngine::SetEnvironmentSettings(const SEnvironmentSettings& env)
 
 S_API void C3DEngine::UpdateSunViewProj()
 {
+	// Calculate the minimum orthogonal view frustum for the sun that fits the camera view frustum
+
 	SSceneConstants* pSceneConstants = m_pRenderer->GetSceneConstants();
 
 	m_pRenderer->GetTargetViewport()->RecalculateCameraViewMatrix();
@@ -553,28 +599,13 @@ S_API void C3DEngine::RenderCollected()
 		RenderMeshes();
 
 		// Deferred light prepass
-		DeferredLightShaderPass* pLightPass = dynamic_cast<DeferredLightShaderPass*>(m_pRenderer->BindShaderPass(eSHADERPASS_LIGHTPREPASS));
-		DeferredLightShaderPass::SLightObjectConstants lightConstants;
-		unsigned int iLight;
-		CRenderLight* pLight = m_pLights->GetFirst(iLight);
-		while (pLight)
-		{
-			SLightParams& params = pLight->GetParams();
-			lightConstants.lightPos = params.position;
-			lightConstants.lightIntensity = params.intensity.ToFloat3();
-			lightConstants.lightDecay = params.decay;
-			lightConstants.lightMaxDistance = params.radius;
-
-			pLightPass->SetLightConstants(lightConstants);
-
-			RenderDeferredLight(pLight);
-			
-			pLight = m_pLights->GetNext(iLight);
-		}
+		m_pRenderer->BindShaderPass(eSHADERPASS_LIGHTPREPASS);
+		RenderDeferredLights();
 
 		// Shading and merging post-pass
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
 		m_pRenderer->RenderFullScreenQuad();
+
 
 		// Particles
 		m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
@@ -627,6 +658,55 @@ S_API void C3DEngine::RenderMeshes()
 
 		ProfilingSystem::EndSection(renderObjectsTimer);
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+S_API void C3DEngine::RenderDeferredLights()
+{
+	DeferredLightShaderPass* pLightPass = dynamic_cast<DeferredLightShaderPass*>(m_pRenderer->GetShaderPass(eSHADERPASS_LIGHTPREPASS));
+	DeferredLightShaderPass::SLightObjectConstants lightConstants;
+	unsigned int iLight;
+	CRenderLight* pLight = m_pLights->GetFirst(iLight);
+	while (pLight)
+	{
+		SLightParams& params = pLight->GetParams();
+		lightConstants.lightPos = params.position;
+		//lightConstants.lightDirection = params.direction;
+		lightConstants.lightIntensity = params.intensity.ToFloat3();
+		lightConstants.lightDecay = params.decay;
+		lightConstants.lightMaxDistance = params.radius;
+
+		switch (params.type)
+		{
+		case eLIGHT_TYPE_OMNIDIRECTIONAL:
+		default:
+			lightConstants.lightType = 1;
+			break;
+		}
+
+		pLightPass->SetLightConstants(lightConstants);
+
+		// Get light volume and render it
+		auto lightVolume = m_LightVolumes.find(pLight->GetParams().type);
+		if (lightVolume == m_LightVolumes.end())
+			return;
+
+		SRenderDesc* rd = &lightVolume->second;
+		m_pRenderer->RenderDeferredLight(*rd);
+
+
+		pLight = m_pLights->GetNext(iLight);
+	}
+
+	// Sun
+	lightConstants.lightType = 0;
+	lightConstants.lightDirection = -m_EnvironmentSettings.sunPosition;
+	lightConstants.lightIntensity = m_EnvironmentSettings.sunIntensity.ToFloat3();
+
+	pLightPass->SetLightConstants(lightConstants);
+
+	m_pRenderer->RenderDeferredLight(m_FullscreenPlane);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
