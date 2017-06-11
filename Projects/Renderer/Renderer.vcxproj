@@ -46,9 +46,9 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Font.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11IndexBuffer.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11InstanceBuffer.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11OuptutBuffer.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11OuptutPlane.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Renderer.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11RendererRenderInstanced.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11RendererRender.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11ResourcePool.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Shader.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Texture.cpp" />

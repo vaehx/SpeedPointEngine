@@ -125,17 +125,17 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11IndexBuffer.cpp">
       <Filter>DX11</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11OuptutBuffer.cpp">
-      <Filter>DX11</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11InstanceBuffer.cpp">
       <Filter>DX11</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11RendererRenderInstanced.cpp">
-      <Filter>DX11\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11Renderer.cpp">
       <Filter>DX11\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11RendererRender.cpp">
+      <Filter>DX11\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Renderer\DirectX11\DX11OuptutPlane.cpp">
+      <Filter>DX11</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
