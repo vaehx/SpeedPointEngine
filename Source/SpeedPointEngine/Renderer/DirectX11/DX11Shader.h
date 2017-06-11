@@ -78,8 +78,7 @@ public:
 
 struct S_API SMatObjConstants : SObjectConstants
 {
-	float matAmbient;		// 4 Byte
-	float3 matEmissive;		// 3 * 4 = 12 Byte
+	float matRoughnes;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -136,34 +135,73 @@ public:
 		Clear();
 	}
 
-	const vector<IFBO*>& GetGBuffer() const;
-
 	// IShaderPass:
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual void Clear();
 
 	virtual SResult Bind();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
+
+	ITexture* GetGBufferTexture(unsigned int i) const;
+	ITexture* GetDepthBufferTexture() const;
+};
+
+///////////////////////////////////////////////////////////////////////////////////
+class S_API DeferredLightShaderPass : public IShaderPass
+{
+public:
+	struct SLightObjectConstants : public SObjectConstants
+	{
+		Vec3f lightPos;
+		Vec3f lightIntensity;
+		float lightMaxDistance;
+		float lightDecay;
+	};
+
+private:
+	GBufferShaderPass* m_pGBufferPass;
+	IRenderer* m_pRenderer;
+	IShader* m_pShader;
+	IFBO* m_pLightBuffer;
+	ConstantsBufferHelper<SLightObjectConstants> m_Constants;
+
+public:
+	DeferredLightShaderPass(GBufferShaderPass* pGBufferPass)
+		: m_pGBufferPass(pGBufferPass),
+		m_pRenderer(0),
+		m_pShader(0)
+	{
+	}
+
+	virtual ~DeferredLightShaderPass() { Clear(); }
+
+	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void Clear();
+
+	virtual SResult Bind();
+	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
+	
+	// Call this before Renderer::Render(), which will call SetShaderResources()
+	void SetLightConstants(const SLightObjectConstants& constants);
+
+	ITexture* GetLightBufferTexture() const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
 class S_API ShadingShaderPass : public IShaderPass
 {
-public:
-	struct SShadingPassConstants : SObjectConstants
-	{
-	};
-
 private:
 	GBufferShaderPass* m_pGBufferPass;
 	ShadowmapShaderPass* m_pShadowmapPass;
+	DeferredLightShaderPass* m_pLightPass;
 	IRenderer* m_pRenderer;
 	IShader* m_pShader;
-	ConstantsBufferHelper<SShadingPassConstants> m_Constants;
+	ConstantsBufferHelper<SObjectConstants> m_Constants;
 
 public:
-	ShadingShaderPass(GBufferShaderPass* pGBufferPass, ShadowmapShaderPass* pShadowmapPass)
+	ShadingShaderPass(GBufferShaderPass* pGBufferPass, DeferredLightShaderPass* pLightPass, ShadowmapShaderPass* pShadowmapPass)
 		: m_pGBufferPass(pGBufferPass),
+		m_pLightPass(pLightPass),
 		m_pShadowmapPass(pShadowmapPass),
 		m_pRenderer(0)
 	{

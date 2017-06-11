@@ -188,12 +188,18 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 #endif
 
 	string composedEntryName = "VS_" + info.entry;
+	string entryNameMacro = "ENTRY_" + info.entry;
+
+	D3D_SHADER_MACRO macros[] =
+	{
+		{ entryNameMacro.c_str(), 0 }
+	};
 
 	ID3DBlob *pVSBlob = 0, *pPSBlob = 0, *pErrorBlob = 0;
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
-		0, 0, 0, composedEntryName.c_str(),
+		0, macros, 0, composedEntryName.c_str(),
 		"vs_4_0",
 		compileFlags,
 		0,
@@ -209,7 +215,7 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
-		0, 0, 0, composedEntryName.c_str(),
+		0, macros, 0, composedEntryName.c_str(),
 		"ps_4_0",
 		compileFlags,
 		0,
@@ -462,7 +468,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 
 	// Create shaders
 	SShaderInfo si;
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_FORWARD_HELPER);
+	si.filename = pRenderer->GetShaderPath(eSHADERFILE_HELPER);
 	si.entry = "helper";
 	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
@@ -470,7 +476,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 	m_pHelperShader->Load(pRenderer, si);
 
 
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_FORWARD);
+	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
 	si.entry = "forward";
 	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
@@ -574,14 +580,8 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	// Set constants
 	SMatObjConstants* constants = m_Constants.GetConstants();
 
-
-	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)
-
-
-
 	constants->mtxWorld = transform;
-	constants->matEmissive = sr.diffuse;
-	constants->matAmbient = 0.1f;
+	constants->matRoughnes = sr.roughness;
 
 	m_Constants.Update();
 }
@@ -597,15 +597,49 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 /*
 
-GBUFFER-LAYOUT:
+1st Pass: Render objects to gbuffer
+	- See GBUFFER-LAYOUT below
+2nd Pass: Render each light volume and accumulate luminous emittance of surface in light buffer
+	- Calculate render-equation summand by sampling GBuffer
+		
+		float3 PS_LightPass(
+			float3 x,
+			float3 N,
+			float3 L,
+			float3 V,
+			float3 lightPos,
+			float3 lightIntensity,
+			float lightMaxDistance,
+			float lightDecay,
+			float matRoughness)
+		{
+			float distance = length(lightPos - x);
+			float falloff = pow(saturate(1 - pow(distance / lightMaxDistance, 4)), 2) / pow(max(distance, epsilon), lightDecay);
+			float3 irradiance = lightIntensity * falloff;
+
+			return BRDF(x, N, L, V, roughness) * irradiance * dot(V, N);
+		}
+
+	- Plug BRDF into Rendering equation
+	- Output:
+		- Light buffer: R32_FLOAT   <-- can be > 1 for HDR
+		- use ADDITIVE color blending
+3rd Pass: Fullscreen shading pass using gbuffer parameters and light buffer (shading shader pass)
+
+
+## GBUFFER-LAYOUT
+
 A - Albedo, N - Normal
 
-#1 GBUF0 RGBA8 [ Ar | Ag | Ab | Roughness ] + Depth
-#2 GBUF1 RGBA8 [ N00 | N01 | N10 | N11 ]
+#1 GBUF0 RGBA8	[ Ar | Ag | Ab | Roughness ] + Depth
+#2 GBUF1 R16G16	[ N00 | N01 | N10 | N11 ]
+
+TODO: We probably need more material parameters later (metallicness, fresnel coefficients, ...)
+
 	Compressing normal into 2*16bit components:
 		with WS-Normal:
 			to Gbuffer: G=(N.x,N.y)
-			from Gbuffer: N=(G.x, G.y, sqrt(1 - G.x*G.x - G.y*G.y)
+			from Gbuffer: N=(G.x, G.y, sqrt(1 - G.x*G.x - G.y*G.y))
 			(+) faster
 			(-) less precision on certain perspective cases
 		with VS-Normal (see 'A bit more deffered' presentation from Crytek):
@@ -615,6 +649,7 @@ A - Albedo, N - Normal
 			(-) more ALUs -> possibly slower
 			(-) "wasted area"
 
+
 */
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -622,24 +657,21 @@ A - Albedo, N - Normal
 S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 {
 	Clear();
+	
+	unsigned int screenRes[2] = { pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1] };
+
 	m_pGBuffer.resize(NUM_GBUFFER_LAYERS);
-
-	string spec = "";
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
-	{
-		spec = "$gbuffer_";
-		spec += std::to_string(i);
-
 		m_pGBuffer[i] = pRenderer->CreateRT();
-		m_pGBuffer[i]->InitializeAsTexture(eFBO_R8G8B8A8, pRenderer, pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1], spec.c_str());
 
-		// Make the first layer carry the depth buffer
-		if (i == 0)
-			m_pGBuffer[i]->InitializeDepthBufferAsTexture("$gbuffer_depth");
-	}
+	m_pGBuffer[0]->InitializeAsTexture(eFBO_R8G8B8A8, pRenderer, screenRes[0], screenRes[1], "$GBuffer0");
+	m_pGBuffer[0]->InitializeDepthBufferAsTexture("$GBufferDepth");
+
+	m_pGBuffer[1]->InitializeAsTexture(eFBO_R16G16F, pRenderer, screenRes[0], screenRes[1], "$GBuffer1");
+
 
 	SShaderInfo si;
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_DEFERRED_ZPASS);
+	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ZPASS);
 	si.entry = "zpass";
 
 	m_pShader = pRenderer->CreateShader();
@@ -703,37 +735,119 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 	m_pRenderer->BindTexture(pTextureMap, 0);
 	m_pRenderer->BindTexture(pNormalMap, 1);
 
-
-
 	// Set constants
 	SMatObjConstants* constants = m_Constants.GetConstants();
-
-
-	//TODO: Use correct material parameters here (roughness, fresnel coefficient, illumination model, ...)
-
-
-
 	constants->mtxWorld = transform;
-	constants->matEmissive = sr.emissive;
-	constants->matAmbient = 0.1f;
-
-
-
+	constants->matRoughnes = sr.roughness;
 
 	m_Constants.Update();
 }
 
-S_API const vector<IFBO*>& GBufferShaderPass::GetGBuffer() const
+S_API ITexture* GBufferShaderPass::GetGBufferTexture(unsigned int i) const
 {
-	return m_pGBuffer;
+	if (i > m_pGBuffer.size())
+		return 0;
+
+	return m_pGBuffer[i]->GetTexture();
 }
 
+S_API ITexture* GBufferShaderPass::GetDepthBufferTexture() const
+{
+	if (m_pGBuffer.empty())
+		return 0;
+
+	return m_pGBuffer[0]->GetDepthBufferTexture();
+}
 
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-//				Deferred Shading (Illumination) Shader Pass
+//				Light prepass shader pass
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+S_API SResult DeferredLightShaderPass::Initialize(IRenderer* pRenderer)
+{
+	Clear();
+	m_pRenderer = pRenderer;
+
+	unsigned int screenRes[2] = { pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1] };
+
+	m_pLightBuffer = m_pRenderer->CreateRT();
+	m_pLightBuffer->InitializeAsTexture(eFBO_R16G16B16A16F, m_pRenderer, screenRes[0], screenRes[1], "$LightBuffer");
+
+	SShaderInfo si;
+	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
+	si.entry = "LightPrepass";
+	si.inputLayout = eSHADERINPUTLAYOUT_SIMPLE;
+
+	m_pShader = pRenderer->CreateShader();
+	m_pShader->Load(pRenderer, si);
+
+	m_Constants.Initialize(pRenderer);
+
+	return S_SUCCESS;
+}
+
+S_API void DeferredLightShaderPass::Clear()
+{
+	m_Constants.Clear();
+
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+		m_pShader = 0;
+	}
+
+	m_pGBufferPass = 0;
+	m_pRenderer = 0;
+}
+
+S_API SResult DeferredLightShaderPass::Bind()
+{
+	m_pShader->Bind();
+
+	m_pRenderer->BindSingleRT(m_pLightBuffer);
+
+	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
+	{
+		ITexture* pGBufferTexture = m_pGBufferPass->GetGBufferTexture(i);
+		m_pRenderer->BindTexture(pGBufferTexture, i);
+	}
+
+	ITexture* pGBufferDepthTexture = m_pGBufferPass->GetDepthBufferTexture();
+	m_pRenderer->BindTexture(pGBufferDepthTexture, NUM_GBUFFER_LAYERS);
+
+	return S_SUCCESS;
+}
+
+S_API void DeferredLightShaderPass::SetLightConstants(const SLightObjectConstants& light)
+{
+	SLightObjectConstants* constants = m_Constants.GetConstants();
+	constants->lightPos = light.lightPos;
+	constants->lightIntensity = light.lightIntensity;
+	constants->lightMaxDistance = light.lightMaxDistance;
+	constants->lightDecay = light.lightDecay;
+
+	// buffer will be updated in SetShaderResources()
+}
+
+S_API void DeferredLightShaderPass::SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform)
+{
+	// transform should be the transformation matrix of the light volume
+	SLightObjectConstants* constants = m_Constants.GetConstants();
+	constants->mtxWorld = transform;
+
+	m_Constants.Update();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+//				Deferred Shading Shader Pass
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -742,8 +856,8 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 	m_pRenderer = pRenderer;
 
 	SShaderInfo si;
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_DEFERRED_SHADING);
-	si.entry = "illum";
+	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
+	si.entry = "DeferredShading";
 	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
 	m_pShader = pRenderer->CreateShader();
@@ -774,20 +888,26 @@ S_API SResult ShadingShaderPass::Bind()
 {
 	m_pShader->Bind();
 
-	// Use the target viewport as the output
 	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
 
-	const vector<IFBO*>& gbuffer = m_pGBufferPass->GetGBuffer();
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
-		m_pRenderer->BindTexture(gbuffer[i], i);
+	{
+		ITexture* pGBufferTexture = m_pGBufferPass->GetGBufferTexture(i);
+		m_pRenderer->BindTexture(pGBufferTexture, i);
+	}
+
+	ITexture* pGBufferDepthTexture = m_pGBufferPass->GetDepthBufferTexture();
+	m_pRenderer->BindTexture(pGBufferDepthTexture, NUM_GBUFFER_LAYERS);
+
+	ITexture* pLightBufferTexture = m_pLightPass->GetLightBufferTexture();
+	m_pRenderer->BindTexture(pLightBufferTexture, NUM_GBUFFER_LAYERS + 1);
 
 	return S_SUCCESS;
 }
 
 S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform)
 {
-	// transform should be the transformation matrix of the light volume
-	SShadingPassConstants* constants = m_Constants.GetConstants();
+	SObjectConstants* constants = m_Constants.GetConstants();
 	constants->mtxWorld = transform;
 
 	m_Constants.Update();

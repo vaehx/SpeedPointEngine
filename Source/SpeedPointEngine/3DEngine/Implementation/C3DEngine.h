@@ -52,6 +52,7 @@ private:
 
 	void RenderMeshes();
 	void RenderHelpers();
+	void RenderDeferredLight(CRenderLight* pLight);
 	void RenderHUD();
 	void RenderDebugTexture();
 

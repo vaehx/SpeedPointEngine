@@ -700,15 +700,16 @@ S_API string DX11Renderer::GetShaderPath(EShaderFileType type) const
 	case eSHADERFILE_SHADOW:
 		filename = "shadow.fx";
 		break;
-
-		// FORWARD:
 	case eSHADERFILE_SKYBOX:
 		filename = "skybox.fx";
 		break;
-	case eSHADERFILE_FORWARD:
-		filename = "illum.fx";	// PS_forward
+	case eSHADERFILE_ZPASS:
+		filename = "zpass.fx";
 		break;
-	case eSHADERFILE_FORWARD_HELPER:
+	case eSHADERFILE_ILLUM:
+		filename = "illum.fx";
+		break;
+	case eSHADERFILE_HELPER:
 		filename = "helper.fx";
 		break;
 	case eSHADERFILE_FONT:
@@ -720,18 +721,9 @@ S_API string DX11Renderer::GetShaderPath(EShaderFileType type) const
 	case eSHADERFILE_PARTICLES:
 		filename = "particles.fx";
 		break;
-
-		// Deferred Shading:
-	case eSHADERFILE_DEFERRED_ZPASS:
-		filename = "zpass.fx";	// PS_zpass
-		break;
-	case eSHADERFILE_DEFERRED_SHADING:
-		filename = "illum.fx";	// PS_illum
-		break;
 	case eSHADERFILE_TERRAIN:
 		filename = "terrain.fx";
 		break;
-
 	default:
 		return "???";
 	}
@@ -748,13 +740,18 @@ S_API void DX11Renderer::InitShaderPasses()
 	m_Passes[eSHADERPASS_GBUFFER] = new GBufferShaderPass();
 	m_Passes[eSHADERPASS_GBUFFER]->Initialize(this);
 
-	m_Passes[eSHADERPASS_SHADOWMAP] = new ShadowmapShaderPass();
-	m_Passes[eSHADERPASS_SHADOWMAP]->Initialize(this);
+	m_Passes[eSHADERPASS_LIGHTPREPASS] = new DeferredLightShaderPass(
+		dynamic_cast<GBufferShaderPass*>(m_Passes[eSHADERPASS_GBUFFER]));
+	m_Passes[eSHADERPASS_LIGHTPREPASS]->Initialize(this);
 
 	m_Passes[eSHADERPASS_SHADING] = new ShadingShaderPass(
 		dynamic_cast<GBufferShaderPass*>(m_Passes[eSHADERPASS_GBUFFER]),
+		dynamic_cast<DeferredLightShaderPass*>(m_Passes[eSHADERPASS_LIGHTPREPASS]),
 		dynamic_cast<ShadowmapShaderPass*>(m_Passes[eSHADERPASS_SHADOWMAP]));
 	m_Passes[eSHADERPASS_SHADING]->Initialize(this);
+
+	m_Passes[eSHADERPASS_SHADOWMAP] = new ShadowmapShaderPass();
+	m_Passes[eSHADERPASS_SHADOWMAP]->Initialize(this);
 
 	m_Passes[eSHADERPASS_GUI] = new GUIShaderPass();
 	m_Passes[eSHADERPASS_GUI]->Initialize(this);
@@ -801,10 +798,6 @@ S_API SResult DX11Renderer::Shutdown(void)
 			}
 		}
 	}
-
-	m_GBuffer1.Clear();
-	m_GBuffer2.Clear();
-	m_LightAccumulation.Clear();
 
 	m_Viewport.Clear();
 
@@ -869,7 +862,7 @@ S_API IShader* DX11Renderer::CreateShader() const
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API void DX11Renderer::BindShaderPass(EShaderPassType type)
+S_API IShaderPass* DX11Renderer::BindShaderPass(EShaderPassType type)
 {
 	if (IS_VALID_PTR(m_Passes[type]) && m_CurrentPass != type)
 	{
@@ -878,7 +871,10 @@ S_API void DX11Renderer::BindShaderPass(EShaderPassType type)
 
 		m_Passes[type]->Bind();
 		m_CurrentPass = type;
+		return m_Passes[type];
 	}
+
+	return 0;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1440,6 +1436,7 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 		bool bTerrainRenderState = true;	// true = success
 		FrameDump("Rendering Terrain...");
 
+		// TODO: Make terrain rendering deferred as well
 		m_CurrentPass = eSHADERPASS_NONE;
 
 		// Render Terrain directly to the backbuffer
@@ -1524,7 +1521,19 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 	return S_SUCCESS;
 }
 
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::RenderFullScreenQuad()
+{
 
+
+
+
+	// TODO
+
+
+
+
+}
 
 
 

@@ -548,18 +548,33 @@ S_API void C3DEngine::RenderCollected()
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
 
-		// Meshes
-		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+		// Z Prepass / GBuffer pass
+		m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
 		RenderMeshes();
 
-		//TODO: Implement deferred shading pass
-		/*
-		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
-		foreach (light : lights)
+		// Deferred light prepass
+		DeferredLightShaderPass* pLightPass = dynamic_cast<DeferredLightShaderPass*>(m_pRenderer->BindShaderPass(eSHADERPASS_LIGHTPREPASS));
+		DeferredLightShaderPass::SLightObjectConstants lightConstants;
+		unsigned int iLight;
+		CRenderLight* pLight = m_pLights->GetFirst(iLight);
+		while (pLight)
 		{
-		m_pRenderer->Render(light->pRenderDesc);
+			SLightParams& params = pLight->GetParams();
+			lightConstants.lightPos = params.position;
+			lightConstants.lightIntensity = params.intensity.ToFloat3();
+			lightConstants.lightDecay = params.decay;
+			lightConstants.lightMaxDistance = params.radius;
+
+			pLightPass->SetLightConstants(lightConstants);
+
+			RenderDeferredLight(pLight);
+			
+			pLight = m_pLights->GetNext(iLight);
 		}
-		*/
+
+		// Shading and merging post-pass
+		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
+		m_pRenderer->RenderFullScreenQuad();
 
 		// Particles
 		m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);

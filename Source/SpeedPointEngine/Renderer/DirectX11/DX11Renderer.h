@@ -135,15 +135,6 @@ private:
 	ITexture *m_pDummyTexture;
 	ITexture *m_pDummyNormalMap;	// contains pure (128,128,0) color.
 
-	// The Frame Buffer objects
-
-	DX11FBO m_GBuffer1; // (RGBA8) RGB: Normals, A: Roughness
-	DX11FBO m_GBuffer2; // (D24S8) D24: Depth, S: ???
-
-	DX11FBO m_LightAccumulation;
-
-
-
 
 	DX11Shader m_TerrainShader;
 
@@ -332,7 +323,7 @@ public:
 
 	virtual IShader* CreateShader() const;
 
-	virtual void BindShaderPass(EShaderPassType type);
+	virtual IShaderPass* BindShaderPass(EShaderPassType type);
 	virtual IShaderPass* GetShaderPass(EShaderPassType type) const;
 	virtual IShaderPass* GetCurrentShaderPass() const;
 
@@ -341,6 +332,7 @@ public:
 	virtual SResult Render(const SRenderDesc& renderDesc);
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
+	virtual SResult RenderFullScreenQuad();
 
 	virtual SResult PresentTargetViewport(void);
 

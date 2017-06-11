@@ -406,17 +406,12 @@ struct S_API SRenderBudgetTimer
 enum EShaderFileType
 {
 	eSHADERFILE_SKYBOX,
-
 	eSHADERFILE_SHADOW,
-
-	eSHADERFILE_FORWARD_HELPER,	// Forward helper effect
-	eSHADERFILE_FORWARD,
-
-	eSHADERFILE_FONT,	// forward font effect
-
-	eSHADERFILE_DEFERRED_ZPASS,	// ZPass for Deferred Shading
-	eSHADERFILE_DEFERRED_SHADING,	// shading pass for Deferred Shading
-	eSHADERFILE_TERRAIN,	// Deferred Shading Terrain
+	eSHADERFILE_HELPER,
+	eSHADERFILE_ZPASS,
+	eSHADERFILE_ILLUM,
+	eSHADERFILE_FONT,
+	eSHADERFILE_TERRAIN,
 	eSHADERFILE_GUI,
 	eSHADERFILE_PARTICLES
 };
@@ -549,7 +544,9 @@ public:
 
 	virtual IShader* CreateShader() const = 0;
 
-	virtual void BindShaderPass(EShaderPassType type) = 0;
+	// Returns the bound shader pass or 0 if type is invalid or an error occured
+	virtual IShaderPass* BindShaderPass(EShaderPassType type) = 0;
+
 	virtual IShaderPass* GetShaderPass(EShaderPassType type) const = 0;
 	virtual IShaderPass* GetCurrentShaderPass() const = 0;
 
@@ -563,6 +560,9 @@ public:
 	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
+	
+	// Can be used for full-screen shader passes
+	virtual SResult RenderFullScreenQuad() = 0;
 
 	virtual SResult PresentTargetViewport(void) = 0;
 

@@ -19,7 +19,9 @@ struct S_API ITexture;
 
 enum S_API EFBOType
 {
+	eFBO_R16G16B16A16F,
 	eFBO_R8G8B8A8,
+	eFBO_R16G16F, // 32bit, 2 16bit float channels
 	eFBO_F32, // 32bit float Red Channel
 	eFBO_F16 // 16bit float Red Channel
 };
