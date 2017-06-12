@@ -1,10 +1,6 @@
-/////////////////////////////////////////////////////////////////////////
-//
-//
-//		Illum Shader
-//
-//
-/////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Illum Shader
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 cbuffer SceneCB : register(b0)
 {
@@ -21,48 +17,28 @@ cbuffer SceneCB : register(b0)
 	float fogEnd;
 }
 
-float4x4 mtxWorldViewProj;
-
 SamplerState PointSampler : register(s0);
 SamplerState LinearSampler : register(s1);
 SamplerComparisonState ShadowMapSampler : register(s2);
 
 static float PI = 3.14159265358f;
 
-// ---------------------------------------------------------
 
-struct VS_INPUT
-{
-    float3 Position : POSITION;
-    float3 Normal : NORMAL;
-    float3 Tangent : TANGENT;
-    float3 Color : COLOR0;
-    float2 TexCoord : TEXCOORD0;
-};
-
-struct VS_INPUT_SIMPLE
-{
-	float3 Position : POSITION;
-	float3 Normal : NORMAL;
-};
-
-// ---------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // Helper methods
 
-// ss.xy - screen space pixel position (from SV_Position)
-// ss.z - non-linear depth
-float3 ReconstructWSFromSS(float3 ss)
+// cs.xy - clip space position
+// cs.z - non-linear depth
+float3 ReconstructWSFromCS(float3 cs)
 {
-	float4 vs = mul(mtxProjInv, float4(ss, 1.0f));
+	float4 vs = mul(mtxProjInv, float4(cs, 1.0f));
 	vs /= vs.w;
-	vs.x = (vs.x + 1.0f) * 0.5f;
-	vs.y = 1.0f - (vs.y + 1.0f) * 0.5f;
 
-	return mul(mtxViewInv, vs);
+	return mul(mtxViewInv, vs).xyz;
 }
 
 
-// ---------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // Physically Based Rendering
 
 float RoughnessToAlpha(float roughness)
@@ -73,8 +49,9 @@ float RoughnessToAlpha(float roughness)
 // Normalized phong for rendering equation
 float BRDF_Phong(float3 L, float3 V, float3 N, float alpha, float cspec)
 {
-	float3 R = 2.0f * dot(L, N) - L;
-	return (1.0f - cspec) / PI + cspec * (alpha + 2.0f) / (2.0f * PI) * pow(dot(R, V), alpha);
+	float3 R = 2.0f * dot(L, N) * N - L;
+	//return (1.0f - cspec) / PI + cspec * (alpha + 2.0f) / (2.0f * PI) * pow(dot(R, V), alpha);
+	return 1.0f / PI + (alpha + 2.0f) / (2.0f * PI) * pow(dot(R, V), alpha);
 }
 
 // Normalized blinn phong (approximation)
@@ -82,6 +59,13 @@ float BRDF_Blinn(float3 L, float3 V, float3 N, float3 H, float alpha, float cspe
 {
 	return (1.0f - cspec) / PI + cspec * (alpha + 8.0f) / (8.0f * PI) * pow(dot(N, H), alpha);
 }
+
+
+// --------------------------------------------------------------------------------------------------------------------
+// Shadowmapping
+
+float CalculateShadowMapFactor(float3 WorldPos);
+
 
 
 
@@ -94,16 +78,26 @@ float BRDF_Blinn(float3 L, float3 V, float3 N, float3 H, float alpha, float cspe
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef ENTRY_forward
+#define HAS_SHADOWMAP
+
 cbuffer ObjectCB : register(b1)
 {
 	float4x4 mtxWorld;
 	float matRoughness;
-}
+};
 
 Texture2D textureMap : register(t0);
 Texture2D normalMap : register(t1);
 Texture2D shadowMap : register(t2);
-#endif
+
+struct VS_INPUT
+{
+	float3 Position : POSITION;
+	float3 Normal : NORMAL;
+	float3 Tangent : TANGENT;
+	float3 Color : COLOR0;
+	float2 TexCoord : TEXCOORD0;
+};
 
 struct VS_OUTPUT_FORWARD
 {
@@ -115,9 +109,9 @@ struct VS_OUTPUT_FORWARD
     float2 TexCoord : TEXCOORD3;
 };
 
-VS_OUTPUT VS_forward(VS_INPUT IN)
+VS_OUTPUT_FORWARD VS_forward(VS_INPUT IN)
 {
-    VS_OUTPUT OUT;
+	VS_OUTPUT_FORWARD OUT;
 
     float4x4 mtxWorldInv = transpose(mtxWorld);
 
@@ -135,7 +129,7 @@ VS_OUTPUT VS_forward(VS_INPUT IN)
 
 // ---------------------------------------------------------
 
-struct PS_INPUT
+struct PS_INPUT_FORWARD
 {
     float4 Position : SV_Position;
     float3 WorldPos : TEXCOORD0;
@@ -145,7 +139,7 @@ struct PS_INPUT
     float2 TexCoord : TEXCOORD3;
 };
 
-struct PS_OUTPUT
+struct PS_OUTPUT_FORWARD
 {
     float4 Color : SV_Target0;
 };
@@ -188,28 +182,9 @@ float3 calc_phong(float3 N, float3 lightDirOut, float3 dirToEye, float roughness
     return float3(intensityOut, intensityOut, intensityOut);
 }
 
-
-float CalculateShadowMapFactor(float3 WorldPos)
+PS_OUTPUT_FORWARD PS_forward(PS_INPUT_FORWARD IN)
 {
-	float4 sunPos = mul(mtxSunViewProj, float4(WorldPos, 1.0f));
-	sunPos /= sunPos.w;
-	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
-	sunPos.y = 1.0f - (sunPos.y + 1.0f) * 0.5f;
-	sunPos.z = saturate(sunPos.z - 0.01f);
-
-	float2 smTCOffset = 1.0f / screenRes;
-
-	float avgSample = 0.0f;
-	for (int x = -2; x <= 2; ++x)
-		for (int y = -2; y <= 2; ++y)
-			avgSample += saturate(shadowMap.SampleCmpLevelZero(ShadowMapSampler, sunPos.xy + float2(x, y) * smTCOffset, sunPos.z));
-
-	return (avgSample / 16.0f);
-}
-
-PS_OUTPUT PS_forward(PS_INPUT IN)
-{
-    PS_OUTPUT OUT;
+	PS_OUTPUT_FORWARD OUT;
 
     // calc binormal. Everything in World space!
     float3 normal = IN.Normal;
@@ -258,6 +233,8 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
 }
 
 
+#endif
+
 
 
 
@@ -269,21 +246,23 @@ PS_OUTPUT PS_forward(PS_INPUT IN)
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef ENTRY_LightPrepass
+#define HAS_SHADOWMAP
+
 cbuffer LightCB : register(b1)
 {
 	float4x4 mtxWorld;
 	float3 lightPos;
-	float3 lightDirection; // for spot, directional
-	float3 lightIntensity;
-	uint lightType; // 0 = sun, 1 = point
 	float lightMaxDistance;
+	float3 lightDirection;
 	float lightDecay;
+	float3 lightIntensity;
+	uint lightType;
 };
 
 Texture2D GBuffer0 : register(t0);
 Texture2D GBuffer1 : register(t1);
 Texture2D GBufferDepth : register(t2);
-#endif
+Texture2D shadowMap : register(t3);
 
 struct VS_INPUT_LIGHT_PREPASS
 {
@@ -296,13 +275,13 @@ struct VS_OUTPUT_LIGHT_PREPASS
 	float3 H : TEXCOORD0;
 };
 
-VS_OUTPUT VS_LightPrepass(VS_INPUT IN)
+VS_OUTPUT_LIGHT_PREPASS VS_LightPrepass(VS_INPUT_LIGHT_PREPASS IN)
 {
-	VS_OUTPUT OUT;
+	VS_OUTPUT_LIGHT_PREPASS OUT;
 
 	float4 wPos = mul(mtxWorld, float4(IN.Position, 1.0f));
 	OUT.Position = mul(mtxProj, mul(mtxView, wPos));
-	OUT.H = normalize((lightPos - wPos) + (eyePos - wPos));
+	OUT.H = normalize((lightPos.xyz - wPos.xyz) + (eyePos.xyz - wPos.xyz));
 
 	return OUT;
 }
@@ -317,23 +296,36 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 	// --------------------------
 	// Unpack GBuffer
 	float4 G0 = GBuffer0.Sample(PointSampler, screenTC);
-	float4 G1 = GBuffer1.Sample(PointSampler, screenTC);
+	float2 G1 = GBuffer1.Sample(PointSampler, screenTC).rg;
 	float GDepth = GBufferDepth.Sample(PointSampler, screenTC).r;
 
+	if (!(GDepth < 1.0f))
+		discard;
+
+
 	float matRoughness = G0.z;
-	float3 N = float3(G0.x, G0.y, sqrt(1.0f - G0.x*G0.x - G0.y*G0.y));
-	float3 wpos = ReconstructWSFromSS(float3(IN.Position.xy, GDepth));
+
+	float3 N = float3(G1.x, G1.y, 0);
+	N = N * 2.0f - 1.0f;
+	N.z = sqrt(1.0f - N.x*N.x - N.y*N.y);
+	N = normalize(N);
+
+	float3 clippos;
+	clippos.x = ((IN.Position.x - 0.5f) / screenRes.x) * 2.0f - 1.0f;
+	clippos.y = ((IN.Position.y - 0.5f) / screenRes.y) * 2.0f - 1.0f;
+	clippos.z = GDepth;
+	float3 wpos = ReconstructWSFromCS(clippos);
 
 	// --------------------------
-	float3 V = normalize(eyePos - wpos);
+	float3 V = normalize(eyePos.xyz - wpos);
 	float3 L;
 	float falloff = 1.0f;
 	float shadowFactor = 1.0f;
-	if (lightType == 0) // sun
+	if (lightType == 0 || true) // sun
 	{
-		L = -lightDirection;
+		L = -normalize(-sunPos);
 		falloff = 1.0f;
-		shadowFactor = CalculateShadowMapFactor(wpos);
+		//shadowFactor = CalculateShadowMapFactor(wpos);
 	}
 	else // point, unknown
 	{
@@ -345,17 +337,25 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 	}
 
 	float alpha = RoughnessToAlpha(matRoughness);
-	float cspec = 0.2f; // TODO
+	alpha = RoughnessToAlpha(0.15f);
+	float cspec = 0.6f; // TODO
 
-	float brdf = BRDF_Blinn(L, V, N, IN.H, alpha, cspec);
+	//float brdf = BRDF_Blinn(L, V, N, IN.H, alpha, cspec);
+	float brdf = BRDF_Phong(L, V, N, alpha, cspec);
 
 	float3 irradiance = lightIntensity * falloff * shadowFactor;
 
 	// --------------------------
 	// Calculate radiance at the surface point for the current light
-	return float4(brdf * irradiance * saturate(dot(V, N)), 0);
+	
+	float _d = brdf * saturate(dot(L, N));
+	//return float4(_d, _d, _d, 0);
+	return float4(normalize(N), 0);
+	//return float4(brdf * irradiance * saturate(dot(L, N)), 0);
 }
 
+
+#endif
 
 
 
@@ -369,13 +369,13 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 #ifdef ENTRY_DeferredShading
 cbuffer DeferredShadingCB : register(b1)
 {
+	float4x4 mtxWorld;
 };
 
 Texture2D GBuffer0 : register(t0);
 Texture2D GBuffer1 : register(t1);
 Texture2D GBufferDepth : register(t2);
 Texture2D LightBuffer : register(t3);
-#endif
 
 struct VS_INPUT_DEFERRED_SHADING
 {
@@ -393,24 +393,65 @@ struct PS_OUTPUT_DEFERRED_SHADING
 	float Depth : SV_Depth;
 };
 
-PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(PS_INPUT IN)
+VS_OUTPUT_DEFERRED_SHADING VS_DeferredShading(VS_INPUT_DEFERRED_SHADING IN)
 {
-	PS_OUTPUT OUT;
+	VS_OUTPUT_DEFERRED_SHADING OUT;
+	
+	OUT.Position = mul(mtxProj, mul(mtxView, mul(mtxWorld, float4(IN.Position, 1.0f))));
+
+	return OUT;
+}
+
+PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
+{
+	PS_OUTPUT_DEFERRED_SHADING OUT;
 
 	// Note: IN.Position.xy is offset by 0.5
 	float2 screenTC = IN.Position.xy / screenRes;
 
+	float4 G0 = GBuffer0.Sample(PointSampler, screenTC);
+	
+	float3 albedo = G0.xyz;
+
 	// Determine final radiance
-	float3 lightBufferSample = LightBuffer.Sample(PointSampler, screenTC);
+	float3 lightBufferSample = LightBuffer.Sample(PointSampler, screenTC).rgb;
 	float3 Lemissive	= float3(0, 0, 0);
-	float3 Lglobal		= float3(0.1f); // TODO
-	float3 Lout			= Lemissive + Lglobal + lightBufferSample;
+	float3 Lglobal		= float3(0, 0, 0); // TODO
+	float3 Lout			= Lemissive + albedo * (Lglobal + lightBufferSample);
 
 	OUT.Color = float4(Lout, 1.0f);
 
 	// Copy depth from gbuffer
-	float GDepth = GBufferDepth.Sample(PointSampler, screenTC);
+	float GDepth = GBufferDepth.Sample(PointSampler, screenTC).r;
 	OUT.Depth = GDepth;
 
 	return OUT;
 }
+
+#endif
+
+
+
+//
+
+#ifdef HAS_SHADOWMAP
+float CalculateShadowMapFactor(float3 WorldPos)
+{
+	float4 sunPos = mul(mtxSunViewProj, float4(WorldPos, 1.0f));
+	sunPos /= sunPos.w;
+	sunPos.x = (sunPos.x + 1.0f) * 0.5f;
+	sunPos.y = 1.0f - (sunPos.y + 1.0f) * 0.5f;
+	sunPos.z = saturate(sunPos.z - 0.01f);
+
+	float2 smTCOffset = 1.0f / screenRes;
+
+	float avgSample = 0.0f;
+	for (int x = -2; x <= 2; ++x)
+		for (int y = -2; y <= 2; ++y)
+			avgSample += saturate(shadowMap.SampleCmpLevelZero(ShadowMapSampler, sunPos.xy + float2(x, y) * smTCOffset, sunPos.z));
+
+	return (avgSample / 16.0f);
+}
+#endif
+
+

@@ -207,7 +207,7 @@ S_API void DX11ResourcePool::OnInstanceBufferResourceCreated(IInstanceBufferReso
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API DX11Texture* DX11ResourcePool::FindTextureBySpecification(const string& specification)
+S_API DX11Texture* DX11ResourcePool::FindDX11TextureBySpecification(const string& specification)
 {
 	unsigned int iTexture;
 	DX11Texture* pTexture = m_plTextures.GetFirstUsedObject(iTexture);
@@ -222,17 +222,17 @@ S_API DX11Texture* DX11ResourcePool::FindTextureBySpecification(const string& sp
 	return 0;
 }
 
-S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
+S_API ITexture* DX11ResourcePool::GetTexture(const string& specification, bool createIfNotFound /*= true*/)
 {
 	if (specification.empty())
 		return 0;
 
-	DX11Texture* pTexture = FindTextureBySpecification(specification);
+	DX11Texture* pTexture = FindDX11TextureBySpecification(specification);
 	if (pTexture)
 	{
 		pTexture->AddRef();
 	}
-	else
+	else if (createIfNotFound)
 	{
 		pTexture = m_plTextures.Get();
 		pTexture->AddRef();
@@ -254,12 +254,27 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification)
 	return pTexture;
 }
 
+S_API ITexture* DX11ResourcePool::FindTexture(const string& specification)
+{
+	unsigned int iTexture;
+	DX11Texture* pTexture = m_plTextures.GetFirstUsedObject(iTexture);
+	while (pTexture)
+	{
+		if (pTexture->GetSpecification() == specification)
+			return pTexture;
+
+		pTexture = m_plTextures.GetNextUsedObject(iTexture);
+	}
+
+	return 0;
+}
+
 S_API ITexture* DX11ResourcePool::GetCubeTexture(const string& file)
 {
 	if (file.empty())
 		return 0;
 
-	DX11Texture* pTexture = FindTextureBySpecification(file);
+	DX11Texture* pTexture = FindDX11TextureBySpecification(file);
 	if (pTexture)
 	{
 		pTexture->AddRef();

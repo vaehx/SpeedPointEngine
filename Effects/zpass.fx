@@ -102,10 +102,10 @@ PS_OUTPUT PS_zpass(PS_INPUT IN)
 	OUT.Buffer0 = float4(albedo, matRoughness);
 
 	// TODO: Normal-mapping 
-	float3 N = IN.Normal;
+	float3 N = normalize(IN.Normal);
 
-	// Pack normal into two 16bit components
-	OUT.Buffer1 = normalize(N.xy) * sqrt(N.z * 0.5 + 0.5);
+	N = N * 0.5f + 0.5f;
+	OUT.Buffer1 = N.xy;
 
 	return OUT;
 }

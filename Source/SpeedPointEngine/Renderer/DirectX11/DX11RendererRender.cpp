@@ -64,14 +64,14 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 	if (!m_bInScene)
 	{
 		FrameDump("Cannot Render Object: Not in scene!");
-		return;
+		return S_ERROR;
 	}
 
 	// Skip render desc without subsets
 	if (renderDesc.nSubsets == 0 || !IS_VALID_PTR(renderDesc.pSubsets))
 	{
 		FrameDump("Skipping Render: No subsets");
-		return;
+		return S_SUCCESS;
 	}
 
 	EnableBackfaceCulling(true);
@@ -257,9 +257,14 @@ S_API SResult DX11Renderer::RenderDeferredLight(const SRenderDesc& renderDesc)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::RenderFullScreenQuad()
+S_API SResult DX11Renderer::RenderFullScreenQuad(bool enableDepthTest /*= false*/)
 {
-	Render(m_FullscreenPlane);
+	EnableBackfaceCulling(false);
+	
+	m_FullscreenPlane.bDepthStencilEnable = enableDepthTest;
+	RenderGeometry(m_FullscreenPlane);
+
+	return S_SUCCESS;
 }
 
 

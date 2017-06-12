@@ -63,7 +63,7 @@ public:
 
 	virtual AABB GetAABB();
 	virtual void SetCustomViewProjMatrix(const Mat44& viewMtx, const Mat44& projMtx);
-	SLightParams& GetParams() { m_Params; }
+	SLightParams& GetParams() { return m_Params; }
 };
 
 SP_NMSPACE_END

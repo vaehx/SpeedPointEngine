@@ -22,7 +22,8 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 	m_pLights(0),
 	m_pSkyBox(0),
 	m_pTerrain(0),
-	m_MatMgr(this)
+	m_MatMgr(this),
+	m_pDebugTexture(0)
 {
 	CreateHelperPrefab<CPointHelper>();
 	CreateHelperPrefab<CVectorHelper>();
@@ -51,9 +52,8 @@ S_API void C3DEngine::CreateFullscreenPlane()
 {
 	IResourcePool* pResourcePool = m_pRenderer->GetResourcePool();
 
-	SPMatrixOrthoRH(&m_FullscreenPlane.projMtx, 1.0f, 1.0f, 1.0f, 3.0f);
+	SPMatrixOrthoRH(&m_FullscreenPlane.projMtx, 1.0f, 1.0f, -3.0f, 3.0f);
 	m_FullscreenPlane.transform = Mat44::Identity;
-
 	m_FullscreenPlane.bCustomViewProjMtx = true;
 	m_FullscreenPlane.bDepthStencilEnable = false;
 	m_FullscreenPlane.bInverseDepthTest = false;
@@ -65,10 +65,10 @@ S_API void C3DEngine::CreateFullscreenPlane()
 
 	SVertex fsPlaneVerts[] =
 	{
-		SVertex(-1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
-		SVertex(-1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
-		SVertex(1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
-		SVertex(1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0)
+		SVertex(-1.0f,  1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(-1.0f, -1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f, -1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f,  1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0)
 	};
 
 	SIndex fsPlaneIndices[] =
@@ -86,6 +86,8 @@ S_API void C3DEngine::CreateFullscreenPlane()
 	m_FullscreenPlane.pSubsets[0].drawCallDesc.pIndexBuffer->Initialize(m_pRenderer, eIBUSAGE_STATIC, fsPlaneIndices, 6);
 	m_FullscreenPlane.pSubsets[0].drawCallDesc.iStartIBIndex = 0;
 	m_FullscreenPlane.pSubsets[0].drawCallDesc.iEndIBIndex = 5;
+
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -604,7 +606,7 @@ S_API void C3DEngine::RenderCollected()
 
 		// Shading and merging post-pass
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
-		m_pRenderer->RenderFullScreenQuad();
+		m_pRenderer->RenderFullScreenQuad(true);
 
 
 		// Particles
@@ -795,15 +797,17 @@ S_API void C3DEngine::RenderHUD()
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+ILINE void C3DEngine::DebugTexture(const string& name)
+{
+	m_pDebugTexture = m_pRenderer->GetResourcePool()->FindTexture(name);
+}
+
 S_API void C3DEngine::RenderDebugTexture()
 {
-	return;
+	if (!m_pDebugTexture)
+		return;
 
 	m_pRenderer->BindShaderPass(eSHADERPASS_GUI);
-
-	ITexture* pShadowmap = m_pRenderer->GetResourcePool()->GetTexture("$shadowmap");
-	if (!pShadowmap)
-		return;
 
 	SIZE vpSz = m_pRenderer->GetTargetViewport()->GetSize();
 
@@ -815,8 +819,12 @@ S_API void C3DEngine::RenderDebugTexture()
 		Mat44::MakeTranslationMatrix(Vec3f((float)pos[0] - 0.5f * vpSz.cx, (float)pos[1] - 0.5f * vpSz.cy, 1.0f))
 		* Mat44::MakeScaleMatrix(Vec3f((float)size[0], (float)size[1], 1.0f));
 
-	m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = pShadowmap;
+	m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = m_pDebugTexture;
+	m_HUDRenderDesc.pSubsets[0].enableAlphaTest = false;
+	
 	m_pRenderer->Render(m_HUDRenderDesc);
+
+	m_HUDRenderDesc.pSubsets[0].enableAlphaTest = true;
 }
 
 SP_NMSPACE_END

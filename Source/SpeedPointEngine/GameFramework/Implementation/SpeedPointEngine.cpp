@@ -98,6 +98,8 @@ S_API SResult SpeedPointEngine::Initialize(const SGameEngineInitParams& params)
 	m_p3DEngine->SetRenderLightImplementation<CRenderLightComponent>();
 	m_p3DEngine->GetParticleSystem()->SetEmitterImplementation<CParticleEmitterComponent>();
 
+	m_p3DEngine->Init();
+
 	CLog::Log(S_INFO, "Initialized 3D Engine");
 
 	// Physics

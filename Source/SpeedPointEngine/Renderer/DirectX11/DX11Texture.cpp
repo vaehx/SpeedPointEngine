@@ -115,7 +115,12 @@ S_API static ETextureType GetTextureTypeFromDXGIFormat(DXGI_FORMAT fmt)
 	case DXGI_FORMAT_R32_FLOAT:
 	case DXGI_FORMAT_R32_TYPELESS:
 		return eTEXTURE_R32_FLOAT;
-	case DXGI_FORMAT_D32_FLOAT: return eTEXTURE_D32_FLOAT;
+	case DXGI_FORMAT_D32_FLOAT:
+		return eTEXTURE_D32_FLOAT;
+	case DXGI_FORMAT_R16G16B16A16_FLOAT:
+		return eTEXTURE_R16G16B16A16_FLOAT;
+	case DXGI_FORMAT_R16G16_FLOAT:
+		return eTEXTURE_R16G16_FLOAT;
 	case DXGI_FORMAT_R8G8B8A8_UNORM:
 	default:
 		return eTEXTURE_R8G8B8A8_UNORM;
@@ -938,6 +943,17 @@ S_API bool DX11Texture::IsInitialized() const
 S_API const string& DX11Texture::GetSpecification(void) const
 {
 	return m_Specification;
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Texture::SetSpecification(const string& specification)
+{
+	m_Specification = specification;
+
+#ifdef _DEBUG
+	if (m_pDXTexture)
+		m_pDXTexture->SetPrivateData(WKPDID_D3DDebugObjectName, m_Specification.length(), m_Specification.c_str());
+#endif
 }
 
 // -----------------------------------------------------------------------------------------------

@@ -192,7 +192,8 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 
 	D3D_SHADER_MACRO macros[] =
 	{
-		{ entryNameMacro.c_str(), 0 }
+		{ entryNameMacro.c_str(), "true" },
+		{ 0, 0 }
 	};
 
 	ID3DBlob *pVSBlob = 0, *pPSBlob = 0, *pErrorBlob = 0;
@@ -227,7 +228,7 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 		return S_ERROR;
 	}
 
-	CLog::Log(S_DEBUG, "Loaded and compiled effect '%s'", info.filename.c_str());
+	CLog::Log(S_DEBUG, "Loaded and compiled effect '%s' (Entry: '%s')", info.filename.c_str(), info.entry.c_str());
 
 
 
@@ -439,6 +440,7 @@ S_API void ShadowmapShaderPass::OnEndFrame()
 {
 	if (m_pShadowmap)
 	{
+		m_pRenderer->UnbindTexture(m_pShadowmap->GetTexture());
 		m_pRenderer->UnbindTexture(m_pShadowmap->GetDepthBufferTexture());
 		m_pRenderer->BindSingleRT(m_pShadowmap);
 		m_pRenderer->ClearBoundRTs(false, true);
@@ -493,6 +495,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 
 
 	// Create CB
+	SMatObjConstants _constants;
 	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
@@ -657,6 +660,7 @@ TODO: We probably need more material parameters later (metallicness, fresnel coe
 S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 {
 	Clear();
+	m_pRenderer = pRenderer;
 	
 	unsigned int screenRes[2] = { pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1] };
 
@@ -715,10 +719,36 @@ S_API SResult GBufferShaderPass::Bind()
 
 	m_pShader->Bind();
 
-	m_pRenderer->BindRTCollection(m_pGBuffer, m_pGBuffer[0], "GBufferShaderPass");
+	//--
+	// It may be bound as a texture for debugging...
+	for (auto gbuffer : m_pGBuffer)
+		m_pRenderer->UnbindTexture(gbuffer->GetTexture());
+
+	m_pRenderer->UnbindTexture(m_pGBuffer[0]->GetDepthBufferTexture());
+	//--
+
+	m_pRenderer->BindRTCollection(m_pGBuffer, m_pGBuffer[0], false, "GBufferShaderPass");
 	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 	return S_SUCCESS;
+}
+
+S_API void GBufferShaderPass::OnUnbind()
+{
+}
+
+S_API void GBufferShaderPass::OnEndFrame()
+{
+	for (int i = 0; i < m_pGBuffer.size(); ++i)
+	{
+		m_pRenderer->UnbindTexture(m_pGBuffer[i]->GetTexture());
+
+		if (i == 0)
+			m_pRenderer->UnbindTexture(m_pGBuffer[i]->GetDepthBufferTexture());
+
+		m_pRenderer->BindSingleRT(m_pGBuffer[i]);
+		m_pRenderer->ClearBoundRTs(true, i == 0);
+	}
 }
 
 S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, const Mat44& transform)
@@ -790,9 +820,24 @@ S_API SResult DeferredLightShaderPass::Initialize(IRenderer* pRenderer)
 	return S_SUCCESS;
 }
 
+S_API ITexture* DeferredLightShaderPass::GetLightBufferTexture() const
+{
+	if (m_pLightBuffer)
+		return m_pLightBuffer->GetTexture();
+	else
+		return 0;
+}
+
 S_API void DeferredLightShaderPass::Clear()
 {
 	m_Constants.Clear();
+
+	if (m_pLightBuffer)
+	{
+		m_pLightBuffer->Clear();
+		delete m_pLightBuffer;
+		m_pLightBuffer = 0;
+	}
 
 	if (m_pShader)
 	{
@@ -801,14 +846,22 @@ S_API void DeferredLightShaderPass::Clear()
 		m_pShader = 0;
 	}
 
-	m_pGBufferPass = 0;
 	m_pRenderer = 0;
+}
+
+S_API void DeferredLightShaderPass::OnEndFrame()
+{
+	m_pRenderer->UnbindTexture(m_pLightBuffer->GetTexture());
+	m_pRenderer->UnbindTexture(m_pLightBuffer->GetDepthBufferTexture());
+	m_pRenderer->BindSingleRT(m_pLightBuffer);
+	m_pRenderer->ClearBoundRTs(true, false);
 }
 
 S_API SResult DeferredLightShaderPass::Bind()
 {
 	m_pShader->Bind();
 
+	m_pRenderer->UnbindTexture(m_pLightBuffer->GetTexture());
 	m_pRenderer->BindSingleRT(m_pLightBuffer);
 
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
@@ -820,7 +873,12 @@ S_API SResult DeferredLightShaderPass::Bind()
 	ITexture* pGBufferDepthTexture = m_pGBufferPass->GetDepthBufferTexture();
 	m_pRenderer->BindTexture(pGBufferDepthTexture, NUM_GBUFFER_LAYERS);
 
+	ITexture* pShadowmapTexture = m_pShadowmapPass->GetShadowmap()->GetDepthBufferTexture();
+	m_pRenderer->BindTexture(pShadowmapTexture, NUM_GBUFFER_LAYERS + 1);
+
 	m_pRenderer->EnableDepthTest(false, false);
+
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 	return S_SUCCESS;
 }
@@ -828,10 +886,7 @@ S_API SResult DeferredLightShaderPass::Bind()
 S_API void DeferredLightShaderPass::SetLightConstants(const SLightObjectConstants& light)
 {
 	SLightObjectConstants* constants = m_Constants.GetConstants();
-	constants->lightPos = light.lightPos;
-	constants->lightIntensity = light.lightIntensity;
-	constants->lightMaxDistance = light.lightMaxDistance;
-	constants->lightDecay = light.lightDecay;
+	memcpy(constants, &light, sizeof(SLightObjectConstants));
 
 	// buffer will be updated in SetShaderResources()
 }
@@ -881,8 +936,6 @@ S_API void ShadingShaderPass::Clear()
 		m_pShader = 0;
 	}
 
-	m_pGBufferPass = 0;
-	m_pShadowmapPass = 0;
 	m_pRenderer = 0;
 }
 
@@ -890,6 +943,8 @@ S_API SResult ShadingShaderPass::Bind()
 {
 	m_pShader->Bind();
 
+	// We render directly to the swap chain RT
+	// TODO: Render to custom RT to apply post-effects later
 	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
 
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
@@ -903,6 +958,8 @@ S_API SResult ShadingShaderPass::Bind()
 
 	ITexture* pLightBufferTexture = m_pLightPass->GetLightBufferTexture();
 	m_pRenderer->BindTexture(pLightBufferTexture, NUM_GBUFFER_LAYERS + 1);
+
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 	return S_SUCCESS;
 }

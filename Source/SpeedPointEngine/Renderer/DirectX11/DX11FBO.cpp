@@ -111,9 +111,10 @@ S_API SResult DX11FBO::InitializeAsTexture(EFBOType type, IRenderer* pRenderer, 
 	if (!m_pFrameBufferTexture)
 		return S_ERROR;
 
-	m_pFrameBufferTexture->SetSpecification(specification);
 	if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(m_pFrameBuffer)))
 		return S_ERROR;
+
+	m_pFrameBufferTexture->SetSpecification(specification);
 
 	return S_SUCCESS;
 }
@@ -143,7 +144,6 @@ S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResou
 		if (!m_pFrameBufferTexture)
 			return S_ERROR;
 
-		m_pFrameBufferTexture->SetSpecification(specification);
 		if (Failure(m_pFrameBufferTexture->D3D11_InitializeFromExistingResource(m_pFrameBuffer)))
 			return S_ERROR;
 	}

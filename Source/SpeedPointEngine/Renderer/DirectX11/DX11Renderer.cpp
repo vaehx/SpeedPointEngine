@@ -458,8 +458,8 @@ S_API void DX11Renderer::InitBlendStates()
 	m_DeferredLightBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
 	m_DeferredLightBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 	m_DeferredLightBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	m_DeferredLightBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	m_DeferredLightBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	m_DeferredLightBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+	m_DeferredLightBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	m_DeferredLightBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	hr = m_pD3DDevice->CreateBlendState(&m_DeferredLightBlendDesc, &m_pDeferredLightBlendState);
@@ -748,11 +748,15 @@ S_API void DX11Renderer::InitShaderPasses()
 	m_Passes[eSHADERPASS_FORWARD] = new ForwardShaderPass();
 	m_Passes[eSHADERPASS_FORWARD]->Initialize(this);
 
+	m_Passes[eSHADERPASS_SHADOWMAP] = new ShadowmapShaderPass();
+	m_Passes[eSHADERPASS_SHADOWMAP]->Initialize(this);
+
 	m_Passes[eSHADERPASS_GBUFFER] = new GBufferShaderPass();
 	m_Passes[eSHADERPASS_GBUFFER]->Initialize(this);
 
 	m_Passes[eSHADERPASS_LIGHTPREPASS] = new DeferredLightShaderPass(
-		dynamic_cast<GBufferShaderPass*>(m_Passes[eSHADERPASS_GBUFFER]));
+		dynamic_cast<GBufferShaderPass*>(m_Passes[eSHADERPASS_GBUFFER]),
+		dynamic_cast<ShadowmapShaderPass*>(m_Passes[eSHADERPASS_SHADOWMAP]));
 	m_Passes[eSHADERPASS_LIGHTPREPASS]->Initialize(this);
 
 	m_Passes[eSHADERPASS_SHADING] = new ShadingShaderPass(
@@ -760,9 +764,6 @@ S_API void DX11Renderer::InitShaderPasses()
 		dynamic_cast<DeferredLightShaderPass*>(m_Passes[eSHADERPASS_LIGHTPREPASS]),
 		dynamic_cast<ShadowmapShaderPass*>(m_Passes[eSHADERPASS_SHADOWMAP]));
 	m_Passes[eSHADERPASS_SHADING]->Initialize(this);
-
-	m_Passes[eSHADERPASS_SHADOWMAP] = new ShadowmapShaderPass();
-	m_Passes[eSHADERPASS_SHADOWMAP]->Initialize(this);
 
 	m_Passes[eSHADERPASS_GUI] = new GUIShaderPass();
 	m_Passes[eSHADERPASS_GUI]->Initialize(this);
@@ -784,7 +785,7 @@ S_API IShaderPass* DX11Renderer::GetShaderPass(EShaderPassType type) const
 // -----------------------------------------------------------------------------------------------
 S_API void DX11Renderer::InitFullscreenQuad()
 {
-	SPMatrixOrthoRH(&m_FullscreenPlane.projMtx, 1.0f, 1.0f, 1.0f, 3.0f);
+	SPMatrixOrthoRH(&m_FullscreenPlane.projMtx, 1.0f, 1.0f, -3.0f, 3.0f);
 	m_FullscreenPlane.transform = Mat44::Identity;
 	m_FullscreenPlane.bCustomViewProjMtx = true;
 	m_FullscreenPlane.bDepthStencilEnable = false;
@@ -797,10 +798,10 @@ S_API void DX11Renderer::InitFullscreenQuad()
 
 	SVertex fsPlaneVerts[] =
 	{
-		SVertex(-1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
-		SVertex(-1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
-		SVertex(1.0f,  1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
-		SVertex(1.0f, -1.0f, -2.0f, 0, 0, 1.0f, 1.0f, 0, 0)
+		SVertex(-1.0f, -1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(-1.0f,  1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f,  1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0),
+		SVertex(1.0f, -1.0f, 2.0f, 0, 0, 1.0f, 1.0f, 0, 0)
 	};
 
 	SIndex fsPlaneIndices[] =
@@ -818,6 +819,8 @@ S_API void DX11Renderer::InitFullscreenQuad()
 	m_FullscreenPlane.pSubsets[0].drawCallDesc.pIndexBuffer->Initialize(this, eIBUSAGE_STATIC, fsPlaneIndices, 6);
 	m_FullscreenPlane.pSubsets[0].drawCallDesc.iStartIBIndex = 0;
 	m_FullscreenPlane.pSubsets[0].drawCallDesc.iEndIBIndex = 5;
+
+	m_FullscreenPlane.pSubsets[0].drawCallDesc.primitiveType = PRIMITIVE_TYPE_TRIANGLELIST;
 }
 
 
@@ -974,7 +977,7 @@ S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollec
 	m_BoundRenderTargets.clear();
 	ID3D11RenderTargetView** pRTVs = new ID3D11RenderTargetView*[fboCollection.size()];
 	int i = 0;
-	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); ++itFBO, ++i)
+	for (auto itFBO = fboCollection.begin(); itFBO != fboCollection.end(); ++itFBO)
 	{
 		DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(*itFBO);
 		if (!IS_VALID_PTR(pDXFBO))
@@ -986,12 +989,12 @@ S_API SResult DX11Renderer::BindRTCollection(const std::vector<IFBO*>& fboCollec
 			continue;
 		}
 
+		pRTVs[i++] = pDXFBO->GetRTV();
 		m_BoundRenderTargets.push_back(pDXFBO);
-		pRTVs[m_BoundRenderTargets.size()] = pDXFBO->GetRTV();
 	}
 
 	// Bind
-	m_pD3DDeviceContext->OMSetRenderTargets(m_BoundRenderTargets.size(), pRTVs, pDSV);
+	m_pD3DDeviceContext->OMSetRenderTargets(i, pRTVs, pDSV);
 
 	delete[] pRTVs;
 	pRTVs = 0;
@@ -1014,7 +1017,7 @@ S_API SResult DX11Renderer::BindSingleRT(IFBO* pFBO, bool depthReadonly /*= 0*/)
 
 	ID3D11RenderTargetView* pRTV = pDXFBO->GetRTV();
 	ID3D11DepthStencilView* pDSV = (depthReadonly ? pDXFBO->GetReadonlyDSV() : pDXFBO->GetDSV());
-	if (!pDSV)
+	if (depthReadonly && !pDSV && pDXFBO->GetDSV())
 		return CLog::Log(S_ERROR, "Failed BindSingleRT(): DSV is not bindable as read-only");
 
 	// Check if already bound
@@ -1784,7 +1787,7 @@ S_API void DX11Renderer::SetViewProjMatrix(const Mat44& mtxView, const Mat44& mt
 {
 	SSceneConstants* pConstants = m_SceneConstants.GetConstants();
 	pConstants->mtxView = mtxView;
-	pConstants->mtxViewInv = SMatrixInvert(mtxView);
+	pConstants->mtxViewInv = SMatrixInvert(SMatrixTranspose(mtxView));
 	pConstants->mtxProj = mtxProj;
 	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
 	m_SceneConstants.Update();

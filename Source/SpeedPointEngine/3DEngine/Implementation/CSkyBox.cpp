@@ -80,7 +80,6 @@ S_API SResult CSkyBox::InitGeometry(IRenderer* pRenderer, const SShaderResources
 	IResourcePool* resources = pRenderer->GetResourcePool();
 
 	SRenderDesc& rd = m_RenderDesc;
-	rd.renderPipeline = eRENDER_FORWARD;
 	rd.bCustomViewProjMtx = false;
 	rd.bDepthStencilEnable = false;
 	rd.bInverseDepthTest = false;

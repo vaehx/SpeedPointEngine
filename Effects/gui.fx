@@ -78,5 +78,6 @@ PS_OUTPUT PS_GUI(PS_INPUT IN)
         alpha = 0.0f;
 
     OUT.Color = float4(sample, alpha);
+	OUT.Color = float4(sample, 0.5f);
     return OUT;
 }

@@ -343,7 +343,7 @@ public:
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
 	virtual SResult RenderDeferredLight(const SRenderDesc& renderDesc);
-	virtual SResult RenderFullScreenQuad();
+	virtual SResult RenderFullScreenQuad(bool enableDepthTest = false);
 
 	virtual SResult PresentTargetViewport(void);
 

@@ -79,6 +79,7 @@ public:
 struct S_API SMatObjConstants : SObjectConstants
 {
 	float matRoughnes;
+	float __padding[3];
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -140,6 +141,8 @@ public:
 	virtual void Clear();
 
 	virtual SResult Bind();
+	virtual void OnUnbind();
+	virtual void OnEndFrame();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 
 	ITexture* GetGBufferTexture(unsigned int i) const;
@@ -150,26 +153,29 @@ public:
 class S_API DeferredLightShaderPass : public IShaderPass
 {
 public:
+	#pragma pack(16)
 	struct SLightObjectConstants : public SObjectConstants
 	{
 		Vec3f lightPos;
+		float lightMaxDistance;
 		Vec3f lightDirection; // for spot, directional. Points away from light source
+		float lightDecay;
 		Vec3f lightIntensity;
 		unsigned int lightType; // 0 = sun, 1 = point
-		float lightMaxDistance;
-		float lightDecay;
 	};
 
 private:
 	GBufferShaderPass* m_pGBufferPass;
+	ShadowmapShaderPass* m_pShadowmapPass;
 	IRenderer* m_pRenderer;
 	IShader* m_pShader;
 	IFBO* m_pLightBuffer;
 	ConstantsBufferHelper<SLightObjectConstants> m_Constants;
 
 public:
-	DeferredLightShaderPass(GBufferShaderPass* pGBufferPass)
+	DeferredLightShaderPass(GBufferShaderPass* pGBufferPass, ShadowmapShaderPass* pShadowmapPass)
 		: m_pGBufferPass(pGBufferPass),
+		m_pShadowmapPass(pShadowmapPass),
 		m_pRenderer(0),
 		m_pShader(0)
 	{
@@ -179,7 +185,7 @@ public:
 
 	virtual SResult Initialize(IRenderer* pRenderer);
 	virtual void Clear();
-
+	virtual void OnEndFrame();
 	virtual SResult Bind();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
 	

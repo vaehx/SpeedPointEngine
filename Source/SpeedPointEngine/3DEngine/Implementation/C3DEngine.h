@@ -46,6 +46,8 @@ private:
 	ChunkedObjectPool<SHUDElement> m_HUDElements;
 	SRenderDesc m_HUDRenderDesc;
 
+	ITexture* m_pDebugTexture;
+
 
 	void CreateFullscreenPlane();
 	void CreateLightVolume(ELightType type, const SInitialGeometryDesc* pGeomDesc);
@@ -107,6 +109,8 @@ public:
 
 	ILINE virtual SHUDElement* CreateHUDElement();
 	ILINE virtual void RemoveHUDElement(SHUDElement** pHUDElement);
+
+	ILINE virtual void DebugTexture(const string& name);
 
 	ILINE virtual void Clear();
 

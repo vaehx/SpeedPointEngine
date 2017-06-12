@@ -45,9 +45,10 @@ public:
 	virtual SResult AddIndexBuffer(IIndexBuffer** pIBuffer);
 
 	// Returns 0 if not found. Returns first one in the pool if there are multiple
-	DX11Texture* FindTextureBySpecification(const string& specification);
+	DX11Texture* FindDX11TextureBySpecification(const string& specification);
 
-	virtual ITexture* GetTexture(const string& specification);
+	virtual ITexture* GetTexture(const string& specification, bool createIfNotFound = true);
+	virtual ITexture* FindTexture(const string& specification);
 	virtual ITexture* GetCubeTexture(const string& file);
 	virtual void ForEachTexture(const std::function<void(ITexture*)>& fn);
 	virtual void ListTextures(vector<string>& list) const;

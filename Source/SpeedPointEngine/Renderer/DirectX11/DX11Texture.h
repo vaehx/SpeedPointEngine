@@ -111,7 +111,7 @@ public:
 	SResult D3D11_InitializeFromExistingResource(ID3D11Texture2D* pResource, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
 public:
-	void SetSpecification(const string& specification) { m_Specification = specification; }
+	void SetSpecification(const string& specification);
 	virtual const string& GetSpecification(void) const;
 	virtual ETextureType GetType(void);
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);

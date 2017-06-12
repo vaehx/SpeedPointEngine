@@ -565,7 +565,7 @@ public:
 	virtual SResult RenderDeferredLight(const SRenderDesc& renderDesc) = 0;
 	
 	// Can be used for full-screen shader passes
-	virtual SResult RenderFullScreenQuad() = 0;
+	virtual SResult RenderFullScreenQuad(bool enableDepthTest = false) = 0;
 	
 	//---
 

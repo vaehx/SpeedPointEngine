@@ -80,7 +80,6 @@ S_API SResult CRenderMesh::SetGeometry(IGeometry* pGeometry)
 
 	// Fill render desc from geometry
 	SRenderDesc* rd = GetRenderDesc();
-	rd->renderPipeline = eRENDER_FORWARD;
 	rd->bDepthStencilEnable = true;
 	rd->bInverseDepthTest = false;
 	rd->bCustomViewProjMtx = false;
