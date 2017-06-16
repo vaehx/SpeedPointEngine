@@ -35,6 +35,7 @@ private:
 	DX11Texture* m_pDepthBufferTexture;
 
 	EFBOType m_FBOType;
+	SColor m_ClearColor;
 
 	SResult InitializeDepthBufferIntrnl(bool allowAsTexture, const string& specification);
 
@@ -61,6 +62,9 @@ public:
 
 	virtual ITexture* GetTexture() const;
 	virtual ITexture* GetDepthBufferTexture() const;
+
+	virtual void SetClearColor(const SColor& color) { m_ClearColor = color; }
+	virtual const SColor& GetClearColor() const { return m_ClearColor; }
 
 	// Getter / setter
 	ID3D11RenderTargetView* GetRTV() const { return m_pRTV; }

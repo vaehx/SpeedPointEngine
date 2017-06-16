@@ -548,6 +548,8 @@ public:
 	virtual IShaderPass* GetShaderPass(EShaderPassType type) const = 0;
 	virtual IShaderPass* GetCurrentShaderPass() const = 0;
 
+	virtual void ReloadShaders() const = 0;
+
 	virtual string GetShaderPath(EShaderFileType type) const = 0;
 
 	virtual SResult BeginScene(void) = 0;

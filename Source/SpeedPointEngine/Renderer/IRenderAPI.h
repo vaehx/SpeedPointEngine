@@ -63,12 +63,13 @@ struct S_API SSceneConstants
 
 struct S_API STerrainConstants
 {
-	float fTerrainDMFadeRadius;		// 4 Byte
-	float fTerrainMaxHeight;		// 4 Byte
-	unsigned int vtxHeightMapSz;	// 4 Byte
-	float segmentSize;				// 4 Byte
-	float detailmapSz[2];			// 8 Byte
-	char __padding[8];
+	float3 sunIntensity;
+	float fTerrainDMFadeRadius;
+	float fTerrainMaxHeight;
+	unsigned int vtxHeightMapSz;
+	float segmentSize;
+	float detailmapSz[2];
+	char __padding[12];
 
 	STerrainConstants& operator = (const STerrainConstants& b)
 	{

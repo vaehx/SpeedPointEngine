@@ -47,6 +47,7 @@ private:
 	SRenderDesc m_HUDRenderDesc;
 
 	ITexture* m_pDebugTexture;
+	bool m_bDrawNormals;
 
 
 	void CreateFullscreenPlane();
@@ -57,6 +58,7 @@ private:
 	void UpdateSunViewProj();
 
 	void RenderMeshes();
+	void DrawNormalsForMesh(const SRenderDesc* rd);
 	void RenderHelpers();
 	void RenderDeferredLights();
 	void RenderHUD();
@@ -99,6 +101,7 @@ public:
 	ILINE virtual ISkyBox* GetSkyBox();
 
 	ILINE virtual void SetEnvironmentSettings(const SEnvironmentSettings& settings);
+	ILINE const SEnvironmentSettings& GetEnvironmentSettings() const { return m_EnvironmentSettings; };
 
 	// Render lastly collected visible objects
 	ILINE virtual void RenderCollected();
@@ -111,6 +114,7 @@ public:
 	ILINE virtual void RemoveHUDElement(SHUDElement** pHUDElement);
 
 	ILINE virtual void DebugTexture(const string& name);
+	ILINE virtual void DebugNormals(bool showNormals = true) { m_bDrawNormals = showNormals; };
 
 	ILINE virtual void Clear();
 

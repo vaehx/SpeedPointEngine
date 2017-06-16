@@ -337,6 +337,8 @@ public:
 	virtual IShaderPass* GetShaderPass(EShaderPassType type) const;
 	virtual IShaderPass* GetCurrentShaderPass() const;
 
+	virtual void ReloadShaders() const;
+
 	virtual string GetShaderPath(EShaderFileType type) const;
 
 	virtual SResult Render(const SRenderDesc& renderDesc);

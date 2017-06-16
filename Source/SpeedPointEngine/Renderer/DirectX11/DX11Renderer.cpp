@@ -492,6 +492,8 @@ S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 	if (Failure(m_Viewport.Initialize(this, vpDesc)))
 		return S_ERROR;
 
+	m_Viewport.GetBackBuffer()->SetClearColor(m_InitParams.clearColor);
+
 	// m_pD3DDeviceContext->RSSetViewports() is called in the SetTargetViewport after the call of this function.
 
 
@@ -773,6 +775,16 @@ S_API void DX11Renderer::InitShaderPasses()
 
 	m_Passes[eSHADERPASS_POSTEFFECT] = new PosteffectShaderPass();
 	m_Passes[eSHADERPASS_POSTEFFECT]->Initialize(this);
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API void DX11Renderer::ReloadShaders() const
+{
+	for (int i = 0; i < NUM_SHADERPASS_TYPES; ++i)
+	{
+		if (m_Passes[i])
+			m_Passes[i]->ReloadShaders();
+	}
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1606,13 +1618,13 @@ S_API SResult DX11Renderer::ClearBoundRTs(bool color /*= true*/, bool depth /*= 
 	if (color)
 	{
 		float clearColor[4];
-		SPGetColorFloatArray(clearColor, m_InitParams.clearColor);
-
 		for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
 		{
 			ID3D11RenderTargetView* pRTV = (*itBoundRT)->GetRTV();
 			if (!IS_VALID_PTR(pRTV))
 				continue;
+
+			SPGetColorFloatArray(clearColor, (*itBoundRT)->GetClearColor());
 
 			m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
 		}
@@ -1787,7 +1799,7 @@ S_API void DX11Renderer::SetViewProjMatrix(const Mat44& mtxView, const Mat44& mt
 {
 	SSceneConstants* pConstants = m_SceneConstants.GetConstants();
 	pConstants->mtxView = mtxView;
-	pConstants->mtxViewInv = SMatrixInvert(SMatrixTranspose(mtxView));
+	pConstants->mtxViewInv = SMatrixInvert(mtxView);
 	pConstants->mtxProj = mtxProj;
 	pConstants->mtxProjInv = SMatrixInvert(SMatrixTranspose(mtxProj));
 	m_SceneConstants.Update();

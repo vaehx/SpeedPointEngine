@@ -65,6 +65,7 @@ public:
 	}
 
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 	virtual void OnEndFrame();
 	virtual SResult Bind();
@@ -99,6 +100,7 @@ public:
 
 	// IShaderPass:
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 	virtual SResult Bind();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
@@ -138,6 +140,7 @@ public:
 
 	// IShaderPass:
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 
 	virtual SResult Bind();
@@ -156,6 +159,7 @@ public:
 	#pragma pack(16)
 	struct SLightObjectConstants : public SObjectConstants
 	{
+		Mat44 mtxViewportProjInv;
 		Vec3f lightPos;
 		float lightMaxDistance;
 		Vec3f lightDirection; // for spot, directional. Points away from light source
@@ -184,6 +188,7 @@ public:
 	virtual ~DeferredLightShaderPass() { Clear(); }
 
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 	virtual void OnEndFrame();
 	virtual SResult Bind();
@@ -221,6 +226,7 @@ public:
 	}
 
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 
 	virtual SResult Bind();
@@ -255,6 +261,7 @@ public:
 	}
 
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 	virtual SResult Bind();
 	virtual void OnUnbind();
@@ -283,6 +290,7 @@ public:
 	}
 
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 
 	virtual SResult Bind();
@@ -303,6 +311,7 @@ public:
 	}
 
 	virtual SResult Initialize(IRenderer* pRenderer);
+	virtual void ReloadShaders();
 	virtual void Clear();
 
 	virtual SResult Bind();

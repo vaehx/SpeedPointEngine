@@ -10,6 +10,7 @@
 #pragma once
 
 #include <Common\SPrerequisites.h>
+#include <Common\SColor.h>
 
 SP_NMSPACE_BEG
 
@@ -59,6 +60,9 @@ public:
 	virtual IRenderer* GetRenderer() = 0;
 	virtual ITexture* GetTexture() const = 0;
 	virtual ITexture* GetDepthBufferTexture() const = 0;
+
+	virtual void SetClearColor(const SColor& color) = 0;
+	virtual const SColor& GetClearColor() const = 0;
 
 	// Clear buffers
 	virtual void Clear(void) = 0;		

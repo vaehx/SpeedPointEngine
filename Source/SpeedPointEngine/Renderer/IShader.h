@@ -99,6 +99,7 @@ struct S_API IShaderPass
 	}
 
 	virtual SResult Initialize(IRenderer* pRenderer) = 0;
+	virtual void ReloadShaders() = 0;
 	virtual void Clear() = 0;
 	virtual SResult Bind() = 0;
 	virtual void OnUnbind() {};

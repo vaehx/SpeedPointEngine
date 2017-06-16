@@ -547,7 +547,7 @@ S_API IGeometry* CGeometryManager::LoadGeometry(const string& spmResourcePath)
 
 	SInitialGeometryDesc geomDesc;
 	geomDesc.geomFile = spmResourcePath;
-	geomDesc.bRequireNormalRecalc = true;
+	geomDesc.bRequireNormalRecalc = false;
 	geomDesc.bRequireTangentRecalc = true;
 	geomDesc.indexUsage = eGEOMUSE_STATIC;
 	geomDesc.vertexUsage = eGEOMUSE_STATIC;

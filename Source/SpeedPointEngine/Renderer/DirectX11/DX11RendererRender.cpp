@@ -74,7 +74,7 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 		return S_SUCCESS;
 	}
 
-	EnableBackfaceCulling(true);
+	EnableBackfaceCulling(false);
 
 	RenderGeometry(renderDesc);
 

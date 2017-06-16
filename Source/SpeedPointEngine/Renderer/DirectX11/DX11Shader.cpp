@@ -382,19 +382,30 @@ S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
 	sceneConstants->shadowMapRes[0] = viewportSz.cx;
 	sceneConstants->shadowMapRes[1] = viewportSz.cy;
 
-	// Create shadowmap shader
-	SShaderInfo si;
-	si.entry = "shadowmap";
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_SHADOW);
-	si.inputLayout = eSHADERINPUTLAYOUT_SIMPLE;
-
-	m_pShader = pRenderer->CreateShader();
-	m_pShader->Load(pRenderer, si);
+	ReloadShaders();
 
 	// Initialize constants
 	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
+}
+
+S_API void ShadowmapShaderPass::ReloadShaders()
+{
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+
+	// Create shadowmap shader
+	SShaderInfo si;
+	si.entry = "shadowmap";
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_SHADOW);
+	si.inputLayout = eSHADERINPUTLAYOUT_SIMPLE;
+
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(m_pRenderer, si);
 }
 
 S_API void ShadowmapShaderPass::Clear()
@@ -468,30 +479,7 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 	Clear();
 	m_pRenderer = pRenderer;
 
-	// Create shaders
-	SShaderInfo si;
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_HELPER);
-	si.entry = "helper";
-	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
-
-	m_pHelperShader = m_pRenderer->CreateShader();
-	m_pHelperShader->Load(pRenderer, si);
-
-
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
-	si.entry = "forward";
-	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
-
-	m_pShader = m_pRenderer->CreateShader();
-	m_pShader->Load(pRenderer, si);
-
-
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_SKYBOX);
-	si.entry = "skybox";
-	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
-
-	m_pSkyboxShader = m_pRenderer->CreateShader();
-	m_pSkyboxShader->Load(pRenderer, si);
+	ReloadShaders();
 
 
 	// Create CB
@@ -499,6 +487,53 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
+}
+
+S_API void ForwardShaderPass::ReloadShaders()
+{
+	SShaderInfo si;
+
+	// Helper shader
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_HELPER);
+	si.entry = "helper";
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
+
+	if (m_pHelperShader)
+	{
+		m_pHelperShader->Clear();
+		delete m_pHelperShader;
+	}
+
+	m_pHelperShader = m_pRenderer->CreateShader();
+	m_pHelperShader->Load(m_pRenderer, si);
+
+	// Forward shader
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
+	si.entry = "forward";
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
+
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(m_pRenderer, si);
+
+	// Skybox shader
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_SKYBOX);
+	si.entry = "skybox";
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
+
+	if (m_pSkyboxShader)
+	{
+		m_pSkyboxShader->Clear();
+		delete m_pSkyboxShader;
+	}
+
+	m_pSkyboxShader = m_pRenderer->CreateShader();
+	m_pSkyboxShader->Load(m_pRenderer, si);
 }
 
 S_API void ForwardShaderPass::Clear()
@@ -600,34 +635,10 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 /*
 
-1st Pass: Render objects to gbuffer
+1st Pass: Render objects to MINIMAL gbuffer
 	- See GBUFFER-LAYOUT below
 2nd Pass: Render each light volume and accumulate luminous emittance of surface in light buffer
-	- Calculate render-equation summand by sampling GBuffer
-		
-		float3 PS_LightPass(
-			float3 x,
-			float3 N,
-			float3 L,
-			float3 V,
-			float3 lightPos,
-			float3 lightIntensity,
-			float lightMaxDistance,
-			float lightDecay,
-			float matRoughness)
-		{
-			float distance = length(lightPos - x);
-			float falloff = pow(saturate(1 - pow(distance / lightMaxDistance, 4)), 2) / pow(max(distance, epsilon), lightDecay);
-			float3 irradiance = lightIntensity * falloff;
-
-			return BRDF(x, N, L, V, roughness) * irradiance * dot(V, N);
-		}
-
-	- Plug BRDF into Rendering equation
-	- Output:
-		- Light buffer: R32_FLOAT   <-- can be > 1 for HDR
-		- use ADDITIVE color blending
-3rd Pass: Fullscreen shading pass using gbuffer parameters and light buffer (shading shader pass)
+3rd Pass: Forward shading pass using light accumulation buffer
 
 
 ## GBUFFER-LAYOUT
@@ -635,23 +646,9 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 A - Albedo, N - Normal
 
 #1 GBUF0 RGBA8	[ Ar | Ag | Ab | Roughness ] + Depth
-#2 GBUF1 R16G16	[ N00 | N01 | N10 | N11 ]
+#2 GBUF1 R16G16	[ Nx | Ny ]
 
 TODO: We probably need more material parameters later (metallicness, fresnel coefficients, ...)
-
-	Compressing normal into 2*16bit components:
-		with WS-Normal:
-			to Gbuffer: G=(N.x,N.y)
-			from Gbuffer: N=(G.x, G.y, sqrt(1 - G.x*G.x - G.y*G.y))
-			(+) faster
-			(-) less precision on certain perspective cases
-		with VS-Normal (see 'A bit more deffered' presentation from Crytek):
-			to Gbuffer: G=normalize(N.xy) * sqrt(N.z * 0.5 + 0.5)
-			from Gbuffer: N.z=length2(G.xy)*2-1   N.xy=normalize(G.xy)*sqrt(1-N.z*N.z)
-			(+) "more precise where it matters"
-			(-) more ALUs -> possibly slower
-			(-) "wasted area"
-
 
 */
 
@@ -673,17 +670,27 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 
 	m_pGBuffer[1]->InitializeAsTexture(eFBO_R16G16F, pRenderer, screenRes[0], screenRes[1], "$GBuffer1");
 
-
-	SShaderInfo si;
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ZPASS);
-	si.entry = "zpass";
-
-	m_pShader = pRenderer->CreateShader();
-	m_pShader->Load(pRenderer, si);
+	ReloadShaders();
 
 	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
+}
+
+S_API void GBufferShaderPass::ReloadShaders()
+{
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+
+	SShaderInfo si;
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_ZPASS);
+	si.entry = "zpass";
+
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(m_pRenderer, si);
 }
 
 S_API void GBufferShaderPass::Clear()
@@ -807,17 +814,28 @@ S_API SResult DeferredLightShaderPass::Initialize(IRenderer* pRenderer)
 	m_pLightBuffer = m_pRenderer->CreateRT();
 	m_pLightBuffer->InitializeAsTexture(eFBO_R16G16B16A16F, m_pRenderer, screenRes[0], screenRes[1], "$LightBuffer");
 
-	SShaderInfo si;
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
-	si.entry = "LightPrepass";
-	si.inputLayout = eSHADERINPUTLAYOUT_SIMPLE;
-
-	m_pShader = pRenderer->CreateShader();
-	m_pShader->Load(pRenderer, si);
+	ReloadShaders();
 
 	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
+}
+
+S_API void DeferredLightShaderPass::ReloadShaders()
+{
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+
+	SShaderInfo si;
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
+	si.entry = "LightPrepass";
+	si.inputLayout = eSHADERINPUTLAYOUT_SIMPLE;
+
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(m_pRenderer, si);
 }
 
 S_API ITexture* DeferredLightShaderPass::GetLightBufferTexture() const
@@ -912,17 +930,28 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 {
 	m_pRenderer = pRenderer;
 
-	SShaderInfo si;
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
-	si.entry = "DeferredShading";
-	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
-
-	m_pShader = pRenderer->CreateShader();
-	m_pShader->Load(pRenderer, si);
+	ReloadShaders();
 
 	m_Constants.Initialize(pRenderer);
 
 	return S_SUCCESS;
+}
+
+S_API void ShadingShaderPass::ReloadShaders()
+{
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+
+	SShaderInfo si;
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
+	si.entry = "DeferredShading";
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
+
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(m_pRenderer, si);
 }
 
 S_API void ShadingShaderPass::Clear()
@@ -984,17 +1013,27 @@ S_API SResult ParticleShaderPass::Initialize(IRenderer* pRenderer)
 {
 	m_pRenderer = pRenderer;
 
-	SShaderInfo si;
-	si.entry = "ParticleEmitter";
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_PARTICLES);
-	si.inputLayout = eSHADERINPUTLAYOUT_PARTICLES;
-
-	m_pShader = pRenderer->CreateShader();
-	if (Failure(m_pShader->Load(pRenderer, si)))
-		return S_ERROR;
+	ReloadShaders();
 
 	m_Constants.Initialize(pRenderer);
 	return S_SUCCESS;
+}
+
+S_API void ParticleShaderPass::ReloadShaders()
+{
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+
+	SShaderInfo si;
+	si.entry = "ParticleEmitter";
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_PARTICLES);
+	si.inputLayout = eSHADERINPUTLAYOUT_PARTICLES;
+
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(m_pRenderer, si);
 }
 
 S_API void ParticleShaderPass::Clear()
@@ -1056,16 +1095,27 @@ S_API SResult GUIShaderPass::Initialize(IRenderer* pRenderer)
 {
 	m_pRenderer = pRenderer;
 
-	SShaderInfo si;
-	si.entry = "GUI";
-	si.filename = pRenderer->GetShaderPath(eSHADERFILE_GUI);
-	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
-
-	m_pShader = pRenderer->CreateShader();
-	m_pShader->Load(pRenderer, si);
+	ReloadShaders();
 
 	m_Constants.Initialize(pRenderer);
 	return S_SUCCESS;
+}
+
+S_API void GUIShaderPass::ReloadShaders()
+{
+	if (m_pShader)
+	{
+		m_pShader->Clear();
+		delete m_pShader;
+	}
+
+	SShaderInfo si;
+	si.entry = "GUI";
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_GUI);
+	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
+
+	m_pShader = m_pRenderer->CreateShader();
+	m_pShader->Load(m_pRenderer, si);
 }
 
 S_API void GUIShaderPass::Clear()
@@ -1116,7 +1166,12 @@ S_API void GUIShaderPass::SetShaderResources(const SShaderResources& shaderResou
 
 S_API SResult PosteffectShaderPass::Initialize(IRenderer* pRenderer)
 {
+	ReloadShaders();
 	return S_SUCCESS;
+}
+
+S_API void PosteffectShaderPass::ReloadShaders()
+{
 }
 
 S_API void PosteffectShaderPass::Clear()

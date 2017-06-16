@@ -149,11 +149,13 @@ public:
 	ILINE virtual ISkyBox* GetSkyBox() = 0;
 
 	ILINE virtual void SetEnvironmentSettings(const SEnvironmentSettings& settings) = 0;
+	ILINE virtual const SEnvironmentSettings& GetEnvironmentSettings() const = 0;
 
 	ILINE virtual SHUDElement* CreateHUDElement() = 0;
 	ILINE virtual void RemoveHUDElement(SHUDElement** pHUDElement) = 0;
 
 	ILINE virtual void DebugTexture(const string& name) = 0;
+	ILINE virtual void DebugNormals(bool showNormals = true) = 0;
 
 	// Summary:
 	//	Collects Render Descs of visible objects (including terrain, skybox, ocean, ...)

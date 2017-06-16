@@ -27,15 +27,7 @@ static float PI = 3.14159265358f;
 // --------------------------------------------------------------------------------------------------------------------
 // Helper methods
 
-// cs.xy - clip space position
-// cs.z - non-linear depth
-float3 ReconstructWSFromCS(float3 cs)
-{
-	float4 vs = mul(mtxProjInv, float4(cs, 1.0f));
-	vs /= vs.w;
 
-	return mul(mtxViewInv, vs).xyz;
-}
 
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -49,9 +41,10 @@ float RoughnessToAlpha(float roughness)
 // Normalized phong for rendering equation
 float BRDF_Phong(float3 L, float3 V, float3 N, float alpha, float cspec)
 {
-	float3 R = 2.0f * dot(L, N) * N - L;
-	//return (1.0f - cspec) / PI + cspec * (alpha + 2.0f) / (2.0f * PI) * pow(dot(R, V), alpha);
-	return 1.0f / PI + (alpha + 2.0f) / (2.0f * PI) * pow(dot(R, V), alpha);
+	float3 R = normalize(2.0f * dot(L, N) * N - L);
+	float diffuse = (1.0f - cspec) / PI;
+	float specular = cspec * ((alpha + 2.0f) / (2.0f * PI)) * pow(saturate(dot(R, V)), alpha);
+	return diffuse + specular;
 }
 
 // Normalized blinn phong (approximation)
@@ -251,6 +244,7 @@ PS_OUTPUT_FORWARD PS_forward(PS_INPUT_FORWARD IN)
 cbuffer LightCB : register(b1)
 {
 	float4x4 mtxWorld;
+	float4x4 mtxViewportProjInv;
 	float3 lightPos;
 	float lightMaxDistance;
 	float3 lightDirection;
@@ -280,10 +274,32 @@ VS_OUTPUT_LIGHT_PREPASS VS_LightPrepass(VS_INPUT_LIGHT_PREPASS IN)
 	VS_OUTPUT_LIGHT_PREPASS OUT;
 
 	float4 wPos = mul(mtxWorld, float4(IN.Position, 1.0f));
-	OUT.Position = mul(mtxProj, mul(mtxView, wPos));
+	OUT.Position = mul(mtxProj, wPos);
 	OUT.H = normalize((lightPos.xyz - wPos.xyz) + (eyePos.xyz - wPos.xyz));
 
 	return OUT;
+}
+
+
+// Returns world-space normal
+float3 WSNormalFromGBuffer(float2 G)
+{
+	float4 N = float4(G.x, G.y, 0, 0);
+	N.xy = N.xy * 2.0f - 1.0f;
+	N.z = sqrt(1.0f - N.x*N.x - N.y*N.y);
+
+	return normalize(mul(mtxViewInv, N).xyz);
+}
+
+// cs.xy - clip space position [-1,1]
+// cs.z - non-linear depth
+float3 ReconstructWSFromCS(float3 cs)
+{
+	float4 vs = mul(mtxViewportProjInv, float4(cs, 1.0f));
+	vs /= vs.w;
+	vs.y *= -1.0f;
+
+	return mul(mtxViewInv, vs).xyz;
 }
 
 #define FALLOFF_EPSILON 0.01f
@@ -304,15 +320,11 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 
 
 	float matRoughness = G0.z;
-
-	float3 N = float3(G1.x, G1.y, 0);
-	N = N * 2.0f - 1.0f;
-	N.z = sqrt(1.0f - N.x*N.x - N.y*N.y);
-	N = normalize(N);
+	float3 N = WSNormalFromGBuffer(G1);
 
 	float3 clippos;
-	clippos.x = ((IN.Position.x - 0.5f) / screenRes.x) * 2.0f - 1.0f;
-	clippos.y = ((IN.Position.y - 0.5f) / screenRes.y) * 2.0f - 1.0f;
+	clippos.xy = (IN.Position.xy - 0.5f) / screenRes.xy;
+	clippos.xy = clippos.xy * 2.0f - 1.0f;
 	clippos.z = GDepth;
 	float3 wpos = ReconstructWSFromCS(clippos);
 
@@ -337,8 +349,7 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 	}
 
 	float alpha = RoughnessToAlpha(matRoughness);
-	alpha = RoughnessToAlpha(0.15f);
-	float cspec = 0.6f; // TODO
+	float cspec = 0.01f; // TODO
 
 	//float brdf = BRDF_Blinn(L, V, N, IN.H, alpha, cspec);
 	float brdf = BRDF_Phong(L, V, N, alpha, cspec);
@@ -348,10 +359,7 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 	// --------------------------
 	// Calculate radiance at the surface point for the current light
 	
-	float _d = brdf * saturate(dot(L, N));
-	//return float4(_d, _d, _d, 0);
-	return float4(normalize(N), 0);
-	//return float4(brdf * irradiance * saturate(dot(L, N)), 0);
+	return float4(brdf * irradiance * saturate(dot(L, N)), 0);
 }
 
 
@@ -418,6 +426,14 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 	float3 Lemissive	= float3(0, 0, 0);
 	float3 Lglobal		= float3(0, 0, 0); // TODO
 	float3 Lout			= Lemissive + albedo * (Lglobal + lightBufferSample);
+
+	/*
+	// Fog
+	float viewZ = -dot(mtxView[2], float4(IN.WorldPos, 1.0f));
+	float fogAmount = saturate((viewZ - fogStart) / (fogEnd - fogStart));
+	fogAmount *= fogAmount;
+	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
+	*/
 
 	OUT.Color = float4(Lout, 1.0f);
 

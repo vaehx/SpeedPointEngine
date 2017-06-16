@@ -23,7 +23,8 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 	m_pSkyBox(0),
 	m_pTerrain(0),
 	m_MatMgr(this),
-	m_pDebugTexture(0)
+	m_pDebugTexture(0),
+	m_bDrawNormals(false)
 {
 	CreateHelperPrefab<CPointHelper>();
 	CreateHelperPrefab<CVectorHelper>();
@@ -457,10 +458,10 @@ S_API void C3DEngine::CreateHUDRenderDesc()
 	subset.enableAlphaTest = true;
 	
 	vector<SVertex> vertices = {
-		SVertex(-1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0, 1.0f),
-		SVertex(-1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0, 0),
-		SVertex(1.0f, 1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 0),
-		SVertex(1.0f, -1.0f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 1.0f)
+		SVertex(-0.5f, -0.5f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0, 1.0f),
+		SVertex(-0.5f,  0.5f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0, 0),
+		SVertex( 0.5f,  0.5f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 0),
+		SVertex( 0.5f, -0.5f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 1.0f, 1.0f)
 	};
 
 	vector<SIndex> indices = {
@@ -593,6 +594,7 @@ S_API void C3DEngine::RenderCollected()
 		}
 
 		// Terrain
+		m_TerrainRenderDesc.constants.
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
 
@@ -652,6 +654,10 @@ S_API void C3DEngine::RenderMeshes()
 			pMesh->OnRender();
 
 			SRenderDesc* rd = pMesh->GetRenderDesc();
+
+			if (m_bDrawNormals)
+				DrawNormalsForMesh(rd);
+
 			m_pRenderer->Render(*rd);
 
 			pMesh = m_pMeshes->GetNext(itMesh);
@@ -662,12 +668,40 @@ S_API void C3DEngine::RenderMeshes()
 	}
 }
 
+S_API void C3DEngine::DrawNormalsForMesh(const SRenderDesc* rd)
+{
+	if (!rd || !rd->pSubsets || rd->nSubsets == 0) return;
+
+	for (unsigned int i = 0; i < rd->nSubsets; ++i)
+	{
+		SRenderSubset* subset = &rd->pSubsets[i];
+		if (!subset->render) continue;
+
+		SDrawCallDesc* dcd = &subset->drawCallDesc;
+		if (!dcd->pVertexBuffer) continue;
+
+		const SVertex* verts = dcd->pVertexBuffer->GetShadowBuffer();
+		if (!verts) continue;
+
+		for (unsigned int ivtx = dcd->iStartVBIndex; ivtx < dcd->iEndVBIndex; ++ivtx)
+		{
+			AddHelper<CVectorHelper>(CVectorHelper::Params(
+				(rd->transform * Vec4f(verts[ivtx].x, verts[ivtx].y, verts[ivtx].z, 1.0f)).xyz(),
+				(rd->transform * Vec4f(verts[ivtx].nx, verts[ivtx].ny, verts[ivtx].nz, 0.0f)).xyz(),
+				1.0f), true);
+		}
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 S_API void C3DEngine::RenderDeferredLights()
 {
 	DeferredLightShaderPass* pLightPass = dynamic_cast<DeferredLightShaderPass*>(m_pRenderer->GetShaderPass(eSHADERPASS_LIGHTPREPASS));
+	
 	DeferredLightShaderPass::SLightObjectConstants lightConstants;
+	lightConstants.mtxViewportProjInv = SMatrixInvert(m_pRenderer->GetTargetViewport()->GetProjectionMatrix());
+
 	unsigned int iLight;
 	CRenderLight* pLight = m_pLights->GetFirst(iLight);
 	while (pLight)
@@ -707,6 +741,10 @@ S_API void C3DEngine::RenderDeferredLights()
 	lightConstants.lightIntensity = m_EnvironmentSettings.sunIntensity.ToFloat3();
 
 	pLightPass->SetLightConstants(lightConstants);
+
+	// We don't use the view matrix in the LightPrepass VS shader, so we can use it for
+	// the scene camera's view matrix.
+	m_FullscreenPlane.viewMtx = m_pRenderer->GetTargetViewport()->GetCameraViewMatrix();
 
 	m_pRenderer->RenderDeferredLight(m_FullscreenPlane);
 }
