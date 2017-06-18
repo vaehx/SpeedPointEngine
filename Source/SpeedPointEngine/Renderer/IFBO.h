@@ -38,23 +38,26 @@ public:
 	}
 
 	// To allow this FBO to be used as a texture, use InitializeAsTexture() instead
-	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height) = 0;
+	virtual SResult Initialize(EFBOType type, unsigned int width, unsigned int height) = 0;
 	
 	// Summary:
 	//	Allows this FBO to be bound as a texture
 	// Arguments:
 	//	specification - Specification of the ITexture in the resource pool of the renderer.
-	virtual SResult InitializeAsTexture(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, const string& specification) = 0;
+	virtual SResult InitializeAsTexture(EFBOType type, unsigned int width, unsigned int height, const string& specification) = 0;
 
 	// Summary:
 	//	Creates a hardware depth buffer for this initialized FBO
-	virtual SResult InitializeDepthBuffer() = 0;
+	// Arguments:
+	//	resolution - If 0, the size of the render target is used. If this is not initialized, this method fails.
+	virtual SResult InitializeDepthBuffer(unsigned int resolution[2] = 0) = 0;
 
 	// Summary:
 	//	Creates a hardware depth buffer for this initialized FBO and allows it to be used as a texture.
 	// Arguments:
 	//	specification - Specification of the ITexture in the resource pool of the renderer
-	virtual SResult InitializeDepthBufferAsTexture(const string& specification) = 0;
+	//	resolution - If 0, the size of the render target is used. If this is not initialized, this method fails.
+	virtual SResult InitializeDepthBufferAsTexture(const string& specification, unsigned int resolution[2] = 0) = 0;
 
 	virtual bool IsInitialized() const = 0;
 	virtual IRenderer* GetRenderer() = 0;

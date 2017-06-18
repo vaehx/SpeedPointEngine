@@ -66,10 +66,6 @@ struct S_API SLoadedCubemapSide
 };
 
 
-// Returns R8G8B8A8_UNORM if not known
-S_API static ETextureType GetTextureTypeFromDXGIFormat(DXGI_FORMAT fmt);
-
-
 class S_API DX11Texture : public ITexture
 {
 private:
@@ -81,8 +77,10 @@ private:
 	ID3D11Texture2D* m_pDXTexture;
 	D3D11_TEXTURE2D_DESC m_DXTextureDesc;
 	ID3D11ShaderResourceView* m_pDXSRV;
+	D3D11_SHADER_RESOURCE_VIEW_DESC m_DXSRVDesc;
 
 	bool m_bIsCubemap;
+	bool m_bArray;
 	bool m_bLocked;
 	void* m_pLockedData;
 	unsigned int m_nLockedBytes;
@@ -90,6 +88,8 @@ private:
 	void* m_pStagedData;
 
 	void Clear();
+	bool CheckMipMapAutogenSupported(DXGI_FORMAT format);
+	SResult CreateEmptyIntrnl(unsigned int arraySize, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
 
 public:
 	DX11Texture(DX11Renderer* pDXRenderer);
@@ -105,6 +105,12 @@ public:
 	virtual SResult LoadFromFile(const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0);
 	virtual SResult LoadCubemapFromFile(const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0);
 	virtual SResult CreateEmpty(unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
+	
+	virtual SResult CreateEmptyArray(unsigned int count, unsigned int w, unsigned int h,
+		ETextureType type = eTEXTURE_R8G8B8A8_UNORM, unsigned int mipLevels = 1, SColor clearcolor = SColor::Black());
+	
+	virtual SResult LoadArraySliceFromFile(unsigned int i, const string& filePath);
+	virtual SResult ResizeArray(unsigned int count);
 
 	// Texture will be non-dynamic and non-staged.
 	// format - If DXGI_FORMAT_UNKNOWN, the same resource format will be used.
@@ -115,11 +121,13 @@ public:
 	virtual const string& GetSpecification(void) const;
 	virtual ETextureType GetType(void);
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);
+	virtual unsigned int GetArraySize() const;
 
 	virtual bool IsInitialized() const;
 	virtual bool IsDynamic() const { return m_bDynamic; }
 	virtual bool IsStaged() const { return m_bStaged; }
 	virtual bool IsCubemap() const { return IsInitialized() && m_bIsCubemap; }
+	virtual bool IsArray() const { return m_bArray; }
 
 
 	// Data access and manipulation

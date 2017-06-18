@@ -33,8 +33,8 @@ inline DXGI_FORMAT GetDXGIFormatFromFBOType(EFBOType type)
 
 
 // -----------------------------------------------------------------------------------------------
-S_API DX11FBO::DX11FBO()
-	: m_pDXRenderer(0),
+S_API DX11FBO::DX11FBO(DX11Renderer* pRenderer)
+	: m_pDXRenderer(pRenderer),
 	m_pFrameBuffer(0),
 	m_pRTV(0),
 	m_pFrameBufferTexture(0),
@@ -52,16 +52,16 @@ S_API DX11FBO::~DX11FBO()
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height)
+S_API SResult DX11FBO::Initialize(EFBOType type, unsigned int width, unsigned int height)
 {
 	HRESULT hRes;
 
+	DX11Renderer* pRenderer = m_pDXRenderer;
+	
 	Clear();
+	
+	SP_ASSERTR(m_pDXRenderer = pRenderer, S_NOTINIT);
 
-	if (!IS_VALID_PTR(pRenderer) || pRenderer->GetType() != S_DIRECTX11)
-		return S_INVALIDPARAM;
-
-	m_pDXRenderer = dynamic_cast<DX11Renderer*>(pRenderer);
 	m_FBOType = type;
 
 	// Create frame buffer texture
@@ -82,7 +82,7 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 		| D3D11_BIND_SHADER_RESOURCE;	// assumes that all FBOs currently are used as textures as well - maybe we want to change this someday!
 
 	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&m_texDesc, 0, &m_pFrameBuffer)))
-		return CLog::Log(S_ERROR, "Failed CreateTexture2D while attempting to create FBO!");
+		return CLog::Log(S_ERROR, "DX11FBO::Initialize(): Failed CreateTexture2D!");
 
 	// Create RTV for frame buffer
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
@@ -92,22 +92,22 @@ S_API SResult DX11FBO::Initialize(EFBOType type, IRenderer* pRenderer, unsigned 
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
 	if (Failure(hRes = m_pDXRenderer->GetD3D11Device()->CreateRenderTargetView(m_pFrameBuffer, &rtvDesc, &m_pRTV)))
-		return CLog::Log(S_ERROR, "Failed CreateRTV while attempting to create FBO!");
+		return CLog::Log(S_ERROR, "DX11FBO::Initialize(): Failed CreateRenderTargetView!");
 
 	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11FBO::InitializeAsTexture(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, const string& specification)
+S_API SResult DX11FBO::InitializeAsTexture(EFBOType type, unsigned int width, unsigned int height, const string& specification)
 {
 	if (specification.empty())
 		return CLog::Log(S_ERROR, "Failed DX11FBO::InitializeAsTexture(): specification empty");
 
 	SResult res;
-	if (Failure(res = Initialize(type, pRenderer, width, height)))
+	if (Failure(res = Initialize(type, width, height)))
 		return res;
 
-	m_pFrameBufferTexture = dynamic_cast<DX11Texture*>(pRenderer->GetResourcePool()->GetTexture(specification));
+	m_pFrameBufferTexture = dynamic_cast<DX11Texture*>(m_pDXRenderer->GetResourcePool()->GetTexture(specification));
 	if (!m_pFrameBufferTexture)
 		return S_ERROR;
 
@@ -120,15 +120,13 @@ S_API SResult DX11FBO::InitializeAsTexture(EFBOType type, IRenderer* pRenderer, 
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResource, IRenderer* pRenderer, unsigned int width, unsigned height,
+S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResource, unsigned int width, unsigned height,
 	bool allowAsTexture /*= false*/, const string& specification /*= ""*/)
 {
+	DX11Renderer* pRenderer = m_pDXRenderer;
 	Clear();
 
-	if (!IS_VALID_PTR(pRenderer) || pRenderer->GetType() != S_DIRECTX11)
-		return S_INVALIDPARAM;
-
-	m_pDXRenderer = dynamic_cast<DX11Renderer*>(pRenderer);
+	SP_ASSERTR(m_pDXRenderer = pRenderer, S_NOTINIT);
 
 	m_texDesc.Width = width;
 	m_texDesc.Height = height;
@@ -152,28 +150,40 @@ S_API SResult DX11FBO::D3D11_InitializeFromCustomResource(ID3D11Resource* pResou
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11FBO::InitializeDepthBufferIntrnl(bool allowAsTexture, const string& specification)
+S_API SResult DX11FBO::InitializeDepthBufferIntrnl(bool allowAsTexture, const string& specification, unsigned int resolution[2])
 {
-	SP_ASSERTR(IsInitialized(), S_NOTINIT);
+	SP_ASSERTR(m_pDXRenderer, S_NOTINIT);
 
 	ID3D11Device* pD3DDevice = m_pDXRenderer->GetD3D11Device();
 	SP_ASSERTR(pD3DDevice, S_NOTINIT);
 
 	// Create the depth buffer texture
 	memset((void*)&m_DepthBufferDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
-	m_DepthBufferDesc.ArraySize = 1; // one depth buffer is probably enough
+	m_DepthBufferDesc.ArraySize = 1;
 	m_DepthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	m_DepthBufferDesc.CPUAccessFlags = 0;
-	m_DepthBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	// WARNING: If you change them make sure that stencil is supported.
-	// From msdn: "DXGI_FORMAT_D24_UNORM_S8_UINT and DXGI_FORMAT_D32_FLOAT_S8X24_UINT are the only formats to support stencil!"
-	m_DepthBufferDesc.Width = m_texDesc.Width;
-	m_DepthBufferDesc.Height = m_texDesc.Height;
-	m_DepthBufferDesc.MipLevels = 1;	// don't support mipmapping for depth stencil buffer
+	m_DepthBufferDesc.MipLevels = 1;
 	m_DepthBufferDesc.MiscFlags = 0;
 	m_DepthBufferDesc.SampleDesc.Count = 1;
 	m_DepthBufferDesc.SampleDesc.Quality = 0; // don't support Depth MSAA
 	m_DepthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	m_DepthBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	
+	if (resolution)
+	{
+		m_DepthBufferDesc.Width = resolution[0];
+		m_DepthBufferDesc.Height = resolution[1];
+	}
+	else if (m_pFrameBufferTexture)
+	{
+		m_DepthBufferDesc.Width = m_texDesc.Width;
+		m_DepthBufferDesc.Height = m_texDesc.Height;
+	}
+	else
+	{
+		return CLog::Log(S_ERROR, "DX11FBO: Failed create depth buffer: resolution is 0 and frame buffer not initialized.");
+	}
 
 	if (allowAsTexture)
 	{
@@ -192,7 +202,7 @@ S_API SResult DX11FBO::InitializeDepthBufferIntrnl(bool allowAsTexture, const st
 	memset(&depthStencilViewDesc, 0, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
 	depthStencilViewDesc.Flags = 0;
 	depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;	// Maybe someday use MS?
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
 	if (Failure(pD3DDevice->CreateDepthStencilView(m_pDepthBuffer, &depthStencilViewDesc, &m_pDSV)))
@@ -225,14 +235,14 @@ S_API SResult DX11FBO::InitializeDepthBufferIntrnl(bool allowAsTexture, const st
 	return S_SUCCESS;
 }
 
-S_API SResult DX11FBO::InitializeDepthBuffer()
+S_API SResult DX11FBO::InitializeDepthBuffer(unsigned int resolution[2])
 {
-	return InitializeDepthBufferIntrnl(false, "");
+	return InitializeDepthBufferIntrnl(false, "", resolution);
 }
 
-S_API SResult DX11FBO::InitializeDepthBufferAsTexture(const string& specification)
+S_API SResult DX11FBO::InitializeDepthBufferAsTexture(const string& specification, unsigned int resolution[2])
 {
-	return InitializeDepthBufferIntrnl(true, specification);
+	return InitializeDepthBufferIntrnl(true, specification, resolution);
 }
 
 // -----------------------------------------------------------------------------------------------

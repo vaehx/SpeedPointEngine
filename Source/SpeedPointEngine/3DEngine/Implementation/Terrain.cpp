@@ -1,6 +1,8 @@
 // SpeedPoint Basic Terrain
 
 #include "Terrain.h"
+#include "..\IMaterial.h"
+#include "C3DEngine.h"
 #include <Renderer\IRenderer.h>
 #include <Renderer\IVertexBuffer.h>
 #include <Renderer\IIndexBuffer.h>
@@ -294,6 +296,23 @@ S_API void STerrainChunk::CreateCorner(const STerrainChunkCorner& corner, SLarge
 
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API Terrain::Terrain()
+	: m_pRenderer(nullptr),
+	m_pColorMap(nullptr),
+	m_bRequireCBUpdate(true),
+	m_pLodLevels(0),
+	m_pChunks(0),
+	m_HeightScale(100.0f),
+	m_pVtxHeightMap(nullptr),
+	m_bCustomHeightmapSet(false),
+	m_pTextureMaps(0),
+	m_pNormalMaps(0),
+	m_pRoughnessMaps(0),
+	m_nLayers(0),
+	m_pLayersUsed(0)
+{
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API Terrain::~Terrain()
@@ -352,6 +371,14 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 	// Initialize chunk array
 	unsigned long nChunks = pow2(params.segments / params.chunkSegments);
 	m_pChunks = new STerrainChunk[nChunks];
+
+	// Initialize empty layer textures
+	IResourcePool* pResourcePool = m_pRenderer->GetResourcePool();
+	m_nLayers = 0;
+	m_pLayersUsed = 0; // will be created when first layer added
+	m_pTextureMaps = pResourcePool->GetTexture("$terrain_textures");
+	m_pNormalMaps = pResourcePool->GetTexture("$terrain_normals");
+	m_pRoughnessMaps = pResourcePool->GetTexture("$terrain_roughness");
 
 	return S_SUCCESS;
 }
@@ -814,6 +841,11 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 
 	pTerrainRenderDesc->pColorMap = m_pColorMap;
 	pTerrainRenderDesc->pVtxHeightMap = m_pVtxHeightMap;
+	pTerrainRenderDesc->pLayerMask = m_pLayermask;
+	pTerrainRenderDesc->pTextureMaps = m_pTextureMaps;
+	pTerrainRenderDesc->pNormalMaps = m_pNormalMaps;
+	pTerrainRenderDesc->pRoughnessMaps = m_pRoughnessMaps;
+
 	pTerrainRenderDesc->bRender = true;
 	SMatrixIdentity(pTerrainRenderDesc->transform.scale);
 
@@ -830,43 +862,6 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 		pTerrainRenderDesc->constants.detailmapSz[1] = m_Params.detailmapSz[1];
 		m_bRequireCBUpdate = false;
 	}
-
-
-	// Prepare layer arrays
-	if (!IS_VALID_PTR(pTerrainRenderDesc->pDetailMaps) || (IS_VALID_PTR(pTerrainRenderDesc->pDetailMaps) && pTerrainRenderDesc->nLayers != m_Layers.size()))
-	{
-		if (IS_VALID_PTR(pTerrainRenderDesc->pDetailMaps))
-			delete[] pTerrainRenderDesc->pDetailMaps;
-
-		pTerrainRenderDesc->pDetailMaps = new ITexture*[m_Layers.size()];
-	}
-
-	if (!IS_VALID_PTR(pTerrainRenderDesc->pLayerMasks) || (IS_VALID_PTR(pTerrainRenderDesc->pLayerMasks) && pTerrainRenderDesc->nLayers != m_Layers.size()))
-	{
-		if (IS_VALID_PTR(pTerrainRenderDesc->pLayerMasks))
-			delete[] pTerrainRenderDesc->pLayerMasks;
-
-		pTerrainRenderDesc->pLayerMasks = new ITexture*[m_Layers.size()];
-	}
-
-	// Fill layer arrays
-	unsigned int iLayer = 0;
-	for (auto itLayer = m_Layers.begin(); itLayer != m_Layers.end(); itLayer++)
-	{
-		STerrainLayer* pLayer = *itLayer;
-		if (!IS_VALID_PTR(pLayer))
-		{
-			CLog::Log(S_ERROR, "Invalid terrain layer pointer!");
-			return;
-		}
-
-		pTerrainRenderDesc->pLayerMasks[iLayer] = pLayer->pAlphaMask;
-		pTerrainRenderDesc->pDetailMaps[iLayer] = pLayer->pDetailMap;
-		++iLayer;
-	}
-
-	pTerrainRenderDesc->nLayers = iLayer;
-
 
 	if (IS_VALID_PTR(pTerrainRenderDesc->pDrawCallDescs) && pTerrainRenderDesc->nDrawCallDescs < m_Params.nLodLevels)
 	{
@@ -967,25 +962,72 @@ S_API ITexture* Terrain::GetColorMap() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API unsigned int Terrain::AddLayer(const STerrainLayer& layer)
+S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 {
-	m_Layers.push_back(new STerrainLayer(layer));
-	return m_Layers.size() - 1;
+	C3DEngine* p3DEngine = C3DEngine::Get();
+	IMaterial* pMaterial = p3DEngine->GetMaterialManager()->GetMaterial(desc.materialName);
+	if (!pMaterial)
+		return UINT_MAX;
+
+	unsigned int layer = m_nLayers;
+	if (m_pLayersUsed)
+	{
+		for (unsigned int i = 0; i < m_nLayers; ++i)
+		{
+			if (!m_pLayersUsed[i])
+			{
+				layer = i;
+				break;
+			}
+		}
+	}
+
+	if (layer == m_nLayers)
+	{
+		unsigned int newNumLayers = m_nLayers + 5;
+		
+		bool* pNewLayersUsed = new bool[newNumLayers];
+		if (m_pLayersUsed)
+		{
+			for (unsigned int i = 0; i < m_nLayers; ++i)
+				pNewLayersUsed[i] = m_pLayersUsed[i];
+
+			delete[] m_pLayersUsed;
+		}
+
+		m_nLayers = newNumLayers;
+		m_pLayersUsed = pNewLayersUsed;
+		m_pTextureMaps->ResizeArray(newNumLayers);
+		m_pNormalMaps->ResizeArray(newNumLayers);
+		m_pRoughnessMaps->ResizeArray(newNumLayers);
+	}
+
+	IResourcePool* pResourcePool = p3DEngine->GetRenderer()->GetResourcePool();
+	SMaterialDefinition* pMatDef = pMaterial->GetDefinition();
+	
+	m_pTextureMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->textureMap));
+	m_pNormalMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->normalMap));
+	m_pRoughnessMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->roughnessMap));
+
+	return layer;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API unsigned int Terrain::GetLayerCount() const 
 {
-	return m_Layers.size();
+	return m_nLayers;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API STerrainLayer* Terrain::GetLayer(unsigned int index)
+S_API void Terrain::RemoveLayer(unsigned int id)
 {
-	if (m_Layers.size() <= index)
-		return 0;
 
-	return m_Layers.at(index);
+
+
+	// TODO
+
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1018,17 +1060,17 @@ S_API void Terrain::Clear(void)
 	m_pColorMap = 0;
 
 
-	if (m_Layers.size() > 0)
+	if (m_pLayersUsed)
 	{
-		for (auto itLayer = m_Layers.begin(); itLayer != m_Layers.end(); itLayer++)
-		{
-			STerrainLayer* pLayer = *itLayer;
-			if (IS_VALID_PTR(pLayer))				
-				delete pLayer;
-		}
+		delete[] m_pLayersUsed;
+		m_pLayersUsed = 0;
 	}
 
-	m_Layers.clear();
+	m_nLayers = 0;
+
+	SP_SAFE_RELEASE(m_pTextureMaps);
+	SP_SAFE_RELEASE(m_pNormalMaps);
+	SP_SAFE_RELEASE(m_pRoughnessMaps);
 
 
 	if (m_pVtxHeightMap)

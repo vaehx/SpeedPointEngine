@@ -119,7 +119,7 @@
     <FxCompile Include="..\..\Effects\shadow.fx" />
     <FxCompile Include="..\..\Effects\skybox.fx" />
     <FxCompile Include="..\..\Effects\terrain.fx" />
-    <FxCompile Include="..\..\Effects\zpass.fx" />
+    <FxCompile Include="..\..\Effects\gbuffer.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

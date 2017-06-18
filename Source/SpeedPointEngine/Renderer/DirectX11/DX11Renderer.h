@@ -139,7 +139,8 @@ private:
 	ITexture *m_pDummyNormalMap;	// contains pure (128,128,0) color.
 
 
-	DX11Shader m_TerrainShader;
+	DX11Shader m_TerrainShaderGBuffer;
+	DX11Shader m_TerrainShaderIllum;
 
 	IShaderPass* m_Passes[NUM_SHADERPASS_TYPES];
 	EShaderPassType m_CurrentPass;
@@ -298,9 +299,9 @@ public:
 		return false;
 	}
 
-	virtual IFBO* CreateRT() const
+	virtual IFBO* CreateRT()
 	{
-		return new DX11FBO();
+		return new DX11FBO(this);
 	}
 	
 	virtual SResult BindRTCollection(const std::vector<IFBO*>& fboCollection, IFBO* depthFBO, bool depthReadonly = false, const char* dump_name = 0);

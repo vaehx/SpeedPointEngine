@@ -37,18 +37,18 @@ private:
 	EFBOType m_FBOType;
 	SColor m_ClearColor;
 
-	SResult InitializeDepthBufferIntrnl(bool allowAsTexture, const string& specification);
+	SResult InitializeDepthBufferIntrnl(bool allowAsTexture, const string& specification, unsigned int resolution[2] = 0);
 
 public:
-	DX11FBO();
+	DX11FBO(DX11Renderer* pRenderer);
 	~DX11FBO();
 	
-	virtual SResult Initialize(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height);
-	virtual SResult InitializeAsTexture(EFBOType type, IRenderer* pRenderer, unsigned int width, unsigned int height, const string& specification);
-	SResult D3D11_InitializeFromCustomResource(ID3D11Resource* pResource, IRenderer* pRenderer, unsigned int width, unsigned height, bool allowAsTexture = false, const string& specification = "");
+	virtual SResult Initialize(EFBOType type, unsigned int width, unsigned int height);
+	virtual SResult InitializeAsTexture(EFBOType type, unsigned int width, unsigned int height, const string& specification);
+	SResult D3D11_InitializeFromCustomResource(ID3D11Resource* pResource, unsigned int width, unsigned height, bool allowAsTexture = false, const string& specification = "");
 	
-	virtual SResult InitializeDepthBuffer();
-	virtual SResult InitializeDepthBufferAsTexture(const string& specification);
+	virtual SResult InitializeDepthBuffer(unsigned int resolution[2] = 0);
+	virtual SResult InitializeDepthBufferAsTexture(const string& specification, unsigned int resolution[2] = 0);
 
 	virtual bool IsInitialized() const;
 

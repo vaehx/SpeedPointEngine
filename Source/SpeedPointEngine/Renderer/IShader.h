@@ -91,6 +91,23 @@ enum S_API EShaderPassType
 	eSHADERPASS_NONE
 };
 
+inline const char* GetShaderPassTypeName(EShaderPassType type)
+{
+	switch (type)
+	{
+	case eSHADERPASS_FORWARD: return "SHADERPASS_FORWARD";
+	case eSHADERPASS_GBUFFER: return "SHADERPASS_GBUFFER";
+	case eSHADERPASS_LIGHTPREPASS: return "SHADERPASS_LIGHTPREPASS";
+	case eSHADERPASS_SHADING: return "SHADERPASS_SHADING";
+	case eSHADERPASS_SHADOWMAP: return "SHADERPASS_SHADOWMAP";
+	case eSHADERPASS_PARTICLES: return "SHADERPASS_PARTICLES";
+	case eSHADERPASS_GUI: return "SHADERPASS_GUI";
+	case eSHADERPASS_POSTEFFECT: return "SHADERPASS_POSTEFFECT";
+	default:
+		return "Unknown";
+	}
+}
+
 
 struct S_API IShaderPass
 {
@@ -105,6 +122,7 @@ struct S_API IShaderPass
 	virtual void OnUnbind() {};
 	virtual void OnEndFrame() {};
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform) = 0;
+	virtual void BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources) {};
 };
 
 SP_NMSPACE_END

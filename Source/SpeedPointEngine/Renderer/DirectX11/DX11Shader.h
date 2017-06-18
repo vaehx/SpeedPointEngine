@@ -121,10 +121,14 @@ public:
 private:
 #define NUM_GBUFFER_LAYERS 2
 	vector<IFBO*> m_pGBuffer;
+	vector<IFBO*> m_BoundFBOs;
 
 	IShader* m_pShader;
+	IShader* m_pTerrainShader;
 	ConstantsBufferHelper<SMatObjConstants> m_Constants;
 	IRenderer* m_pRenderer;
+
+	void BindGBufferRTs();
 
 public:
 	GBufferShaderPass()
@@ -147,6 +151,7 @@ public:
 	virtual void OnUnbind();
 	virtual void OnEndFrame();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
+	virtual void BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources);
 
 	ITexture* GetGBufferTexture(unsigned int i) const;
 	ITexture* GetDepthBufferTexture() const;
@@ -209,6 +214,7 @@ private:
 	DeferredLightShaderPass* m_pLightPass;
 	IRenderer* m_pRenderer;
 	IShader* m_pShader;
+	IShader* m_pTerrainShader;
 	ConstantsBufferHelper<SObjectConstants> m_Constants;
 
 public:
@@ -231,6 +237,7 @@ public:
 
 	virtual SResult Bind();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
+	virtual void BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////

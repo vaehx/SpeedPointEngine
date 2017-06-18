@@ -137,16 +137,9 @@ struct S_API STerrainChunk
 
 // ==================================================================================================================
 
-struct S_API STerrainLayer
+struct S_API STerrainLayerDesc
 {
-	ITexture* pAlphaMask;
-	ITexture* pDetailMap;
-
-	STerrainLayer()
-		: pAlphaMask(0), pDetailMap(0) {}
-
-	STerrainLayer(const STerrainLayer& layer)
-		: pAlphaMask(layer.pAlphaMask), pDetailMap(layer.pDetailMap) {}
+	string materialName;
 };
 
 struct S_API STerrainParams
@@ -251,11 +244,10 @@ public:
 	virtual SResult SetColorMap(ITexture* pColorMap) = 0;
 	ILINE virtual ITexture* GetColorMap() const = 0;
 
-	// Returns index of added layer
-	ILINE virtual unsigned int AddLayer(const STerrainLayer& layer) = 0;
+	// Returns index
+	ILINE virtual unsigned int AddLayer(const STerrainLayerDesc& desc) = 0;
 
-	ILINE virtual STerrainLayer* GetLayer(unsigned int index) = 0;
-
+	ILINE virtual void RemoveLayer(unsigned int id) = 0;
 	ILINE virtual unsigned int GetLayerCount() const = 0;	
 	
 	// Summary:

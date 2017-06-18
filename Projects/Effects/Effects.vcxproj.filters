@@ -21,9 +21,6 @@
     <FxCompile Include="..\..\Effects\terrain.fx">
       <Filter>Effects</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Effects\zpass.fx">
-      <Filter>Effects</Filter>
-    </FxCompile>
     <FxCompile Include="..\..\Effects\font.fx">
       <Filter>Effects</Filter>
     </FxCompile>
@@ -31,6 +28,9 @@
       <Filter>Effects</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Effects\shadow.fx">
+      <Filter>Effects</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Effects\gbuffer.fx">
       <Filter>Effects</Filter>
     </FxCompile>
   </ItemGroup>

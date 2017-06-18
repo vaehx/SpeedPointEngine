@@ -368,15 +368,15 @@ S_API ShadowmapShaderPass::ShadowmapShaderPass()
 S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
 {
 	Clear();
-	m_pRenderer = pRenderer;
+	SP_ASSERTR(m_pRenderer = pRenderer, S_INVALIDPARAM);
 
 	// Create shadowmap FBO
-	// TODO: We probably want to use a lower resolution shadow map than the viewport...
+	// TODO: We probably want to use a different resolution shadow map than the viewport...
 	SIZE viewportSz = pRenderer->GetTargetViewport()->GetSize();
+	unsigned int shadowmapResolution[2] = { viewportSz.cx, viewportSz.cy };
 
 	m_pShadowmap = pRenderer->CreateRT();
-	m_pShadowmap->Initialize(eFBO_F16, pRenderer, viewportSz.cx, viewportSz.cy);
-	m_pShadowmap->InitializeDepthBufferAsTexture("$shadowmap");
+	m_pShadowmap->InitializeDepthBufferAsTexture("$shadowmap", shadowmapResolution);
 
 	SSceneConstants* sceneConstants = m_pRenderer->GetSceneConstants();
 	sceneConstants->shadowMapRes[0] = viewportSz.cx;
@@ -643,10 +643,8 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 ## GBUFFER-LAYOUT
 
-A - Albedo, N - Normal
-
-#1 GBUF0 RGBA8	[ Ar | Ag | Ab | Roughness ] + Depth
-#2 GBUF1 R16G16	[ Nx | Ny ]
+	#1 GBUF0 Depth D32
+	#2 GBUF1 Normal RGB8 + Roughness A8
 
 TODO: We probably need more material parameters later (metallicness, fresnel coefficients, ...)
 
@@ -665,10 +663,8 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
 		m_pGBuffer[i] = pRenderer->CreateRT();
 
-	m_pGBuffer[0]->InitializeAsTexture(eFBO_R8G8B8A8, pRenderer, screenRes[0], screenRes[1], "$GBuffer0");
-	m_pGBuffer[0]->InitializeDepthBufferAsTexture("$GBufferDepth");
-
-	m_pGBuffer[1]->InitializeAsTexture(eFBO_R16G16F, pRenderer, screenRes[0], screenRes[1], "$GBuffer1");
+	m_pGBuffer[0]->InitializeDepthBufferAsTexture("$GBuffer0", screenRes);
+	m_pGBuffer[1]->InitializeAsTexture(eFBO_R8G8B8A8, screenRes[0], screenRes[1], "$GBuffer1");
 
 	ReloadShaders();
 
@@ -679,22 +675,37 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 
 S_API void GBufferShaderPass::ReloadShaders()
 {
+	SShaderInfo si;
+
 	if (m_pShader)
 	{
 		m_pShader->Clear();
 		delete m_pShader;
 	}
 
-	SShaderInfo si;
-	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_ZPASS);
-	si.entry = "zpass";
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_GBUFFER);
+	si.entry = "GBuffer";
 
 	m_pShader = m_pRenderer->CreateShader();
 	m_pShader->Load(m_pRenderer, si);
+
+	if (m_pTerrainShader)
+	{
+		m_pTerrainShader->Clear();
+		delete m_pTerrainShader;
+	}
+
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_GBUFFER);
+	si.entry = "GBufferTerrain";
+
+	m_pTerrainShader = m_pRenderer->CreateShader();
+	m_pTerrainShader->Load(m_pRenderer, si);
 }
 
 S_API void GBufferShaderPass::Clear()
 {
+	m_BoundFBOs.clear();
+
 	for (auto itLayer = m_pGBuffer.begin(); itLayer != m_pGBuffer.end(); ++itLayer)
 	{
 		IFBO* pLayer = *itLayer;
@@ -726,6 +737,13 @@ S_API SResult GBufferShaderPass::Bind()
 
 	m_pShader->Bind();
 
+	BindGBufferRTs();
+
+	return S_SUCCESS;
+}
+
+S_API void GBufferShaderPass::BindGBufferRTs()
+{
 	//--
 	// It may be bound as a texture for debugging...
 	for (auto gbuffer : m_pGBuffer)
@@ -734,10 +752,11 @@ S_API SResult GBufferShaderPass::Bind()
 	m_pRenderer->UnbindTexture(m_pGBuffer[0]->GetDepthBufferTexture());
 	//--
 
-	m_pRenderer->BindRTCollection(m_pGBuffer, m_pGBuffer[0], false, "GBufferShaderPass");
-	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
+	if (m_BoundFBOs.empty())
+		m_BoundFBOs = { m_pGBuffer[1] };
 
-	return S_SUCCESS;
+	m_pRenderer->BindRTCollection(m_BoundFBOs, m_pGBuffer[0], false, "GBufferShaderPass");
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 }
 
 S_API void GBufferShaderPass::OnUnbind()
@@ -746,16 +765,8 @@ S_API void GBufferShaderPass::OnUnbind()
 
 S_API void GBufferShaderPass::OnEndFrame()
 {
-	for (int i = 0; i < m_pGBuffer.size(); ++i)
-	{
-		m_pRenderer->UnbindTexture(m_pGBuffer[i]->GetTexture());
-
-		if (i == 0)
-			m_pRenderer->UnbindTexture(m_pGBuffer[i]->GetDepthBufferTexture());
-
-		m_pRenderer->BindSingleRT(m_pGBuffer[i]);
-		m_pRenderer->ClearBoundRTs(true, i == 0);
-	}
+	BindGBufferRTs();
+	m_pRenderer->ClearBoundRTs();
 }
 
 S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, const Mat44& transform)
@@ -766,11 +777,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 	m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
 
 	// Bind textures
-	ITexture* pTextureMap = IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture();
-	ITexture* pNormalMap = IS_VALID_PTR(sr.normalMap) ? sr.normalMap : m_pRenderer->GetDummyNormalmap();
-
-	m_pRenderer->BindTexture(pTextureMap, 0);
-	m_pRenderer->BindTexture(pNormalMap, 1);
+	m_pRenderer->BindTexture(IS_VALID_PTR(sr.normalMap) ? sr.normalMap : m_pRenderer->GetDummyNormalmap(), 0);
 
 	// Set constants
 	SMatObjConstants* constants = m_Constants.GetConstants();
@@ -778,6 +785,18 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 	constants->matRoughnes = sr.roughness;
 
 	m_Constants.Update();
+}
+
+S_API void GBufferShaderPass::BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources)
+{
+	// TODO: Make sure we are not switching the shader too often.
+	m_pTerrainShader->Bind();
+
+	m_pRenderer->BindVertexShaderTexture(pHeightmap, 0);
+
+	m_pRenderer->BindTexture(pLayerMask, 0);
+	m_pRenderer->BindTexture(shaderResources.normalMap, 1);
+	m_pRenderer->BindTexture(shaderResources.roughnessMap, 2);
 }
 
 S_API ITexture* GBufferShaderPass::GetGBufferTexture(unsigned int i) const
@@ -812,7 +831,7 @@ S_API SResult DeferredLightShaderPass::Initialize(IRenderer* pRenderer)
 	unsigned int screenRes[2] = { pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1] };
 
 	m_pLightBuffer = m_pRenderer->CreateRT();
-	m_pLightBuffer->InitializeAsTexture(eFBO_R16G16B16A16F, m_pRenderer, screenRes[0], screenRes[1], "$LightBuffer");
+	m_pLightBuffer->InitializeAsTexture(eFBO_R16G16B16A16F, screenRes[0], screenRes[1], "$LightBuffer");
 
 	ReloadShaders();
 
@@ -939,19 +958,32 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 
 S_API void ShadingShaderPass::ReloadShaders()
 {
+	SShaderInfo si;
+
 	if (m_pShader)
 	{
 		m_pShader->Clear();
 		delete m_pShader;
 	}
 
-	SShaderInfo si;
 	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
 	si.entry = "DeferredShading";
 	si.inputLayout = eSHADERINPUTLAYOUT_DEFAULT;
 
 	m_pShader = m_pRenderer->CreateShader();
 	m_pShader->Load(m_pRenderer, si);
+
+	if (m_pTerrainShader)
+	{
+		m_pTerrainShader->Clear();
+		delete m_pTerrainShader;
+	}
+
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_GBUFFER);
+	si.entry = "DeferredShadingTerrain";
+
+	m_pTerrainShader = m_pRenderer->CreateShader();
+	m_pTerrainShader->Load(m_pRenderer, si);
 }
 
 S_API void ShadingShaderPass::Clear()
@@ -999,6 +1031,18 @@ S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShader
 	constants->mtxWorld = transform;
 
 	m_Constants.Update();
+}
+
+S_API void ShadingShaderPass::BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources)
+{
+	// TODO: Make sure we are not switching the shader too often.
+	m_pTerrainShader->Bind();
+
+	m_pRenderer->BindVertexShaderTexture(pHeightmap, 0);
+
+	m_pRenderer->BindTexture(pColormap, 0);
+	m_pRenderer->BindTexture(pLayerMask, 1);
+	m_pRenderer->BindTexture(shaderResources.textureMap, 2);
 }
 
 

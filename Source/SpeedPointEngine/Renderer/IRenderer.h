@@ -315,9 +315,10 @@ struct S_API STerrainRenderDesc
 	ITexture* pColorMap;
 	ITexture* pVtxHeightMap;
 
-	ITexture** pLayerMasks;	// numLayers
-	ITexture** pDetailMaps; // numLayers
-	unsigned int nLayers;
+	ITexture* pLayerMask;
+	ITexture* pTextureMaps; // texture array
+	ITexture* pNormalMaps; // texture array
+	ITexture* pRoughnessMaps; // texture array
 
 	STerrainConstants constants;
 	bool bUpdateCB;
@@ -330,9 +331,10 @@ struct S_API STerrainRenderDesc
 		bUpdateCB(true),
 		bRender(false),
 		pVtxHeightMap(nullptr),
-		nLayers(0),
-		pLayerMasks(0),
-		pDetailMaps(0)
+		pLayerMask(0),
+		pTextureMaps(0),
+		pNormalMaps(0),
+		pRoughnessMaps(0)
 	{
 	}
 };
@@ -406,10 +408,9 @@ enum EShaderFileType
 	eSHADERFILE_SKYBOX,
 	eSHADERFILE_SHADOW,
 	eSHADERFILE_HELPER,
-	eSHADERFILE_ZPASS,
+	eSHADERFILE_GBUFFER,
 	eSHADERFILE_ILLUM,
 	eSHADERFILE_FONT,
-	eSHADERFILE_TERRAIN,
 	eSHADERFILE_GUI,
 	eSHADERFILE_PARTICLES
 };
@@ -485,7 +486,7 @@ public:
 
 
 	// Factory method to create a new RenderTarget
-	virtual IFBO* CreateRT() const = 0;
+	virtual IFBO* CreateRT() = 0;
 
 	// Summary:
 	//	Binds given collection of render targets.

@@ -6,11 +6,14 @@
 
 #pragma once
 #include "..\ITerrain.h"
+#include <Renderer\IRenderer.h>
 #include <Common\geo.h>
 #include <Common\SPrerequisites.h>
 #include <vector>
+#include <map>
 
 using std::vector;
+using std::map;
 
 SP_NMSPACE_BEG
 
@@ -32,7 +35,12 @@ private:
 	bool m_bCustomHeightmapSet;
 
 	ITexture* m_pColorMap;
-	vector<STerrainLayer*> m_Layers;
+	ITexture* m_pLayermask;
+	ITexture* m_pTextureMaps;
+	ITexture* m_pNormalMaps;
+	ITexture* m_pRoughnessMaps;
+	bool* m_pLayersUsed;
+	unsigned int m_nLayers;
 
 	STerrainChunk* m_pChunks;
 	unsigned int m_nChunks;
@@ -53,23 +61,12 @@ private:
 		const float step, Vec3f& intersection, const unsigned int curDepth) const;
 
 public:
-	Terrain()		
-		: m_pRenderer(nullptr),
-		m_pColorMap(nullptr),
-		m_bRequireCBUpdate(true),
-		m_pLodLevels(0),
-		m_pChunks(0),		
-		m_HeightScale(100.0f),		
-		m_pVtxHeightMap(nullptr),
-		m_bCustomHeightmapSet(false)		
-	{			
-	}
-
+	Terrain();
 	virtual ~Terrain();
 
 	virtual bool IsInited() const
 	{
-		return (IS_VALID_PTR(m_pRenderer) && IS_VALID_PTR(m_pColorMap) && m_Layers.size() > 0);
+		return (IS_VALID_PTR(m_pRenderer) && IS_VALID_PTR(m_pColorMap) && m_nLayers > 0);
 	}
 	
 	virtual SResult Init(IRenderer* pRenderer, const STerrainParams& params);
@@ -114,8 +111,8 @@ public:
 	virtual SResult SetColorMap(ITexture* pColorMap);
 	ILINE virtual ITexture* GetColorMap() const;
 
-	ILINE virtual unsigned int AddLayer(const STerrainLayer& layer);
-	ILINE virtual STerrainLayer* GetLayer(unsigned int index);
+	ILINE virtual unsigned int AddLayer(const STerrainLayerDesc& desc);
+	ILINE virtual void RemoveLayer(unsigned int id);
 	ILINE virtual unsigned int GetLayerCount() const;
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }

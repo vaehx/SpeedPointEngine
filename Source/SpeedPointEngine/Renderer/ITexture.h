@@ -27,8 +27,24 @@ enum S_API ETextureType
 	eTEXTURE_R32_FLOAT
 };
 
+S_API inline const char* GetTextureTypeName(ETextureType type)
+{
+	switch (type)
+	{
+	case eTEXTURE_R8G8B8A8_UNORM: return "TEXTURE_R8G8B8A8_UNORM";
+	case eTEXTURE_R16G16B16A16_FLOAT: return "TEXTURE_R16G16B16A16_FLOAT";
+	case eTEXTURE_R16G16_FLOAT: return "TEXTURE_R16G16_FLOAT";
+//	case eTEXTURE_D16_FLOAT: return "TEXTURE_D16_FLOAT";
+	case eTEXTURE_D32_FLOAT: return "TEXTURE_D32_FLOAT";
+	case eTEXTURE_R32_FLOAT: return "TEXTURE_R32_FLOAT";
+	default:
+		return "Unknown";
+	}
+}
+
 #define COLOR_CHANNEL_FLOAT2UCHAR(f) (char)((f) * 255.0f)
 
+// Returns Byte per pixel
 inline unsigned int GetTextureBPP(ETextureType type)
 {
 	switch (type)
@@ -85,16 +101,37 @@ public:
 	//		If type is a depth map, then clearcolor.r is used to fill.
 	virtual SResult CreateEmpty(unsigned int w, unsigned int h, unsigned int mipLevels = 1, ETextureType type = eTEXTURE_R8G8B8A8_UNORM, SColor clearcolor = SColor::White()) = 0;
 
+	// Summary:
+	//		Initializes this texture as an array of sub-textures, each with the same dimensions and mip levels.
+	//		Use LoadArraySliceFromFile() to load a slice from file.
+	virtual SResult CreateEmptyArray(unsigned int count, unsigned int w, unsigned int h,
+		ETextureType type = eTEXTURE_R8G8B8A8_UNORM, unsigned int mipLevels = 1, SColor clearcolor = SColor::Black()) = 0;
+
+	// Summary:
+	//		Loads the file and stores it in the given array slice.
+	//		This method fails if this texture was not created as a texture array.
+	//		The loaded bitmap is scaled into the resolution of an array slice
+	// Parameters:
+	//		filePath - absolute system file path
+	virtual SResult LoadArraySliceFromFile(unsigned int i, const string& filePath) = 0;
+
+	// Summary:
+	//		Recreates the texture with the given array slice count, copying all old slices.
+	virtual SResult ResizeArray(unsigned int count) = 0;
 
 public:
-	virtual const string& GetSpecification(void) const = 0;
-	virtual ETextureType GetType(void) = 0;
+	virtual const string& GetSpecification() const = 0;
+	virtual ETextureType GetType() = 0;
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH) = 0;
+	
+	// Returns the array slice count or 0 if this is not an array texture
+	virtual unsigned int GetArraySize() const = 0;
 
 	virtual bool IsInitialized() const = 0;
 	virtual bool IsDynamic() const = 0;
 	virtual bool IsStaged() const = 0;
 	virtual bool IsCubemap() const = 0;
+	virtual bool IsArray() const = 0;
 
 
 	// Data access and manipulation
