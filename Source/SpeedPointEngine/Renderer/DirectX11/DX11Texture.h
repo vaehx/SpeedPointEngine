@@ -110,6 +110,7 @@ public:
 		ETextureType type = eTEXTURE_R8G8B8A8_UNORM, unsigned int mipLevels = 1, SColor clearcolor = SColor::Black());
 	
 	virtual SResult LoadArraySliceFromFile(unsigned int i, const string& filePath);
+	virtual SResult FillArraySlice(unsigned int i, const SColor& color);
 	virtual SResult ResizeArray(unsigned int count);
 
 	// Texture will be non-dynamic and non-staged.

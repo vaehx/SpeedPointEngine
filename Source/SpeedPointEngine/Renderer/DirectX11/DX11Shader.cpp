@@ -193,10 +193,13 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 	D3D_SHADER_MACRO macros[] =
 	{
 		{ entryNameMacro.c_str(), "true" },
+		{ "", "" }, // Shader Stage (Vertex Shader/Pixel Shader)
 		{ 0, 0 }
 	};
 
 	ID3DBlob *pVSBlob = 0, *pPSBlob = 0, *pErrorBlob = 0;
+
+	macros[1].Name = "VERTEX_SHADER";
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
 		size,
@@ -212,6 +215,7 @@ S_API SResult DX11Shader::Load(IRenderer* pRenderer, const SShaderInfo& info)
 		return S_ERROR;
 	}
 
+	macros[1].Name = "PIXEL_SHADER";
 	composedEntryName[0] = 'P'; // VS... -> PS...
 	if (Failure(D3DCompile(
 		(void*)fxBuffer,
@@ -335,6 +339,8 @@ S_API SResult DX11Shader::Bind()
 
 	return S_SUCCESS;
 }
+
+
 
 
 
@@ -627,8 +633,6 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 
 //				GBuffer Shader Pass
@@ -761,6 +765,8 @@ S_API void GBufferShaderPass::BindGBufferRTs()
 
 S_API void GBufferShaderPass::OnUnbind()
 {
+	// Unbind terrain heightmap
+	m_pRenderer->BindVertexShaderTexture(0, 0);
 }
 
 S_API void GBufferShaderPass::OnEndFrame()
@@ -787,16 +793,26 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 	m_Constants.Update();
 }
 
-S_API void GBufferShaderPass::BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources)
+S_API void GBufferShaderPass::BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated)
 {
 	// TODO: Make sure we are not switching the shader too often.
 	m_pTerrainShader->Bind();
 
-	m_pRenderer->BindVertexShaderTexture(pHeightmap, 0);
+	m_pRenderer->BindVertexShaderTexture(terrainShaderResources.pHeightmap, 0);
 
-	m_pRenderer->BindTexture(pLayerMask, 0);
-	m_pRenderer->BindTexture(shaderResources.normalMap, 1);
-	m_pRenderer->BindTexture(shaderResources.roughnessMap, 2);
+	// no albedo required in gbuffer pass!
+	m_pRenderer->BindTexture(terrainShaderResources.pLayerMask, 0);
+	m_pRenderer->BindTexture(terrainShaderResources.pNormalmap, 1);
+	m_pRenderer->BindTexture(terrainShaderResources.pRoughnessmap, 2);
+
+	if (constantsUpdated)
+	{
+		STerrainConstants* constants = m_TerrainConstants.GetConstants();
+		*constants = terrainShaderResources.constants;
+		m_TerrainConstants.Update();
+	}
+
+	m_pRenderer->BindConstantsBuffer(m_TerrainConstants.GetCB());
 }
 
 S_API ITexture* GBufferShaderPass::GetGBufferTexture(unsigned int i) const
@@ -1033,17 +1049,28 @@ S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShader
 	m_Constants.Update();
 }
 
-S_API void ShadingShaderPass::BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources)
+S_API void ShadingShaderPass::BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated)
 {
 	// TODO: Make sure we are not switching the shader too often.
 	m_pTerrainShader->Bind();
 
-	m_pRenderer->BindVertexShaderTexture(pHeightmap, 0);
+	m_pRenderer->BindVertexShaderTexture(terrainShaderResources.pHeightmap, 0);
 
-	m_pRenderer->BindTexture(pColormap, 0);
-	m_pRenderer->BindTexture(pLayerMask, 1);
-	m_pRenderer->BindTexture(shaderResources.textureMap, 2);
+	m_pRenderer->BindTexture(terrainShaderResources.pColormap, 0);
+	m_pRenderer->BindTexture(terrainShaderResources.pLayerMask, 1);
+	m_pRenderer->BindTexture(terrainShaderResources.pTexturemap, 2);
+
+	if (constantsUpdated)
+	{
+		STerrainConstants* constants = m_TerrainConstants.GetConstants();
+		*constants = terrainShaderResources.constants;
+		m_TerrainConstants.Update();
+	}
+
+	m_pRenderer->BindConstantsBuffer(m_TerrainConstants.GetCB());
 }
+
+
 
 
 

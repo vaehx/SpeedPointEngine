@@ -152,100 +152,48 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 		return S_SUCCESS;
 	}
 
-	// Bind correct shader resources
-	if (m_CurrentPass == eSHADERPASS_GBUFFER || m_CurrentPass == eSHADERPASS_SHADING)
-	{
-		IShaderPass* pShaderPass = GetShaderPass(m_CurrentPass);
-		pShaderPass->BindTerrainResources(
-			terrainRenderDesc.pVtxHeightMap,
-			terrainRenderDesc.pLayerMask,
-			terrainRenderDesc.pColorMap)
-	}
-	else
+	if (m_CurrentPass != eSHADERPASS_GBUFFER && m_CurrentPass != eSHADERPASS_SHADING)
 	{
 		FrameDump("Terrain can't be rendered in current shader pass (%s)", GetShaderPassTypeName(m_CurrentPass));
 		return S_ERROR;
 	}
 
+	if (!terrainRenderDesc.pDrawCallDescs || terrainRenderDesc.nDrawCallDescs == 0)
+	{
+		return S_SUCCESS;
+	}
+
 	FrameDump("Rendering Terrain...");
 
+	// Update scene constants
 	SetViewProjMatrix(m_pTargetViewport);
 	BindSceneCB(m_SceneConstants.GetCB());
 
-	// Render Terrain directly to the backbuffer
-	BindSingleRT(m_pTargetViewport);
-
-	bool bTerrainRenderState = true;	// true = success
-	if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pVtxHeightMap))) CLog::Log(S_ERROR, "Invalid terrain vtx heightmap in render desc!");
-	if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pColorMap))) CLog::Log(S_ERROR, "Invalid color map in terrain render Desc!");
-	if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pLayerMask))) CLog::Log(S_ERROR, "Invalid layer mask in terrain Render Desc!");
-	if (!(bTerrainRenderState = IS_VALID_PTR(terrainRenderDesc.pLayers))) CLog::Log(S_ERROR, "Invalid layers array in terrain Render Desc!");
-	if (!(bTerrainRenderState = (terrainRenderDesc.nLayers > 0))) CLog::Log(S_ERROR, "Invalid layer count in terrain Render Desc!");
-
-	BindTexture(terrainRenderDesc.pVtxHeightMap, 0);
-	BindVertexShaderTexture(terrainRenderDesc.pVtxHeightMap, 0);
-	BindTexture(terrainRenderDesc.pColorMap, 1);
-
-	// ~~
-	// TODO: Avoid referencing a shader pass here
-	//			- probably fixed with deferred rendering, because the shadowmap is then only bound in shading pass.
-	ShadowmapShaderPass* pShadowmapPass = dynamic_cast<ShadowmapShaderPass*>(GetShaderPass(eSHADERPASS_SHADOWMAP));
-	if (pShadowmapPass)
-		BindDepthBufferAsTexture(pShadowmapPass->GetShadowmap(), 4);
+	// Bind terrain shader resources
+	STerrainShaderResources sr;
+	sr.pHeightmap		= terrainRenderDesc.pVtxHeightMap;
+	sr.pLayerMask		= terrainRenderDesc.pLayerMask;
+	sr.pTexturemap		= terrainRenderDesc.pTextureMaps;
+	sr.pNormalmap		= terrainRenderDesc.pNormalMaps;
+	sr.pRoughnessmap	= terrainRenderDesc.pRoughnessMaps;
 
 	if (terrainRenderDesc.bUpdateCB)
-	{
-		memcpy(m_TerrainConstants.GetConstants(), &terrainRenderDesc.constants, sizeof(terrainRenderDesc.constants));
-		m_TerrainConstants.Update();
-	}
+		sr.constants = terrainRenderDesc.constants;
+
+	IShaderPass* pShaderPass = GetShaderPass(m_CurrentPass);
+	pShaderPass->BindTerrainResources(sr, terrainRenderDesc.bUpdateCB);
+
 
 	EnableDepthTest(true);
 	SetDepthTestFunction(eDEPTH_TEST_LESS);
 
 	EnableBackfaceCulling(true);
 
-	// bind terrain cb
-	BindConstantsBuffer(m_TerrainConstants.GetCB());
-
-	// render all chunks
-	if (IS_VALID_PTR(terrainRenderDesc.pDrawCallDescs) && terrainRenderDesc.nDrawCallDescs > 0)
+	// Draw all chunks
+	for (unsigned int c = 0; c < terrainRenderDesc.nDrawCallDescs; ++c)
 	{
-		for (unsigned int c = 0; c < terrainRenderDesc.nDrawCallDescs; ++c)
-		{
-			// Draw first layer without alpha blend and default depth state
-			D3D11_SetBlendState(m_pDefBlendState);
-			m_pD3DDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
-
-			// For each layer
-			for (unsigned int iLayer = 0; iLayer < terrainRenderDesc.nLayers; ++iLayer)
-			{
-				if (iLayer == 1)
-				{
-					// Draw each further layer with alpha blending and terrain depth stencil state
-					D3D11_SetBlendState(m_pTerrainBlendState);
-					m_pD3DDeviceContext->OMSetDepthStencilState(m_pTerrainDepthState, 1);
-				}
-
-				// Bind textures
-				BindTexture(terrainRenderDesc.pDetailMaps[iLayer], 2);
-				BindTexture(terrainRenderDesc.pLayerMasks[iLayer], 3);
-
-				// Draw the subset
-				DrawTerrainSubset(terrainRenderDesc.pDrawCallDescs[c]);
-			}
-		}
-
-		// Unbind terrain layer textures
-		UnbindTexture(2);
-		UnbindTexture(3);
-
-		// Unbind Vertex Shader texture
-		BindVertexShaderTexture((ITexture*)0, 0);
+		DrawTerrainSubset(terrainRenderDesc.pDrawCallDescs[c]);
 	}
-
-	UnbindTexture(4);
-
-	D3D11_SetBlendState(m_pDefBlendState);
 }
 
 // --------------------------------------------------------------------------------------------------------------------

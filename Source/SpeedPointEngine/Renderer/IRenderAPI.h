@@ -61,26 +61,6 @@ struct S_API SSceneConstants
 	}
 };
 
-struct S_API STerrainConstants
-{
-	float3 sunIntensity;
-	float fTerrainDMFadeRadius;
-	float fTerrainMaxHeight;
-	unsigned int vtxHeightMapSz;
-	float segmentSize;
-	float detailmapSz[2];
-	char __padding[12];
-
-	STerrainConstants& operator = (const STerrainConstants& b)
-	{
-		fTerrainDMFadeRadius = b.fTerrainDMFadeRadius;
-		fTerrainMaxHeight = b.fTerrainMaxHeight;
-		vtxHeightMapSz = b.vtxHeightMapSz;
-		segmentSize = b.segmentSize;
-		return *this;
-	}
-};
-
 
 
 enum S_API EPrimitiveType
@@ -159,65 +139,6 @@ enum S_API ETextureSamplingType
 	eTEXTURE_SAMPLING_BILINEAR,
 	eTEXTURE_SAMPLING_SHADOWING, // comparative sampling for shadowmapping
 };
-
-/*
-enum EShaderType
-{
-	eSHADER_ZPASS,
-	eSHADER_ZPASS_VEGETATION,	// zpass effect with vegetation VS shader	
-	
-	eSHADER_OPAQUE,		// opaque shading pass
-	eSHADER_TERRAIN,	// terrain shading pass	
-
-	eSHADER_HELPER,		// forward helper shader
-	eSHADER_FONT
-};*/
-
-/*
-
-
-// Initialization:
-
-
-
-
-
-
-// Render terrain. Notice that there is no shaderpass for the terrain here.
-// We setup all the resources directly in the renderer.
-pRenderer->RenderTerrain(terrain.renderDesc);
-
-// Draw objects for GBuffer pass
-pRenderer->SetShaderPass(eSHADERPASS_GBUFFER);
-foreach (renderObject : renderObjects)
-{
-	pRenderer->Render(renderObject.renderDesc);
-}
-
-// Render objects again for each shadow casting light and draw shadow map
-pRenderer->SetShaderPass(eSHADERPASS_SHADOW);
-foreach (light : shadowCastingLights)
-{
-	foreach (renderObject : light.visibleObjects)
-	{
-		pRenderer->Render(renderObject.renderDesc);
-	}
-}
-
-// Now do the shading pass
-pRenderer->SetShaderPass(eSHADERPASS_SHADING);
-foreach (light : lights)
-{
-	pRenderer->Render(light.renderDesc);
-}
-
-
-
-
-
-pGBufferPass->Bind();
-
-*/
 
 struct S_API IRenderAPI
 {

@@ -1,4 +1,4 @@
-// SpeedPoint Basic Terrain
+// SpeedPoint Terrain
 
 #include "Terrain.h"
 #include "..\IMaterial.h"
@@ -333,6 +333,9 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 	if (params.chunkSegments < (unsigned int)PowerOfTwo(params.nLodLevels - 1) * 2)
 		return CLog::Log(S_INVALIDPARAM, "Terrain::Init(): Too many lod levels (%u) for %u segments per quad", params.nLodLevels, params.chunkSegments);
 
+	if (params.maskSz[0] == 0 || params.maskSz[1] == 0)
+		return CLog::Log(S_INVALIDPARAM, "Terrain::Init(): Invalid layer mask size given in params (%d, %d)!", params.maskSz[0], params.maskSz[1]);
+
 	m_fSegSz = params.size / (float)params.segments;
 	m_fTexSz = 1.0f / (float)params.segments;
 
@@ -374,11 +377,21 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 
 	// Initialize empty layer textures
 	IResourcePool* pResourcePool = m_pRenderer->GetResourcePool();
-	m_nLayers = 0;
-	m_pLayersUsed = 0; // will be created when first layer added
+	m_nLayers = 5;
+	m_pLayersUsed = new bool[m_nLayers];
+	
 	m_pTextureMaps = pResourcePool->GetTexture("$terrain_textures");
+	m_pTextureMaps->CreateEmptyArray(m_nLayers, params.textureSz[0], params.textureSz[1], eTEXTURE_R8G8B8A8_UNORM, 0);
+
 	m_pNormalMaps = pResourcePool->GetTexture("$terrain_normals");
+	m_pNormalMaps->CreateEmptyArray(m_nLayers, params.textureSz[0], params.textureSz[1], eTEXTURE_R8G8B8A8_UNORM);
+
 	m_pRoughnessMaps = pResourcePool->GetTexture("$terrain_roughness");
+	m_pRoughnessMaps->CreateEmptyArray(m_nLayers, params.textureSz[0], params.textureSz[1], eTEXTURE_R8G8B8A8_UNORM);
+
+	// Initialize empty layer mask
+	m_pLayermask = pResourcePool->GetTexture("$terrain_mask");
+	m_pLayermask->CreateEmptyArray(m_nLayers, params.maskSz[0], params.maskSz[1], eTEXTURE_R32_FLOAT);
 
 	return S_SUCCESS;
 }
@@ -969,6 +982,7 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 	if (!pMaterial)
 		return UINT_MAX;
 
+	// Find unused layer
 	unsigned int layer = m_nLayers;
 	if (m_pLayersUsed)
 	{
@@ -982,6 +996,7 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 		}
 	}
 
+	// If there is no unused layer, allocate more layers
 	if (layer == m_nLayers)
 	{
 		unsigned int newNumLayers = m_nLayers + 5;
@@ -1000,14 +1015,32 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 		m_pTextureMaps->ResizeArray(newNumLayers);
 		m_pNormalMaps->ResizeArray(newNumLayers);
 		m_pRoughnessMaps->ResizeArray(newNumLayers);
+		m_pLayermask->ResizeArray(newNumLayers);
 	}
 
+	// Fill layer
 	IResourcePool* pResourcePool = p3DEngine->GetRenderer()->GetResourcePool();
 	SMaterialDefinition* pMatDef = pMaterial->GetDefinition();
 	
-	m_pTextureMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->textureMap));
-	m_pNormalMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->normalMap));
-	m_pRoughnessMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->roughnessMap));
+	if (!pMatDef->textureMap.empty())
+		m_pTextureMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->textureMap));
+
+	if (!pMatDef->normalMap.empty())
+		m_pNormalMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->normalMap));
+
+	if (!pMatDef->roughnessMap.empty())
+		m_pRoughnessMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->roughnessMap));
+
+	// Fill mask
+	bool clearMask = true;
+	if (!desc.mask.empty())
+	{
+		if (Success(m_pLayermask->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(desc.mask))))
+			clearMask = false;
+	}
+
+	if (clearMask)
+		m_pLayermask->FillArraySlice(layer, SColor::Black());
 
 	return layer;
 }
@@ -1021,13 +1054,10 @@ S_API unsigned int Terrain::GetLayerCount() const
 ///////////////////////////////////////////////////////////////////////////////////////////////
 S_API void Terrain::RemoveLayer(unsigned int id)
 {
+	if (id >= m_nLayers)
+		return;
 
-
-
-	// TODO
-
-
-
+	m_pLayersUsed[id] = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1059,7 +1089,7 @@ S_API void Terrain::Clear(void)
 	m_nChunks = 0;
 	m_pColorMap = 0;
 
-
+	// Clear layers
 	if (m_pLayersUsed)
 	{
 		delete[] m_pLayersUsed;
@@ -1072,11 +1102,8 @@ S_API void Terrain::Clear(void)
 	SP_SAFE_RELEASE(m_pNormalMaps);
 	SP_SAFE_RELEASE(m_pRoughnessMaps);
 
-
-	if (m_pVtxHeightMap)
-		m_pVtxHeightMap->Release();
-
-	m_pVtxHeightMap = 0;
+	SP_SAFE_RELEASE(m_pVtxHeightMap);
+	SP_SAFE_RELEASE(m_pLayermask);
 }
 
 

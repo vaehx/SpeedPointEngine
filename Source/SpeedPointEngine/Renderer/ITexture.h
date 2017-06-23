@@ -116,6 +116,11 @@ public:
 	virtual SResult LoadArraySliceFromFile(unsigned int i, const string& filePath) = 0;
 
 	// Summary:
+	//		Fills the given slice with the given color.
+	//		This methods fails if this texture was not created as a texture array.
+	virtual SResult FillArraySlice(unsigned int i, const SColor& color) = 0;
+
+	// Summary:
 	//		Recreates the texture with the given array slice count, copying all old slices.
 	virtual SResult ResizeArray(unsigned int count) = 0;
 

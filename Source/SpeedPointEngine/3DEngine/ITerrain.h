@@ -139,6 +139,7 @@ struct S_API STerrainChunk
 
 struct S_API STerrainLayerDesc
 {
+	string mask; // resource name of the layer mask or empty to create an empty mask
 	string materialName;
 };
 
@@ -153,12 +154,16 @@ struct S_API STerrainParams
 	bool center; // true to use (0,0) as the CENTER of the terrain
 	float detailmapRange; // viewing range of detailmap
 	float detailmapSz[2]; // dimensions of one detailmap tile in meters
+	unsigned int maskSz[2]; // resolution of layer mask texture
+	unsigned int textureSz[2]; // resolution of detail maps (+ normalmaps, roughnessmaps, ...)
 
 	STerrainParams()
 		: detailmapRange(20.0f)
 	{
 		detailmapSz[0] = 2.0f;
 		detailmapSz[1] = 2.0f;
+		maskSz[0] = maskSz[1] = 128;
+		textureSz[0] = textureSz[1] = 1024;
 	}
 };
 

@@ -29,24 +29,26 @@ static float PI = 3.14159265358f;
 
 struct PS_GBUFFER_OUTPUT
 {
-	float4 Buffer0 : SV_Target0; // Albedo.r, Albedo.g, Albedo.b, Roughness
-	float2 Buffer1 : SV_Target1; // Normal.x, Normal.y
+	float4 Buffer1 : SV_Target1; // Normal.x, Normal.y, Normal.z, Roughness
 };
 
-// vsNormal - normal in view-space
-PS_GBUFFER_OUT PackGBuffer(float3 albedo, float roughness, float3 vsNormal)
+// wsNormal - normal in world-space
+PS_GBUFFER_OUT PackGBuffer(float roughness, float3 wsNormal)
 {
 	PS_GBUFFER_OUT OUT;
-	OUT.Buffer0 = float4(albedo, roughness);
-	OUT.Buffer1 = vsNormal.xy * 0.5f + 0.5f;
+	// TODO: Use lookup texture to scale normal to least quantization error
+	OUT.Buffer1.rgb	= vsNormal.xyz * 0.5f + 0.5f;
+	OUT.Buffer1.a = roughness;
 	return OUT;
 }
+
+
 
 /////////////////////////////////////////////////////////////////////////
 //	General GBuffer pass
 /////////////////////////////////////////////////////////////////////////
 
-#ifdef ENTRY_zpass
+#ifdef ENTRY_GBuffer
 
 cbuffer ObjectCB : register(b1)
 {
@@ -54,8 +56,7 @@ cbuffer ObjectCB : register(b1)
 	float matRoughness;
 }
 
-Texture2D textureMap : register(t0);
-Texture2D normalMap : register(t1);
+Texture2D normalMap : register(t0);
 
 
 struct VS_INPUT
@@ -63,21 +64,18 @@ struct VS_INPUT
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float3 Tangent : TANGENT;
-    float3 Color : COLOR0;
     float2 TexCoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
     float4 Position : SV_Position;
-    float3 WorldPos : TEXCOORD0;
-    float3 Color : COLOR0;
-    float3 VSNormal : TEXCOORD1;
-    float3 VSTangent : TEXCOORD2;
+    float3 Normal : TEXCOORD1;
+    float3 Tangent : TEXCOORD2;
     float2 TexCoord : TEXCOORD3;
 };
 
-VS_OUTPUT VS_zpass(VS_INPUT IN)
+VS_OUTPUT VS_GBuffer(VS_INPUT IN)
 {
     VS_OUTPUT OUT;
 
@@ -87,22 +85,18 @@ VS_OUTPUT VS_zpass(VS_INPUT IN)
     OUT.WorldPos = wPos.xyz;
     OUT.Position = mul(mtxProj, mul(mtxView, wPos));
 
-    OUT.VSNormal = mul(mtxView, mul(mtxWorld, normalize(float4(IN.Normal, 0.0f)))).xyz;
-    OUT.VSTangent = mul(mtxView, mul(mtxWorldInv, normalize(float4(IN.Tangent, 0.0f)))).xyz;
+    OUT.Normal = mul(mtxWorld, normalize(float4(IN.Normal, 0.0f))).xyz;
+    OUT.Tangent = mul(mtxWorldInv, normalize(float4(IN.Tangent, 0.0f))).xyz;
     OUT.TexCoord = IN.TexCoord;
-    OUT.Color = IN.Color;
 
     return OUT;
 }
 
-PS_GBUFFER_OUTPUT PS_zpass(VS_OUTPUT IN)
+PS_GBUFFER_OUTPUT PS_GBuffer(VS_OUTPUT IN)
 {
-	float3 albedo = textureMap.Sample(LinearSampler, IN.TexCoord).rgb;
-
 	// TODO: Normal-mapping 
-	float3 vsNormal = normalize(IN.VSNormal);
 
-	return PackGBuffer(albedo, matRoughness, vsNormal);
+	return PackGBuffer(matRoughness, IN.Normal);
 }
 
 #endif
@@ -113,7 +107,7 @@ PS_GBUFFER_OUTPUT PS_zpass(VS_OUTPUT IN)
 //	Terrain GBuffer pass
 /////////////////////////////////////////////////////////////////////////
 
-#ifdef ENTRY_TerrainZPass
+#ifdef ENTRY_GBufferTerrain
 
 cbuffer TerrainCB : register(b1)
 {
@@ -123,18 +117,23 @@ cbuffer TerrainCB : register(b1)
 	uint terrainHeightmapSz;
 	float terrainSegSz;
 	float2 detailmapSz;
+	uint terrainNumLayers;
 }
 
+// vs
 Texture2D vtxHeightMap : register(t0);
-Texture2D colorMap : register(t1);
-Texture2D detailMap : register(t2);
-Texture2D alphaMask : register(t3);
+
+// ps
+Texture2D layerMask : register(t0);
+Texture2D normalMap : register(t1);
+Texture2D roughnessMap : register(t2);
 
 
 struct VS_INPUT
 {
 	float3 Position : POSITION;
 	float3 Normal : NORMAL;
+	float3 Tangent : TANGENT;
 	float2 TexCoord : TEXCOORD0;
 };
 
@@ -246,26 +245,26 @@ float3 BlendOverlay(float3 b, float3 a)
 
 PS_GBUFFER_OUTPUT PS_TerrainZPass(VS_OUTPUT IN)
 {
-	// Sample color- and detailmap
-	float3 sampleCM = colorMap.Sample(LinearSampler, IN.TexCoord).rgb;
-	float3 sampleDM = detailMap.Sample(LinearSampler, IN.WorldPos.xz / detailmapSz).rgb;
+	float3 N;
+	float roughness;
 
-	// Sample alphamask
-	float sampleAlpha = alphaMask.Sample(PointSampler, IN.TexCoord).r;
+	float3 terrainTC;
+	terrainTC.xy = IN.TexCoord;
+	for (uint iLayer = 0; iLayer < terrainNumLayers; ++iLayer)
+	{
+		terrainTC.z = (float)iLayer;
+		float maskSample = layerMask.Sample(LinearSampler, terrainTC).r;
+		float3 normalMapSample = normalMap.Sample(LinearSampler, terrainTC).rgb;
+		float roughnessMapSample = roughnessMap.Sample(LinearSampler, terrainTc).r;
 
-	// Calculate blended albedo
-	float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
-	float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
+		N = lerp(N, normalMapSample, maskSample);
+		roughness = lerp(roughness, roughnessMapSample, maskSample);
+	}
 
-	float3 coloredAlbedo = saturate(BlendOverlay(sampleDM, sampleCM));
-	float3 blendedAlbedo = lerp(sampleCM, coloredAlbedo, terrainFadeFactor);
+	// Todo: Calculate actual world-space normal and apply correct bump mapping
+	N = IN.Normal;
 
-
-	return PackGBuffer(blendedAlbedo, )
-
-	OUT.Color = float4(blendedAlbdeo, sampleAlpha);
-
-	return OUT;
+	return PackGBuffer(roughness, N);
 }
 
 

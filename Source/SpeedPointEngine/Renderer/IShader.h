@@ -1,11 +1,7 @@
-// ********************************************************************************************
-
-//	SpeedPoint HLSL Shader Effect
-
-//	This is a virtual class. You cannot instantiate it.
-//	Please use Specific Implementation to instantiate.
-
-// ********************************************************************************************
+// --------------------------------------------------------------------------------------------------------------------
+//	SpeedPoint Game Engine
+//	Copyright (c) 2011-2017 Pascal Rosenkranz, All rights reserved.
+// --------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
@@ -16,6 +12,8 @@ SP_NMSPACE_BEG
 
 struct S_API IRenderer;
 struct S_API SShaderResources;
+
+// --------------------------------------------------------------------------------------------------------------------
 
 // The type of Vertex structure to use as input for a shader/effect
 enum S_API EShaderInputLayout
@@ -70,12 +68,39 @@ struct S_API IShader
 };
 
 
-
+// --------------------------------------------------------------------------------------------------------------------
 
 struct S_API SObjectConstants
 {
 	Mat44 mtxWorld;	// 16 * 4 Byte
 };
+
+// --------------------------------------------------------------------------------------------------------------------
+
+struct S_API STerrainConstants
+{
+	float3 sunIntensity;
+	float fTerrainDMFadeRadius;
+	float fTerrainMaxHeight;
+	unsigned int vtxHeightMapSz;
+	float segmentSize;
+	float detailmapSz[2];
+	unsigned int numLayers;
+	char __padding[8];
+};
+
+struct S_API STerrainShaderResources
+{
+	ITexture* pHeightmap;
+	ITexture* pLayerMask;
+	ITexture* pColormap;
+	ITexture* pTexturemap;
+	ITexture* pNormalmap;
+	ITexture* pRoughnessmap;
+	STerrainConstants constants;
+};
+
+// --------------------------------------------------------------------------------------------------------------------
 
 enum S_API EShaderPassType
 {
@@ -108,7 +133,6 @@ inline const char* GetShaderPassTypeName(EShaderPassType type)
 	}
 }
 
-
 struct S_API IShaderPass
 {
 	virtual ~IShaderPass()
@@ -122,7 +146,7 @@ struct S_API IShaderPass
 	virtual void OnUnbind() {};
 	virtual void OnEndFrame() {};
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform) = 0;
-	virtual void BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources) {};
+	virtual void BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated) {};
 };
 
 SP_NMSPACE_END

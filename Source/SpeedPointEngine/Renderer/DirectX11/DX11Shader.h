@@ -45,6 +45,7 @@ public:
 
 
 
+
 // TODO: GET THIS OUT OF THE DIRECTX11 IMPLEMENTATION PROJECT AND MOVE IT INTO A MORE GENERAL RENDERER
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -126,6 +127,7 @@ private:
 	IShader* m_pShader;
 	IShader* m_pTerrainShader;
 	ConstantsBufferHelper<SMatObjConstants> m_Constants;
+	ConstantsBufferHelper<STerrainConstants> m_TerrainConstants;
 	IRenderer* m_pRenderer;
 
 	void BindGBufferRTs();
@@ -151,7 +153,7 @@ public:
 	virtual void OnUnbind();
 	virtual void OnEndFrame();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
-	virtual void BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources);
+	virtual void BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated);
 
 	ITexture* GetGBufferTexture(unsigned int i) const;
 	ITexture* GetDepthBufferTexture() const;
@@ -216,6 +218,7 @@ private:
 	IShader* m_pShader;
 	IShader* m_pTerrainShader;
 	ConstantsBufferHelper<SObjectConstants> m_Constants;
+	ConstantsBufferHelper<STerrainConstants> m_TerrainConstants;
 
 public:
 	ShadingShaderPass(GBufferShaderPass* pGBufferPass, DeferredLightShaderPass* pLightPass, ShadowmapShaderPass* pShadowmapPass)
@@ -237,7 +240,7 @@ public:
 
 	virtual SResult Bind();
 	virtual void SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform);
-	virtual void BindTerrainResources(ITexture* pHeightmap, ITexture* pLayerMask, ITexture* pColormap, const SShaderResources& shaderResources);
+	virtual void BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////

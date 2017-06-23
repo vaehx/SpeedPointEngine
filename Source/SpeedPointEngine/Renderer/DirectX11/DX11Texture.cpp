@@ -972,17 +972,22 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	memset(&srvDesc, 0, sizeof(srvDesc));
 	srvDesc.Format = m_DXTextureDesc.Format;
+	
+	unsigned int numMips = 1;
+	if (bMipAutoGenSupported)
+		numMips = (mipLevels == 0 ? -1 : mipLevels);
+	
 	if (m_DXTextureDesc.ArraySize > 1)
 	{
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 		srvDesc.Texture2DArray.ArraySize = m_DXTextureDesc.ArraySize;
 		srvDesc.Texture2DArray.FirstArraySlice = 0;
-		srvDesc.Texture2DArray.MipLevels = -1;
+		srvDesc.Texture2DArray.MipLevels = numMips;
 	}
 	else
 	{
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = (bMipAutoGenSupported) ? -1 : 1;
+		srvDesc.Texture2D.MipLevels = numMips;
 	}
 
 	if (Failure(m_pDXRenderer->GetD3D11Device()->CreateShaderResourceView(m_pDXTexture, &srvDesc, &m_pDXSRV)))
@@ -1085,6 +1090,66 @@ S_API SResult DX11Texture::Fill(SColor color)
 	}
 
 	return Unlock();
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
+{
+	HRESULT hr;
+
+	if (!m_pDXTexture)
+		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Texture not initialized (%s)", m_Specification.c_str());
+
+	if (!m_bArray)
+		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Texture not an array texture (%s)", m_Specification.c_str());
+
+	if (i >= m_DXTextureDesc.ArraySize)
+		return CLog::Log(S_INVALIDPARAM, "Failed DX11Texture::FillArraySlice(%d): Array only has %d slices (%s)",
+			i, m_DXTextureDesc.ArraySize, m_Specification.c_str());
+
+	ID3D11DeviceContext* pD3DDevCtx = m_pDXRenderer->GetD3D11DeviceContext();
+	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+	hr = pD3DDevCtx->Map(m_pDXTexture, i, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+	if (FAILED(hr))
+		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Failed map array slice subresource (%s)", m_Specification.c_str());
+
+	unsigned int bytePerPixel = GetTextureBPP(m_Type);
+	char* pRowData = new char[m_DXTextureDesc.Width * bytePerPixel];
+	unsigned int clearColorUInt = color.ToInt_RGBA();
+	for (unsigned int x = 0; x < m_DXTextureDesc.Width; ++x)
+	{
+		switch (m_Type)
+		{
+		case eTEXTURE_R8G8B8A8_UNORM:
+			((unsigned int*)pRowData)[x] = clearColorUInt;
+			break;
+		case eTEXTURE_R32_FLOAT:
+		case eTEXTURE_D32_FLOAT:
+			((float*)pRowData)[x] = color.r;
+			break;
+		case eTEXTURE_R16G16_FLOAT:
+			float* pFloatRowData = (float*)pRowData;
+			pFloatRowData[x * 2] = color.r;
+			pFloatRowData[x * 2 + 1] = color.g;
+			break;
+		default:
+			for (unsigned int i = 0; i < bytePerPixel; ++i)
+			{
+				if (i < 4)
+					pRowData[x + i] = ((char*)&clearColorUInt)[i];
+				else
+					pRowData[x + i] = 0;
+			}
+			break;
+		}
+	}
+
+	for (unsigned int y = 0; y < m_DXTextureDesc.Height; ++y)
+	{
+		memcpy((char*)mappedSubresource.pData + y * mappedSubresource.RowPitch, pRowData, m_DXTextureDesc.Width * bytePerPixel);
+	}
+
+	pD3DDevCtx->Unmap(m_pDXTexture, i);
 }
 
 // -----------------------------------------------------------------------------------------------
