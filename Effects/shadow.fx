@@ -45,7 +45,12 @@ VS_OUTPUT VS_shadowmap(VS_INPUT IN)
 
 /////////////////////////////////////////////////////////////////////////
 
-float4 PS_shadowmap(VS_OUTPUT IN) : SV_Target0
+struct PS_OUTPUT
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+};
+
+PS_OUTPUT PS_shadowmap(VS_OUTPUT IN)
+{
+	PS_OUTPUT OUT;
+	return OUT;
 }

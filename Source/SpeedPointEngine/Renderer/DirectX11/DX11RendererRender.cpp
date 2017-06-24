@@ -194,6 +194,8 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 	{
 		DrawTerrainSubset(terrainRenderDesc.pDrawCallDescs[c]);
 	}
+
+	return S_SUCCESS;
 }
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -379,6 +379,7 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 	IResourcePool* pResourcePool = m_pRenderer->GetResourcePool();
 	m_nLayers = 5;
 	m_pLayersUsed = new bool[m_nLayers];
+	m_pLayerDescs = new STerrainLayerDesc[m_nLayers];
 	
 	m_pTextureMaps = pResourcePool->GetTexture("$terrain_textures");
 	m_pTextureMaps->CreateEmptyArray(m_nLayers, params.textureSz[0], params.textureSz[1], eTEXTURE_R8G8B8A8_UNORM, 0);
@@ -969,12 +970,6 @@ S_API SResult Terrain::SetColorMap(ITexture* pColorMap)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API ITexture* Terrain::GetColorMap() const
-{
-	return m_pColorMap;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
 S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 {
 	C3DEngine* p3DEngine = C3DEngine::Get();
@@ -1010,8 +1005,18 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 			delete[] m_pLayersUsed;
 		}
 
+		STerrainLayerDesc* pNewLayerDescs = new STerrainLayerDesc[newNumLayers];
+		if (m_pLayerDescs)
+		{
+			for (unsigned int i = 0; i < m_nLayers; ++i)
+				pNewLayerDescs[i] = m_pLayerDescs[i];
+
+			delete[] m_pLayerDescs;
+		}
+
 		m_nLayers = newNumLayers;
 		m_pLayersUsed = pNewLayersUsed;
+		m_pLayerDescs = pNewLayerDescs;
 		m_pTextureMaps->ResizeArray(newNumLayers);
 		m_pNormalMaps->ResizeArray(newNumLayers);
 		m_pRoughnessMaps->ResizeArray(newNumLayers);
@@ -1042,6 +1047,8 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 	if (clearMask)
 		m_pLayermask->FillArraySlice(layer, SColor::Black());
 
+	m_pLayerDescs[layer] = desc;
+
 	return layer;
 }
 
@@ -1049,6 +1056,15 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 S_API unsigned int Terrain::GetLayerCount() const 
 {
 	return m_nLayers;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+S_API STerrainLayerDesc Terrain::GetLayerDesc(unsigned int i) const
+{
+	if (i >= m_nLayers)
+		return STerrainLayerDesc();
+
+	return m_pLayerDescs[i];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1094,6 +1110,12 @@ S_API void Terrain::Clear(void)
 	{
 		delete[] m_pLayersUsed;
 		m_pLayersUsed = 0;
+	}
+
+	if (m_pLayerDescs)
+	{
+		delete[] m_pLayerDescs;
+		m_pLayerDescs = 0;
 	}
 
 	m_nLayers = 0;

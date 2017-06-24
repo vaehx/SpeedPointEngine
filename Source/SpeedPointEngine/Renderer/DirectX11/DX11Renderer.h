@@ -138,10 +138,6 @@ private:
 	ITexture *m_pDummyTexture;
 	ITexture *m_pDummyNormalMap;	// contains pure (128,128,0) color.
 
-
-	DX11Shader m_TerrainShaderGBuffer;
-	DX11Shader m_TerrainShaderIllum;
-
 	IShaderPass* m_Passes[NUM_SHADERPASS_TYPES];
 	EShaderPassType m_CurrentPass;
 

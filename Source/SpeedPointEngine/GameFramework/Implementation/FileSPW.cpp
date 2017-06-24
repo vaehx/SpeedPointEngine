@@ -251,8 +251,12 @@ S_API void CSPWLoader::ReadAndParseEntityBlock(unsigned int blockIndent, const s
 
 
 
-// file - path to .raw texture file. If relative is assumed to be relative to worldDir
-// worldDir - absolute resource path to a directory
+// Summary:
+//		This method will load a texture resource (and stores it in the resource pool) from a raw texture file.
+//		The file parameter will be used as the specification for the texture resource.
+// Arguments:
+//		file - path to .raw texture file. If relative is assumed to be relative to worldDir
+//		worldDir - absolute resource path to a directory
 ITexture* LoadRawTexture(const string& file, const string& worldDir, ETextureType type, IResourcePool* pResources)
 {
 	if (!pResources)
@@ -328,10 +332,19 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 	ParseParams(paramsExpr, params);
 
 	IResourcePool* pResources = m_p3DEngine->GetRenderer()->GetResourcePool();
+	
+	string layerMaskSpec = DeserializeString(params["alphamap"]);
+	LoadRawTexture(layerMaskSpec, m_WorldFileDir, eTEXTURE_R8G8B8A8_UNORM, pResources);
 
-	STerrainLayer layer;
-	layer.pDetailMap = pResources->GetTexture(DeserializeString(params["detailmap"]));
-	layer.pAlphaMask = LoadRawTexture(DeserializeString(params["alphamap"]), m_WorldFileDir, eTEXTURE_R8G8B8A8_UNORM, pResources);
+	static unsigned int numLoadedTerrainLayers = 0;
+	string layerMaterialSpec = string("terrain_layer_") + std::to_string(numLoadedTerrainLayers++);
+	IMaterial* pMaterial = m_p3DEngine->GetMaterialManager()->CreateMaterial(layerMaterialSpec);
+	SMaterialDefinition* pMatDef = pMaterial->GetDefinition();
+	pMatDef->textureMap = DeserializeString(params["detailmap"]);
+
+	STerrainLayerDesc layer;
+	layer.mask = layerMaskSpec;
+	layer.materialName = layerMaterialSpec;
 
 	pTerrain->AddLayer(layer);
 
@@ -351,6 +364,8 @@ S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const 
 	params["chunkStepDist"]	= "20.0f";
 	params["lodLevels"]		= "4";
 	params["center"]		= "true";
+	params["textureSz"]		= "1024";
+	params["maskSz"]		= "1024";
 	ParseParams(paramsExpr, params);
 
 	STerrainParams terrain;
@@ -361,6 +376,10 @@ S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const 
 	terrain.fChunkStepDist	= DeserializeFloat(params["chunkStepDist"]);
 	terrain.nLodLevels		= DeserializeUInt(params["lodLevels"]);
 	terrain.center			= DeserializeBool(params["center"]);
+	terrain.textureSz[0]	= DeserializeUInt(params["textureSz"]);
+	terrain.textureSz[1]	= terrain.textureSz[0];
+	terrain.maskSz[0]		= DeserializeUInt(params["maskSz"]);
+	terrain.maskSz[1]		= terrain.maskSz[0];
 	terrain.detailmapRange	= 20.0f;
 
 	IResourcePool* pResources = m_p3DEngine->GetRenderer()->GetResourcePool();

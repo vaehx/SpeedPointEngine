@@ -23,7 +23,8 @@ unsigned int DX11Viewport::m_SwapChainIdCtr = 0;
 // -----------------------------------------------------------------------------------------------
 S_API DX11Viewport::DX11Viewport()
 : m_pRenderer(0),
-m_pSwapChain(0)
+m_pSwapChain(0),
+m_pFBO(0)
 {
 	m_pCamera = &m_OwnCamera;
 }
@@ -95,13 +96,15 @@ S_API SResult DX11Viewport::Initialize(IRenderer* pRenderer, const SViewportDesc
 
 
 	// Get buffer resource of swap chain and initialize FBO
+	m_pFBO = dynamic_cast<DX11FBO*>(m_pRenderer->CreateRT());
+	
 	ID3D11Resource* pBBResource;
 	if (Failure(m_pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
 		return CLog::Log(S_ERROR, "Failed retrieve BackBuffer resource of SwapChain in InitDefaultViewport!");
 
 	string textureSpec = string("$swapchain_") + std::to_string(m_SwapChainIdCtr++);
 
-	if (Failure(m_FBO.D3D11_InitializeFromCustomResource(pBBResource, m_pRenderer,
+	if (Failure(m_pFBO->D3D11_InitializeFromCustomResource(pBBResource,
 		swapChainDesc.BufferDesc.Width, swapChainDesc.BufferDesc.Height, m_Desc.allowAsTexture, textureSpec)))
 	{
 		return CLog::Log(S_ERROR, "Failed initialize FBO for viewport swapchain");
@@ -111,9 +114,9 @@ S_API SResult DX11Viewport::Initialize(IRenderer* pRenderer, const SViewportDesc
 	{
 		SResult res;
 		if (m_Desc.allowDepthAsTexture)
-			res = m_FBO.InitializeDepthBufferAsTexture(textureSpec + "_depth");
+			res = m_pFBO->InitializeDepthBufferAsTexture(textureSpec + "_depth");
 		else
-			res = m_FBO.InitializeDepthBuffer();
+			res = m_pFBO->InitializeDepthBuffer();
 
 		if (Failure(res))
 			return CLog::Log(S_ERROR, "Failed initialize depth buffer for viewport swapchain");
@@ -142,7 +145,12 @@ S_API SResult DX11Viewport::Clear(void)
 		m_pSwapChain->SetFullscreenState(FALSE, 0);
 	}
 
-	m_FBO.Clear();
+	if (m_pFBO)
+	{
+		m_pFBO->Clear();
+		delete m_pFBO;
+		m_pFBO = 0;
+	}
 
 	SP_SAFE_RELEASE(m_pSwapChain);
 
@@ -182,7 +190,7 @@ S_API SResult DX11Viewport::SetSize(unsigned int width, unsigned int height)
 		return CLog::Log(S_ERROR, "Failed Resize Backbuffers of Viewport!");
 
 	// Recreate FBO
-	m_FBO.Clear();
+	m_pFBO->Clear();
 
 	ID3D11Resource* pBBResource;
 	if (Failure(m_pSwapChain->GetBuffer(0, __uuidof(pBBResource), reinterpret_cast<void**>(&pBBResource))))
@@ -190,16 +198,16 @@ S_API SResult DX11Viewport::SetSize(unsigned int width, unsigned int height)
 
 	string textureSpec = string("$swapchain_") + std::to_string(m_SwapChainIdCtr++);
 
-	if (Failure(m_FBO.D3D11_InitializeFromCustomResource(pBBResource, m_pRenderer, width, height, m_Desc.allowAsTexture, textureSpec)))
+	if (Failure(m_pFBO->D3D11_InitializeFromCustomResource(pBBResource, width, height, m_Desc.allowAsTexture, textureSpec)))
 		return CLog::Log(S_ERROR, "Failed initialize FBO for viewport swapchain");
 
 	if (m_Desc.useDepthStencil)
 	{
 		SResult res;
 		if (m_Desc.allowDepthAsTexture)
-			res = m_FBO.InitializeDepthBufferAsTexture(textureSpec + "_depth");
+			res = m_pFBO->InitializeDepthBufferAsTexture(textureSpec + "_depth");
 		else
-			res = m_FBO.InitializeDepthBuffer();
+			res = m_pFBO->InitializeDepthBuffer();
 
 		if (Failure(res))
 			return CLog::Log(S_ERROR, "Failed initialize depth buffer for viewport swapchain");
@@ -306,7 +314,7 @@ S_API SResult DX11Viewport::RecalculateCameraViewMatrix()
 // -----------------------------------------------------------------------------------------------
 S_API IFBO* DX11Viewport::GetBackBuffer(void)
 {
-	return &m_FBO;
+	return m_pFBO;
 }
 
 

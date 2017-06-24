@@ -133,7 +133,7 @@ public:
 
 	// Data access and manipulation
 public:
-	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0);
+	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0, unsigned int iArraySlice = 0);
 	virtual SResult Unlock();
 	virtual bool IsLocked() const { return m_bLocked; }
 

@@ -156,7 +156,6 @@ public:
 	virtual void BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated);
 
 	ITexture* GetGBufferTexture(unsigned int i) const;
-	ITexture* GetDepthBufferTexture() const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////

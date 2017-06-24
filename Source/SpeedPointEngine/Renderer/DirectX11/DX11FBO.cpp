@@ -175,7 +175,7 @@ S_API SResult DX11FBO::InitializeDepthBufferIntrnl(bool allowAsTexture, const st
 		m_DepthBufferDesc.Width = resolution[0];
 		m_DepthBufferDesc.Height = resolution[1];
 	}
-	else if (m_pFrameBufferTexture)
+	else if (m_pFrameBuffer || m_pRTV) // may be created from external resource
 	{
 		m_DepthBufferDesc.Width = m_texDesc.Width;
 		m_DepthBufferDesc.Height = m_texDesc.Height;

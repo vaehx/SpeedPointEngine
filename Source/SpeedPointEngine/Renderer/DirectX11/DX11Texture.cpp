@@ -853,6 +853,8 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 	hr = pD3DDevice->CreateShaderResourceView(m_pDXTexture, &m_DXSRVDesc, &m_pDXSRV);
 	if (FAILED(hr))
 		return CLog::Log(S_ERROR, "Failed ResizeArray(count=%d): Failed create SRV (%s)", count, m_Specification.c_str());
+
+	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1109,6 +1111,7 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 
 	ID3D11DeviceContext* pD3DDevCtx = m_pDXRenderer->GetD3D11DeviceContext();
 	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+	memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
 	hr = pD3DDevCtx->Map(m_pDXTexture, i, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
 	if (FAILED(hr))
 		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Failed map array slice subresource (%s)", m_Specification.c_str());
@@ -1121,26 +1124,34 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 		switch (m_Type)
 		{
 		case eTEXTURE_R8G8B8A8_UNORM:
-			((unsigned int*)pRowData)[x] = clearColorUInt;
-			break;
+			{
+				((unsigned int*)pRowData)[x] = clearColorUInt;
+				break;
+			}
 		case eTEXTURE_R32_FLOAT:
 		case eTEXTURE_D32_FLOAT:
-			((float*)pRowData)[x] = color.r;
-			break;
-		case eTEXTURE_R16G16_FLOAT:
-			float* pFloatRowData = (float*)pRowData;
-			pFloatRowData[x * 2] = color.r;
-			pFloatRowData[x * 2 + 1] = color.g;
-			break;
-		default:
-			for (unsigned int i = 0; i < bytePerPixel; ++i)
 			{
-				if (i < 4)
-					pRowData[x + i] = ((char*)&clearColorUInt)[i];
-				else
-					pRowData[x + i] = 0;
+				((float*)pRowData)[x] = color.r;
+				break;
 			}
-			break;
+		case eTEXTURE_R16G16_FLOAT:
+			{
+				float* pFloatRowData = (float*)pRowData;
+				pFloatRowData[x * 2] = color.r;
+				pFloatRowData[x * 2 + 1] = color.g;
+				break;
+			}
+		default:
+			{
+				for (unsigned int i = 0; i < bytePerPixel; ++i)
+				{
+					if (i < 4)
+						pRowData[x + i] = ((char*)&clearColorUInt)[i];
+					else
+						pRowData[x + i] = 0;
+				}
+				break;
+			}
 		}
 	}
 
@@ -1150,6 +1161,7 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 	}
 
 	pD3DDevCtx->Unmap(m_pDXTexture, i);
+	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1206,7 +1218,7 @@ S_API unsigned int DX11Texture::GetArraySize() const
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /* = 0*/)
+S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /*= 0*/, unsigned int iArraySlice /*= 0*/)
 {
 	if (!IS_VALID_PTR(m_pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::Lock(): Renderer not initialized");
@@ -1245,7 +1257,10 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 	{
 		D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 		memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
-		if (FAILED(pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
+
+		unsigned int iSubresource = (m_bArray ? min(iArraySlice, m_DXTextureDesc.ArraySize) : 0);
+
+		if (FAILED(pDXDevCon->Map(m_pDXTexture, iSubresource, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
 		{
 			m_pDXRenderer->FrameDump((string("Failed map texture (") + m_Specification + ") for Lock!").c_str());
 			return S_ERROR;
@@ -1256,7 +1271,7 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 		m_pLockedData = mappedSubresource.pData;
 
 		if (IS_VALID_PTR(pnRowPitch))
-			*pnRowPitch = mappedSubresource.RowPitch;		
+			*pnRowPitch = mappedSubresource.RowPitch;
 	}		
 
 	*pnPixels = m_DXTextureDesc.Width * m_DXTextureDesc.Height;	

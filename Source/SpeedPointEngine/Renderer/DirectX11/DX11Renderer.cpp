@@ -654,19 +654,6 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 	m_TerrainRenderDesc.bRender = false;
 
 
-	// Initialize terrain shaders
-	SShaderInfo si;
-	si.filename = GetShaderPath(eSHADERFILE_GBUFFER);
-	si.entry = "TerrainGBuffer";
-	if (Failure(m_TerrainShaderGBuffer.Load(this, si)))
-		CLog::Log(S_ERROR, "Failed load terrain gbuffer shader (%s@%s)!", si.entry.c_str(), si.filename.c_str());
-
-	si.filename = GetShaderPath(eSHADERFILE_ILLUM);
-	si.entry = "TerrainShading";
-	if (Failure(m_TerrainShaderIllum.Load(this, si)))
-		CLog::Log(S_ERROR, "Failed load terrain shading shader (%s@%s)!", si.entry.c_str(), si.filename.c_str());
-
-
 	// Initialize shader passes
 	InitShaderPasses();
 	m_CurrentPass = eSHADERPASS_NONE;
@@ -854,9 +841,6 @@ S_API SResult DX11Renderer::Shutdown(void)
 
 	SP_SAFE_RELEASE(m_pDXGIFactory);
 	SP_SAFE_RELEASE_CLEAR_VECTOR(m_vAdapters);
-
-	m_TerrainShaderGBuffer.Clear();
-	m_TerrainShaderIllum.Clear();
 
 	for (int i = 0; i < NUM_SHADERPASS_TYPES; ++i)
 	{
@@ -1519,9 +1503,6 @@ S_API SResult DX11Renderer::DrawTerrainSubset(const STerrainDrawCallDesc& dcd)
 
 	if (Failure(SetVBStream(dcd.pVertexBuffer))) return S_ERROR;
 	if (Failure(SetIBStream(dcd.pIndexBuffer))) return S_ERROR;
-
-	if (Failure(m_TerrainShaderGBuffer.Bind()))
-		return CLog::Log(S_ERROR, "Enabling terrain effect failed");
 
 	if (m_SetPrimitiveType != PRIMITIVE_TYPE_TRIANGLELIST)
 	{

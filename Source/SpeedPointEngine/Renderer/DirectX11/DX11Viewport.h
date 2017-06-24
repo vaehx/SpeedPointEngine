@@ -27,7 +27,7 @@ private:
 	DX11Renderer* m_pRenderer;	// the handling rendering
 	
 	IDXGISwapChain* m_pSwapChain;	// the corresponding swap chain
-	DX11FBO m_FBO;
+	DX11FBO* m_pFBO;
 
 	D3D11_VIEWPORT m_DXViewportDesc; // used in RSSetViewports
 

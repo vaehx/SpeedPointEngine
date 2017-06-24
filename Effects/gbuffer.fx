@@ -29,16 +29,16 @@ static float PI = 3.14159265358f;
 
 struct PS_GBUFFER_OUTPUT
 {
-	float4 Buffer1 : SV_Target1; // Normal.x, Normal.y, Normal.z, Roughness
+	float4 Buffer0 : SV_Target0; // Normal.x, Normal.y, Normal.z, Roughness
 };
 
 // wsNormal - normal in world-space
-PS_GBUFFER_OUT PackGBuffer(float roughness, float3 wsNormal)
+PS_GBUFFER_OUTPUT PackGBuffer(float roughness, float3 wsNormal)
 {
-	PS_GBUFFER_OUT OUT;
+	PS_GBUFFER_OUTPUT OUT;
 	// TODO: Use lookup texture to scale normal to least quantization error
-	OUT.Buffer1.rgb	= vsNormal.xyz * 0.5f + 0.5f;
-	OUT.Buffer1.a = roughness;
+	OUT.Buffer0.rgb	= wsNormal.xyz * 0.5f + 0.5f;
+	OUT.Buffer0.a = roughness;
 	return OUT;
 }
 
@@ -82,7 +82,6 @@ VS_OUTPUT VS_GBuffer(VS_INPUT IN)
 	float4x4 mtxWorldInv = transpose(mtxWorld);
 
     float4 wPos = mul(mtxWorld, float4(IN.Position, 1.0f));
-    OUT.WorldPos = wPos.xyz;
     OUT.Position = mul(mtxProj, mul(mtxView, wPos));
 
     OUT.Normal = mul(mtxWorld, normalize(float4(IN.Normal, 0.0f))).xyz;
@@ -96,7 +95,8 @@ PS_GBUFFER_OUTPUT PS_GBuffer(VS_OUTPUT IN)
 {
 	// TODO: Normal-mapping 
 
-	return PackGBuffer(matRoughness, IN.Normal);
+//	return PackGBuffer(matRoughness, normalize(IN.Normal));
+	return PackGBuffer(0.4f, normalize(IN.Normal));
 }
 
 #endif
@@ -124,9 +124,9 @@ cbuffer TerrainCB : register(b1)
 Texture2D vtxHeightMap : register(t0);
 
 // ps
-Texture2D layerMask : register(t0);
-Texture2D normalMap : register(t1);
-Texture2D roughnessMap : register(t2);
+Texture2DArray layerMask : register(t0);
+Texture2DArray normalMap : register(t1);
+Texture2DArray roughnessMap : register(t2);
 
 
 struct VS_INPUT
@@ -181,7 +181,7 @@ float SampleVertexHeightmapBilinear(float2 texcoord)
 	return lerp(interpolated[0], interpolated[1], remainder.y);
 }
 
-VS_OUTPUT VS_TerrainZPass(VS_INPUT IN)
+VS_OUTPUT VS_GBufferTerrain(VS_INPUT IN)
 {
 	VS_OUTPUT OUT;
 
@@ -209,10 +209,10 @@ VS_OUTPUT VS_TerrainZPass(VS_INPUT IN)
 	float3 neighbor3 = float3(wPos.x + terrainSegSz, neighborSamples.z, wPos.z);
 	float3 neighbor4 = float3(wPos.x, neighborSamples.w, wPos.z + terrainSegSz);
 
-	float3 normal1 = normalize(cross(neighbor1 - wPos, neighbor2 - wPos));
-	float3 normal2 = normalize(cross(neighbor2 - wPos, neighbor3 - wPos));
-	float3 normal3 = normalize(cross(neighbor3 - wPos, neighbor4 - wPos));
-	float3 normal4 = normalize(cross(neighbor4 - wPos, neighbor1 - wPos));
+	float3 normal1 = normalize(cross(neighbor1 - wPos.xyz, neighbor2 - wPos.xyz));
+	float3 normal2 = normalize(cross(neighbor2 - wPos.xyz, neighbor3 - wPos.xyz));
+	float3 normal3 = normalize(cross(neighbor3 - wPos.xyz, neighbor4 - wPos.xyz));
+	float3 normal4 = normalize(cross(neighbor4 - wPos.xyz, neighbor1 - wPos.xyz));
 	float3 N = normalize(normal1 + normal2 + normal3 + normal4);
 
 	OUT.Normal = -N;
@@ -243,10 +243,10 @@ float3 BlendOverlay(float3 b, float3 a)
 	);*/
 }
 
-PS_GBUFFER_OUTPUT PS_TerrainZPass(VS_OUTPUT IN)
+PS_GBUFFER_OUTPUT PS_GBufferTerrain(VS_OUTPUT IN)
 {
-	float3 N;
-	float roughness;
+	float3 N = float3(0, 0, 0);
+	float roughness = 0.0f;
 
 	float3 terrainTC;
 	terrainTC.xy = IN.TexCoord;
@@ -254,10 +254,11 @@ PS_GBUFFER_OUTPUT PS_TerrainZPass(VS_OUTPUT IN)
 	{
 		terrainTC.z = (float)iLayer;
 		float maskSample = layerMask.Sample(LinearSampler, terrainTC).r;
-		float3 normalMapSample = normalMap.Sample(LinearSampler, terrainTC).rgb;
-		float roughnessMapSample = roughnessMap.Sample(LinearSampler, terrainTc).r;
 
+		float3 normalMapSample = normalMap.Sample(LinearSampler, terrainTC).rgb;
 		N = lerp(N, normalMapSample, maskSample);
+
+		float roughnessMapSample = roughnessMap.Sample(LinearSampler, terrainTC).r;
 		roughness = lerp(roughness, roughnessMapSample, maskSample);
 	}
 

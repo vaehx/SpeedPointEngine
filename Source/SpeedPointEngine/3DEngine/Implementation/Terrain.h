@@ -26,12 +26,12 @@ private:
 
 	bool bDynamic;
 
-	bool m_bRequireRender;			
-	bool m_bRequireCBUpdate;	
+	bool m_bRequireRender;
+	bool m_bRequireCBUpdate;
 
 	// -----
 	float m_HeightScale;
-	ITexture* m_pVtxHeightMap;	
+	ITexture* m_pVtxHeightMap;
 	bool m_bCustomHeightmapSet;
 
 	ITexture* m_pColorMap;
@@ -40,6 +40,7 @@ private:
 	ITexture* m_pNormalMaps;
 	ITexture* m_pRoughnessMaps;
 	bool* m_pLayersUsed;
+	STerrainLayerDesc* m_pLayerDescs;
 	unsigned int m_nLayers;
 
 	STerrainChunk* m_pChunks;
@@ -68,21 +69,21 @@ public:
 	{
 		return (IS_VALID_PTR(m_pRenderer) && IS_VALID_PTR(m_pColorMap) && m_nLayers > 0);
 	}
-	
+
 	virtual SResult Init(IRenderer* pRenderer, const STerrainParams& params);
 
 	virtual const STerrainParams& GetParams() const;
 
 	virtual void UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc);
 
-	virtual void GenLodLevelChunks(SCamera* pCamera);	
+	virtual void GenLodLevelChunks(SCamera* pCamera);
 	virtual void SetHeightmap(ITexture* heightmap);
 	virtual ITexture* GetHeightmap() const { return m_pVtxHeightMap; }
 	virtual const float* GetHeightData() const;
 	virtual float SampleHeight(const Vec2f& texcoords, bool bilinear = false) const;
 
-	virtual float GetMinHeight() const;	
-	virtual float GetMaxHeight() const;	
+	virtual float GetMinHeight() const;
+	virtual float GetMaxHeight() const;
 	ILINE virtual void MarkDirty();
 
 	ILINE virtual Vec2f GetMinXZ() const;
@@ -109,11 +110,13 @@ public:
 
 
 	virtual SResult SetColorMap(ITexture* pColorMap);
-	ILINE virtual ITexture* GetColorMap() const;
+	ILINE virtual ITexture* GetColorMap() const { return m_pColorMap; }
+	ILINE virtual ITexture* GetLayerMask() const { return m_pLayermask; }
 
 	ILINE virtual unsigned int AddLayer(const STerrainLayerDesc& desc);
 	ILINE virtual void RemoveLayer(unsigned int id);
 	ILINE virtual unsigned int GetLayerCount() const;
+	ILINE virtual STerrainLayerDesc GetLayerDesc(unsigned int i) const;
 
 	virtual void RequireCBUpdate() { m_bRequireCBUpdate = true; }
 	virtual void RequireRender() { m_bRequireRender = true; }

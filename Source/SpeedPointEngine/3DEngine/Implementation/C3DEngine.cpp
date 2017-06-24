@@ -593,13 +593,9 @@ S_API void C3DEngine::RenderCollected()
 			m_pRenderer->Render(*rd);
 		}
 
-		// Terrain
-		m_TerrainRenderDesc.constants.
-		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
-
-
 		// Z Prepass / GBuffer pass
 		m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
+		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 		RenderMeshes();
 
 		// Deferred light prepass
@@ -608,7 +604,8 @@ S_API void C3DEngine::RenderCollected()
 
 		// Shading and merging post-pass
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
-		m_pRenderer->RenderFullScreenQuad(true);
+		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
+		RenderMeshes();
 
 
 		// Particles
@@ -849,7 +846,7 @@ S_API void C3DEngine::RenderDebugTexture()
 
 	SIZE vpSz = m_pRenderer->GetTargetViewport()->GetSize();
 
-	unsigned int width = 250;
+	unsigned int width = 400;
 	unsigned int size[] = { width, (unsigned int)((float)width * ((float)vpSz.cy / (float)vpSz.cx)) };
 	unsigned int pos[] = { (unsigned int)(size[0] * 0.5f), (unsigned int)(size[1] * 0.5f) };
 

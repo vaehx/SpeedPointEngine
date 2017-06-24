@@ -12,6 +12,7 @@ SP_NMSPACE_BEG
 
 struct S_API IRenderer;
 struct S_API SShaderResources;
+struct S_API ITexture;
 
 // --------------------------------------------------------------------------------------------------------------------
 

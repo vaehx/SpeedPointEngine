@@ -379,7 +379,7 @@ S_API SResult ShadowmapShaderPass::Initialize(IRenderer* pRenderer)
 	// Create shadowmap FBO
 	// TODO: We probably want to use a different resolution shadow map than the viewport...
 	SIZE viewportSz = pRenderer->GetTargetViewport()->GetSize();
-	unsigned int shadowmapResolution[2] = { viewportSz.cx, viewportSz.cy };
+	unsigned int shadowmapResolution[2] = { (unsigned int)viewportSz.cx, (unsigned int)viewportSz.cy };
 
 	m_pShadowmap = pRenderer->CreateRT();
 	m_pShadowmap->InitializeDepthBufferAsTexture("$shadowmap", shadowmapResolution);
@@ -817,18 +817,12 @@ S_API void GBufferShaderPass::BindTerrainResources(const STerrainShaderResources
 
 S_API ITexture* GBufferShaderPass::GetGBufferTexture(unsigned int i) const
 {
-	if (i > m_pGBuffer.size())
+	if (i == 0)
+		return m_pGBuffer[i]->GetDepthBufferTexture();
+	else if (i < m_pGBuffer.size())
+		return m_pGBuffer[i]->GetTexture();
+	else
 		return 0;
-
-	return m_pGBuffer[i]->GetTexture();
-}
-
-S_API ITexture* GBufferShaderPass::GetDepthBufferTexture() const
-{
-	if (m_pGBuffer.empty())
-		return 0;
-
-	return m_pGBuffer[0]->GetDepthBufferTexture();
 }
 
 
@@ -913,25 +907,21 @@ S_API void DeferredLightShaderPass::OnEndFrame()
 S_API SResult DeferredLightShaderPass::Bind()
 {
 	m_pShader->Bind();
+	m_pRenderer->EnableDepthTest(false, false);
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 	m_pRenderer->UnbindTexture(m_pLightBuffer->GetTexture());
 	m_pRenderer->BindSingleRT(m_pLightBuffer);
 
-	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
+	int i = 0;
+	while (i < NUM_GBUFFER_LAYERS)
 	{
 		ITexture* pGBufferTexture = m_pGBufferPass->GetGBufferTexture(i);
-		m_pRenderer->BindTexture(pGBufferTexture, i);
+		m_pRenderer->BindTexture(pGBufferTexture, i++);
 	}
 
-	ITexture* pGBufferDepthTexture = m_pGBufferPass->GetDepthBufferTexture();
-	m_pRenderer->BindTexture(pGBufferDepthTexture, NUM_GBUFFER_LAYERS);
-
 	ITexture* pShadowmapTexture = m_pShadowmapPass->GetShadowmap()->GetDepthBufferTexture();
-	m_pRenderer->BindTexture(pShadowmapTexture, NUM_GBUFFER_LAYERS + 1);
-
-	m_pRenderer->EnableDepthTest(false, false);
-
-	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
+	m_pRenderer->BindTexture(pShadowmapTexture, i++);
 
 	return S_SUCCESS;
 }
@@ -995,7 +985,7 @@ S_API void ShadingShaderPass::ReloadShaders()
 		delete m_pTerrainShader;
 	}
 
-	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_GBUFFER);
+	si.filename = m_pRenderer->GetShaderPath(eSHADERFILE_ILLUM);
 	si.entry = "DeferredShadingTerrain";
 
 	m_pTerrainShader = m_pRenderer->CreateShader();
@@ -1019,30 +1009,36 @@ S_API void ShadingShaderPass::Clear()
 S_API SResult ShadingShaderPass::Bind()
 {
 	m_pShader->Bind();
+	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 	// We render directly to the swap chain RT
 	// TODO: Render to custom RT to apply post-effects later
 	m_pRenderer->BindSingleRT(m_pRenderer->GetTargetViewport());
 
-	for (int i = 0; i < NUM_GBUFFER_LAYERS; ++i)
+	int i = 0;
+	while (i < NUM_GBUFFER_LAYERS)
 	{
 		ITexture* pGBufferTexture = m_pGBufferPass->GetGBufferTexture(i);
-		m_pRenderer->BindTexture(pGBufferTexture, i);
+		m_pRenderer->BindTexture(pGBufferTexture, i++);
 	}
 
-	ITexture* pGBufferDepthTexture = m_pGBufferPass->GetDepthBufferTexture();
-	m_pRenderer->BindTexture(pGBufferDepthTexture, NUM_GBUFFER_LAYERS);
-
 	ITexture* pLightBufferTexture = m_pLightPass->GetLightBufferTexture();
-	m_pRenderer->BindTexture(pLightBufferTexture, NUM_GBUFFER_LAYERS + 1);
-
-	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
+	m_pRenderer->BindTexture(pLightBufferTexture, i++);
 
 	return S_SUCCESS;
 }
 
-S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& pShaderResources, const Mat44& transform)
+S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& sr, const Mat44& transform)
 {
+	if (sr.illumModel == eILLUM_HELPER)
+		return; // helpers cannot be rendered deferred
+
+	m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
+
+	// Bind textures
+	m_pRenderer->BindTexture(IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture(), 3);
+	
+	// Update object constants
 	SObjectConstants* constants = m_Constants.GetConstants();
 	constants->mtxWorld = transform;
 
@@ -1056,9 +1052,8 @@ S_API void ShadingShaderPass::BindTerrainResources(const STerrainShaderResources
 
 	m_pRenderer->BindVertexShaderTexture(terrainShaderResources.pHeightmap, 0);
 
-	m_pRenderer->BindTexture(terrainShaderResources.pColormap, 0);
-	m_pRenderer->BindTexture(terrainShaderResources.pLayerMask, 1);
-	m_pRenderer->BindTexture(terrainShaderResources.pTexturemap, 2);
+	m_pRenderer->BindTexture(terrainShaderResources.pLayerMask, 4);
+	m_pRenderer->BindTexture(terrainShaderResources.pColormap, 5);
 
 	if (constantsUpdated)
 	{

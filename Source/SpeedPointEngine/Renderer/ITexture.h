@@ -148,7 +148,7 @@ public:
 	//		If the texture is staged, this will return the pointer to the staged data. This data is
 	//		then uploaded to the GPU when calling Unlock().
 	//		Note: pnRowPitch is set to the number of BYTES per row in the texture.
-	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0) = 0;
+	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0, unsigned int iArraySlice = 0) = 0;
 
 	virtual SResult Unlock() = 0;
 
