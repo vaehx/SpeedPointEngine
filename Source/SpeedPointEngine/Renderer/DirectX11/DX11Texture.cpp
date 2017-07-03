@@ -113,6 +113,7 @@ const char* GetWICPixelFormatName(WICPixelFormatGUID fmt)
 	if (fmt1Tofmt2 & (fmt1 == format1)) { fmt2 = format2; return; } \
 	else if (fmt2 == format2) { fmt1 = format1; return; }
 
+// fmt1Tofmt2 - if true, fmt1 is converted to fmt2, otherwise fmt2 is converted to fmt1
 S_API static void MapTextureType(DXGI_FORMAT& fmt1, ETextureType& fmt2, bool fmt1Tofmt2)
 {
 	TEXTURE_FORMAT_MAPPING(DXGI_FORMAT_R32_FLOAT, eTEXTURE_R32_FLOAT);
@@ -142,6 +143,7 @@ DX11Texture::DX11Texture(DX11Renderer* pDXRenderer)
 m_Specification("?notinitialized?"),
 m_bDynamic(false),
 m_pDXTexture(0),
+m_pDXStagingTexture(0),
 m_pDXSRV(nullptr),
 m_pLockedData(nullptr),
 m_nLockedBytes(0),
@@ -882,7 +884,7 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	m_bDynamic = true; // TODO ?
 	m_bStaged = true;
 
-	// Now create the directx texture
+	// Fill texture desc
 	m_DXTextureDesc.ArraySize = arraySize;
 	m_DXTextureDesc.Width = w;
 	m_DXTextureDesc.Height = h;
@@ -906,9 +908,12 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 		m_DXTextureDesc.MiscFlags = 0;
 		m_DXTextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		m_DXTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		m_DXTextureDesc.Usage = D3D11_USAGE_DYNAMIC;
 		m_DXTextureDesc.MipLevels = 1;
+		m_DXTextureDesc.Usage = D3D11_USAGE_DYNAMIC;
 	}
+
+	if (m_bDynamic && m_DXTextureDesc.ArraySize > 1)
+		m_DXTextureDesc.Usage = D3D11_USAGE_DEFAULT;
 
 	// Fill texture with clear color
 	unsigned int nPixels = w * h;
@@ -958,7 +963,7 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 		break;
 	}
 
-	// Create texture and SRV
+	// Create texture
 	m_pDXTexture = nullptr;
 
 	hr = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&m_DXTextureDesc, (bMipAutoGenSupported ? nullptr : initData), &m_pDXTexture);
@@ -971,6 +976,20 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	m_pDXTexture->SetPrivateData(WKPDID_D3DDebugObjectName, nm.length(), nm.c_str());
 #endif
 
+	// Create staging texture for dynamic texture arrays
+	if (m_bDynamic && m_DXTextureDesc.ArraySize > 1)
+	{
+		D3D11_TEXTURE2D_DESC stagingTexDesc;
+		memcpy(&stagingTexDesc, &m_DXTextureDesc, sizeof(stagingTexDesc));
+		stagingTexDesc.Usage = D3D11_USAGE_STAGING;
+		
+		hr = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&stagingTexDesc, 0, &m_pDXStagingTexture);
+
+		if (Failure(hr) || !m_pDXStagingTexture)
+			return CLog::Log(S_ERROR, "Failed to create staging texture for dynamic texture array (%s)", m_Specification.c_str());
+	}
+
+	// Create SRV
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	memset(&srvDesc, 0, sizeof(srvDesc));
 	srvDesc.Format = m_DXTextureDesc.Format;
@@ -1014,7 +1033,6 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	}
 
 	// Store staging data
-	// TODO: Staging data for texture array
 	m_pStagedData = 0;
 	if (m_bStaged && m_DXTextureDesc.ArraySize == 1)
 	{
@@ -1105,6 +1123,9 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 	if (!m_bArray)
 		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Texture not an array texture (%s)", m_Specification.c_str());
 
+	if (!m_pDXStagingTexture)
+		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Staging texture for dynamic texture array not initialized (%s)", m_Specification.c_str());
+
 	if (i >= m_DXTextureDesc.ArraySize)
 		return CLog::Log(S_INVALIDPARAM, "Failed DX11Texture::FillArraySlice(%d): Array only has %d slices (%s)",
 			i, m_DXTextureDesc.ArraySize, m_Specification.c_str());
@@ -1112,7 +1133,7 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 	ID3D11DeviceContext* pD3DDevCtx = m_pDXRenderer->GetD3D11DeviceContext();
 	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 	memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	hr = pD3DDevCtx->Map(m_pDXTexture, i, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+	hr = pD3DDevCtx->Map(m_pDXStagingTexture, i, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
 	if (FAILED(hr))
 		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Failed map array slice subresource (%s)", m_Specification.c_str());
 
@@ -1160,7 +1181,11 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 		memcpy((char*)mappedSubresource.pData + y * mappedSubresource.RowPitch, pRowData, m_DXTextureDesc.Width * bytePerPixel);
 	}
 
-	pD3DDevCtx->Unmap(m_pDXTexture, i);
+	pD3DDevCtx->Unmap(m_pDXStagingTexture, i);
+
+	// Copy staged contents to live texture
+	pD3DDevCtx->CopySubresourceRegion(m_pDXTexture, i, 0, 0, 0, m_pDXStagingTexture, i, NULL);
+
 	return S_SUCCESS;
 }
 
@@ -1457,6 +1482,7 @@ S_API void DX11Texture::Clear(void)
 
 	SP_SAFE_RELEASE(m_pDXSRV);
 	SP_SAFE_RELEASE(m_pDXTexture);
+	SP_SAFE_RELEASE(m_pDXStagingTexture);
 
 	m_pLockedData = 0;
 	m_nLockedBytes = 0;

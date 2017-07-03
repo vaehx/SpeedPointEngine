@@ -75,6 +75,7 @@ private:
 	bool m_bDynamic;
 	bool m_bStaged;
 	ID3D11Texture2D* m_pDXTexture;
+	ID3D11Texture2D* m_pDXStagingTexture; // for array
 	D3D11_TEXTURE2D_DESC m_DXTextureDesc;
 	ID3D11ShaderResourceView* m_pDXSRV;
 	D3D11_SHADER_RESOURCE_VIEW_DESC m_DXSRVDesc;
