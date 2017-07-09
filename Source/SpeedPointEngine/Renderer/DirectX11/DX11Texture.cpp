@@ -108,6 +108,133 @@ const char* GetWICPixelFormatName(WICPixelFormatGUID fmt)
 	else return "Unknown format";
 }
 
+const char* GetDXGIFormatName(DXGI_FORMAT format)
+{
+	switch (format)
+	{
+	case DXGI_FORMAT_UNKNOWN: return "DXGI_FORMAT_UNKNOWN";
+	case DXGI_FORMAT_R32G32B32A32_TYPELESS: return "DXGI_FORMAT_R32G32B32A32_TYPELESS";
+	case DXGI_FORMAT_R32G32B32A32_FLOAT: return "DXGI_FORMAT_R32G32B32A32_FLOAT";
+	case DXGI_FORMAT_R32G32B32A32_UINT: return "DXGI_FORMAT_R32G32B32A32_UINT";
+	case DXGI_FORMAT_R32G32B32A32_SINT: return "DXGI_FORMAT_R32G32B32A32_SINT";
+	case DXGI_FORMAT_R32G32B32_TYPELESS: return "DXGI_FORMAT_R32G32B32_TYPELESS";
+	case DXGI_FORMAT_R32G32B32_FLOAT: return "DXGI_FORMAT_R32G32B32_FLOAT";
+	case DXGI_FORMAT_R32G32B32_UINT: return "DXGI_FORMAT_R32G32B32_UINT";
+	case DXGI_FORMAT_R32G32B32_SINT: return "DXGI_FORMAT_R32G32B32_SINT";
+	case DXGI_FORMAT_R16G16B16A16_TYPELESS: return "DXGI_FORMAT_R16G16B16A16_TYPELESS";
+	case DXGI_FORMAT_R16G16B16A16_FLOAT: return "DXGI_FORMAT_R16G16B16A16_FLOAT";
+	case DXGI_FORMAT_R16G16B16A16_UNORM: return "DXGI_FORMAT_R16G16B16A16_UNORM";
+	case DXGI_FORMAT_R16G16B16A16_UINT: return "DXGI_FORMAT_R16G16B16A16_UINT";
+	case DXGI_FORMAT_R16G16B16A16_SNORM: return "DXGI_FORMAT_R16G16B16A16_SNORM";
+	case DXGI_FORMAT_R16G16B16A16_SINT: return "DXGI_FORMAT_R16G16B16A16_SINT";
+	case DXGI_FORMAT_R32G32_TYPELESS: return "DXGI_FORMAT_R32G32_TYPELESS";
+	case DXGI_FORMAT_R32G32_FLOAT: return "DXGI_FORMAT_R32G32_FLOAT";
+	case DXGI_FORMAT_R32G32_UINT: return "DXGI_FORMAT_R32G32_UINT";
+	case DXGI_FORMAT_R32G32_SINT: return "DXGI_FORMAT_R32G32_SINT";
+	case DXGI_FORMAT_R32G8X24_TYPELESS: return "DXGI_FORMAT_R32G8X24_TYPELESS";
+	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT: return "DXGI_FORMAT_D32_FLOAT_S8X24_UINT";
+	case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS: return "DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS";
+	case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT: return "DXGI_FORMAT_X32_TYPELESS_G8X24_UINT";
+	case DXGI_FORMAT_R10G10B10A2_TYPELESS: return "DXGI_FORMAT_R10G10B10A2_TYPELESS";
+	case DXGI_FORMAT_R10G10B10A2_UNORM: return "DXGI_FORMAT_R10G10B10A2_UNORM";
+	case DXGI_FORMAT_R10G10B10A2_UINT: return "DXGI_FORMAT_R10G10B10A2_UINT";
+	case DXGI_FORMAT_R11G11B10_FLOAT: return "DXGI_FORMAT_R11G11B10_FLOAT";
+	case DXGI_FORMAT_R8G8B8A8_TYPELESS: return "DXGI_FORMAT_R8G8B8A8_TYPELESS";
+	case DXGI_FORMAT_R8G8B8A8_UNORM: return "DXGI_FORMAT_R8G8B8A8_UNORM";
+	case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return "DXGI_FORMAT_R8G8B8A8_UNORM_SRGB";
+	case DXGI_FORMAT_R8G8B8A8_UINT: return "DXGI_FORMAT_R8G8B8A8_UINT";
+	case DXGI_FORMAT_R8G8B8A8_SNORM: return "DXGI_FORMAT_R8G8B8A8_SNORM";
+	case DXGI_FORMAT_R8G8B8A8_SINT: return "DXGI_FORMAT_R8G8B8A8_SINT";
+	case DXGI_FORMAT_R16G16_TYPELESS: return "DXGI_FORMAT_R16G16_TYPELESS";
+	case DXGI_FORMAT_R16G16_FLOAT: return "DXGI_FORMAT_R16G16_FLOAT";
+	case DXGI_FORMAT_R16G16_UNORM: return "DXGI_FORMAT_R16G16_UNORM";
+	case DXGI_FORMAT_R16G16_UINT: return "DXGI_FORMAT_R16G16_UINT";
+	case DXGI_FORMAT_R16G16_SNORM: return "DXGI_FORMAT_R16G16_SNORM";
+	case DXGI_FORMAT_R16G16_SINT: return "DXGI_FORMAT_R16G16_SINT";
+	case DXGI_FORMAT_R32_TYPELESS: return "DXGI_FORMAT_R32_TYPELESS";
+	case DXGI_FORMAT_D32_FLOAT: return "DXGI_FORMAT_D32_FLOAT";
+	case DXGI_FORMAT_R32_FLOAT: return "DXGI_FORMAT_R32_FLOAT";
+	case DXGI_FORMAT_R32_UINT: return "DXGI_FORMAT_R32_UINT";
+	case DXGI_FORMAT_R32_SINT: return "DXGI_FORMAT_R32_SINT";
+	case DXGI_FORMAT_R24G8_TYPELESS: return "DXGI_FORMAT_R24G8_TYPELESS";
+	case DXGI_FORMAT_D24_UNORM_S8_UINT: return "DXGI_FORMAT_D24_UNORM_S8_UINT";
+	case DXGI_FORMAT_R24_UNORM_X8_TYPELESS: return "DXGI_FORMAT_R24_UNORM_X8_TYPELESS";
+	case DXGI_FORMAT_X24_TYPELESS_G8_UINT: return "DXGI_FORMAT_X24_TYPELESS_G8_UINT";
+	case DXGI_FORMAT_R8G8_TYPELESS: return "DXGI_FORMAT_R8G8_TYPELESS";
+	case DXGI_FORMAT_R8G8_UNORM: return "DXGI_FORMAT_R8G8_UNORM";
+	case DXGI_FORMAT_R8G8_UINT: return "DXGI_FORMAT_R8G8_UINT";
+	case DXGI_FORMAT_R8G8_SNORM: return "DXGI_FORMAT_R8G8_SNORM";
+	case DXGI_FORMAT_R8G8_SINT: return "DXGI_FORMAT_R8G8_SINT";
+	case DXGI_FORMAT_R16_TYPELESS: return "DXGI_FORMAT_R16_TYPELESS";
+	case DXGI_FORMAT_R16_FLOAT: return "DXGI_FORMAT_R16_FLOAT";
+	case DXGI_FORMAT_D16_UNORM: return "DXGI_FORMAT_D16_UNORM";
+	case DXGI_FORMAT_R16_UNORM: return "DXGI_FORMAT_R16_UNORM";
+	case DXGI_FORMAT_R16_UINT: return "DXGI_FORMAT_R16_UINT";
+	case DXGI_FORMAT_R16_SNORM: return "DXGI_FORMAT_R16_SNORM";
+	case DXGI_FORMAT_R16_SINT: return "DXGI_FORMAT_R16_SINT";
+	case DXGI_FORMAT_R8_TYPELESS: return "DXGI_FORMAT_R8_TYPELESS";
+	case DXGI_FORMAT_R8_UNORM: return "DXGI_FORMAT_R8_UNORM";
+	case DXGI_FORMAT_R8_UINT: return "DXGI_FORMAT_R8_UINT";
+	case DXGI_FORMAT_R8_SNORM: return "DXGI_FORMAT_R8_SNORM";
+	case DXGI_FORMAT_R8_SINT: return "DXGI_FORMAT_R8_SINT";
+	case DXGI_FORMAT_A8_UNORM: return "DXGI_FORMAT_A8_UNORM";
+	case DXGI_FORMAT_R1_UNORM: return "DXGI_FORMAT_R1_UNORM";
+	case DXGI_FORMAT_R9G9B9E5_SHAREDEXP: return "DXGI_FORMAT_R9G9B9E5_SHAREDEXP";
+	case DXGI_FORMAT_R8G8_B8G8_UNORM: return "DXGI_FORMAT_R8G8_B8G8_UNORM";
+	case DXGI_FORMAT_G8R8_G8B8_UNORM: return "DXGI_FORMAT_G8R8_G8B8_UNORM";
+	case DXGI_FORMAT_BC1_TYPELESS: return "DXGI_FORMAT_BC1_TYPELESS";
+	case DXGI_FORMAT_BC1_UNORM: return "DXGI_FORMAT_BC1_UNORM";
+	case DXGI_FORMAT_BC1_UNORM_SRGB: return "DXGI_FORMAT_BC1_UNORM_SRGB";
+	case DXGI_FORMAT_BC2_TYPELESS: return "DXGI_FORMAT_BC2_TYPELESS";
+	case DXGI_FORMAT_BC2_UNORM: return "DXGI_FORMAT_BC2_UNORM";
+	case DXGI_FORMAT_BC2_UNORM_SRGB: return "DXGI_FORMAT_BC2_UNORM_SRGB";
+	case DXGI_FORMAT_BC3_TYPELESS: return "DXGI_FORMAT_BC3_TYPELESS";
+	case DXGI_FORMAT_BC3_UNORM: return "DXGI_FORMAT_BC3_UNORM";
+	case DXGI_FORMAT_BC3_UNORM_SRGB: return "DXGI_FORMAT_BC3_UNORM_SRGB";
+	case DXGI_FORMAT_BC4_TYPELESS: return "DXGI_FORMAT_BC4_TYPELESS";
+	case DXGI_FORMAT_BC4_UNORM: return "DXGI_FORMAT_BC4_UNORM";
+	case DXGI_FORMAT_BC4_SNORM: return "DXGI_FORMAT_BC4_SNORM";
+	case DXGI_FORMAT_BC5_TYPELESS: return "DXGI_FORMAT_BC5_TYPELESS";
+	case DXGI_FORMAT_BC5_UNORM: return "DXGI_FORMAT_BC5_UNORM";
+	case DXGI_FORMAT_BC5_SNORM: return "DXGI_FORMAT_BC5_SNORM";
+	case DXGI_FORMAT_B5G6R5_UNORM: return "DXGI_FORMAT_B5G6R5_UNORM";
+	case DXGI_FORMAT_B5G5R5A1_UNORM: return "DXGI_FORMAT_B5G5R5A1_UNORM";
+	case DXGI_FORMAT_B8G8R8A8_UNORM: return "DXGI_FORMAT_B8G8R8A8_UNORM";
+	case DXGI_FORMAT_B8G8R8X8_UNORM: return "DXGI_FORMAT_B8G8R8X8_UNORM";
+	case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM: return "DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM";
+	case DXGI_FORMAT_B8G8R8A8_TYPELESS: return "DXGI_FORMAT_B8G8R8A8_TYPELESS";
+	case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return "DXGI_FORMAT_B8G8R8A8_UNORM_SRGB";
+	case DXGI_FORMAT_B8G8R8X8_TYPELESS: return "DXGI_FORMAT_B8G8R8X8_TYPELESS";
+	case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB: return "DXGI_FORMAT_B8G8R8X8_UNORM_SRGB";
+	case DXGI_FORMAT_BC6H_TYPELESS: return "DXGI_FORMAT_BC6H_TYPELESS";
+	case DXGI_FORMAT_BC6H_UF16: return "DXGI_FORMAT_BC6H_UF16";
+	case DXGI_FORMAT_BC6H_SF16: return "DXGI_FORMAT_BC6H_SF16";
+	case DXGI_FORMAT_BC7_TYPELESS: return "DXGI_FORMAT_BC7_TYPELESS";
+	case DXGI_FORMAT_BC7_UNORM: return "DXGI_FORMAT_BC7_UNORM";
+	case DXGI_FORMAT_BC7_UNORM_SRGB: return "DXGI_FORMAT_BC7_UNORM_SRGB";
+	case DXGI_FORMAT_AYUV: return "DXGI_FORMAT_AYUV";
+	case DXGI_FORMAT_Y410: return "DXGI_FORMAT_Y410";
+	case DXGI_FORMAT_Y416: return "DXGI_FORMAT_Y416";
+	case DXGI_FORMAT_NV12: return "DXGI_FORMAT_NV12";
+	case DXGI_FORMAT_P010: return "DXGI_FORMAT_P010";
+	case DXGI_FORMAT_P016: return "DXGI_FORMAT_P016";
+	case DXGI_FORMAT_420_OPAQUE: return "DXGI_FORMAT_420_OPAQUE";
+	case DXGI_FORMAT_YUY2: return "DXGI_FORMAT_YUY2";
+	case DXGI_FORMAT_Y210: return "DXGI_FORMAT_Y210";
+	case DXGI_FORMAT_Y216: return "DXGI_FORMAT_Y216";
+	case DXGI_FORMAT_NV11: return "DXGI_FORMAT_NV11";
+	case DXGI_FORMAT_AI44: return "DXGI_FORMAT_AI44";
+	case DXGI_FORMAT_IA44: return "DXGI_FORMAT_IA44";
+	case DXGI_FORMAT_P8: return "DXGI_FORMAT_P8";
+	case DXGI_FORMAT_A8P8: return "DXGI_FORMAT_A8P8";
+	case DXGI_FORMAT_B4G4R4A4_UNORM: return "DXGI_FORMAT_B4G4R4A4_UNORM";
+	case DXGI_FORMAT_P208: return "DXGI_FORMAT_P208";
+	case DXGI_FORMAT_V208: return "DXGI_FORMAT_V208";
+	case DXGI_FORMAT_V408: return "DXGI_FORMAT_V408";
+	default: return "???";
+	}
+}
+
 
 #define TEXTURE_FORMAT_MAPPING(format1, format2) \
 	if (fmt1Tofmt2 & (fmt1 == format1)) { fmt2 = format2; return; } \
@@ -257,22 +384,29 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 	}
 
 	imageStride = (w * nBPP + 7) / 8;
-	imageSize = imageStride * nLoadedHeight;
+	imageSize = imageStride * h;
 
 	uint8_t* temp = new uint8_t[imageSize];
 
 	// ----------------------------------------------------------------------------------------------------------------------
-	// check whether we need to scale or convert the loaded image
+	// Scale or convert the image to the desired format
+
+	bool needConversion = false;
+	IWICBitmapSource* pConversionSrc = 0;
+	IWICBitmapScaler* pScaler = 0;
 
 	if (nLoadedWidth == w && nLoadedHeight == h && memcmp(&pxlFmtGUID, &pxlFmtGUIDOrig, sizeof(GUID)) == 0)
 	{
+		// We can directly copy pixels without modification 
 		hRes = pBmpFrameDecode->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
 		if (Failure(hRes))
 			return CLog::Log(S_ERROR, "Failed to buffer texture!");
+
+		needConversion = false;
 	}
-	else if (nLoadedWidth != w && nLoadedHeight != h)
+	else if (nLoadedWidth != w || nLoadedHeight != h)
 	{
-		ScopedTextureLoadingObject<IWICBitmapScaler> pScaler;
+		// Create scaler
 		if (Failure(pImgFactory->CreateBitmapScaler(&pScaler)))
 		{
 			CLog::Log(S_DEBUG, "Failed pImgFactory->CreateBitmapScalar()");
@@ -295,26 +429,26 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 
 		if (memcmp(&pxlFmtGUID, &pfScaler, sizeof(GUID)) == 0)
 		{
+			// Scale directly
 			hRes = pScaler->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
 			if (Failure(hRes))
-				return CLog::Log(S_ERROR, "Failed to buffer scaled texture!");
+				return CLog::Log(S_ERROR, "Failed to buffer scaled texture while loading %s!", cFileName.c_str());
 		}
 		else
 		{
-			ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
-			if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
-				return CLog::Log(S_ERROR, "Failed to create pixel format convert (1)!");
-
-			hRes = formatConverter->Initialize(pScaler.Get(), pxlFmtGUID, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
-			if (Failure(hRes))
-				return CLog::Log(S_ERROR, "Failed to initialize format converter (1)!");
-
-			hRes = formatConverter->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
-			if (Failure(hRes))
-				return CLog::Log(S_ERROR, "Failed to convert and copy pixels (1)!");
+			// Convert with the scaler output as source bitmap
+			needConversion = true;
+			pConversionSrc = pScaler;
 		}
 	}
-	else // convert only
+	else
+	{
+		needConversion = true;
+		pConversionSrc = pBmpFrameDecode;
+	}
+	
+	
+	if (needConversion)
 	{
 		ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
 		if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
@@ -332,7 +466,7 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 
 	*pBuffer = temp;
 
-
+	SP_SAFE_RELEASE(pScaler);
 	SP_SAFE_RELEASE(pImgDecoder);
 	SP_SAFE_RELEASE(pImgFactory);
 
@@ -771,17 +905,24 @@ S_API SResult DX11Texture::LoadArraySliceFromFile(unsigned int i, const string& 
 	res = LoadTextureImage(filePath, m_DXTextureDesc.Width, m_DXTextureDesc.Height, &imageData, imageStride, imageSize, loadedFmt);
 	
 	if (Failure(res))
-		return CLog::Log(S_ERROR, "Failed load texture array slice image (%s)", m_Specification.c_str());
+		return CLog::Log(S_ERROR, "Failed load texture array slice image '%s' (%s)", filePath.c_str(), m_Specification.c_str());
 
 	if (loadedFmt != m_DXTextureDesc.Format)
-		return CLog::Log(S_ERROR, "DX11Texture(%s)::LoadArraySliceFromFile(%s): Loaded format incompatible with array format", m_Specification.c_str(), filePath.c_str());
+		return CLog::Log(S_ERROR, "DX11Texture(%s)::LoadArraySliceFromFile(%s): Loaded format incompatible with array format: (loaded: %s, array: %s)",
+			m_Specification.c_str(), filePath.c_str(), GetDXGIFormatName(loadedFmt), GetDXGIFormatName(m_DXTextureDesc.Format));
 
-	// Fill slice
+	// Fill slice in staging texture
 	ID3D11DeviceContext* pD3DDevCtx = m_pDXRenderer->GetD3D11DeviceContext();
-	pD3DDevCtx->UpdateSubresource(m_pDXTexture, i, 0, imageData, (UINT)imageStride, (UINT)imageSize);
+	pD3DDevCtx->UpdateSubresource(m_pDXStagingTexture, i, 0, imageData, (UINT)imageStride, (UINT)imageSize);
+
+	// Copy subresource from staging texture to live texture
+	pD3DDevCtx->CopySubresourceRegion(m_pDXTexture, i, 0, 0, 0, m_pDXStagingTexture, i, NULL);
 
 	// Update mips
-	pD3DDevCtx->GenerateMips(m_pDXSRV);
+	if (m_pDXSRV)
+		pD3DDevCtx->GenerateMips(m_pDXSRV);
+	else
+		CLog::Log(S_WARN, "Could not generate mipmaps in LoadArraySliceFromFile(): SRV not initialized (%s)", m_Specification.c_str());
 
 	return S_SUCCESS;
 }
@@ -790,8 +931,9 @@ S_API SResult DX11Texture::LoadArraySliceFromFile(unsigned int i, const string& 
 S_API SResult DX11Texture::ResizeArray(unsigned int count)
 {
 	HRESULT hr;
+	SResult sr;
 
-	if (!m_pDXTexture || !m_bArray)
+	if (!m_pDXTexture || !m_pDXStagingTexture || !m_bArray)
 		return CLog::Log(S_ERROR, "Failed ResizeArray(): Texture is not an array or not initialized at all (%s)", m_Specification.c_str());
 
 	if (count == 0)
@@ -807,27 +949,47 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 	D3D11_SUBRESOURCE_DATA *data = new D3D11_SUBRESOURCE_DATA[count];
 	
 	unsigned int bytePerPixel = GetTextureBPP(m_Type);
+	if (bytePerPixel == 0)
+		CLog::Log(S_WARN, "In ResizeArray(): bytePerPixel=0 for texture type='%s'", GetTextureTypeName(m_Type));
+
 	unsigned int sliceSz = m_DXTextureDesc.Width * m_DXTextureDesc.Height * bytePerPixel;
 	unsigned int sliceRowPitch = m_DXTextureDesc.Width * bytePerPixel;
 	unsigned int nCopiedSubresources = min(count, m_DXTextureDesc.ArraySize);
-	for (unsigned int i = 0; i < nCopiedSubresources; ++i)
+	for (unsigned int i = 0; i < count; ++i)
 	{
-		D3D11_MAPPED_SUBRESOURCE slice;
-		pD3DDeviceContext->Map(m_pDXTexture, i, D3D11_MAP_READ, 0, &slice);
-
-		data[i].pSysMem = new char[sliceSz];
-		data[i].SysMemPitch = sliceRowPitch;
-		for (unsigned int row = 0; row < m_DXTextureDesc.Height; ++row)
+		if (i < nCopiedSubresources)
 		{
-			memcpy((char*)data[i].pSysMem + data[i].SysMemPitch * row,
-				(const char*)slice.pData + slice.RowPitch * row,
-				data[i].SysMemPitch);
-		}
+			D3D11_MAPPED_SUBRESOURCE slice;
+			hr = pD3DDeviceContext->Map(m_pDXStagingTexture, i, D3D11_MAP_READ, 0, &slice);
+			if (FAILED(hr))
+			{
+				CLog::Log(S_ERROR, "Failed map staging array slice in ResizeArray(%d), %s", count, m_Specification.c_str());
+				continue;
+			}
 
-		pD3DDeviceContext->Unmap(m_pDXTexture, i);
+			ZeroMemory(&data[i], sizeof(data[i]));
+			data[i].pSysMem = new char[sliceSz];
+			data[i].SysMemPitch = sliceRowPitch;
+			for (unsigned int row = 0; row < m_DXTextureDesc.Height; ++row)
+			{
+				memcpy((char*)data[i].pSysMem + data[i].SysMemPitch * row,
+					(const char*)slice.pData + slice.RowPitch * row,
+					data[i].SysMemPitch);
+			}
+
+			pD3DDeviceContext->Unmap(m_pDXStagingTexture, i);
+		}
+		else
+		{
+			data[i].pSysMem = new char[sliceSz]; // zero
+			data[i].SysMemPitch = sliceRowPitch;
+		}
 	}
 
 	// Release old texture
+	m_pDXStagingTexture->Release();
+	m_pDXStagingTexture = 0;
+	
 	m_pDXTexture->Release();
 	m_pDXTexture = 0;
 
@@ -841,14 +1003,24 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 	m_DXTextureDesc.ArraySize = count;
 	hr = pD3DDevice->CreateTexture2D(&m_DXTextureDesc, data, &m_pDXTexture);
 	
+	if (FAILED(hr))
+	{
+		for (unsigned int i = 0; i < count; ++i)
+			delete[] data[i].pSysMem;
+		delete[] data;
+
+		return CLog::Log(S_ERROR, "Failed ResizeArray(count=%d): Failed create new texture array (%s)", m_Specification.c_str());
+	}
+
+	// Create new staging texture
+	sr = CreateArrayStagingTexture(data);
+
 	for (unsigned int i = 0; i < count; ++i)
 		delete[] data[i].pSysMem;
 	delete[] data;
-	
-	if (FAILED(hr))
-	{
-		return CLog::Log(S_ERROR, "Failed ResizeArray(count=%d): Failed create new texture array (%s)", m_Specification.c_str());
-	}
+
+	if (Failure(sr))
+		return S_ERROR;
 
 	// Create SRV
 	m_DXSRVDesc.Texture2DArray.ArraySize = m_DXTextureDesc.ArraySize;
@@ -868,6 +1040,29 @@ S_API bool DX11Texture::CheckMipMapAutogenSupported(DXGI_FORMAT format)
 	UINT fmtSupport = 0;
 	HRESULT hRes = m_pDXRenderer->GetD3D11Device()->CheckFormatSupport(format, &fmtSupport);
 	return Success(hRes) && (fmtSupport & D3D11_FORMAT_SUPPORT_MIP_AUTOGEN);
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::CreateArrayStagingTexture(const D3D11_SUBRESOURCE_DATA* pInitialData /*= 0*/)
+{
+	HRESULT hr;
+
+	if (m_pDXStagingTexture)
+	{
+		m_pDXStagingTexture->Release();
+		m_pDXStagingTexture = 0;
+	}
+
+	D3D11_TEXTURE2D_DESC stagingTexDesc;
+	memcpy(&stagingTexDesc, &m_DXTextureDesc, sizeof(stagingTexDesc));
+	stagingTexDesc.Usage = D3D11_USAGE_STAGING;
+	stagingTexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+	stagingTexDesc.BindFlags = 0;
+
+	hr = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&stagingTexDesc, pInitialData, &m_pDXStagingTexture);
+
+	if (Failure(hr) || !m_pDXStagingTexture)
+		return CLog::Log(S_ERROR, "Failed to create staging texture for dynamic texture array (%s)", m_Specification.c_str());
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -979,14 +1174,7 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	// Create staging texture for dynamic texture arrays
 	if (m_bDynamic && m_DXTextureDesc.ArraySize > 1)
 	{
-		D3D11_TEXTURE2D_DESC stagingTexDesc;
-		memcpy(&stagingTexDesc, &m_DXTextureDesc, sizeof(stagingTexDesc));
-		stagingTexDesc.Usage = D3D11_USAGE_STAGING;
-		
-		hr = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&stagingTexDesc, 0, &m_pDXStagingTexture);
-
-		if (Failure(hr) || !m_pDXStagingTexture)
-			return CLog::Log(S_ERROR, "Failed to create staging texture for dynamic texture array (%s)", m_Specification.c_str());
+		CreateArrayStagingTexture();
 	}
 
 	// Create SRV

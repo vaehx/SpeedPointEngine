@@ -91,6 +91,7 @@ private:
 	void Clear();
 	bool CheckMipMapAutogenSupported(DXGI_FORMAT format);
 	SResult CreateEmptyIntrnl(unsigned int arraySize, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
+	SResult CreateArrayStagingTexture(const D3D11_SUBRESOURCE_DATA* pInitialData = 0);
 
 public:
 	DX11Texture(DX11Renderer* pDXRenderer);

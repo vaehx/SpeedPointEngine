@@ -53,9 +53,9 @@ inline unsigned int GetTextureBPP(ETextureType type)
 	case eTEXTURE_R32_FLOAT:
 	case eTEXTURE_D32_FLOAT:
 		return sizeof(float);
+	default:
+		return 0;
 	}
-
-	return 0;
 }
 
 
