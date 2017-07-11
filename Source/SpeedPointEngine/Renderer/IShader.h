@@ -80,16 +80,14 @@ struct S_API SObjectConstants
 
 struct S_API STerrainConstants
 {
-	float3 sunIntensity;
 	float fTerrainDMFadeRadius;
-
 	float fTerrainMaxHeight;
 	unsigned int vtxHeightMapSz;
 	float segmentSize;
-	unsigned int numLayers;
-	
+
 	float detailmapSz[2];
-	char __padding[8];
+	unsigned int numLayers;
+	char __padding[4];
 };
 
 struct S_API STerrainShaderResources

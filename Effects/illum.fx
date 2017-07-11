@@ -22,6 +22,7 @@ SamplerState LinearSampler : register(s1);
 SamplerComparisonState ShadowMapSampler : register(s2);
 
 static float PI = 3.14159265358f;
+static float ONE_OVER_PI = 0.31830988618f;
 
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -39,18 +40,18 @@ float RoughnessToAlpha(float roughness)
 }
 
 // Normalized phong for rendering equation
-float BRDF_Phong(float3 L, float3 V, float3 N, float alpha, float cspec, float cdiff)
+void BRDF_Phong(float3 L, float3 V, float3 N, float alpha, out float d, out float s)
 {
 	float3 R = normalize(2.0f * dot(L, N) * N - L);
-	return cdiff / PI
-		+ cspec * ((alpha + 2.0f) / (2.0f * PI)) * pow(saturate(dot(R, V)), alpha);
+	d = ONE_OVER_PI;
+	s = ((alpha + 2.0f) / (2.0f * PI)) * pow(saturate(dot(R, V)), alpha);
 }
 
 // Normalized blinn phong (approximation)
-float BRDF_Blinn(float3 L, float3 V, float3 N, float3 H, float alpha, float cspec, float cdiff)
+void BRDF_Blinn(float3 L, float3 V, float3 N, float3 H, float alpha, out float d, out float s)
 {
-	return cdiff / PI
-		+ cspec * (alpha + 8.0f) / (8.0f * PI) * pow(saturate(dot(N, H)), alpha);
+	d = ONE_OVER_PI;
+	s = (alpha + 8.0f) / (8.0f * PI) * pow(saturate(dot(N, H)), alpha);
 }
 
 
@@ -313,7 +314,14 @@ VS_OUTPUT_LIGHT_PREPASS VS_LightPrepass(VS_INPUT_LIGHT_PREPASS IN)
 
 #define FALLOFF_EPSILON 0.01f
 
-float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
+
+struct PS_OUTPUT_LIGHT_PREPASS
+{
+	float4 Diffuse : SV_Target0;
+	float Specular : SV_Target1;
+};
+
+PS_OUTPUT_LIGHT_PREPASS PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN)
 {
 	// --------------------------
 	float GDepth;
@@ -339,7 +347,7 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 	{
 		L = -normalize(-sunPos);
 		falloff = 1.0f;
-		//shadowFactor = CalculateShadowMapFactor(wpos);
+		shadowFactor = CalculateShadowMapFactor(wpos);
 	}
 	else // point, unknown
 	{
@@ -350,22 +358,29 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 		falloff = pow(saturate(1 - pow(distance / lightMaxDistance, 4)), 2) / pow(max(distance, FALLOFF_EPSILON), lightDecay);
 	}
 
-	float alpha = RoughnessToAlpha(matRoughness);
-	alpha = RoughnessToAlpha(0.1f);
-	float cspec = 1.0f; // TODO
-	float cdiff = 0.5f;
+	float glossiness = RoughnessToAlpha(matRoughness);
+	float3 H = normalize(L + V); // computed in PS as we need the world position from the GBuffer
 
-	// H has to be computed in pixel shader as we need the world position from the GBuffer
-	float3 H = normalize(L + V);
-	float brdf = BRDF_Blinn(L, V, N, H, alpha, cspec, cdiff);
-	//float brdf = BRDF_Phong(L, V, N, alpha, cspec, cdiff);
 
+	// Calculate BRDF
+	float diff, spec;
+
+	BRDF_Blinn(L, V, N, H, glossiness, diff, spec);
+//	BRDF_Phong(L, V, N, glossiness, diff, spec);
+
+
+	// Calculate radiometric irradiance
 	float3 irradiance = lightIntensity * falloff * shadowFactor;
+	float incidentIrradiance = irradiance * saturate(dot(N, L)); // Lambert
 
 	// --------------------------
-	// Calculate radiance at the surface point for the current light
 	
-	return float4(brdf * irradiance * saturate(dot(L, N)), 0);
+	PS_OUTPUT_LIGHT_PREPASS OUT;
+
+	OUT.Diffuse.rgb = diff * incidentIrradiance;
+	OUT.Specular = spec * incidentIrradiance;
+
+	return OUT;
 }
 
 
@@ -383,9 +398,12 @@ float4 PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN) : SV_Target0
 
 #if defined(ENTRY_DeferredShading) || defined(ENTRY_DeferredShadingTerrain)
 
+static float3 fakeGI = float3(0.18f, 0.18f, 0.18f);
+
 Texture2D GBufferDepth : register(t0); // Depth
 Texture2D GBuffer1 : register(t1); // Normal + Roughness
-Texture2D LightBuffer : register(t2);
+Texture2D LightDiffuse : register(t2);
+Texture2D LightSpecular : register(t3);
 
 struct VS_INPUT_DEFERRED_SHADING
 {
@@ -411,9 +429,10 @@ struct PS_OUTPUT_DEFERRED_SHADING
 cbuffer DeferredShadingCB : register(b1)
 {
 	float4x4 mtxWorld;
+	float matMetalness;
 };
 
-Texture2D TextureMap : register(t3);
+Texture2D TextureMap : register(t4);
 
 VS_OUTPUT_DEFERRED_SHADING VS_DeferredShading(VS_INPUT_DEFERRED_SHADING IN)
 {
@@ -436,10 +455,15 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 	float3 albedo = TextureMap.Sample(LinearSampler, IN.TexCoord).rgb;
 
 	// Determine final radiance
-	float3 lightBufferSample = LightBuffer.Sample(PointSampler, screenTC).rgb;
+	float3 Ldiff		= LightDiffuse.Sample(PointSampler, screenTC).rgb;
+	float3 Lspec		= LightSpecular.Sample(PointSampler, screenTC).r;
 	float3 Lemissive	= float3(0, 0, 0);
-	float3 Lglobal		= float3(0, 0, 0); // TODO
-	float3 Lout = Lemissive + albedo * (Lglobal + lightBufferSample);
+	float3 Lglobal		= fakeGI; // TODO
+
+	float3 kd = albedo * (1.0f - matMetalness);
+	float3 ks = lerp(float3(0.03f, 0.03f, 0.03f), albedo, matMetalness);
+
+	float3 Lout = Lemissive + albedo * Lglobal + kd * Ldiff + ks * Lspec;
 
 	/*
 	// Fog
@@ -469,7 +493,6 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 
 cbuffer TerrainCB : register(b1)
 {
-	float3 sunIntensity;
 	float terrainDMFadeRadius;
 	float terrainMaxHeight;
 	uint terrainHeightmapSz;
@@ -482,9 +505,9 @@ cbuffer TerrainCB : register(b1)
 Texture2D vtxHeightMap : register(t0);
 
 // ps
-Texture2DArray TextureMap : register(t3);
-Texture2DArray terrainLayerMask : register(t4);
-Texture2D terrainColorMap : register(t5);
+Texture2DArray TextureMap : register(t4);
+Texture2DArray terrainLayerMask : register(t5);
+Texture2D terrainColorMap : register(t6);
 
 
 
@@ -596,12 +619,15 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 
 	float3 albedo = lerp(colorMapAlbedo, saturate(BlendOverlay(detailMapAlbedo, colorMapAlbedo)), terrainFadeFactor);
 
-
 	// Determine final radiance
-	float3 lightBufferSample = LightBuffer.Sample(PointSampler, screenTC).rgb;
-	float3 Lemissive = float3(0, 0, 0);
-	float3 Lglobal = float3(1.0f, 1.0f, 1.0f); // TODO
-	float3 Lout = Lemissive + albedo * (Lglobal);
+	float3 Ldiff		= LightDiffuse.Sample(PointSampler, screenTC).rgb;
+	float3 Lspec		= LightSpecular.Sample(PointSampler, screenTC).r;
+	float3 Lemissive	= float3(0, 0, 0);
+	float3 Lglobal		= fakeGI; // TODO
+
+	float ks = 0; // todo?
+
+	float3 Lout = Lemissive + albedo * Lglobal + albedo * Ldiff + ks * Lspec;
 
 	// Fog
 //	float viewZ = -dot(mtxView[2], float4(IN.WorldPos, 1.0f));

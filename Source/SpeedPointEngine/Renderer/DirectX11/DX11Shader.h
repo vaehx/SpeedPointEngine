@@ -179,7 +179,9 @@ private:
 	ShadowmapShaderPass* m_pShadowmapPass;
 	IRenderer* m_pRenderer;
 	IShader* m_pShader;
-	IFBO* m_pLightBuffer;
+	IFBO* m_pLBDiffuse;
+	IFBO* m_pLBSpecular;
+	vector<IFBO*> m_RenderTargets;
 	ConstantsBufferHelper<SLightObjectConstants> m_Constants;
 
 public:
@@ -203,12 +205,24 @@ public:
 	// Call this before Renderer::Render(), which will call SetShaderResources()
 	void SetLightConstants(const SLightObjectConstants& constants);
 
-	ITexture* GetLightBufferTexture() const;
+	ITexture* GetDiffuseLightBufferTexture() const;
+	ITexture* GetSpecularLightBufferTexture() const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////////
 class S_API ShadingShaderPass : public IShaderPass
 {
+public:
+	struct SShadingShaderConstants : public SObjectConstants
+	{
+		float matMetalness;
+		char __padding[12];
+	};
+
+	struct STerrainShadingShaderConstants : public STerrainConstants
+	{
+	};
+
 private:
 	GBufferShaderPass* m_pGBufferPass;
 	ShadowmapShaderPass* m_pShadowmapPass;
@@ -216,8 +230,8 @@ private:
 	IRenderer* m_pRenderer;
 	IShader* m_pShader;
 	IShader* m_pTerrainShader;
-	ConstantsBufferHelper<SObjectConstants> m_Constants;
-	ConstantsBufferHelper<STerrainConstants> m_TerrainConstants;
+	ConstantsBufferHelper<SShadingShaderConstants> m_Constants;
+	ConstantsBufferHelper<STerrainShadingShaderConstants> m_TerrainConstants;
 
 public:
 	ShadingShaderPass(GBufferShaderPass* pGBufferPass, DeferredLightShaderPass* pLightPass, ShadowmapShaderPass* pShadowmapPass)

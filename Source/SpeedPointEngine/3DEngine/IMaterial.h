@@ -25,6 +25,7 @@ struct S_API SMaterialDefinition
 	string normalMap;
 	string roughnessMap;
 	float roughness; // ignored if roughnessMap valid
+	float metalness;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

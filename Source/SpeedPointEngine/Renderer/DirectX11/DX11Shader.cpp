@@ -857,8 +857,14 @@ S_API SResult DeferredLightShaderPass::Initialize(IRenderer* pRenderer)
 
 	unsigned int screenRes[2] = { pRenderer->GetParams().resolution[0], pRenderer->GetParams().resolution[1] };
 
-	m_pLightBuffer = m_pRenderer->CreateRT();
-	m_pLightBuffer->InitializeAsTexture(eFBO_R16G16B16A16F, screenRes[0], screenRes[1], "$LightBuffer");
+	m_pLBDiffuse = m_pRenderer->CreateRT();
+	m_pLBDiffuse->InitializeAsTexture(eFBO_R16G16B16A16F, screenRes[0], screenRes[1], "$LightDiffuse");
+
+	m_pLBSpecular = m_pRenderer->CreateRT();
+	m_pLBSpecular->InitializeAsTexture(eFBO_F32, screenRes[0], screenRes[1], "$LightSpecular");
+
+	m_RenderTargets.push_back(m_pLBDiffuse);
+	m_RenderTargets.push_back(m_pLBSpecular);
 
 	ReloadShaders();
 
@@ -884,23 +890,32 @@ S_API void DeferredLightShaderPass::ReloadShaders()
 	m_pShader->Load(m_pRenderer, si);
 }
 
-S_API ITexture* DeferredLightShaderPass::GetLightBufferTexture() const
+S_API ITexture* DeferredLightShaderPass::GetDiffuseLightBufferTexture() const
 {
-	if (m_pLightBuffer)
-		return m_pLightBuffer->GetTexture();
-	else
-		return 0;
+	return (m_pLBDiffuse ? m_pLBDiffuse->GetTexture() : 0);
+}
+
+S_API ITexture* DeferredLightShaderPass::GetSpecularLightBufferTexture() const
+{
+	return (m_pLBSpecular ? m_pLBSpecular->GetTexture() : 0);
 }
 
 S_API void DeferredLightShaderPass::Clear()
 {
 	m_Constants.Clear();
 
-	if (m_pLightBuffer)
+	if (m_pLBDiffuse)
 	{
-		m_pLightBuffer->Clear();
-		delete m_pLightBuffer;
-		m_pLightBuffer = 0;
+		m_pLBDiffuse->Clear();
+		delete m_pLBDiffuse;
+		m_pLBDiffuse = 0;
+	}
+
+	if (m_pLBSpecular)
+	{
+		m_pLBSpecular->Clear();
+		delete m_pLBSpecular;
+		m_pLBSpecular = 0;
 	}
 
 	if (m_pShader)
@@ -915,10 +930,12 @@ S_API void DeferredLightShaderPass::Clear()
 
 S_API void DeferredLightShaderPass::OnEndFrame()
 {
-	m_pRenderer->UnbindTexture(m_pLightBuffer->GetTexture());
-	m_pRenderer->UnbindTexture(m_pLightBuffer->GetDepthBufferTexture());
-	m_pRenderer->BindSingleRT(m_pLightBuffer);
-	m_pRenderer->ClearBoundRTs(true, false);
+	m_pRenderer->UnbindTexture(m_pLBDiffuse->GetTexture());
+	m_pRenderer->UnbindTexture(m_pLBSpecular->GetTexture());
+//	m_pRenderer->UnbindTexture(m_pLBDiffuse->GetDepthBufferTexture());
+
+	m_pRenderer->ClearRT(m_pLBDiffuse, true, false);
+	m_pRenderer->ClearRT(m_pLBSpecular, true, false);
 }
 
 S_API SResult DeferredLightShaderPass::Bind()
@@ -927,8 +944,10 @@ S_API SResult DeferredLightShaderPass::Bind()
 	m_pRenderer->EnableDepthTest(false, false);
 	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
-	m_pRenderer->UnbindTexture(m_pLightBuffer->GetTexture());
-	m_pRenderer->BindSingleRT(m_pLightBuffer);
+	m_pRenderer->UnbindTexture(m_pLBDiffuse->GetTexture());
+	m_pRenderer->UnbindTexture(m_pLBSpecular->GetTexture());
+
+	m_pRenderer->BindRTCollection(m_RenderTargets, 0, true);
 
 	int i = 0;
 	while (i < NUM_GBUFFER_LAYERS)
@@ -1040,8 +1059,8 @@ S_API SResult ShadingShaderPass::Bind()
 		m_pRenderer->BindTexture(pGBufferTexture, i++);
 	}
 
-	ITexture* pLightBufferTexture = m_pLightPass->GetLightBufferTexture();
-	m_pRenderer->BindTexture(pLightBufferTexture, i++);
+	m_pRenderer->BindTexture(m_pLightPass->GetDiffuseLightBufferTexture(), i++);
+	m_pRenderer->BindTexture(m_pLightPass->GetSpecularLightBufferTexture(), i++);
 
 	return S_SUCCESS;
 }
@@ -1054,30 +1073,36 @@ S_API void ShadingShaderPass::SetShaderResources(const SShaderResources& sr, con
 	m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
 
 	// Bind textures
-	m_pRenderer->BindTexture(IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture(), 3);
+	m_pRenderer->BindTexture(IS_VALID_PTR(sr.textureMap) ? sr.textureMap : m_pRenderer->GetDummyTexture(), 4);
 	
 	// Update object constants
-	SObjectConstants* constants = m_Constants.GetConstants();
+	SShadingShaderConstants* constants = m_Constants.GetConstants();
 	constants->mtxWorld = transform;
+	constants->matMetalness = sr.metalness;
 
 	m_Constants.Update();
 }
 
 S_API void ShadingShaderPass::BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated)
 {
-	// TODO: Make sure we are not switching the shader too often.
 	m_pTerrainShader->Bind();
 
 	m_pRenderer->BindVertexShaderTexture(terrainShaderResources.pHeightmap, 0);
 
-	m_pRenderer->BindTexture(terrainShaderResources.pTexturemap, 3);
-	m_pRenderer->BindTexture(terrainShaderResources.pLayerMask, 4);
-	m_pRenderer->BindTexture(terrainShaderResources.pColormap, 5);
+	m_pRenderer->BindTexture(terrainShaderResources.pTexturemap, 4);
+	m_pRenderer->BindTexture(terrainShaderResources.pLayerMask, 5);
+	m_pRenderer->BindTexture(terrainShaderResources.pColormap, 6);
 
-	STerrainConstants* constants = m_TerrainConstants.GetConstants();
-	if (constantsUpdated && constants)
+	if (constantsUpdated)
 	{
-		*constants = terrainShaderResources.constants;
+		// Update terrain constants
+		STerrainShadingShaderConstants* constants = m_TerrainConstants.GetConstants();
+		if (constants)
+		{
+			STerrainConstants* terrainConstants = static_cast<STerrainConstants*>(constants);
+			*terrainConstants = terrainShaderResources.constants;
+		}
+
 		m_TerrainConstants.Update();
 	}
 

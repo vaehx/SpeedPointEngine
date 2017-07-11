@@ -350,6 +350,7 @@ public:
 	virtual SResult SetIBStream(IIndexBuffer* pIB);
 	virtual SResult SetInstanceStream(ITypelessInstanceBuffer* pInstanceBuffer, unsigned int index = 1);
 
+	virtual SResult ClearRT(IFBO* pFBO, bool color = true, bool depth = true);
 	virtual SResult ClearBoundRTs(bool color = true, bool depth = true);
 
 	virtual SResult SetTargetViewport(IViewport* pViewport);

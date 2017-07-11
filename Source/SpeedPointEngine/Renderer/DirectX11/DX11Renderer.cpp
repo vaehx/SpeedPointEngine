@@ -1596,20 +1596,19 @@ S_API SResult DX11Renderer::PresentTargetViewport(void)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::ClearBoundRTs(bool color /*= true*/, bool depth /*= true*/)
+S_API SResult DX11Renderer::ClearRT(IFBO* pFBO, bool color /*= true*/, bool depth /*= true*/)
 {
-	SP_ASSERTR(IsInited(), S_NOTINIT);
+	DX11FBO* pDXFBO = dynamic_cast<DX11FBO*>(pFBO);
+	if (!pDXFBO)
+		return S_INVALIDPARAM;
 
 	if (color)
 	{
-		float clearColor[4];
-		for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
+		ID3D11RenderTargetView* pRTV = pDXFBO->GetRTV();
+		if (pRTV)
 		{
-			ID3D11RenderTargetView* pRTV = (*itBoundRT)->GetRTV();
-			if (!IS_VALID_PTR(pRTV))
-				continue;
-
-			SPGetColorFloatArray(clearColor, (*itBoundRT)->GetClearColor());
+			float clearColor[4];
+			SPGetColorFloatArray(clearColor, pDXFBO->GetClearColor());
 
 			m_pD3DDeviceContext->ClearRenderTargetView(pRTV, clearColor);
 		}
@@ -1617,7 +1616,28 @@ S_API SResult DX11Renderer::ClearBoundRTs(bool color /*= true*/, bool depth /*= 
 
 	if (depth)
 	{
-		if (IS_VALID_PTR(m_pBoundDSV) && !m_bBoundDSVReadonly)
+		ID3D11DepthStencilView* pDSV = pDXFBO->GetDSV();
+		if (pDSV && !(pDSV == m_pBoundDSV && m_bBoundDSVReadonly))
+			m_pD3DDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
+}
+
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::ClearBoundRTs(bool color /*= true*/, bool depth /*= true*/)
+{
+	SP_ASSERTR(IsInited(), S_NOTINIT);
+
+	if (color)
+	{
+		for (auto itBoundRT = m_BoundRenderTargets.begin(); itBoundRT != m_BoundRenderTargets.end(); ++itBoundRT)
+		{
+			ClearRT(*itBoundRT, true, false);
+		}
+	}
+
+	if (depth)
+	{
+		if (m_pBoundDSV && !m_bBoundDSVReadonly)
 			m_pD3DDeviceContext->ClearDepthStencilView(m_pBoundDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 

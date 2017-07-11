@@ -95,8 +95,8 @@ PS_GBUFFER_OUTPUT PS_GBuffer(VS_OUTPUT IN)
 {
 	// TODO: Normal-mapping 
 
-//	return PackGBuffer(matRoughness, normalize(IN.Normal));
-	return PackGBuffer(0.4f, normalize(IN.Normal));
+	return PackGBuffer(matRoughness, normalize(IN.Normal));
+//	return PackGBuffer(0.4f, normalize(IN.Normal));
 }
 
 #endif
@@ -111,7 +111,6 @@ PS_GBUFFER_OUTPUT PS_GBuffer(VS_OUTPUT IN)
 
 cbuffer TerrainCB : register(b1)
 {
-	float3 sunIntensity;
 	float terrainDMFadeRadius;
 	float terrainMaxHeight;
 	uint terrainHeightmapSz;

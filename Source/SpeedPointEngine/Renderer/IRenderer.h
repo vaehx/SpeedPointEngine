@@ -110,16 +110,15 @@ enum S_API EIllumModel
 
 struct S_API SShaderResources
 {
+	EIllumModel illumModel;
 	ITexture* textureMap;	// aggregation, color for full unlit roughness
 	ITexture* normalMap;
 	ITexture* ambientOcclusionMap;
 	float3 diffuse;
 	float3 emissive;
-
-	EIllumModel illumModel;
-
 	ITexture* roughnessMap;
-	float roughness;	// if the glossiness Map is set it is used instead of the global gloss factor
+	float roughness;	// if the glossiness Map is set it is used instead of this global gloss factor
+	float metalness;
 
 	bool enableBackfaceCulling;
 
@@ -575,6 +574,7 @@ public:
 
 	virtual SResult PresentTargetViewport(void) = 0;
 
+	virtual SResult ClearRT(IFBO* pFBO, bool color = true, bool depth = true) = 0;
 	virtual SResult ClearBoundRTs(bool color = true, bool depth = true) = 0;
 
 	virtual SResult UpdateCullMode(EFrontFace cullmode) = 0;

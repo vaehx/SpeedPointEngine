@@ -20,7 +20,7 @@ inline DXGI_FORMAT GetDXGIFormatFromFBOType(EFBOType type)
 	case eFBO_F16:
 		return DXGI_FORMAT_R16_UNORM;
 	case eFBO_F32:
-		return DXGI_FORMAT_R32_TYPELESS;
+		return DXGI_FORMAT_R32_FLOAT;
 	case eFBO_R16G16F:
 		return DXGI_FORMAT_R16G16_FLOAT;
 	case eFBO_R16G16B16A16F:

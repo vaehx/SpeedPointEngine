@@ -149,6 +149,7 @@ S_API SResult CRenderMesh::SetGeometry(IGeometry* pGeometry)
 				if (matDefinition)
 				{
 					renderSubset.shaderResources.roughness = matDefinition->roughness;
+					renderSubset.shaderResources.metalness = matDefinition->metalness;
 
 					if (pRes)
 					{

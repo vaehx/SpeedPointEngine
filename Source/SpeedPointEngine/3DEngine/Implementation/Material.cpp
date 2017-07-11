@@ -175,6 +175,7 @@ S_API IMaterial* MaterialManager::LoadMaterial(const string& absResourcePath)
 			definition->textureMap		= material.textureMap;
 			definition->normalMap		= material.normalMap;
 			definition->roughnessMap	= material.roughnessMap;
+			definition->metalness		= material.metalness;
 		}
 	}
 
