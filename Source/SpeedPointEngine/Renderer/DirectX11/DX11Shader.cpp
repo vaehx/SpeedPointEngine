@@ -333,9 +333,24 @@ S_API SResult DX11Shader::Bind()
 	if (!IS_VALID_PTR(pDXDeviceContext))
 		return S_NOTINIT;
 
-	pDXDeviceContext->VSSetShader(m_pVertexShader, 0, 0);
-	pDXDeviceContext->PSSetShader(m_pPixelShader, 0, 0);
-	pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);
+	// Bind vertex shader
+	ID3D11VertexShader* pBoundVS = 0;
+	pDXDeviceContext->VSGetShader(&pBoundVS, 0, 0);
+	if (pBoundVS != m_pVertexShader)
+	{
+		pDXDeviceContext->VSSetShader(m_pVertexShader, 0, 0);
+		pDXDeviceContext->IASetInputLayout(m_pVSInputLayout);
+	}
+
+	SP_SAFE_RELEASE(pBoundVS);
+
+	// Bind pixel shader
+	ID3D11PixelShader* pBoundPS = 0;
+	pDXDeviceContext->PSGetShader(&pBoundPS, 0, 0);
+	if (pBoundPS != m_pPixelShader)
+		pDXDeviceContext->PSSetShader(m_pPixelShader, 0, 0);
+
+	SP_SAFE_RELEASE(pBoundPS);
 
 	return S_SUCCESS;
 }
@@ -673,6 +688,7 @@ S_API SResult GBufferShaderPass::Initialize(IRenderer* pRenderer)
 	ReloadShaders();
 
 	m_Constants.Initialize(pRenderer);
+	m_TerrainConstants.Initialize(pRenderer);
 
 	return S_SUCCESS;
 }
@@ -780,6 +796,8 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 	if (sr.illumModel == eILLUM_HELPER)
 		return; // helpers cannot be rendered deferred
 
+	m_pShader->Bind();
+
 	m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
 
 	// Bind textures
@@ -795,7 +813,6 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 S_API void GBufferShaderPass::BindTerrainResources(const STerrainShaderResources& terrainShaderResources, bool constantsUpdated)
 {
-	// TODO: Make sure we are not switching the shader too often.
 	m_pTerrainShader->Bind();
 
 	m_pRenderer->BindVertexShaderTexture(terrainShaderResources.pHeightmap, 0);
@@ -805,9 +822,9 @@ S_API void GBufferShaderPass::BindTerrainResources(const STerrainShaderResources
 	m_pRenderer->BindTexture(terrainShaderResources.pNormalmap, 1);
 	m_pRenderer->BindTexture(terrainShaderResources.pRoughnessmap, 2);
 
-	if (constantsUpdated)
+	STerrainConstants* constants = m_TerrainConstants.GetConstants();
+	if (constantsUpdated && constants)
 	{
-		STerrainConstants* constants = m_TerrainConstants.GetConstants();
 		*constants = terrainShaderResources.constants;
 		m_TerrainConstants.Update();
 	}
@@ -958,6 +975,7 @@ S_API SResult ShadingShaderPass::Initialize(IRenderer* pRenderer)
 	ReloadShaders();
 
 	m_Constants.Initialize(pRenderer);
+	m_TerrainConstants.Initialize(pRenderer);
 
 	return S_SUCCESS;
 }
@@ -1052,12 +1070,13 @@ S_API void ShadingShaderPass::BindTerrainResources(const STerrainShaderResources
 
 	m_pRenderer->BindVertexShaderTexture(terrainShaderResources.pHeightmap, 0);
 
+	m_pRenderer->BindTexture(terrainShaderResources.pTexturemap, 3);
 	m_pRenderer->BindTexture(terrainShaderResources.pLayerMask, 4);
 	m_pRenderer->BindTexture(terrainShaderResources.pColormap, 5);
 
-	if (constantsUpdated)
+	STerrainConstants* constants = m_TerrainConstants.GetConstants();
+	if (constantsUpdated && constants)
 	{
-		STerrainConstants* constants = m_TerrainConstants.GetConstants();
 		*constants = terrainShaderResources.constants;
 		m_TerrainConstants.Update();
 	}

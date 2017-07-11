@@ -82,11 +82,13 @@ struct S_API STerrainConstants
 {
 	float3 sunIntensity;
 	float fTerrainDMFadeRadius;
+
 	float fTerrainMaxHeight;
 	unsigned int vtxHeightMapSz;
 	float segmentSize;
-	float detailmapSz[2];
 	unsigned int numLayers;
+	
+	float detailmapSz[2];
 	char __padding[8];
 };
 
@@ -99,6 +101,16 @@ struct S_API STerrainShaderResources
 	ITexture* pNormalmap;
 	ITexture* pRoughnessmap;
 	STerrainConstants constants;
+
+	STerrainShaderResources()
+		: pHeightmap(0),
+		pLayerMask(0),
+		pColormap(0),
+		pTexturemap(0),
+		pNormalmap(0),
+		pRoughnessmap(0)
+	{
+	}
 };
 
 // --------------------------------------------------------------------------------------------------------------------

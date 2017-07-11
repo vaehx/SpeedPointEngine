@@ -173,6 +173,7 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 	STerrainShaderResources sr;
 	sr.pHeightmap		= terrainRenderDesc.pVtxHeightMap;
 	sr.pLayerMask		= terrainRenderDesc.pLayerMask;
+	sr.pColormap		= terrainRenderDesc.pColorMap;
 	sr.pTexturemap		= terrainRenderDesc.pTextureMaps;
 	sr.pNormalmap		= terrainRenderDesc.pNormalMaps;
 	sr.pRoughnessmap	= terrainRenderDesc.pRoughnessMaps;
@@ -188,6 +189,7 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 	SetDepthTestFunction(eDEPTH_TEST_LESS);
 
 	EnableBackfaceCulling(true);
+	D3D11_SetBlendState(m_pDefBlendState);
 
 	// Draw all chunks
 	for (unsigned int c = 0; c < terrainRenderDesc.nDrawCallDescs; ++c)
@@ -213,6 +215,7 @@ S_API SResult DX11Renderer::RenderDeferredLight(const SRenderDesc& renderDesc)
 S_API SResult DX11Renderer::RenderFullScreenQuad(bool enableDepthTest /*= false*/)
 {
 	EnableBackfaceCulling(false);
+	D3D11_SetBlendState(m_pDefBlendState);
 	
 	m_FullscreenPlane.bDepthStencilEnable = enableDepthTest;
 	RenderGeometry(m_FullscreenPlane);

@@ -70,6 +70,15 @@ enum S_API ECubemapSide
 };
 
 
+struct S_API SRectangle
+{
+	unsigned int x;
+	unsigned int y;
+	unsigned int width;
+	unsigned int height;
+};
+
+
 // SpeedPoint Texture Resource
 struct S_API ITexture : public IResource
 {
@@ -150,7 +159,7 @@ public:
 	//		Note: pnRowPitch is set to the number of BYTES per row in the texture.
 	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0, unsigned int iArraySlice = 0) = 0;
 
-	virtual SResult Unlock() = 0;
+	virtual SResult Unlock(SRectangle* pUpdateRect = 0, unsigned int iArraySlice = 0) = 0;
 
 	// Summary:
 	//		Sets all pixels of this dynamic texture to the given color.

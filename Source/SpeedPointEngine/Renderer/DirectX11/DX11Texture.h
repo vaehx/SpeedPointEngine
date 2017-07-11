@@ -65,6 +65,16 @@ struct S_API SLoadedCubemapSide
 	}
 };
 
+struct S_API SLoadedTextureBitmap
+{
+	unsigned int width;
+	unsigned int height;
+	unsigned int bytePerPixel;
+	unsigned char* buffer;
+	size_t imageStride;
+	size_t imageSize;
+	DXGI_FORMAT format;
+};
 
 class S_API DX11Texture : public ITexture
 {
@@ -92,6 +102,7 @@ private:
 	bool CheckMipMapAutogenSupported(DXGI_FORMAT format);
 	SResult CreateEmptyIntrnl(unsigned int arraySize, unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
 	SResult CreateArrayStagingTexture(const D3D11_SUBRESOURCE_DATA* pInitialData = 0);
+	unsigned int GetSubresourceIndex(unsigned int mipLevel, unsigned int arraySlice = 0);
 
 public:
 	DX11Texture(DX11Renderer* pDXRenderer);
@@ -136,7 +147,7 @@ public:
 	// Data access and manipulation
 public:
 	virtual SResult Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch = 0, unsigned int iArraySlice = 0);
-	virtual SResult Unlock();
+	virtual SResult Unlock(SRectangle* pUpdateRect = 0, unsigned int iArraySlice = 0);
 	virtual bool IsLocked() const { return m_bLocked; }
 
 	virtual SResult Fill(SColor color);
@@ -156,8 +167,14 @@ private:
 	static void GetCubemapImageName(string& name, ECubemapSide side);
 	static unsigned int GetDXCubemapArraySlice(ECubemapSide side);
 
-	// If w == 0 or h == 0, the actual file size is used as the size and no scaling will happen. w and h reference values will be updated with the actual sizes
-	SResult LoadTextureImage(const string& cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedFormat);
+	// Summary:
+	//	Loads the specified texture bitmap from disk
+	// Description:
+	//	cFileName is an absolute system path.
+	//	bitmap can be pre-filled with desired bitmap properties.
+	//	If width and height are both not 0, the bitmap will be scaled to that size if necessary.
+	//	If the format is not DXGI_FORMAT_UNKNOWN, this method will try to convert the bitmap to this format.
+	SResult LoadTextureImage(const string& cFileName, SLoadedTextureBitmap& bitmap);
 };
 
 SP_NMSPACE_END

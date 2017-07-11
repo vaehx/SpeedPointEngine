@@ -594,8 +594,10 @@ S_API void C3DEngine::RenderCollected()
 		}
 
 		// Z Prepass / GBuffer pass
-		m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
+		IShaderPass* pGBufferPass = m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
+
+		pGBufferPass->Bind();
 		RenderMeshes();
 
 		// Deferred light prepass
@@ -603,8 +605,10 @@ S_API void C3DEngine::RenderCollected()
 		RenderDeferredLights();
 
 		// Shading and merging post-pass
-		m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
+		IShaderPass* pShadingPass = m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
+
+		pShadingPass->Bind();
 		RenderMeshes();
 
 

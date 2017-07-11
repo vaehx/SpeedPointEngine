@@ -577,16 +577,19 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 	float3 detailMapAlbedo = float3(0, 0, 0);
 	float3 terrainTC;
 	terrainTC.xy = IN.TexCoord;
-	for (uint iLayer = 0; iLayer < terrainNumLayers; ++iLayer)
+	float3 detailmapTC;
+	detailmapTC.xy = IN.WorldPos.xz / detailmapSz;
+	for (uint iLayer = 0; iLayer < 3; ++iLayer)
 	{
 		terrainTC.z = (float)iLayer;
 		float maskSample = terrainLayerMask.Sample(LinearSampler, terrainTC).r;
 
-		float3 textureMapSample = TextureMap.Sample(LinearSampler, terrainTC).rgb;
+		detailmapTC.z = (float)iLayer;
+		float3 textureMapSample = TextureMap.Sample(LinearSampler, detailmapTC).rgb;
 		detailMapAlbedo = lerp(detailMapAlbedo, textureMapSample, maskSample);
 	}
 
-	float3 colorMapAlbedo = terrainColorMap.Sample(LinearSampler, IN.WorldPos.xz / detailmapSz).rgb;
+	float3 colorMapAlbedo = terrainColorMap.Sample(LinearSampler, terrainTC).rgb;
 
 	float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
 	float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
@@ -597,8 +600,8 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 	// Determine final radiance
 	float3 lightBufferSample = LightBuffer.Sample(PointSampler, screenTC).rgb;
 	float3 Lemissive = float3(0, 0, 0);
-	float3 Lglobal = float3(0, 0, 0); // TODO
-	float3 Lout = Lemissive + albedo * (Lglobal + lightBufferSample);
+	float3 Lglobal = float3(1.0f, 1.0f, 1.0f); // TODO
+	float3 Lout = Lemissive + albedo * (Lglobal);
 
 	// Fog
 //	float viewZ = -dot(mtxView[2], float4(IN.WorldPos, 1.0f));

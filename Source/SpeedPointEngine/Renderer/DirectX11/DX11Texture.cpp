@@ -19,6 +19,7 @@ SP_NMSPACE_BEG
 const char* GetWICPixelFormatName(WICPixelFormatGUID fmt)
 {
 	if (fmt == GUID_WICPixelFormatDontCare) return "GUID_WICPixelFormatDontCare";
+	else if (fmt == GUID_WICPixelFormatUndefined) return "GUID_WICPixelFormatUndefined";
 	else if (fmt == GUID_WICPixelFormat1bppIndexed) return "GUID_WICPixelFormat1bppIndexed";
 	else if (fmt == GUID_WICPixelFormat2bppIndexed) return "GUID_WICPixelFormat2bppIndexed";
 	else if (fmt == GUID_WICPixelFormat4bppIndexed) return "GUID_WICPixelFormat4bppIndexed";
@@ -236,9 +237,47 @@ const char* GetDXGIFormatName(DXGI_FORMAT format)
 }
 
 
+
 #define TEXTURE_FORMAT_MAPPING(format1, format2) \
 	if (fmt1Tofmt2 & (fmt1 == format1)) { fmt2 = format2; return; } \
 	else if (fmt2 == format2) { fmt1 = format1; return; }
+
+
+void MapWICFormatDXGIFormat(WICPixelFormatGUID& fmt1, DXGI_FORMAT& fmt2, bool fmt1Tofmt2 = true)
+{
+	
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat128bppRGBAFloat, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat64bppRGBAHalf, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat64bppRGBA, DXGI_FORMAT_R16G16B16A16_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat32bppRGBA, DXGI_FORMAT_R8G8B8A8_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat32bppBGRA, DXGI_FORMAT_B8G8R8A8_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat32bppBGR, DXGI_FORMAT_B8G8R8X8_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat32bppRGBA1010102XR, DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat32bppRGBA1010102, DXGI_FORMAT_R10G10B10A2_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat32bppRGBE, DXGI_FORMAT_R9G9B9E5_SHAREDEXP);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat16bppBGRA5551, DXGI_FORMAT_B5G5R5A1_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat16bppBGR565, DXGI_FORMAT_B5G6R5_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat32bppGrayFloat, DXGI_FORMAT_R32_FLOAT);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat16bppGrayHalf, DXGI_FORMAT_R16_FLOAT);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat16bppGray, DXGI_FORMAT_R16_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat8bppGray, DXGI_FORMAT_R8_UNORM);
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat8bppAlpha, DXGI_FORMAT_A8_UNORM);
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+	TEXTURE_FORMAT_MAPPING(GUID_WICPixelFormat96bppRGBFloat, DXGI_FORMAT_R32G32B32_FLOAT);
+#endif
+	
+	if (fmt1Tofmt2)
+	{
+		CLog::Log(S_WARNING, "Could not map WIC pixel format %s to DXGI format", GetWICPixelFormatName(fmt1));
+		fmt2 = DXGI_FORMAT_UNKNOWN;
+	}
+	else
+	{
+		CLog::Log(S_WARNING, "Could not map DXGI format %s to WIC pixel format", GetDXGIFormatName(fmt2));
+		fmt1 = GUID_WICPixelFormatUndefined;
+	}
+}
+
 
 // fmt1Tofmt2 - if true, fmt1 is converted to fmt2, otherwise fmt2 is converted to fmt1
 S_API static void MapTextureType(DXGI_FORMAT& fmt1, ETextureType& fmt2, bool fmt1Tofmt2)
@@ -295,7 +334,7 @@ DX11Texture::~DX11Texture()
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned int& w, unsigned int& h, unsigned char** pBuffer, size_t& imageStride, size_t& imageSize, DXGI_FORMAT& loadedTextureFmt)
+S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, SLoadedTextureBitmap& bitmap)
 {
 	HRESULT hRes;
 
@@ -303,7 +342,7 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 	hRes = CoCreateInstance(CLSID_WICImagingFactory, 0, CLSCTX_INPROC_SERVER, IID_IWICImagingFactory, (void**)&pImgFactory);
 	if (Failure(hRes))
 	{
-		return CLog::Log(S_ERROR, "Failed Create WIC Imaging Factory!");
+		return CLog::Log(S_ERROR, "Failed create WIC Imaging Factory!");
 	}
 
 	IWICBitmapDecoder* pImgDecoder;
@@ -313,10 +352,9 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 	hRes = pImgFactory->CreateDecoderFromFilename(cWFilename, 0, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pImgDecoder);
 	if (Failure(hRes))
 	{
-		CLog::Log(S_DEBUG, "Failed Create WIC Image decoder for %s (cWFilename=%S)!", cFileName.c_str(), cWFilename);
+		CLog::Log(S_DEBUG, "Failed create WIC Image decoder for %s (cWFilename=%S)!", cFileName.c_str(), cWFilename);
 		return S_ERROR;
 	}
-
 
 
 	//
@@ -324,69 +362,77 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 	//	for animated texture, loop through all frames and call pImgFactory->GetFrameCount() first.
 	//
 
+
+
+	// Decode frame
 	IWICBitmapFrameDecode* pBmpFrameDecode;
 	pImgDecoder->GetFrame(0, &pBmpFrameDecode);
 
-	// get the pixel size of this frame
-	WICPixelFormatGUID pxlFmtGUID;
-	if (Failure(pBmpFrameDecode->GetPixelFormat(&pxlFmtGUID)))
+
+	// Get pixel format from loaded bitmap frame
+	WICPixelFormatGUID srcFmtWIC;
+	if (Failure(pBmpFrameDecode->GetPixelFormat(&srcFmtWIC)))
 	{
-		return CLog::Log(S_ERROR, "Failed Get Pixel Format of desired frame!");
+		return CLog::Log(S_ERROR, "Failed get pixel format of desired frame!");
 	}
 
-	// some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
-	WICPixelFormatGUID pxlFmtGUIDOrig = pxlFmtGUID;
-	if (pxlFmtGUID == GUID_WICPixelFormat24bppBGR) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
-	else if (pxlFmtGUID == GUID_WICPixelFormat8bppIndexed) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppPBGRA) pxlFmtGUID = GUID_WICPixelFormat32bppRGBA;
+	WICPixelFormatGUID dstFmtWIC;
+	DXGI_FORMAT dstFmtDXGI;
 
-	// we'll probably need a dxgi format to create the dx texture instance	
-	if (pxlFmtGUID == GUID_WICPixelFormat128bppRGBAFloat)		loadedTextureFmt = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	else if (pxlFmtGUID == GUID_WICPixelFormat64bppRGBAHalf)	loadedTextureFmt = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	else if (pxlFmtGUID == GUID_WICPixelFormat64bppRGBA)		loadedTextureFmt = DXGI_FORMAT_R16G16B16A16_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppRGBA)		loadedTextureFmt = DXGI_FORMAT_R8G8B8A8_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppBGRA)		loadedTextureFmt = DXGI_FORMAT_B8G8R8A8_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppBGR)		loadedTextureFmt = DXGI_FORMAT_B8G8R8X8_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppRGBA1010102XR)	loadedTextureFmt = DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppRGBA1010102)	loadedTextureFmt = DXGI_FORMAT_R10G10B10A2_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppRGBE)		loadedTextureFmt = DXGI_FORMAT_R9G9B9E5_SHAREDEXP;
-	else if (pxlFmtGUID == GUID_WICPixelFormat16bppBGRA5551)	loadedTextureFmt = DXGI_FORMAT_B5G5R5A1_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat16bppBGR565)		loadedTextureFmt = DXGI_FORMAT_B5G6R5_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat32bppGrayFloat)	loadedTextureFmt = DXGI_FORMAT_R32_FLOAT;
-	else if (pxlFmtGUID == GUID_WICPixelFormat16bppGrayHalf)	loadedTextureFmt = DXGI_FORMAT_R16_FLOAT;
-	else if (pxlFmtGUID == GUID_WICPixelFormat16bppGray)		loadedTextureFmt = DXGI_FORMAT_R16_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat8bppGray)		loadedTextureFmt = DXGI_FORMAT_R8_UNORM;
-	else if (pxlFmtGUID == GUID_WICPixelFormat8bppAlpha)		loadedTextureFmt = DXGI_FORMAT_A8_UNORM;
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
-	else if (pxlFmtGUID == GUID_WICPixelFormat96bppRGBFloat)	loadedTextureFmt = DXGI_FORMAT_R32G32B32_FLOAT;
-#endif
+	if (bitmap.format != DXGI_FORMAT_UNKNOWN)
+	{
+		// Desired format was specified in bitmap structure. Try to use this.
+		dstFmtDXGI = bitmap.format;
+		MapWICFormatDXGIFormat(dstFmtWIC, dstFmtDXGI, false);
+		if (dstFmtDXGI == DXGI_FORMAT_UNKNOWN || dstFmtWIC == GUID_WICPixelFormatUndefined)
+		{
+			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Desired format is unsupported (%s) for file %s",
+				GetDXGIFormatName(bitmap.format), cFileName.c_str());
+		}
+	}
 	else
 	{
-		return CLog::Log(S_ERROR, "Unsupported pixel fmt of texture: %s!", GetWICPixelFormatName(pxlFmtGUID));
+		// Some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
+		dstFmtWIC = srcFmtWIC;
+		if (srcFmtWIC == GUID_WICPixelFormat24bppBGR) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
+		else if (srcFmtWIC == GUID_WICPixelFormat8bppIndexed) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
+		else if (srcFmtWIC == GUID_WICPixelFormat32bppPBGRA) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
+
+		// Convert WIC pixel format to DXGI format
+		MapWICFormatDXGIFormat(dstFmtWIC, dstFmtDXGI);
+		if (dstFmtDXGI == DXGI_FORMAT_UNKNOWN)
+		{
+			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Unsupported pixel format (%s) of file '%s'",
+				GetWICPixelFormatName(srcFmtWIC), cFileName.c_str());
+		}
+
+		bitmap.format = dstFmtDXGI;
 	}
 
+
 	// ----------------------------------------------------------------------------------------------------------------------
-	// copy the pixels into a temporary buffer	
+	// Create temporary buffer
 
 	UINT nLoadedWidth, nLoadedHeight;
 	pBmpFrameDecode->GetSize(&nLoadedWidth, &nLoadedHeight);
 
-	if (w == 0 || h == 0)
+	if (bitmap.width == 0 || bitmap.height == 0)
 	{
-		w = nLoadedWidth;
-		h = nLoadedHeight;
+		bitmap.width = nLoadedWidth;
+		bitmap.height = nLoadedHeight;
 	}
 
-	UINT nBPP = BitsPerPixel(pxlFmtGUID, pImgFactory);
+	UINT nBPP = BitsPerPixel(dstFmtWIC, pImgFactory);
 	if (nBPP == 0)
 	{
-		return CLog::Log(S_ERROR, "Could not retrieve bits per pixel for loaded texture!");
+		return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Could not retrieve bits per pixel for loaded texture!");
 	}
 
-	imageStride = (w * nBPP + 7) / 8;
-	imageSize = imageStride * h;
+	bitmap.imageStride = (bitmap.width * nBPP + 7) / 8;
+	bitmap.imageSize = bitmap.imageStride * bitmap.height;
+	bitmap.bytePerPixel = (unsigned int)(nBPP / 8);
 
-	uint8_t* temp = new uint8_t[imageSize];
+	bitmap.buffer = new uint8_t[bitmap.imageSize];
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Scale or convert the image to the desired format
@@ -395,16 +441,16 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 	IWICBitmapSource* pConversionSrc = 0;
 	IWICBitmapScaler* pScaler = 0;
 
-	if (nLoadedWidth == w && nLoadedHeight == h && memcmp(&pxlFmtGUID, &pxlFmtGUIDOrig, sizeof(GUID)) == 0)
+	if (nLoadedWidth == bitmap.width && nLoadedHeight == bitmap.height && memcmp(&dstFmtWIC, &srcFmtWIC, sizeof(GUID)) == 0)
 	{
 		// We can directly copy pixels without modification 
-		hRes = pBmpFrameDecode->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
+		hRes = pBmpFrameDecode->CopyPixels(0, static_cast<UINT>(bitmap.imageStride), static_cast<UINT>(bitmap.imageSize), bitmap.buffer);
 		if (Failure(hRes))
 			return CLog::Log(S_ERROR, "Failed to buffer texture!");
 
 		needConversion = false;
 	}
-	else if (nLoadedWidth != w || nLoadedHeight != h)
+	else if (nLoadedWidth != bitmap.width || nLoadedHeight != bitmap.height)
 	{
 		// Create scaler
 		if (Failure(pImgFactory->CreateBitmapScaler(&pScaler)))
@@ -413,7 +459,7 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 			return S_ERROR;
 		}
 
-		if (Failure(pScaler->Initialize(pBmpFrameDecode, w, h,
+		if (Failure(pScaler->Initialize(pBmpFrameDecode, bitmap.width, bitmap.height,
 			WICBitmapInterpolationModeFant))) // Maybe change this someday??
 		{
 			CLog::Log(S_DEBUG, "Failed pScaler->Initialize()");
@@ -427,10 +473,10 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 			return S_ERROR;
 		}
 
-		if (memcmp(&pxlFmtGUID, &pfScaler, sizeof(GUID)) == 0)
+		if (memcmp(&dstFmtWIC, &pfScaler, sizeof(GUID)) == 0)
 		{
 			// Scale directly
-			hRes = pScaler->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
+			hRes = pScaler->CopyPixels(0, static_cast<UINT>(bitmap.imageStride), static_cast<UINT>(bitmap.imageSize), bitmap.buffer);
 			if (Failure(hRes))
 				return CLog::Log(S_ERROR, "Failed to buffer scaled texture while loading %s!", cFileName.c_str());
 		}
@@ -452,19 +498,27 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, unsigned in
 	{
 		ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
 		if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
-			return CLog::Log(S_ERROR, "Failed to create pixel format convert (2)!");
+			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Failed to create pixel format convert!");
 
-		hRes = formatConverter->Initialize(pBmpFrameDecode, pxlFmtGUID, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
+		hRes = formatConverter->Initialize(pConversionSrc, dstFmtWIC, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
 		if (Failure(hRes))
-			return CLog::Log(S_ERROR, "Failed to initialize format converter (2)!");
+			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Failed to initialize format converter (%s -> %s) for file '%s'!",
+				GetWICPixelFormatName(srcFmtWIC), GetWICPixelFormatName(dstFmtWIC), cFileName.c_str());
 
-		hRes = formatConverter->CopyPixels(0, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize), temp);
+		BOOL bCanConvert;
+		hRes = formatConverter->CanConvert(srcFmtWIC, dstFmtWIC, &bCanConvert);
 		if (Failure(hRes))
-			return CLog::Log(S_ERROR, "Failed to convert and copy pixels (2)!");
+			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Could not determine if format %s is convertable to %s",
+				GetWICPixelFormatName(srcFmtWIC), GetWICPixelFormatName(dstFmtWIC));
+
+		if (!bCanConvert)
+			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Format %s cannot be converted to %s!",
+				GetWICPixelFormatName(srcFmtWIC), GetWICPixelFormatName(dstFmtWIC));
+
+		hRes = formatConverter->CopyPixels(0, static_cast<UINT>(bitmap.imageStride), static_cast<UINT>(bitmap.imageSize), bitmap.buffer);
+		if (Failure(hRes))
+			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Failed to convert and copy pixels for file %s!", cFileName.c_str());
 	}
-
-
-	*pBuffer = temp;
 
 	SP_SAFE_RELEASE(pScaler);
 	SP_SAFE_RELEASE(pImgDecoder);
@@ -538,29 +592,38 @@ S_API SResult DX11Texture::LoadCubemapFromFile(const string& baseName, unsigned 
 		GetCubemapImageName(filename, (ECubemapSide)i);
 
 		CLog::Log(S_DEBUG, "Cubmap Side Filename: %s", filename.c_str());
+		
+		SLoadedTextureBitmap sideBitmap;
+		memset(&sideBitmap, 0, sizeof(sideBitmap));
+		sideBitmap.width = singleW;
+		sideBitmap.height = singleH;
 
-		SLoadedCubemapSide side;
-		DXGI_FORMAT sideFmt;
-
-		res = LoadTextureImage(filename, singleW, singleH, &side.pBuffer, side.imageStride, side.imageSize, sideFmt);
+		res = LoadTextureImage(filename, sideBitmap);
 		if (Failure(res))
-		{			
+		{
 			for (auto itSide = cmSides.begin(); itSide != cmSides.end(); itSide++)
 				delete[] itSide->pBuffer;
 
 			return CLog::Log(S_ERROR, "Failed load cubemap image #%d", i);
-		}		
+		}
+
+		SLoadedCubemapSide side;
+		side.imageSize = sideBitmap.imageSize;
+		side.imageStride = sideBitmap.imageStride;
+		side.pBuffer = sideBitmap.buffer;
 
 		if (i == 0)
 		{
-			loadedTextureFmt = sideFmt;
+			loadedTextureFmt = sideBitmap.format;
+			singleW = sideBitmap.width;
+			singleH = sideBitmap.height;
 		}
-		else if (sideFmt != loadedTextureFmt)
+		else if (sideBitmap.format != loadedTextureFmt)
 		{
 			for (auto itSide = cmSides.begin(); itSide != cmSides.end(); itSide++)
 				delete[] itSide->pBuffer;
 
-			return CLog::Log(S_ERROR, "Cubemap image side #%d format mismatch (%d - %d).", i, (unsigned int)loadedTextureFmt, (unsigned int)sideFmt);
+			return CLog::Log(S_ERROR, "Cubemap image side #%d format mismatch (expected %d, got %d).", i, (unsigned int)loadedTextureFmt, (unsigned int)sideBitmap.format);
 		}
 
 		cmSides.push_back(side);
@@ -722,7 +785,7 @@ assert(hr == S_OK);
 }
 
 // -----------------------------------------------------------------------------------------------
-size_t DX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
+S_API size_t DX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
 {
 	if (!pWIC)
 		return 0;
@@ -749,6 +812,21 @@ size_t DX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
 	return bpp;
 }
 
+// -----------------------------------------------------------------------------------------------
+S_API unsigned int DX11Texture::GetSubresourceIndex(unsigned int mipLevel, unsigned int arraySlice /*= 0*/)
+{
+	// DX stores a contiguous array of mipmap subresources.
+	//    [ 0: Mip0,  1: Mip1 ] [ 2: Mip0, 3: Mip1 ] ...
+
+	mipLevel = min(mipLevel, m_DXTextureDesc.MipLevels - 1);
+	arraySlice = min(arraySlice, m_DXTextureDesc.ArraySize - 1);
+
+	unsigned int nMipLevels = m_DXTextureDesc.MipLevels;
+	if (nMipLevels == 0)
+		nMipLevels = 1;
+
+	return arraySlice * nMipLevels + mipLevel;
+}
 
 
 
@@ -766,11 +844,13 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 	HRESULT hRes;
 
 	// ----------------------------------------------------------------------------------------------------------------------
-	DXGI_FORMAT loadedTextureFmt;
-	unsigned char* pBuffer = 0;
-	size_t imageStride, imageSize;
+	
+	SLoadedTextureBitmap bitmap;
+	memset(&bitmap, 0, sizeof(bitmap));
+	bitmap.width = w;
+	bitmap.height = h;
 
-	res = LoadTextureImage(cFileName, w, h, &pBuffer, imageStride, imageSize, loadedTextureFmt);
+	res = LoadTextureImage(cFileName, bitmap);
 	if (Failure(res))
 	{
 		return CLog::Log(S_ERROR, "DX11Texture::LoadFromFile('%s'): Failed LoadTextureImage()", cFileName.c_str());
@@ -780,7 +860,7 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Check if autogeneration of mip levels is supported
 
-	bool bMipAutoGenSupported = CheckMipMapAutogenSupported(loadedTextureFmt);
+	bool bMipAutoGenSupported = CheckMipMapAutogenSupported(bitmap.format);
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Now create the directx texture
@@ -789,9 +869,9 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 	textureDesc.ArraySize = 1;
 	textureDesc.BindFlags = (bMipAutoGenSupported) ? (D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET) : (D3D11_BIND_SHADER_RESOURCE);
 	textureDesc.CPUAccessFlags = (m_bDynamic) ? D3D11_CPU_ACCESS_WRITE /* | D3D11_CPU_ACCESS_READ */ : 0;
-	textureDesc.Format = loadedTextureFmt;
-	textureDesc.Width = w;
-	textureDesc.Height = h;	
+	textureDesc.Format = bitmap.format;
+	textureDesc.Width = bitmap.width;
+	textureDesc.Height = bitmap.height;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0; // No MS for now!
 
@@ -813,9 +893,9 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 	}	
 	
 	D3D11_SUBRESOURCE_DATA initData;
-	initData.pSysMem = (void*)pBuffer;
-	initData.SysMemPitch = static_cast<UINT>(imageStride);
-	initData.SysMemSlicePitch = static_cast<UINT>(imageSize);
+	initData.pSysMem = (void*)bitmap.buffer;
+	initData.SysMemPitch = static_cast<UINT>(bitmap.imageStride);
+	initData.SysMemSlicePitch = static_cast<UINT>(bitmap.imageSize);
 	
 	m_pDXTexture = nullptr;
 
@@ -824,7 +904,7 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 
 	if (Failure(hRes) || m_pDXTexture == nullptr)
 	{
-		return CLog::Log(S_ERROR, "Failed to create DirectX11 Texture!");
+		return CLog::Log(S_ERROR, "Failed to create DirectX11 Texture for '%s' (%s)!", cFileName.c_str(), m_Specification.c_str());
 	}
 
 #ifdef _DEBUG
@@ -837,7 +917,7 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 	// Create the Shader Resource View
 
 	memset(&m_DXSRVDesc, 0, sizeof(m_DXSRVDesc));
-	m_DXSRVDesc.Format = loadedTextureFmt;
+	m_DXSRVDesc.Format = bitmap.format;
 	m_DXSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	
 	m_DXSRVDesc.Texture2D.MostDetailedMip = 0;
@@ -857,14 +937,14 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 	if (!m_bDynamic && bMipAutoGenSupported)
 	{
 		ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
-		pDXDevCon->UpdateSubresource(m_pDXTexture, 0, nullptr, pBuffer, static_cast<UINT>(imageStride), static_cast<UINT>(imageSize));
+		pDXDevCon->UpdateSubresource(m_pDXTexture, 0, nullptr, bitmap.buffer, static_cast<UINT>(bitmap.imageStride), static_cast<UINT>(bitmap.imageSize));
 		pDXDevCon->GenerateMips(m_pDXSRV);
 	}
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Determine type
 
-	MapTextureType(loadedTextureFmt, m_Type, true);
+	MapTextureType(bitmap.format, m_Type, true);
 
 	// ----------------------------------------------------------------------------------------------------------------------
 	// Store staged data
@@ -874,8 +954,8 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 		if (IS_VALID_PTR(m_pStagedData))
 			free(m_pStagedData);
 
-		m_pStagedData = malloc(imageSize);
-		memcpy(m_pStagedData, pBuffer, imageSize);
+		m_pStagedData = malloc(bitmap.imageSize);
+		memcpy(m_pStagedData, bitmap.buffer, bitmap.imageSize);
 	}	
 
 	CLog::Log(S_DEBUG, "Loaded texture %s", cFileName.c_str());
@@ -886,6 +966,7 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Texture::LoadArraySliceFromFile(unsigned int i, const string& filePath)
 {
+	HRESULT hr;
 	SResult res;
 
 	if (!m_pDXTexture)
@@ -898,31 +979,54 @@ S_API SResult DX11Texture::LoadArraySliceFromFile(unsigned int i, const string& 
 		return CLog::Log(S_ERROR, "Cannot load texture array slice %d: Only initialized with %d slices (%s)", i, m_DXTextureDesc.ArraySize, m_Specification.c_str());
 
 	// Load image
-	unsigned char* imageData;
-	size_t imageStride, imageSize;
-	DXGI_FORMAT loadedFmt;
+	SLoadedTextureBitmap bitmap;
+	memset(&bitmap, 0, sizeof(bitmap));
+	bitmap.width = m_DXTextureDesc.Width;
+	bitmap.height = m_DXTextureDesc.Height;
+	bitmap.format = m_DXTextureDesc.Format;
 
-	res = LoadTextureImage(filePath, m_DXTextureDesc.Width, m_DXTextureDesc.Height, &imageData, imageStride, imageSize, loadedFmt);
+	res = LoadTextureImage(filePath, bitmap);
 	
 	if (Failure(res))
 		return CLog::Log(S_ERROR, "Failed load texture array slice image '%s' (%s)", filePath.c_str(), m_Specification.c_str());
 
-	if (loadedFmt != m_DXTextureDesc.Format)
+	if (bitmap.format != m_DXTextureDesc.Format)
 		return CLog::Log(S_ERROR, "DX11Texture(%s)::LoadArraySliceFromFile(%s): Loaded format incompatible with array format: (loaded: %s, array: %s)",
-			m_Specification.c_str(), filePath.c_str(), GetDXGIFormatName(loadedFmt), GetDXGIFormatName(m_DXTextureDesc.Format));
+			m_Specification.c_str(), filePath.c_str(), GetDXGIFormatName(bitmap.format), GetDXGIFormatName(m_DXTextureDesc.Format));
 
 	// Fill slice in staging texture
 	ID3D11DeviceContext* pD3DDevCtx = m_pDXRenderer->GetD3D11DeviceContext();
-	pD3DDevCtx->UpdateSubresource(m_pDXStagingTexture, i, 0, imageData, (UINT)imageStride, (UINT)imageSize);
+
+	unsigned int iSubresource = GetSubresourceIndex(0, i);
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	hr = pD3DDevCtx->Map(m_pDXStagingTexture, iSubresource, D3D11_MAP_WRITE, 0, &mappedResource);
+	if (FAILED(hr))
+	{
+		return CLog::Log(S_ERROR, "DX11Texture(%s)::LoadArraySliceFromFile(%s): Failed map staging texture subresource #%d",
+			m_Specification.c_str(), filePath.c_str(), iSubresource);
+	}
+
+	for (unsigned int y = 0; y < bitmap.height; ++y)
+	{
+		memcpy((char*)mappedResource.pData + y * mappedResource.RowPitch,
+			bitmap.buffer + y * bitmap.imageStride,
+			bitmap.width * bitmap.bytePerPixel);
+	}
+
+	pD3DDevCtx->Unmap(m_pDXStagingTexture, iSubresource);
 
 	// Copy subresource from staging texture to live texture
-	pD3DDevCtx->CopySubresourceRegion(m_pDXTexture, i, 0, 0, 0, m_pDXStagingTexture, i, NULL);
+	pD3DDevCtx->CopySubresourceRegion(m_pDXTexture, iSubresource, 0, 0, 0, m_pDXStagingTexture, iSubresource, NULL);
 
 	// Update mips
-	if (m_pDXSRV)
-		pD3DDevCtx->GenerateMips(m_pDXSRV);
-	else
-		CLog::Log(S_WARN, "Could not generate mipmaps in LoadArraySliceFromFile(): SRV not initialized (%s)", m_Specification.c_str());
+	if (m_DXTextureDesc.MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+	{
+		if (m_pDXSRV)
+			pD3DDevCtx->GenerateMips(m_pDXSRV);
+		else
+			CLog::Log(S_WARN, "Could not generate mipmaps in LoadArraySliceFromFile(): SRV not initialized (%s)", m_Specification.c_str());
+	}
 
 	return S_SUCCESS;
 }
@@ -942,6 +1046,9 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 	if (count == m_DXTextureDesc.ArraySize)
 		return S_SUCCESS;
 
+	if (count >= 100)
+		CLog::Log(S_WARN, "DX11Texture::ResizeArray(): New count (=%d) is extraordinarily big!", count);
+
 	// Copy old data into new initial subresource data
 	ID3D11Device* pD3DDevice = m_pDXRenderer->GetD3D11Device();
 	ID3D11DeviceContext* pD3DDeviceContext = m_pDXRenderer->GetD3D11DeviceContext();
@@ -959,8 +1066,10 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 	{
 		if (i < nCopiedSubresources)
 		{
+			unsigned int iSubresource = GetSubresourceIndex(0, i);
+
 			D3D11_MAPPED_SUBRESOURCE slice;
-			hr = pD3DDeviceContext->Map(m_pDXStagingTexture, i, D3D11_MAP_READ, 0, &slice);
+			hr = pD3DDeviceContext->Map(m_pDXStagingTexture, iSubresource, D3D11_MAP_READ, 0, &slice);
 			if (FAILED(hr))
 			{
 				CLog::Log(S_ERROR, "Failed map staging array slice in ResizeArray(%d), %s", count, m_Specification.c_str());
@@ -977,7 +1086,7 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 					data[i].SysMemPitch);
 			}
 
-			pD3DDeviceContext->Unmap(m_pDXStagingTexture, i);
+			pD3DDeviceContext->Unmap(m_pDXStagingTexture, iSubresource);
 		}
 		else
 		{
@@ -1058,11 +1167,14 @@ S_API SResult DX11Texture::CreateArrayStagingTexture(const D3D11_SUBRESOURCE_DAT
 	stagingTexDesc.Usage = D3D11_USAGE_STAGING;
 	stagingTexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 	stagingTexDesc.BindFlags = 0;
+	stagingTexDesc.MiscFlags = 0;
 
 	hr = m_pDXRenderer->GetD3D11Device()->CreateTexture2D(&stagingTexDesc, pInitialData, &m_pDXStagingTexture);
 
 	if (Failure(hr) || !m_pDXStagingTexture)
 		return CLog::Log(S_ERROR, "Failed to create staging texture for dynamic texture array (%s)", m_Specification.c_str());
+
+	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -1108,7 +1220,17 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	}
 
 	if (m_bDynamic && m_DXTextureDesc.ArraySize > 1)
+	{
+		if (bMipAutoGenSupported)
+		{
+			m_DXTextureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+			m_DXTextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+			m_DXTextureDesc.MipLevels = mipLevels;
+		}
+
+		// We'll use a staging texture
 		m_DXTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	}
 
 	// Fill texture with clear color
 	unsigned int nPixels = w * h;
@@ -1204,6 +1326,14 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 		m_pDXTexture->Release();
 		return CLog::Log(S_ERROR, "Failed create shader resource view for empty texture!");
 	}
+
+	// Determine actual mip level count
+	// This gives us the correct mip level size when previously specifying 0 to create a full mip chain
+	D3D11_TEXTURE2D_DESC postDesc;
+	m_pDXTexture->GetDesc(&postDesc);
+
+	m_DXTextureDesc.MipLevels = postDesc.MipLevels;
+
 
 	// Generate mips if possible
 	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
@@ -1301,7 +1431,7 @@ S_API SResult DX11Texture::Fill(SColor color)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
+S_API SResult DX11Texture::FillArraySlice(unsigned int iSlice, const SColor& color)
 {
 	HRESULT hr;
 
@@ -1314,14 +1444,16 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 	if (!m_pDXStagingTexture)
 		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Staging texture for dynamic texture array not initialized (%s)", m_Specification.c_str());
 
-	if (i >= m_DXTextureDesc.ArraySize)
+	if (iSlice >= m_DXTextureDesc.ArraySize)
 		return CLog::Log(S_INVALIDPARAM, "Failed DX11Texture::FillArraySlice(%d): Array only has %d slices (%s)",
-			i, m_DXTextureDesc.ArraySize, m_Specification.c_str());
+			iSlice, m_DXTextureDesc.ArraySize, m_Specification.c_str());
+
+	unsigned int iSubresource = GetSubresourceIndex(0, iSlice);
 
 	ID3D11DeviceContext* pD3DDevCtx = m_pDXRenderer->GetD3D11DeviceContext();
 	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 	memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	hr = pD3DDevCtx->Map(m_pDXStagingTexture, i, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+	hr = pD3DDevCtx->Map(m_pDXStagingTexture, iSubresource, D3D11_MAP_WRITE, 0, &mappedSubresource);
 	if (FAILED(hr))
 		return CLog::Log(S_ERROR, "Failed DX11Texture::FillArraySlice(): Failed map array slice subresource (%s)", m_Specification.c_str());
 
@@ -1369,10 +1501,10 @@ S_API SResult DX11Texture::FillArraySlice(unsigned int i, const SColor& color)
 		memcpy((char*)mappedSubresource.pData + y * mappedSubresource.RowPitch, pRowData, m_DXTextureDesc.Width * bytePerPixel);
 	}
 
-	pD3DDevCtx->Unmap(m_pDXStagingTexture, i);
+	pD3DDevCtx->Unmap(m_pDXStagingTexture, iSubresource);
 
 	// Copy staged contents to live texture
-	pD3DDevCtx->CopySubresourceRegion(m_pDXTexture, i, 0, 0, 0, m_pDXStagingTexture, i, NULL);
+	pD3DDevCtx->CopySubresourceRegion(m_pDXTexture, iSubresource, 0, 0, 0, m_pDXStagingTexture, iSubresource, NULL);
 
 	return S_SUCCESS;
 }
@@ -1433,6 +1565,8 @@ S_API unsigned int DX11Texture::GetArraySize() const
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /*= 0*/, unsigned int iArraySlice /*= 0*/)
 {
+	HRESULT hr;
+
 	if (!IS_VALID_PTR(m_pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::Lock(): Renderer not initialized");
 
@@ -1454,7 +1588,7 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 	
 	unsigned int bytePerLockedPixel = GetTextureBPP(m_Type);
 
-	if (m_bStaged)
+	if (m_bStaged && !m_bArray)
 	{
 		if (!IS_VALID_PTR(m_pStagedData))
 			return CLog::Log(S_ERROR, "Failed lock staged texture (%s): Staged data invalid (0x%p)!", m_Specification.c_str(), m_pStagedData);
@@ -1466,26 +1600,31 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 		if (IS_VALID_PTR(pnRowPitch))
 			*pnRowPitch = m_DXTextureDesc.Width * bytePerLockedPixel;
 	}
-	else
+	else if (m_bArray)
 	{
-		D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-		memset(&mappedSubresource, 0, sizeof(D3D11_MAPPED_SUBRESOURCE));
+		if (!m_pDXStagingTexture)
+			return CLog::Log(S_ERROR, "Failed lock dynamic array texture: Staging texture not initialized (%s)", m_Specification.c_str());
 
-		unsigned int iSubresource = (m_bArray ? min(iArraySlice, m_DXTextureDesc.ArraySize) : 0);
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		ZeroMemory(&mappedResource, sizeof(mappedResource));
+		
+		unsigned int iSubresource = GetSubresourceIndex(0, iArraySlice);
 
-		if (FAILED(pDXDevCon->Map(m_pDXTexture, iSubresource, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource)))
-		{
-			m_pDXRenderer->FrameDump((string("Failed map texture (") + m_Specification + ") for Lock!").c_str());
-			return S_ERROR;
-		}
+		hr = pDXDevCon->Map(m_pDXStagingTexture, iSubresource, D3D11_MAP_READ_WRITE, 0, &mappedResource);
+		if (FAILED(hr))
+			return CLog::Log(S_ERROR, "DX11Texture::Lock(): Failed map array staging texture (%s)", m_Specification.c_str());
 
 		m_bLocked = true;
-		*pPixels = mappedSubresource.pData;
-		m_pLockedData = mappedSubresource.pData;
+		*pPixels = mappedResource.pData;
+		m_pLockedData = 0;
 
-		if (IS_VALID_PTR(pnRowPitch))
-			*pnRowPitch = mappedSubresource.RowPitch;
-	}		
+		if (pnRowPitch)
+			*pnRowPitch = mappedResource.RowPitch;
+	}
+	else
+	{
+		return CLog::Log(S_ERROR, "Cannot lock non-staged and non-array texture (%s)", m_Specification.c_str());
+	}
 
 	*pnPixels = m_DXTextureDesc.Width * m_DXTextureDesc.Height;	
 	m_nLockedBytes = (*pnPixels) * bytePerLockedPixel;
@@ -1494,7 +1633,7 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Texture::Unlock()
+S_API SResult DX11Texture::Unlock(SRectangle* pUpdateRect /*= 0*/, unsigned int iArraySlice /*= 0*/)
 {
 	if (!IS_VALID_PTR(m_pDXRenderer))
 		return CLog::Log(S_ERROR, "DX11Texture::Unlock(): Renderer not initialized");
@@ -1516,7 +1655,7 @@ S_API SResult DX11Texture::Unlock()
 
 	m_bLocked = false;
 
-	if (m_bStaged)
+	if (m_bStaged && !m_bArray)
 	{
 		// copy over staged data
 		HRESULT hr;
@@ -1535,9 +1674,40 @@ S_API SResult DX11Texture::Unlock()
 				(const char*)m_pStagedData + ln * m_DXTextureDesc.Width * bytePerLockedPixel,
 				m_DXTextureDesc.Width * bytePerLockedPixel);
 		}
-	}
 
-	pDXDevCon->Unmap(m_pDXTexture, 0);
+		pDXDevCon->Unmap(m_pDXTexture, 0);
+	}
+	else if (m_bArray && m_pDXStagingTexture)
+	{
+		if (iArraySlice >= m_DXTextureDesc.ArraySize)
+			return S_INVALIDPARAM;
+
+		unsigned int iSubresource = GetSubresourceIndex(0, iArraySlice);
+
+		pDXDevCon->Unmap(m_pDXStagingTexture, iSubresource);
+
+		// Upload slice to live texture
+		if (m_pDXTexture)
+		{
+			unsigned int dx = 0, dy = 0;
+			D3D11_BOX updateBox, *pUpdateBox = 0;
+			if (pUpdateRect)
+			{
+				updateBox.right = min(pUpdateRect->x + pUpdateRect->width, m_DXTextureDesc.Width - 1);
+				updateBox.bottom = min(pUpdateRect->y + pUpdateRect->height, m_DXTextureDesc.Height - 1);
+				updateBox.left = min(pUpdateRect->x, updateBox.right - 1);
+				updateBox.top = min(pUpdateRect->y, updateBox.bottom - 1);
+				updateBox.front = 0;
+				updateBox.back = 1;
+
+				pUpdateBox = &updateBox;
+				dx = updateBox.left;
+				dy = updateBox.top;
+			}
+
+			pDXDevCon->CopySubresourceRegion(m_pDXTexture, iSubresource, dx, dy, 0, m_pDXStagingTexture, iSubresource, pUpdateBox);
+		}
+	}
 
 	m_pLockedData = 0;
 	m_nLockedBytes = 0;

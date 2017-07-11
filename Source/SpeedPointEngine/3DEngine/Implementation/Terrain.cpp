@@ -379,6 +379,9 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 	IResourcePool* pResourcePool = m_pRenderer->GetResourcePool();
 	m_nLayers = 5;
 	m_pLayersUsed = new bool[m_nLayers];
+	for (unsigned int i = 0; i < m_nLayers; ++i)
+		m_pLayersUsed[i] = false;
+
 	m_pLayerDescs = new STerrainLayerDesc[m_nLayers];
 	
 	m_pTextureMaps = pResourcePool->GetTexture("$terrain_textures");
@@ -392,7 +395,7 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 
 	// Initialize empty layer mask
 	m_pLayermask = pResourcePool->GetTexture("$terrain_mask");
-	m_pLayermask->CreateEmptyArray(m_nLayers, params.maskSz[0], params.maskSz[1], eTEXTURE_R32_FLOAT);
+	m_pLayermask->CreateEmptyArray(m_nLayers, params.maskSz[0], params.maskSz[1], eTEXTURE_R32_FLOAT); // TODO: We probably don't need 32 bit float here....
 
 	return S_SUCCESS;
 }
@@ -874,6 +877,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 		pTerrainRenderDesc->constants.segmentSize = m_fSegSz;
 		pTerrainRenderDesc->constants.detailmapSz[0] = m_Params.detailmapSz[0];
 		pTerrainRenderDesc->constants.detailmapSz[1] = m_Params.detailmapSz[1];
+		pTerrainRenderDesc->constants.numLayers = m_nLayers;
 		m_bRequireCBUpdate = false;
 	}
 
@@ -999,8 +1003,13 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 		bool* pNewLayersUsed = new bool[newNumLayers];
 		if (m_pLayersUsed)
 		{
-			for (unsigned int i = 0; i < m_nLayers; ++i)
-				pNewLayersUsed[i] = m_pLayersUsed[i];
+			for (unsigned int i = 0; i < newNumLayers; ++i)
+			{
+				if (i < m_nLayers)
+					pNewLayersUsed[i] = m_pLayersUsed[i];
+				else
+					pNewLayersUsed[i] = false;
+			}
 
 			delete[] m_pLayersUsed;
 		}
@@ -1022,6 +1031,11 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 		m_pRoughnessMaps->ResizeArray(newNumLayers);
 		m_pLayermask->ResizeArray(newNumLayers);
 	}
+
+	// Flag layer used
+	m_pLayersUsed[layer] = true;
+
+	m_bRequireCBUpdate = true;
 
 	// Fill layer
 	IResourcePool* pResourcePool = p3DEngine->GetRenderer()->GetResourcePool();
