@@ -1040,7 +1040,7 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 	// Fill layer
 	IResourcePool* pResourcePool = p3DEngine->GetRenderer()->GetResourcePool();
 	SMaterialDefinition* pMatDef = pMaterial->GetDefinition();
-	
+
 	if (!pMatDef->textureMap.empty())
 		m_pTextureMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->textureMap));
 
@@ -1054,10 +1054,31 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 	bool clearMask = true;
 	if (!desc.mask.empty())
 	{
-		if (Success(m_pLayermask->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(desc.mask))))
-			clearMask = false;
+		bool attemptLoadMask = true;
+		
+		// Try to copy from existing resource
+		ITexture* pExistingMask = pResourcePool->GetTexture(desc.mask, false);
+		if (pExistingMask)
+		{
+			if (m_pLayermask->CopyArraySliceFromTexture(layer, pExistingMask))
+			{
+				attemptLoadMask = false;
+				clearMask = false;
+			}
+
+			pExistingMask->Release();
+			pExistingMask = 0;
+		}
+		
+		// If no success yet, attempt to load the array slice directly from file
+		if (attemptLoadMask)
+		{
+			if (Success(m_pLayermask->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(desc.mask))))
+				clearMask = false;
+		}
 	}
 
+	// If no mask file specified or any attempt to load it failed, use a cleared texture as alpha mask
 	if (clearMask)
 		m_pLayermask->FillArraySlice(layer, SColor::Black());
 

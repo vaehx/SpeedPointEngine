@@ -125,6 +125,10 @@ public:
 	virtual SResult LoadArraySliceFromFile(unsigned int i, const string& filePath) = 0;
 
 	// Summary:
+	//		Copies the contents of the texture into the given array slice of this array texture.
+	virtual SResult CopyArraySliceFromTexture(unsigned int i, const ITexture* pTexture) = 0;
+
+	// Summary:
 	//		Fills the given slice with the given color.
 	//		This methods fails if this texture was not created as a texture array.
 	virtual SResult FillArraySlice(unsigned int i, const SColor& color) = 0;
@@ -135,7 +139,7 @@ public:
 
 public:
 	virtual const string& GetSpecification() const = 0;
-	virtual ETextureType GetType() = 0;
+	virtual ETextureType GetType() const = 0;
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH) = 0;
 	
 	// Returns the array slice count or 0 if this is not an array texture

@@ -123,6 +123,7 @@ public:
 		ETextureType type = eTEXTURE_R8G8B8A8_UNORM, unsigned int mipLevels = 1, SColor clearcolor = SColor::Black());
 	
 	virtual SResult LoadArraySliceFromFile(unsigned int i, const string& filePath);
+	virtual SResult CopyArraySliceFromTexture(unsigned int i, const ITexture* pTexture);
 	virtual SResult FillArraySlice(unsigned int i, const SColor& color);
 	virtual SResult ResizeArray(unsigned int count);
 
@@ -133,7 +134,7 @@ public:
 public:
 	void SetSpecification(const string& specification);
 	virtual const string& GetSpecification(void) const;
-	virtual ETextureType GetType(void);
+	virtual ETextureType GetType() const;
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);
 	virtual unsigned int GetArraySize() const;
 

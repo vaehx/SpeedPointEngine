@@ -1032,6 +1032,59 @@ S_API SResult DX11Texture::LoadArraySliceFromFile(unsigned int i, const string& 
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API SResult DX11Texture::CopyArraySliceFromTexture(unsigned int i, const ITexture* pSrcTex)
+{
+	HRESULT hr;
+
+	if (!m_pDXTexture || !m_pDXStagingTexture || !m_bArray || !m_bDynamic)
+		return CLog::Log(S_ERROR, "Failed CopyArraySliceFromTexture(): Texture is not a dynamic array or not initialized at all (%s)", m_Specification.c_str());
+
+	const DX11Texture* pDXSrcTex = dynamic_cast<const DX11Texture*>(pSrcTex);
+	if (i >= m_DXTextureDesc.ArraySize || !pDXSrcTex || pDXSrcTex->IsArray())
+		return CLog::Log(S_INVALIDPARAM, "Failed CopyArraySliceFromTexture(): Invalid parameters (%s)", m_Specification.c_str());
+
+	if (pDXSrcTex->m_bLocked)
+		return CLog::Log(S_ERROR, "Failed CopyArraySliceFromTexture(): Source texture (%s) is locked! (%s)", pDXSrcTex->GetSpecification().c_str(), m_Specification.c_str());
+
+	if (pDXSrcTex->GetType() != m_Type)
+		return CLog::Log(S_ERROR, "Failed CopyArraySliceFromTexture(): Source texture type (%s) incompatible with %s! (%s)",
+			GetTextureTypeName(pDXSrcTex->GetType()), GetTextureTypeName(m_Type), m_Specification.c_str());
+
+	const D3D11_TEXTURE2D_DESC& srcTexDesc = pDXSrcTex->m_DXTextureDesc;
+	if (srcTexDesc.Width != m_DXTextureDesc.Width || srcTexDesc.Height != m_DXTextureDesc.Height)
+		return CLog::Log(S_ERROR, "Failed CopyArraySliceFromTexture(): Source texture size (%dx%d) incompatible with %dx%d! (%s)",
+			srcTexDesc.Width, srcTexDesc.Height, m_DXTextureDesc.Width, m_DXTextureDesc.Height, m_Specification.c_str());
+
+	if (!pDXSrcTex->m_bStaged && pDXSrcTex->m_pStagedData)
+		return CLog::Log(S_ERROR, "Failed CopyArraySliceFromTexture(): Source texture (%s) is not staged/readable! (%s)", pDXSrcTex->GetSpecification().c_str(), m_Specification.c_str());
+	
+	// Copy source texture to staging texture
+	ID3D11DeviceContext* pCtx = m_pDXRenderer->GetD3D11DeviceContext();
+	unsigned int iSubresource = GetSubresourceIndex(0, i);
+	
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	hr = pCtx->Map(m_pDXStagingTexture, iSubresource, D3D11_MAP_WRITE, 0, &mappedResource);
+	if (FAILED(hr))
+		return CLog::Log(S_ERROR, "Failed CopyArraySliceFromTexture(): Failed map staging texture (%s)", m_Specification.c_str());
+
+	unsigned int srcRowPitch = GetTextureBPP(pDXSrcTex->GetType()) * srcTexDesc.Width;
+
+	for (unsigned int y = 0; y < m_DXTextureDesc.Height; ++y)
+	{
+		memcpy((char*)mappedResource.pData + y * mappedResource.RowPitch,
+			(char*)pDXSrcTex->m_pStagedData + y * srcRowPitch,
+			mappedResource.RowPitch);
+	}
+
+	pCtx->Unmap(m_pDXStagingTexture, iSubresource);
+
+	// Upload staging texture contents to live texture
+	pCtx->CopySubresourceRegion(m_pDXTexture, iSubresource, 0, 0, 0, m_pDXStagingTexture, iSubresource, 0);
+
+	return S_SUCCESS;
+}
+
+// -----------------------------------------------------------------------------------------------
 S_API SResult DX11Texture::ResizeArray(unsigned int count)
 {
 	HRESULT hr;
@@ -1188,6 +1241,13 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 		return CLog::Log(S_ERROR, "DX11Texture::CreateEmpty(): Renderer not initialized");
 
 	m_Type = type;
+
+	
+	// !dynamic && !staged	-->	tex w/ D3D_USAGE_DEFAULT
+	//  dynamic && !staged  --> tex w/ D3D_USAGE_DYNAMIC and D3D_CPU_ACCESS_WRITE
+	//  dynamic &&  staged	-->	tex w/ D3D_USAGE_DEFAULT + staging tex w/ D3D_USAGE_STAGING and D3D_CPU_ACCESS_READ|WRITE
+	// !dynamic &&  staged	--> tex w/ D3D_USAGE_DEFAULT + staging tex w/ D3D_USAGE_STAGING and D3D_CPU_ACCESS_READ
+
 	m_bDynamic = true; // TODO ?
 	m_bStaged = true;
 
@@ -1352,7 +1412,7 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 
 	// Store staging data
 	m_pStagedData = 0;
-	if (m_bStaged && m_DXTextureDesc.ArraySize == 1)
+	if (m_bStaged && !m_bArray)
 	{
 		m_pStagedData = malloc(initData[0].SysMemSlicePitch);
 		memcpy(m_pStagedData, initData[0].pSysMem, initData[0].SysMemSlicePitch);
@@ -1533,7 +1593,7 @@ S_API void DX11Texture::SetSpecification(const string& specification)
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API ETextureType DX11Texture::GetType(void)
+S_API ETextureType DX11Texture::GetType() const
 {
 	return m_Type;
 }

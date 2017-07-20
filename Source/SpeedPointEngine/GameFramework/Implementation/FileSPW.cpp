@@ -319,6 +319,9 @@ ITexture* LoadRawTexture(const string& file, const string& worldDir, ETextureTyp
 		return 0;
 	}
 
+
+	CLog::Log(S_DEBUG, "Loaded raw texture '%s'", sysFile.c_str());
+
 	stream.close();
 	return pTex;
 }
@@ -334,7 +337,8 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 	IResourcePool* pResources = m_p3DEngine->GetRenderer()->GetResourcePool();
 	
 	string layerMaskSpec = DeserializeString(params["alphamap"]);
-	LoadRawTexture(layerMaskSpec, m_WorldFileDir, eTEXTURE_R8G8B8A8_UNORM, pResources);
+	layerMaskSpec = MakePathAbsolute(layerMaskSpec, m_WorldFileDir);
+	LoadRawTexture(layerMaskSpec, m_WorldFileDir, eTEXTURE_R32_FLOAT, pResources);
 
 	static unsigned int numLoadedTerrainLayers = 0;
 	string layerMaterialSpec = string("terrain_layer_") + std::to_string(numLoadedTerrainLayers++);
