@@ -73,10 +73,8 @@ namespace SpeedPoint
 		inline Vec3<F>& operator /=(const Vec3<F>& v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
 		inline Vec3<F>& operator /=(const F& k) { F k_inv = finv(k); x *= k_inv; y *= k_inv; z *= k_inv; return *this; }
 
-		inline F& operator [](unsigned int i)
-		{
-			return ((F*)this)[i];
-		}
+		inline F& operator [](unsigned int i) { return ((F*)this)[i]; }
+		inline const F& operator [](unsigned int i) const { return ((F*)this)[i]; }
 
 		inline F Dot(const Vec3<F>& v) const
 		{

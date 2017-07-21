@@ -38,6 +38,11 @@ struct S_API SPhysTerrainParams
 	unsigned int segments[2]; // number of rows/colums to divide the world dimensions into. The heightmap will be sampled bilinearly.
 	float size[2]; // (x,z) world-dimensions of the terrain
 	unsigned int maxProxyTreeDepth;
+
+	SPhysTerrainParams()
+		: maxProxyTreeDepth(16)
+	{
+	}
 };
 
 struct S_API IPhysics

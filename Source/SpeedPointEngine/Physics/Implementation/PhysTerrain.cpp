@@ -8,6 +8,7 @@
 #include "PhysTerrain.h"
 #include "PhysDebug.h"
 #include <Common\Vector2.h>
+#include <stack>
 
 #define TERRAIN_PROXY_Y_BOUNDS_BIAS 0.5f
 
@@ -42,6 +43,37 @@ S_API PhysTerrain::PhysTerrain()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+inline void DumpMeshTree(const geo::mesh* pmesh)
+{
+	struct open_node
+	{
+		const geo::mesh_tree_node* pnode;
+		unsigned int depth;
+		open_node(const geo::mesh_tree_node* _pnode, unsigned int _depth) : pnode(_pnode), depth(_depth) {}
+	};
+
+	string indent;
+	std::stack<open_node> openNodes;
+	openNodes.emplace(&pmesh->root, 0);
+	while (!openNodes.empty())
+	{
+		open_node node = openNodes.top();
+		openNodes.pop();
+
+		indent = "";
+		for (unsigned int i = 0; i < node.depth; ++i)
+			indent += "  ";
+
+		CLog::Log(S_DEBUG, "  %s[%d tris]", indent.c_str(), node.pnode->num_tris);
+
+		if (node.pnode->children)
+		{
+			for (unsigned int i = 0; i < node.pnode->num_children; ++i)
+				openNodes.emplace(&node.pnode->children[i], node.depth + 1);
+		}
+	}
+}
+
 S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[2], const SPhysTerrainParams& params)
 {
 	if (!heightmap || params.segments[0] == 0 || params.segments[1] == 0)
@@ -54,6 +86,15 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 		delete m_pShape;
 
 	m_Params = params;
+
+#define EXCESSIVE_PROXY_TREE_DEPTH 100
+	if (m_Params.maxProxyTreeDepth > EXCESSIVE_PROXY_TREE_DEPTH)
+	{
+		CLog::Log(S_WARN, "PhysTerrain::Create(): maxProxyTreeDepth is excessively high (%d), setting to %d!",
+			m_Params.maxProxyTreeDepth, EXCESSIVE_PROXY_TREE_DEPTH);
+
+		m_Params.maxProxyTreeDepth = EXCESSIVE_PROXY_TREE_DEPTH;
+	}
 
 	SetBehavior(ePHYSOBJ_BEHAVIOR_STATIC);
 
@@ -105,7 +146,18 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 			}
 		}
 
+	LARGE_INTEGER freq, start, end;
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&start);
+
 	pmesh->CreateTree(false, params.maxProxyTreeDepth);
+
+	QueryPerformanceCounter(&end);
+	double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
+	CLog::Log(S_DEBUG, "Created terrain proxy mesh tree in %.4f milliseconds", elapsed * 1000.0f);
+
+	//DumpMeshTree(pmesh);
+
 	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
 }
 

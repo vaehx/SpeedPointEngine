@@ -206,7 +206,7 @@ struct mesh : shape
 	}
 
 	virtual OBB GetBoundBox() const;
-	void CreateTree(bool octree = true, unsigned int maxDepth = 5);
+	void CreateTree(bool octree = true, unsigned int maxTrisPerLeaf = 8);
 	void ClearTree();
 };
 

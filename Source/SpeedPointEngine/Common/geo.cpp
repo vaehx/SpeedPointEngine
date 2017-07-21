@@ -1,9 +1,17 @@
 #include "geo.h"
+#include "ChunkedObjectPool.h"
 #include <Physics\Implementation\PhysDebug.h> // TODO: Get this out of here.
 #include <cstdlib>
 #include <time.h>
+#include <stack>
 
 GEO_NMSPACE_BEG
+
+#ifdef _DEBUG
+#define _d(msg, ...) CLog::Log(S_DEBUG, msg, __VA_ARGS__)
+#else
+#define _d(msg)
+#endif
 
 // Returns the sign bit of x (x < 0)
 ILINE int isneg(f32 x)
@@ -1598,27 +1606,80 @@ bool _BoxCapsule(const box* pbox, const capsule* pcapsule, SIntersection* pinter
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigned int>& parentTris, bool octree, unsigned int maxDepth, unsigned int depth = 1)
+inline int _TestLineSegmentAABB(const Vec3f& p0, const Vec3f& p1, const AABB& aabb)
 {
-	Vec3f p[3];
-	vector<unsigned int> tris;
-	for (const auto& i : parentTris)
+	Vec3f c = (aabb.vMin + aabb.vMax) * 0.5f;
+	Vec3f e = aabb.vMax - c;
+	Vec3f m = (p0 + p1) * 0.5f;
+	Vec3f d = p1 - m;
+	m = m - c;
+
+	// Try world coordinate axes as separating axes
+	float adx = fabsf(d.x);
+	if (fabsf(m.x) > e.x + adx) return 0;
+	float ady = fabsf(d.y);
+	if (fabsf(m.y) > e.y + ady) return 0;
+	float adz = fabsf(d.z);
+	if (fabsf(m.z) > e.z + adz) return 0;
+
+	adx += FLT_EPSILON; ady += FLT_EPSILON; adz += FLT_EPSILON;
+	if (fabsf(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady) return 0;
+	if (fabsf(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx) return 0;
+	if (fabsf(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx) return 0;
+
+	// No separating axis found
+	return 1;
+}
+
+
+struct TriBuffer
+{
+	unsigned int* buffer;
+	unsigned int capacity;
+	unsigned int size;
+
+	TriBuffer() : buffer(0), capacity(0), size(0) {}
+};
+
+void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const TriBuffer& parentTris, bool octree, unsigned int maxDepth, Vec3f* triCache, unsigned int depth = 1)
+{
+	TriBuffer tris;
+	unsigned int itri;
+	for (unsigned int i = 0; i < parentTris.size; ++i)
 	{
-		p[0] = pmesh->points[pmesh->indices[i]];
-		p[1] = pmesh->points[pmesh->indices[i + 1]];
-		p[2] = pmesh->points[pmesh->indices[i + 2]];
+		itri = parentTris.buffer[i];
 
-		if (pnode->aabb.ContainsPoint(p[0]) || pnode->aabb.ContainsPoint(p[1]) || pnode->aabb.ContainsPoint(p[2]) ||
-			pnode->aabb.HitsLineSegment(p[0], p[1]) || pnode->aabb.HitsLineSegment(p[1], p[2]) || pnode->aabb.HitsLineSegment(p[2], p[0]))
+		static Vec3f p[3];
+		p[0] = triCache[itri];
+		p[1] = triCache[itri + 1];
+		p[2] = triCache[itri + 2];
+
+		if (/*pnode->aabb.ContainsPoint(p[0]) || pnode->aabb.ContainsPoint(p[1]) || pnode->aabb.ContainsPoint(p[2]) ||*/
+			_TestLineSegmentAABB(p[0], p[1], pnode->aabb)
+			|| _TestLineSegmentAABB(p[1], p[2], pnode->aabb)
+			|| _TestLineSegmentAABB(p[2], p[0], pnode->aabb))
 		{
-			if (tris.size() == tris.capacity())
-				tris.reserve(tris.capacity() + 40);
+			if (!tris.buffer || tris.size >= tris.capacity)
+			{
+				unsigned int newCapacity = tris.capacity + 20;
+				unsigned int* newBuffer = new unsigned int[newCapacity];
+				if (tris.buffer)
+				{
+					memcpy(newBuffer, tris.buffer, tris.size * sizeof(unsigned int));
+					delete[] tris.buffer;
+					tris.buffer = 0;
+				}
 
-			tris.push_back(i);
+				tris.buffer = newBuffer;
+				tris.capacity = newCapacity;
+			}
+
+			tris.buffer[tris.size] = itri;
+			tris.size++;
 		}
 	}
 
-	if (depth < maxDepth && tris.size() > 8) // min 8 triangles in one BV
+	if (depth < maxDepth && tris.size > 16) // min 16 triangles in one BV
 	{
 		pnode->tris = 0;
 		pnode->num_tris = 0;
@@ -1647,17 +1708,18 @@ void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigne
 		}
 
 		for (unsigned int i = 0; i < pnode->num_children; ++i)
-			CreateMeshTreeNode(pmesh, &pnode->children[i], tris, octree, maxDepth, depth + 1);
+			CreateMeshTreeNode(pmesh, &pnode->children[i], tris, octree, maxDepth, triCache, depth + 1);
 	}
 	else
 	{
 		pnode->num_children = 0;
 		pnode->children = 0;
-		pnode->num_tris = tris.size();
-		if (!tris.empty())
+		pnode->num_tris = tris.size;
+		if (pnode->num_tris > 0)
 		{
-			pnode->tris = new unsigned int[pnode->num_tris];
-			memcpy(pnode->tris, &tris[0], tris.size() * sizeof(unsigned int));
+			// !! We do not copy the buffer here! Instead we takeover control of it
+			pnode->tris = tris.buffer;
+			tris.buffer = 0;
 		}
 
 		static bool seeded = false;
@@ -1673,6 +1735,12 @@ void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const vector<unsigne
 
 		//PhysDebug::VisualizeAABB(pnode->aabb, pnode->_color);
 	}
+
+	if (tris.buffer)
+	{
+		delete[] tris.buffer;
+		tris.buffer = 0;
+	}
 }
 
 void mesh::CreateTree(bool octree, unsigned int maxDepth)
@@ -1684,12 +1752,299 @@ void mesh::CreateTree(bool octree, unsigned int maxDepth)
 	for (unsigned int i = 0; i < num_points; ++i)
 		root.aabb.AddPoint(points[i]);
 
-	vector<unsigned int> tris;
-	for (unsigned int i = 0; i < num_indices; i += 3)
-		tris.push_back(i);
+	TriBuffer rootTris;
+	rootTris.capacity = (unsigned int)(num_indices / 3);
+	rootTris.buffer = new unsigned int[rootTris.capacity];
 
-	CreateMeshTreeNode(this, &root, tris, octree, maxDepth);
+	// Cache triangle points
+	Vec3f* triCache = (Vec3f*)malloc(sizeof(Vec3f) * num_indices);
+
+	for (unsigned int i = 0; i < num_indices; i += 3)
+	{
+		rootTris.buffer[rootTris.size++] = i;
+		triCache[i] = points[indices[i]];
+		triCache[i + 1] = points[indices[i + 1]];
+		triCache[i + 2] = points[indices[i + 2]];
+	}
+
+	CreateMeshTreeNode(this, &root, rootTris, octree, maxDepth, triCache);
+
+	if (rootTris.buffer)
+	{
+		delete[] rootTris.buffer;
+		rootTris.buffer = 0;
+	}
+
+	free(triCache);
 }
+
+
+//inline void VisualizeMeshTreeNode(mesh_tree_node* pnode)
+//{
+//	static bool seeded = false;
+//	if (!seeded)
+//	{
+//		srand(static_cast<unsigned>(time(0)));
+//		seeded = true;
+//	}
+//
+//	pnode->_color.r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+//	pnode->_color.g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+//	pnode->_color.b = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+//
+//	PhysDebug::VisualizeAABB(pnode->aabb, pnode->_color);
+//}
+//
+//inline void VisualizeMeshTreeNodeTriAssignment(const mesh* pmesh, const mesh_tree_node* pnode, unsigned int itri)
+//{
+//	Vec3f p[3];
+//	p[0] = pmesh->points[pmesh->indices[itri]];
+//	p[1] = pmesh->points[pmesh->indices[itri + 1]];
+//	p[2] = pmesh->points[pmesh->indices[itri + 2]];
+//	Vec3f tricenter = (p[0] + p[1] + p[2]) / 3.0f;
+//	Vec3f aabbcenter = (pnode->aabb.vMin + pnode->aabb.vMax) * 0.5f;
+//
+//	PhysDebug::VisualizeVector(tricenter, aabbcenter - tricenter, pnode->_color);
+//}
+//
+//unsigned int DetermineMeshMaxTreeDepth(mesh_tree_node* pnode)
+//{
+//	if (!pnode)
+//	{
+//		return 0;
+//	}
+//	else if (!pnode->children)
+//	{
+//		return 1;
+//	}
+//	else
+//	{
+//		unsigned int depth, maxDepth = 0;
+//		for (unsigned int i = 0; i < pnode->num_children; ++i)
+//		{
+//			depth = DetermineMeshMaxTreeDepth(&pnode->children[i]);
+//			maxDepth = max(maxDepth, depth);
+//		}
+//
+//		return maxDepth + 1; // +1 for current node
+//	}
+//}
+//
+//void DumpMeshTree(const mesh* pmesh, const mesh_tree_node* pnode, unsigned int curDepth = 0)
+//{
+//	if (!pnode)
+//		return;
+//
+//	static string indent;
+//	indent = "  ";
+//	for (unsigned int i = 0; i < curDepth; ++i)
+//		indent += "  ";
+//
+//	static string tris;
+//	tris = "";
+//	if (pnode->tris)
+//	{
+//		tris += "{ ";
+//		for (unsigned int i = 0; i < pnode->num_tris; ++i)
+//		{
+//			if (i > 0)
+//				tris += ", ";
+//
+//			tris += std::to_string(pnode->tris[i]);
+//		}
+//		tris += " }";
+//	}
+//
+//	_d("%s[num_children=%d, num_tris=%d] %s", indent.c_str(), pnode->num_children, pnode->num_tris, tris.c_str());
+//
+//	if (pnode->children)
+//	{
+//		for (unsigned int i = 0; i < pnode->num_children; ++i)
+//			DumpMeshTree(pmesh, &pnode->children[i], curDepth + 1);
+//	}
+//}
+//
+//inline bool MeshTreeNodeContainsTri(const mesh* pmesh, const mesh_tree_node* pnode, unsigned int itri)
+//{
+//	static Vec3f p[3];
+//	p[0] = pmesh->points[pmesh->indices[itri]];
+//	p[1] = pmesh->points[pmesh->indices[itri + 1]];
+//	p[2] = pmesh->points[pmesh->indices[itri + 2]];
+//
+//	/*return _TestLineSegmentAABB(p[0], p[1], pnode->aabb)
+//		| _TestLineSegmentAABB(p[1], p[2], pnode->aabb)
+//		| _TestLineSegmentAABB(p[2], p[0], pnode->aabb);*/
+//
+//	return pnode->aabb.ContainsPoint(p[0])
+//		|| pnode->aabb.ContainsPoint(p[1])
+//		|| pnode->aabb.ContainsPoint(p[2])
+//		|| pnode->aabb.HitsLineSegment(p[0], p[1])
+//		|| pnode->aabb.HitsLineSegment(p[1], p[2])
+//		|| pnode->aabb.HitsLineSegment(p[2], p[0]);
+//}
+//
+//inline void SplitMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, bool octree)
+//{
+//	// Create children
+//	pnode->num_children = (octree ? 8 : 4);
+//	pnode->children = new mesh_tree_node[pnode->num_children];
+//
+//	Vec3f vMin = pnode->aabb.vMin, vMax = pnode->aabb.vMax;
+//	Vec3f vCenter = (vMin + vMax) * 0.5f;
+//	if (octree)
+//	{
+//		pnode->children[0].aabb = AABB(vMin, vCenter);
+//		pnode->children[1].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vCenter.y, vMax.z));
+//		pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vCenter.y, vMax.z));
+//		pnode->children[3].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vCenter.y, vCenter.z));
+//		pnode->children[4].aabb = AABB(Vec3f(vMin.x, vCenter.y, vMin.z), Vec3f(vCenter.x, vMax.y, vCenter.z));
+//		pnode->children[5].aabb = AABB(Vec3f(vMin.x, vCenter.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
+//		pnode->children[6].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+//		pnode->children[7].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
+//	}
+//	else
+//	{
+//		pnode->children[0].aabb = AABB(vMin, Vec3f(vCenter.x, vMax.y, vCenter.z));
+//		pnode->children[1].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
+//		pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+//		pnode->children[3].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
+//	}
+//
+//	// Insert existing tris into children
+//	if (pnode->tris)
+//	{
+//		mesh_tree_node* pchild = 0;
+//		for (unsigned int i = 0; i < pnode->num_tris; ++i)
+//		{
+//			for (unsigned int ichild = 0; ichild < pnode->num_children; ++ichild)
+//			{
+//				unsigned int itri = pnode->tris[i];
+//
+//				pchild = &pnode->children[ichild];
+//				if (!MeshTreeNodeContainsTri(pmesh, pchild, itri))
+//					continue;
+//
+//				if (!pchild->tris)
+//				{
+//					pchild->tris = new unsigned int[pnode->num_tris];
+//					pchild->num_tris = 0;
+//
+//					//VisualizeMeshTreeNode(pchild);
+//				}
+//
+//				pchild->tris[pchild->num_tris] = itri;
+//				pchild->num_tris++;
+//			}
+//		}
+//
+//		delete[] pnode->tris;
+//		pnode->tris = 0;
+//		pnode->num_tris = 0;
+//	}
+//}
+//
+//// maxTrisPerLeaf - algorithm will split leaf node when (maxTrisPerLeaf + 1)th tri is added to it
+//void InsertMeshTreeTriangle(mesh* pmesh, unsigned int itri, unsigned int maxTrisPerLeaf = 4, bool octree = true)
+//{
+//	struct open_node
+//	{
+//		mesh_tree_node* pnode;
+//		unsigned int depth;
+//
+//		open_node() : pnode(0), depth(0) {}
+//		open_node(mesh_tree_node* _pnode) : pnode(_pnode), depth(0) {}
+//		open_node(mesh_tree_node* _pnode, unsigned int _depth) : pnode(_pnode), depth(_depth) {}
+//	};
+//
+//	static std::stack<open_node> openNodes;
+//	openNodes.emplace(&pmesh->root);
+//
+//	bool propagate;
+//	mesh_tree_node* pnode = 0;
+//	while (openNodes.size() > 0)
+//	{
+//		open_node node = openNodes.top();
+//		openNodes.pop();
+//
+//		pnode = node.pnode;
+//		propagate = (bool)(pnode->children);
+//
+//		if (!propagate && pnode->num_tris >= maxTrisPerLeaf)
+//		{
+//			SplitMeshTreeNode(pmesh, pnode, octree);
+//			propagate = true;
+//		}
+//
+//		if (propagate)
+//		{
+//			for (unsigned int ichild = 0; ichild < pnode->num_children; ++ichild)
+//			{
+//				if (!MeshTreeNodeContainsTri(pmesh, pnode, itri))
+//					continue;
+//
+//				openNodes.emplace(&pnode->children[ichild], node.depth + 1);
+//			}
+//		}
+//		else
+//		{
+//			if (!pnode->tris)
+//			{
+//				pnode->tris = new unsigned int[maxTrisPerLeaf];
+//				pnode->num_tris = 0;
+//
+//				//VisualizeMeshTreeNode(pnode);
+//			}
+//
+//			pnode->tris[pnode->num_tris] = itri;
+//			pnode->num_tris++;
+//		}
+//	}
+//}
+//
+//void mesh::CreateTree(bool octree, unsigned int maxTrisPerLeaf /*= 8*/)
+//{
+//	_d("===== mesh::CreateTree(octree=%s, maxTrisPerLeaf=%d) =====", (octree ? "true" : "false"), maxTrisPerLeaf);
+//
+//	_d("  Clearing tree...");
+//	ClearTree();
+//
+//	if (!points || !indices || num_points == 0 || num_indices == 0)
+//		return;
+//
+//	_d("  Adding points...");
+//	for (unsigned int i = 0; i < num_points; ++i)
+//		root.aabb.AddPoint(points[i]);
+//
+//	float minAABBAxisDiff = 0.1f;
+//	for (unsigned int i = 0; i < 3; ++i)
+//	{
+//		float diff;
+//		if ((diff = root.aabb.vMax[i] - root.aabb.vMin[i]) < minAABBAxisDiff)
+//		{
+//			diff = (minAABBAxisDiff - diff) * 0.5f;
+//			root.aabb.vMin[i] -= diff;
+//			root.aabb.vMax[i] += diff;
+//		}
+//	}
+//
+//	// Slightly un-align root aabb so we can avoid perfectly matching node aabbs and triangle edges
+//	// for grid patterns.
+//	root.aabb.vMax += Vec3f(0.003f, 0.003f, 0.003f);
+//	root.aabb.vMin -= Vec3f(0.001f, 0.001f, 0.001f);
+//
+//	_d("  Inserting %d triangles...", (unsigned int)(num_indices / 3));
+//	for (unsigned int itri = 0; itri < num_indices; itri += 3)
+//		InsertMeshTreeTriangle(this, itri, maxTrisPerLeaf, octree);
+//	_d("  Done.");
+//	_d("");
+//
+//	//DumpMeshTree(this, &root);
+//	//_d("");
+//
+//	unsigned int maxTreeDepth = DetermineMeshMaxTreeDepth(&root);
+//	_d("  ===> Max Tree Depth: %d", maxTreeDepth);
+//	_d("");
+//}
 
 
 void ClearMeshTreeNode(mesh_tree_node* pnode)

@@ -7,6 +7,7 @@
 
 #include "..\PhysObject.h"
 #include "PhysDebug.h"
+#include <Windows.h>
 
 SP_NMSPACE_BEG
 
@@ -441,7 +442,17 @@ S_API void PhysObject::SetMeshCollisionShape(const Vec3f* ppoints, u32 npoints, 
 	pmesh->root.num_tris = 0;
 	
 	if (pmesh->points && pmesh->indices)
+	{
+		LARGE_INTEGER freq, start, end;
+		QueryPerformanceFrequency(&freq);
+		QueryPerformanceCounter(&start);
+
 		pmesh->CreateTree(octree, maxTreeDepth);
+
+		QueryPerformanceCounter(&end);
+		double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
+		CLog::Log(S_DEBUG, "Created mesh tree in %.4f milliseconds", elapsed * 1000.0f);
+	}
 
 	RecalculateInertia();
 }
