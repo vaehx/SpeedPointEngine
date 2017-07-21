@@ -88,6 +88,12 @@ struct S_API SMatObjConstants : SObjectConstants
 class S_API ForwardShaderPass : public IShaderPass
 {
 public:
+	struct S_API SHelperObjConstants : public SObjectConstants
+	{
+		float helperColor[3];
+		float __padding[1];
+	};
+	
 	ForwardShaderPass()
 		: m_pRenderer(0),
 		m_pShader(0)		
@@ -112,6 +118,7 @@ private:
 	IShader* m_pShader;
 	IShader* m_pSkyboxShader;
 	ConstantsBufferHelper<SMatObjConstants> m_Constants;
+	ConstantsBufferHelper<SHelperObjConstants> m_HelperConstants;
 };
 
 

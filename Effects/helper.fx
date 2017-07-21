@@ -16,7 +16,6 @@ cbuffer SceneCB : register(b0)
 cbuffer ObjectCB : register(b1)
 {
     float4x4 mtxWorld;
-    float matAmbient;
     float3 helperColor;
 };
 
@@ -58,7 +57,7 @@ float4 PS_helper(v2f IN) : SV_Target0
 	lambert = 1.0f;
 
 	float3 col = IN.Color * helperColor.rgb * lambert;
-	col = float3(1.0f, 0, 0);
+	//col = float3(1.0f, 0, 0);
     return float4(col.x, col.y, col.z, 1.0f);
 }
 

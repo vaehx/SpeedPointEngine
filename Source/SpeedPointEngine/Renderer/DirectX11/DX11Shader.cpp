@@ -507,6 +507,8 @@ S_API SResult ForwardShaderPass::Initialize(IRenderer* pRenderer)
 	SMatObjConstants _constants;
 	m_Constants.Initialize(pRenderer);
 
+	m_HelperConstants.Initialize(pRenderer);
+
 	return S_SUCCESS;
 }
 
@@ -560,6 +562,7 @@ S_API void ForwardShaderPass::ReloadShaders()
 S_API void ForwardShaderPass::Clear()
 {
 	m_Constants.Clear();
+	m_HelperConstants.Clear();
 
 	if (m_pShader)
 	{
@@ -597,8 +600,6 @@ S_API SResult ForwardShaderPass::Bind()
 	m_pRenderer->BindTexture((ITexture*)0, 0);
 	m_pRenderer->BindTexture((ITexture*)0, 1);
 
-	m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
-
 	return S_SUCCESS;
 }
 
@@ -607,16 +608,28 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	ShadowmapShaderPass* pShadowmapPass =
 		dynamic_cast<ShadowmapShaderPass*>(m_pRenderer->GetShaderPass(eSHADERPASS_SHADOWMAP));
 
+	bool regularConstants = true;
 	if (sr.illumModel == eILLUM_HELPER)
 	{
 		m_pHelperShader->Bind();
+		m_pRenderer->BindConstantsBuffer(m_HelperConstants.GetCB());
 
 		m_pRenderer->BindTexture((ITexture*)0, 0);
 		m_pRenderer->BindTexture((ITexture*)0, 1);
+
+		regularConstants = false;
+		SHelperObjConstants* constants = m_HelperConstants.GetConstants();
+		constants->mtxWorld = transform;
+		constants->helperColor[0] = sr.diffuse.x;
+		constants->helperColor[1] = sr.diffuse.y;
+		constants->helperColor[2] = sr.diffuse.z;
+		
+		m_HelperConstants.Update();
 	}
 	else if (sr.illumModel == eILLUM_SKYBOX)
 	{
 		m_pSkyboxShader->Bind();
+		m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 		m_pRenderer->EnableBackfaceCulling(false);
 		m_pRenderer->EnableDepthTest(true, false);
@@ -627,6 +640,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	else
 	{
 		m_pShader->Bind();
+		m_pRenderer->BindConstantsBuffer(m_Constants.GetCB());
 
 		m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
 
@@ -637,12 +651,15 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	}
 
 	// Set constants
-	SMatObjConstants* constants = m_Constants.GetConstants();
+	if (regularConstants)
+	{
+		SMatObjConstants* constants = m_Constants.GetConstants();
 
-	constants->mtxWorld = transform;
-	constants->matRoughnes = sr.roughness;
+		constants->mtxWorld = transform;
+		constants->matRoughnes = sr.roughness;
 
-	m_Constants.Update();
+		m_Constants.Update();
+	}
 }
 
 
