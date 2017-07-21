@@ -610,8 +610,16 @@ S_API void Terrain::SetHeightmap(ITexture* heightmap)
 		m_pVtxHeightMap->Release();
 	}
 
+	unsigned int heightmapSz[2];
+	heightmap->GetSize(&heightmapSz[0], &heightmapSz[1]);
+	if (heightmapSz[0] != m_Params.segments)
+	{
+		CLog::Log(S_WARNING, "Terrain heightmap dimensions (%dx%d) don't match segment size (%dx%d) for %s",
+			heightmapSz[0], heightmapSz[1], m_Params.segments, m_Params.segments, heightmap->GetSpecification().c_str());
+	}
+
 	m_pVtxHeightMap = heightmap;
-	m_bCustomHeightmapSet = true;			
+	m_bCustomHeightmapSet = true;
 
 	MarkDirty();
 }
@@ -873,7 +881,11 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 		pTerrainRenderDesc->bUpdateCB = true;
 		pTerrainRenderDesc->constants.fTerrainDMFadeRadius = m_Params.detailmapRange;
 		pTerrainRenderDesc->constants.fTerrainMaxHeight = m_HeightScale;
-		pTerrainRenderDesc->constants.vtxHeightMapSz = m_Params.segments;
+		
+		unsigned int vtxHeightmapSz[2];
+		m_pVtxHeightMap->GetSize(&vtxHeightmapSz[0], &vtxHeightmapSz[1]);
+		pTerrainRenderDesc->constants.vtxHeightMapSz = vtxHeightmapSz[0]; // assuming its squared
+
 		pTerrainRenderDesc->constants.segmentSize = m_fSegSz;
 		pTerrainRenderDesc->constants.detailmapSz[0] = m_Params.detailmapSz[0];
 		pTerrainRenderDesc->constants.detailmapSz[1] = m_Params.detailmapSz[1];
