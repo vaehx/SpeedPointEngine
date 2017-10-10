@@ -1620,6 +1620,8 @@ S_API SResult DX11Renderer::ClearRT(IFBO* pFBO, bool color /*= true*/, bool dept
 		if (pDSV && !(pDSV == m_pBoundDSV && m_bBoundDSVReadonly))
 			m_pD3DDeviceContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
+
+	return S_SUCCESS;
 }
 
 // -----------------------------------------------------------------------------------------------
