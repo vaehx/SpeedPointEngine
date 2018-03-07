@@ -525,6 +525,42 @@ const SHelperGeometryDesc* CVectorHelper::GetBaseGeometry(bool outline)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CLineHelper::SetParams(const Params& params)
+{
+	Vec3f v = params.p2 - params.p1;
+	float length = v.Length();
+	v /= length;
+
+	Mat44 mtxTranslation = Mat44::MakeTranslationMatrix(params.p1);
+	Mat44 mtxRotation = Quat::FromVectors(Vec3f(0, 1.0f, 0), v).ToRotationMatrix();
+	Mat44 mtxScale = Mat44::MakeScaleMatrix(Vec3f(1.0f, length, 1.0f));
+
+	m_Transform = mtxTranslation * (mtxRotation * mtxScale);
+}
+
+const SHelperGeometryDesc* CLineHelper::GetBaseGeometry(bool outline)
+{
+	static SHelperGeometryDesc geom;
+	static bool geomInited = false;
+
+	if (!geomInited)
+	{
+		geom.topology = PRIMITIVE_TYPE_LINES;
+		Vec3f n = Vec3f(0);
+		geom.vertices =
+		{
+			SVertex(0, 0, 0, n.x, n.y, n.z, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f),
+			SVertex(0, 1.0f, 0, n.x, n.y, n.z, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f)
+		};
+
+		geomInited = true;
+	}
+
+	return &geom;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CPlaneHelper::SetParams(const Params& params)
 {
 	STransformationDesc transform;

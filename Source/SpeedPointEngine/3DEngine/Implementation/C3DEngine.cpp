@@ -28,6 +28,7 @@ S_API C3DEngine::C3DEngine(IRenderer* pRenderer)
 {
 	CreateHelperPrefab<CPointHelper>();
 	CreateHelperPrefab<CVectorHelper>();
+	CreateHelperPrefab<CLineHelper>();
 	CreateHelperPrefab<CBoxHelper>();
 	CreateHelperPrefab<CSphereHelper>();
 	CreateHelperPrefab<CPlaneHelper>();

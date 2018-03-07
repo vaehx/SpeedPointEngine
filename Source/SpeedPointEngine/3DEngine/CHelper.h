@@ -10,14 +10,14 @@ using std::vector;
 
 SP_NMSPACE_BEG
 
-
 #define SP_HELPER_POINT 0
 #define SP_HELPER_VECTOR 1
-#define SP_HELPER_BOX 2
-#define SP_HELPER_SPHERE 3
-#define SP_HELPER_DYNAMIC_MESH 4
-#define SP_HELPER_PLANE 5
-#define SP_HELPER_CYLINDER 6
+#define SP_HELPER_LINE 2
+#define SP_HELPER_BOX 3
+#define SP_HELPER_SPHERE 4
+#define SP_HELPER_DYNAMIC_MESH 5
+#define SP_HELPER_PLANE 6
+#define SP_HELPER_CYLINDER 7
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -348,6 +348,32 @@ public:
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
 	virtual unsigned int GetTypeId() const { return SP_HELPER_VECTOR; }
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CLineHelper : public CHelper
+{
+public:
+	struct Params
+	{
+		Vec3f p1, p2;
+
+		Params() {}
+		Params(const Vec3f& _p1, const Vec3f& _p2)
+			: p1(_p1), p2(_p2) {}
+	};
+
+private:
+	Params m_Params;
+
+public:
+	const Params& GetParams() const { return m_Params; }
+	void SetParams(const Params& params);
+
+	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
+	virtual unsigned int GetTypeId() const { return SP_HELPER_LINE; }
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
