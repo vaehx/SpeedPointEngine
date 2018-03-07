@@ -22,6 +22,21 @@ struct S_API SMaterial;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+enum S_API EAbsentTextureStrategy
+{
+	// If the specification is not known, a new texture object is created and additionally,
+	// if the specification is an absolute resource path, the texture is attempted to load from disk.
+	eTEX_ABSENT_CREATE_AND_ATTEMPT_LOAD = 0,
+
+	// If the specification is not known, a new texture object is created.
+	eTEX_ABSENT_CREATE_ONLY,
+
+	// If the specification is not known, GetTexture() will return an invalid pointer
+	eTEX_ABSENT_NOOP,
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct S_API IResourcePool
 {
 protected:
@@ -81,13 +96,10 @@ public:
 	//		Returns a pointer to the texture object with the given specification and loads the texture if possible.
 	// Description:
 	//		If the specification is known, the pointer to the existing texture is returned.
-	//		Otherwise, if specification is an absolute resource path, the texture is attempted to be loaded from disk during this call:
-	//			- The loaded texture will then be non-dynamic and not staged.
-	//			- No scaling of the texture will happen.
-	//		If the texture could not be loaded, a pointer to a cleared new texture object is returned.
+	//		Otherwise, the behavior of this method depends on the absentTextureStrategy parameter.
 	// Parameters:
 	//		specification - either the specification/path of an existing texture or the absolute resource path to the texture
-	virtual ITexture* GetTexture(const string& specification, bool createIfNotFound = true) = 0;
+	virtual ITexture* GetTexture(const string& specification, EAbsentTextureStrategy absentTextureStrategy = eTEX_ABSENT_CREATE_AND_ATTEMPT_LOAD) = 0;
 
 	virtual ITexture* FindTexture(const string& specification) = 0;
 

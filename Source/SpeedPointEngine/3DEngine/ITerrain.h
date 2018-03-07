@@ -141,6 +141,7 @@ struct S_API STerrainLayerDesc
 {
 	string mask; // resource name of the layer mask or empty to create an empty mask
 	string materialName;
+	string colormap; // colormap used while painting for this layer on the terrains colormap (only used by editor)
 };
 
 struct S_API STerrainParams

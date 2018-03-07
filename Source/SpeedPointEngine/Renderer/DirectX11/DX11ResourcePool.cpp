@@ -222,7 +222,7 @@ S_API DX11Texture* DX11ResourcePool::FindDX11TextureBySpecification(const string
 	return 0;
 }
 
-S_API ITexture* DX11ResourcePool::GetTexture(const string& specification, bool createIfNotFound /*= true*/)
+S_API ITexture* DX11ResourcePool::GetTexture(const string& specification, EAbsentTextureStrategy absentTextureStrategy)
 {
 	if (specification.empty())
 		return 0;
@@ -232,7 +232,7 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification, bool c
 	{
 		pTexture->AddRef();
 	}
-	else if (createIfNotFound)
+	else if (absentTextureStrategy != eTEX_ABSENT_NOOP)
 	{
 		pTexture = m_plTextures.Get();
 		pTexture->AddRef();
@@ -241,7 +241,7 @@ S_API ITexture* DX11ResourcePool::GetTexture(const string& specification, bool c
 
 		// Try to load the texture.
 		// This attempt may fail if the specification is not actually a filename.
-		if (IsAbsoluteResourcePath(specification))
+		if (absentTextureStrategy == eTEX_ABSENT_CREATE_AND_ATTEMPT_LOAD && IsAbsoluteResourcePath(specification))
 		{
 			pTexture->LoadFromFile(GetResourceSystemPath(specification));
 		}

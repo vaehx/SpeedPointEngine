@@ -47,7 +47,7 @@ public:
 	// Returns 0 if not found. Returns first one in the pool if there are multiple
 	DX11Texture* FindDX11TextureBySpecification(const string& specification);
 
-	virtual ITexture* GetTexture(const string& specification, bool createIfNotFound = true);
+	virtual ITexture* GetTexture(const string& specification, EAbsentTextureStrategy absentTextureStrategy = eTEX_ABSENT_CREATE_AND_ATTEMPT_LOAD);
 	virtual ITexture* FindTexture(const string& specification);
 	virtual ITexture* GetCubeTexture(const string& file);
 	virtual void ForEachTexture(const std::function<void(ITexture*)>& fn);

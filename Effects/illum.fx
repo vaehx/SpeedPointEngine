@@ -602,7 +602,7 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 	terrainTC.xy = IN.TexCoord;
 	float3 detailmapTC;
 	detailmapTC.xy = IN.WorldPos.xz / detailmapSz;
-	for (uint iLayer = 0; iLayer < 3; ++iLayer)
+	for (uint iLayer = 0; iLayer < 3; ++iLayer) // TODO: Dynamic layer count
 	{
 		terrainTC.z = (float)iLayer;
 		float maskSample = terrainLayerMask.Sample(LinearSampler, terrainTC).r;

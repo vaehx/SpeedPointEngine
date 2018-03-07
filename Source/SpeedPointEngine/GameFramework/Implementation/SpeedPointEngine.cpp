@@ -329,7 +329,7 @@ S_API SResult SpeedPointEngine::LoadWorld(const string& absResourcePath)
 	if (absResourcePath.empty())
 		return CLog::Log(S_ERROR, "Failed load world: Empty path given");
 
-	CLog::Log(S_DEBUG, "Attempting to load world '%s'...", absResourcePath.c_str());
+	CLog::Log(S_INFO, "[==== Loading world %s... ====]", absResourcePath.c_str());
 
 	GetScene()->Clear();
 	GetScene()->Initialize();

@@ -9,6 +9,7 @@
 #include "DX11Renderer.h"
 #include "..\IRenderer.h"
 
+#include <comdef.h>
 #include <d2d1.h>
 #include <wincodec.h>
 #include <memory>
@@ -352,7 +353,8 @@ S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, SLoadedText
 	hRes = pImgFactory->CreateDecoderFromFilename(cWFilename, 0, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pImgDecoder);
 	if (Failure(hRes))
 	{
-		CLog::Log(S_DEBUG, "Failed create WIC Image decoder for %s (cWFilename=%S)!", cFileName.c_str(), cWFilename);
+		_com_error err(hRes);
+		CLog::Log(S_DEBUG, "Failed create WIC Image decoder for %s: %s!", cFileName.c_str(), err.ErrorMessage());
 		return S_ERROR;
 	}
 

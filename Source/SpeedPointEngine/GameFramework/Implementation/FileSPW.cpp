@@ -283,7 +283,7 @@ ITexture* LoadRawTexture(const string& file, const string& worldDir, ETextureTyp
 	stream.read((char*)&sz[1], sizeof(unsigned int));
 	stream.read((char*)&bitsPerPixel, sizeof(unsigned int));
 
-	ITexture* pTex = pResources->GetTexture(file);
+	ITexture* pTex = pResources->GetTexture(file, eTEX_ABSENT_CREATE_ONLY);
 	if (Failure(pTex->CreateEmpty(sz[0], sz[1], 1, type, SColor::Black())))
 	{
 		CLog::Log(S_ERROR, "Failed LoadRawTexture('%s'): Failed CreateEmpty()", sysFile.c_str());
@@ -332,6 +332,7 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 	map<string, string> params;
 	params["detailmap"] = "\"\"";
 	params["alphamap"] = "\"\"";
+	params["colormap"] = "\"\"";
 	ParseParams(paramsExpr, params);
 
 	IResourcePool* pResources = m_p3DEngine->GetRenderer()->GetResourcePool();
@@ -349,6 +350,7 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 	STerrainLayerDesc layer;
 	layer.mask = layerMaskSpec;
 	layer.materialName = layerMaterialSpec;
+	layer.colormap = DeserializeString(params["colormap"]);
 
 	pTerrain->AddLayer(layer);
 

@@ -1069,14 +1069,12 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 		bool attemptLoadMask = true;
 		
 		// Try to copy from existing resource
-		ITexture* pExistingMask = pResourcePool->GetTexture(desc.mask, false);
+		ITexture* pExistingMask = pResourcePool->GetTexture(desc.mask, eTEX_ABSENT_NOOP);
 		if (pExistingMask)
 		{
+			attemptLoadMask = false;
 			if (m_pLayermask->CopyArraySliceFromTexture(layer, pExistingMask))
-			{
-				attemptLoadMask = false;
 				clearMask = false;
-			}
 
 			pExistingMask->Release();
 			pExistingMask = 0;
