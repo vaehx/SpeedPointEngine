@@ -43,6 +43,22 @@ namespace SpeedPoint
 	// The given path is assumed to be pointing to a file if it does not end with a separator.
 	S_API std::string GetDirectoryPath(const std::string& path);
 
+	// Description:
+	//	Returns the part after the last directory separator
+	// Examples:
+	//	/bar.txt or /foo/bar.txt -> bar.txt
+	//	bar.txt -> bar.txt
+	S_API std::string GetFileNameWithExtension(const std::string& path);
+
+	// Description:
+	//	Returns the part between (after) the last directory separator and (before) the first dot after that separator (if any)
+	// Examples:
+	//	/foo/bar.txt -> bar
+	//	/foo/ or / -> (empty string)
+	//	/foo -> foo
+	//	bar.txt -> bar
+	S_API std::string GetFileNameWithoutExtension(const std::string& path);
+
 	// path - An absolute system path
 	// workspacePath - An absolute system path to the workspace root directory
 	// relative - If true, the resource path will be relative to the reference path if possible.
@@ -55,5 +71,4 @@ namespace SpeedPoint
 	{
 		return SystemPathToResourcePath(path, workspacePath, false, "");
 	}
-
 }

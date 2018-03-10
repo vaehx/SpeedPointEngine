@@ -184,6 +184,35 @@ namespace SpeedPoint
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	S_API string GetFileNameWithExtension(const string& path)
+	{
+		if (path.empty())
+			return "";
+
+		string file = path;
+
+		// Strip until and including first occurrence of a separator
+		size_t lastSepPos = file.find_last_of("/\\");
+		if (lastSepPos != file.npos)
+			file = file.substr(lastSepPos + 1);
+
+		return file;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	S_API string GetFileNameWithoutExtension(const string& path)
+	{
+		string file = GetFileNameWithExtension(path);
+
+		// Strip part after first occurence of a dot (i.e. the extension)
+		size_t firstDotPos = file.find_first_of(".");
+		if (firstDotPos != file.npos)
+			file = file.substr(0, firstDotPos);
+
+		return file;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/*
 	path = "C:\Workspace\models\texture.bmp"
 	workspacePath = "C:\Workspace"
