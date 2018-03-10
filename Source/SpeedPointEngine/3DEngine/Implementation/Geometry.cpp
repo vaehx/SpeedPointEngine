@@ -611,7 +611,18 @@ S_API IGeometry* CGeometryManager::LoadGeometry(const string& spmResourcePath)
 		delete[] itModel->pVertices;
 	}
 
-	return CreateGeometry(geomDesc, spmResourcePath);
+	IGeometry* pGeometry = CreateGeometry(geomDesc, spmResourcePath);
+
+	delete[] geomDesc.pVertices;
+	if (geomDesc.pSubsets)
+	{
+		for (u16 iSubset = 0; iSubset < geomDesc.nSubsets; ++iSubset)
+			delete[] geomDesc.pSubsets[iSubset].pIndices;
+
+		delete[] geomDesc.pSubsets;
+	}
+
+	return pGeometry;
 }
 
 // ----------------------------------------------------------------------------------------
