@@ -154,7 +154,7 @@ S_API IMaterial* MaterialManager::LoadMaterial(const string& absResourcePath)
 	MATFile mat;
 	if (!mat.ReadFromFile(pResources->GetResourceSystemPath(absResourcePath)))
 	{
-		CLog::Log(S_ERROR, "Failed load material file '%s'", absResourcePath.c_str());
+		CLog::Log(S_ERROR, "MaterialManager::LoadMaterial(): Failed load material file '%s'", absResourcePath.c_str());
 		return 0;
 	}
 
