@@ -41,6 +41,10 @@ struct S_API IMaterial
 	virtual void SetName(const string& name) = 0;
 	virtual const string& GetName() const = 0;
 
+	// Changes the count of definitions in this material.
+	// If new count > current count: Existing definitions are kept and additional space allocated.
+	// If new count < current count: Definitions with index >= new count will be removed
+	//
 	// By default, 1 default definition is already allocated.
 	// There must be at least one definition.
 	// If numDefinitions is 0, it will be set to 1 first.
