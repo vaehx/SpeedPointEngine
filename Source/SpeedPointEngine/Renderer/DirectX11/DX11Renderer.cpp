@@ -468,7 +468,7 @@ S_API void DX11Renderer::InitBlendStates()
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
+S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH, float zNear, float zFar)
 {
 	SP_ASSERTR(m_pD3DDevice && m_pD3DDeviceContext && m_pDXGIFactory, S_NOTINIT);
 	SP_ASSERTR(hWnd, S_INVALIDPARAM);
@@ -477,7 +477,8 @@ S_API SResult DX11Renderer::InitDefaultViewport(HWND hWnd, int nW, int nH)
 
 	vpDesc.projectionDesc.fov = 60;
 	vpDesc.projectionDesc.projectionType = S_PROJECTION_PERSPECTIVE;
-	vpDesc.projectionDesc.farZ = 100.0f;
+	vpDesc.projectionDesc.nearZ = zNear;
+	vpDesc.projectionDesc.farZ = zFar;
 
 	vpDesc.width = nW;
 	vpDesc.height = nH;

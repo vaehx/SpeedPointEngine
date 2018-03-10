@@ -246,7 +246,7 @@ public:
 	SResult AutoSelectAdapter();
 	SResult SetRenderStateDefaults(void);
 
-	SResult InitDefaultViewport(HWND hWnd, int nW, int nH);		
+	SResult InitDefaultViewport(HWND hWnd, int nW, int nH, float zNear = 0.2f, float zFar = 100.0f);		
 
 
 	SResult CreateDX11Device();

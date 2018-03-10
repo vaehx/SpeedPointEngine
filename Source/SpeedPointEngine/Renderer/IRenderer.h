@@ -431,6 +431,8 @@ struct S_API SRendererInitParams
 	EAntiAliasingQuality antiAliasingQuality;
 	EAntiAliasingCount antiAliasingCount;
 	SColor clearColor;
+	float defViewportZNear;
+	float defViewportZFar;
 
 	SRendererInitParams()
 		: hWnd(0),
@@ -442,7 +444,9 @@ struct S_API SRendererInitParams
 		frontFace(eFF_CW),
 		antiAliasingQuality(eAAQUALITY_LOW),
 		antiAliasingCount(eAACOUNT_NONE),
-		clearColor(0, 0, 0)
+		clearColor(0, 0, 0),
+		defViewportZNear(0.2f),
+		defViewportZFar(100.0f)
 	{
 		resolution[0] = 1024;
 		resolution[1] = 768;
