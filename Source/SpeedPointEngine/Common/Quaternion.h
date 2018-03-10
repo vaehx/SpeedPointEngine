@@ -35,6 +35,8 @@ struct S_API Quat
 	// w = q0, v = (q1, q2, q3)
 	Quat(float q0, float q1, float q2, float q3) : v(q1, q2, q3), w(q0) {}
 
+	static Quat Identity;
+
 	/*
 	template<typename F> void Quat_tpl<F>::SetRotationV0V1(const Vec3_tpl<F>& v0, const Vec3_tpl<F>& v1)
 	{
