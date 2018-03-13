@@ -42,6 +42,27 @@ ILINE __int32 sgnnz(f32 x)
 inline float sqr(float f) { return f * f; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const char* GetShapeTypeName(EShapeType t)
+{
+	switch (t)
+	{
+	case eSHAPE_BOX: return "SHAPE_BOX";
+	case eSHAPE_CAPSULE: return "SHAPE_CAPSULE";
+	case eSHAPE_CIRCLE: return "SHAPE_CIRCLE";
+	case eSHAPE_CYLINDER: return "SHAPE_CYLINDER";
+	case eSHAPE_MESH: return "SHAPE_MESH";
+	case eSHAPE_PLANE: return "SHAPE_PLANE";
+	case eSHAPE_RAY: return "SHAPE_RAY";
+	case eSHAPE_SPHERE: return "SHAPE_SPHERE";
+	case eSHAPE_TRIANGLE: return "SHAPE_TRIANGLE";
+	case eSHAPE_UNKNOWN: return "SHAPE_UNKNOWN";
+	default:
+		return "???";
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	General Intersection Test
 //
@@ -135,6 +156,17 @@ bool _Intersection(const shape* pshape1, const shape* pshape2, SIntersection* pi
 //	Ray
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float ray::GetVolume() const
+{
+	return 0.0f;
+}
+
+float ray::GetDistance(const Vec3f& q) const
+{
+	Vec3f vn = Vec3Normalize(v);
+	return (q - (p + Vec3Dot(q - p, vn) * vn)).Length();
+}
 
 shape* ray::Clone() const
 {
@@ -415,6 +447,16 @@ OBB plane::GetBoundBox() const
 	return obb;
 }
 
+float plane::GetVolume() const
+{
+	return 0.0f;
+}
+
+float plane::GetDistance(const Vec3f& q) const
+{
+	return Vec3Dot(q - n * d, n);
+}
+
 shape* plane::Clone() const
 {
 	plane* pplane = new plane();
@@ -588,6 +630,19 @@ bool _PlaneTriangle(const plane* pplane, const triangle* ptri, SIntersection* pi
 	return true;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	Circle
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float circle::GetVolume() const
+{
+	return 0.0f;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //	Sphere
@@ -600,6 +655,16 @@ OBB sphere::GetBoundBox() const
 	obb.center = c;
 	obb.dimensions[0] = obb.dimensions[1] = obb.dimensions[2] = r;
 	return obb;
+}
+
+float sphere::GetVolume() const
+{
+	return 4.0f * SP_ONE_THIRD * SP_PI * (r * r * r);
+}
+
+float sphere::GetDistance(const Vec3f& q) const
+{
+	return (q - c).Length() - r;
 }
 
 shape* sphere::Clone() const
@@ -803,6 +868,55 @@ OBB cylinder::GetBoundBox() const
 	return bb;
 }
 
+float cylinder::GetVolume() const
+{
+	return SP_PI * r * r * (p[1] - p[0]).Length();
+}
+
+float cylinder::GetDistance(const Vec3f& q) const
+{
+	Vec3f closest[3], vc, v = p[1] - p[0], vn;
+	float d, vln = v.Length();
+	bool inside = true;
+	vn = v / vln;
+	
+	// Closest point on flat cap 1
+	vc = (q + vn * (d = Vec3Dot(q - p[0], -vn))) - p[0];
+	if (vc.LengthSq() > r * r)
+		vc = r * Vec3Normalize(vc);
+	closest[0] = p[0] + vc;
+	if (d > 0)
+		inside = false;
+	
+	// Closest point on flat cap 2
+	vc = (q - vn * (d = Vec3Dot(q - p[1], vn))) - p[1];
+	if (vc.LengthSq() > r * r)
+		vc = r * Vec3Normalize(vc);
+	closest[1] = p[1] + vc;
+	if (d > 0)
+		inside = false;
+
+	// Closest point on mantle
+	float t = Vec3Dot(q - p[0], vn);
+	if (t < 0) t = 0;
+	if (t > vln) t = vln;
+	Vec3f pp = p[0] + vn * t;
+	closest[2] = pp + Vec3Normalize(q - pp) * r;
+	if ((q - pp).LengthSq() - r * r > 0)
+		inside = false;
+
+	float distMin = FLT_MAX, dist;
+	for (int i = 0; i < 3; ++i)
+		if ((dist = (q - closest[i]).LengthSq()) < distMin)
+			distMin = dist;
+
+	distMin = sqrtf(distMin);
+	if (inside)
+		distMin *= -1.0f;
+
+	return distMin;
+}
+
 shape* cylinder::Clone() const
 {
 	cylinder* pcyl = new cylinder();
@@ -938,6 +1052,19 @@ OBB capsule::GetBoundBox() const
 	bb.dimensions[0] = bb.dimensions[2] = r;
 	bb.dimensions[1] = hh + r;
 	return bb;
+}
+
+float capsule::GetVolume() const
+{
+	return SP_PI * r*r * (4.0f * SP_ONE_THIRD * r + 2.0f * hh);
+}
+
+float capsule::GetDistance(const Vec3f& q) const
+{
+	float t = Vec3Dot(q - c, axis);
+	if (t < -hh) t = -hh;
+	if (t > hh) t = hh;
+	return (q - c + t * axis).Length() - r;
 }
 
 shape* capsule::Clone() const
@@ -1211,6 +1338,52 @@ bool _CapsuleTriangle(const capsule* pcapsule, const triangle* ptri, SIntersecti
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+float triangle::GetVolume() const
+{
+	return 0.0f;
+}
+
+float triangle::GetDistance(const Vec3f& q) const
+{
+	Vec3f Q = q - Vec3Dot(q - p[0], n) * n; // q projected onto plane
+	if (_PointIsInsideTriangle(this, Q))
+		return (q - Q).Length();
+
+	//	For each edge UV and remaining point W
+	//		If Q and W lie on different sides of UV:
+	//			Project Q onto UV and clamp into U-V segment. Add to list of possibly closest points
+	//		Else
+	//			Add W to the list of possibly closest points
+	//	From the list of possibly closest points, select the one (M) with minimum distance to Q
+	//	The Distance of q to the triangle then is the distance between M and q
+	float distMin = FLT_MAX, dist;
+	Vec3f closestMin, closest;
+	for (int i = 0; i < 3; ++i)
+	{
+		const Vec3f &U = p[i], &V = p[(i + 1) % 3], &W = p[(i + 2) % 3];
+		Vec3f uv = Vec3Normalize(V - U);
+		float t = Vec3Dot(q - U, uv);
+		if (Vec3Dot(q - (U + t * uv), W - U) < 0)
+		{
+			if (t < 0) t = 0;
+			if (t > 1.0f) t = 1.0f;
+			closest = U + t * uv;
+		}
+		else
+		{
+			closest = W;
+		}
+
+		if ((dist = (Q - closest).LengthSq()) < distMin)
+		{
+			distMin = dist;
+			closestMin = closest;
+		}
+	}
+
+	return (q - closestMin).Length();
+}
+
 bool _PointIsInsideTriangle(const triangle* ptri, const Vec3f& P)
 {
 	const Vec3f
@@ -1331,6 +1504,41 @@ OBB box::GetBoundBox() const
 	bb.directions[1] = axis[1];
 	bb.directions[2] = axis[2];
 	return bb;
+}
+
+float box::GetVolume() const
+{
+	return 8.0f * dim[0] * dim[1] * dim[2];
+}
+
+float box::GetDistance(const Vec3f& q) const
+{
+	Vec3f Q = Mat33::FromColumns(axis[0], axis[1], axis[2]).Transposed() * q;
+
+	float distMin = FLT_MAX, dist;
+	Vec3f closestMin; // in box-space
+	for (int i = 0; i < 3; ++i)
+	{
+		Vec3f n = Vec3f(0);
+		n[i] = Q[i] < 0 ? -dim[i] : dim[i];
+
+		// Perpendicular foot of Q on plane
+		Vec3f tp = Q - Vec3Dot(Q - n, n) * n;
+
+		// Clamp tp into other dimensions
+		for (int j = 0; j < 3; ++j)
+			if (j != i)
+				tp[j] = min(max(tp[j], -dim[j]), dim[j]);
+
+		if ((dist = (Q - tp).LengthSq()) < distMin)
+		{
+			distMin = dist;
+			closestMin = tp;
+		}
+	}
+
+	//closestMin = Mat33::FromColumns(axis[0], axis[1], axis[2]) * closestMin;
+	return sqrtf(distMin);
 }
 
 shape* box::Clone() const
@@ -2081,6 +2289,42 @@ OBB mesh::GetBoundBox() const
 		if (obb.dimensions[i] < FLT_EPSILON) obb.dimensions[i] = 0.01f;
 	obb.Transform(transform);
 	return obb;
+}
+
+float mesh::GetVolume() const
+{
+	if (num_points == 0 || num_indices == 0 || !points || !indices)
+		return 0.0f;
+
+	Mat33 A;
+	Vec3f p[3];
+	float V = 0;
+	const float ONE_SIXTH = 1.0f / 6.0f;
+	for (unsigned int tri = 0; tri < num_indices; tri += 3)
+	{
+		for (int i = 0; i < 3; ++i)
+			p[i] = points[indices[tri + i]];
+
+		A = Mat33::FromColumns(p[0], p[1], p[2]);
+		float Vtet = ONE_SIXTH * A.Determinant();
+		if (V + Vtet < FLT_EPSILON)
+			continue;
+
+		V += Vtet;
+	}
+
+	return V;
+}
+
+float mesh::GetDistance(const Vec3f & p) const
+{
+
+
+	// TODO
+
+
+
+	return 0.0f;
 }
 
 

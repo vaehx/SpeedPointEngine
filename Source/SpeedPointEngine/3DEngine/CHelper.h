@@ -1,7 +1,9 @@
 #pragma once
 
+#include "IGeometry.h"
 #include <Renderer\IIndexBuffer.h>
 #include <Renderer\IRenderer.h>
+#include <Common\geo.h>
 #include <Common\SVertex.h>
 #include <Common\SPrerequisites.h>
 #include <vector>
@@ -423,5 +425,15 @@ public:
 	static const SHelperGeometryDesc* GetBaseGeometry(bool outline);
 	virtual unsigned int GetTypeId() const { return SP_HELPER_CYLINDER; }
 };
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MakeCapsule(SInitialGeometryDesc& geom, const Vec3f& bottom, const Vec3f& top, float radius, unsigned int segments, unsigned int rings);
+
+CHelper* CreateHelperForShape(const geo::shape* pshape, const SColor& color = SColor::White(), bool releaseAfterRender = false, bool outline = false);
+
+
 
 SP_NMSPACE_END

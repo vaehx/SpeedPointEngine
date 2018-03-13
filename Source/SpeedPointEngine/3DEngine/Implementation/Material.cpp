@@ -59,7 +59,8 @@ S_API void Material::AllocateDefinitions(unsigned int numDefinitions)
 	if (m_nDefinitions > 0 && m_pDefinitions)
 	{
 		// We can't memcpy here, as we will destroy the std::strings later...
-		for (unsigned int i = 0; i < m_nDefinitions; ++i)
+		unsigned int numDefinitionsToCopy = min(numDefinitions, m_nDefinitions);
+		for (unsigned int i = 0; i < numDefinitionsToCopy; ++i)
 			pNewDefinitions[i] = m_pDefinitions[i];
 	}
 	

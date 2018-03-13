@@ -38,6 +38,8 @@ enum EShapeType
 	NUM_SHAPE_TYPES
 };
 
+const char* GetShapeTypeName(EShapeType type);
+
 struct shape
 {
 protected:
@@ -45,6 +47,8 @@ protected:
 public:
 	EShapeType GetType() const { return ty; };
 	virtual OBB GetBoundBox() const { return OBB(); }
+	virtual float GetVolume() const = 0;
+	virtual float GetDistance(const Vec3f& p) const = 0;
 	virtual shape* Clone() const { return 0; }
 	virtual void Transform(const Mat44& mtx) {};
 };
@@ -55,6 +59,8 @@ struct ray : shape
 	Vec3f v;
 	ray() { ty = eSHAPE_RAY; }
 	ray(const Vec3f& _p, const Vec3f& _v) : p(_p), v(_v) { ty = eSHAPE_RAY; }
+	virtual float GetVolume() const;
+	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
 	virtual void Transform(const Mat44& mtx);
 };
@@ -66,6 +72,9 @@ struct plane : shape
 	plane() { ty = eSHAPE_PLANE; }
 	plane(const Vec3f& normal, float _d) : n(normal), d(_d) { ty = eSHAPE_PLANE; }
 	virtual OBB GetBoundBox() const;
+	virtual float GetVolume() const;	
+	// signed distance (if negative, point is "behind" plane)
+	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
 	virtual void Transform(const Mat44& mtx);
 };
@@ -76,6 +85,7 @@ struct circle : shape
 	Vec3f n;
 	float r;
 	circle() { ty = eSHAPE_CIRCLE; }
+	virtual float GetVolume() const;
 };
 
 struct sphere : shape
@@ -85,6 +95,9 @@ struct sphere : shape
 	sphere() { ty = eSHAPE_SPHERE; }
 	sphere(const Vec3f& center, float radius) : c(center), r(radius) { ty = eSHAPE_SPHERE; }
 	virtual OBB GetBoundBox() const;
+	virtual float GetVolume() const;
+	// signed distance. If negative, the point lies inside the sphere
+	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
 	virtual void Transform(const Mat44& mtx);
 };
@@ -102,6 +115,9 @@ struct cylinder : shape
 		r = radius;
 	}
 	virtual OBB GetBoundBox() const;
+	virtual float GetVolume() const;
+	// signed distance. if negative, the point lies inside the cylinder
+	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
 	virtual void Transform(const Mat44& mtx);
 };
@@ -131,6 +147,8 @@ struct capsule : shape
 		axis = naxis;
 	}
 	virtual OBB GetBoundBox() const;
+	virtual float GetVolume() const;
+	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
 	virtual void Transform(const Mat44& mtx);
 };
@@ -152,13 +170,15 @@ struct triangle : shape
 	{
 		n = (p[1] - p[0]) ^ (p[2] - p[0]);
 	}
+	virtual float GetVolume() const;
+	virtual float GetDistance(const Vec3f& p) const;
 };
 
 struct box : shape
 {
 	Vec3f c;
 	Vec3f axis[3];
-	float dim[3];
+	float dim[3]; // half-dimensions
 
 	box() { ty = eSHAPE_BOX; }
 	box(const OBB& obb)
@@ -172,6 +192,8 @@ struct box : shape
 		}
 	}
 	virtual OBB GetBoundBox() const;
+	virtual float GetVolume() const;
+	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
 	virtual void Transform(const Mat44& mtx);
 };
@@ -206,6 +228,8 @@ struct mesh : shape
 	}
 
 	virtual OBB GetBoundBox() const;
+	virtual float GetVolume() const;
+	virtual float GetDistance(const Vec3f& p) const;
 	void CreateTree(bool octree = true, unsigned int maxTrisPerLeaf = 8);
 	void ClearTree();
 };
