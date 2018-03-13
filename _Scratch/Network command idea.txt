@@ -1,0 +1,72 @@
+Networking Commands?
+
+- The only thing to be sent are Player Input Commands:
+	SHOOT (once), JUMP (once), WALK FORWARD (how long?), WALK BACKWARD
+- Implementation of Commands and Types of commands are Game specific
+
+
+void Player::Update(float fTime)
+{
+	if (KeyPressed(KEY_JUMP))
+		commands.add(JUMP);
+	if (KeyPressed(KEY_FORWARD))
+		commands.add(MOVE_FORWARD, fTime);
+
+	foreach (command in commands)
+	{
+		if (client)
+			networking->SendCommand(command);
+
+		// On client side: This predicts the result before receiving snapshot
+		HandleCommand(command);
+	}
+}
+
+void Player::HandleCommand(PlayerCommand* command)
+{
+	switch (command->command)
+	{
+	case SHOOT:
+		// TODO: Client-side prediction of spawned objects possible?
+		if (server)
+			bullet = scene->SpawnEntity(...);
+		break;
+	case WALK_FORWARD:
+		pos += GetForward() * speed * command->time;
+		break;
+	}
+}
+
+
+
+Problems: Command Types have to be defined in network module
+		-> use interface for that
+
+
+class INetClientCommand
+{
+public:
+	virtual unsigned short GetType() const = 0;
+};
+
+
+#define PLAYER_COMMAND_TYPE 0x1234
+
+class PlayerCommand : public INetClientCommand
+{
+public:
+	EPlayerCommand command;
+	float time;
+
+	PlayerCommand(EPlayerCommand _command)
+		: command(_command) {}
+	PlayerCommand(EPlayerCommand _command, float _time)
+		: command(_command), time(_time) {}
+
+	virtual unsigned short GetType() const
+	{
+		return PLAYER_COMMAND_TYPE;
+	}
+};
+
+

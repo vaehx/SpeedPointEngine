@@ -1,0 +1,158 @@
+Network serialization in component implementations (in Game Facilities)
+
+IDEA:
+	Do not use generic entity properties to serialize over the network,
+	but implement network serialization in high-level components.
+	Entity properties and can later be used in scripts, and possibly also
+	from the implementations of the network methods in the high-level components.
+
+
+
+class Actor : public IComponent, public INetComponent
+{
+private:
+	float m_Health;
+
+public: // INetComponent
+	virtual void ApplySnapshot(ISerContainer* actorContainer)
+	{
+		m_Health = actorContainer->GetFloat("health", m_Health);
+		entity->SetPos(actorContainer->GetVec3("pos", entity->GetPos()));
+		entity->SetOrientation(actorContainer->GetVec3("orientation", entity->GetOrientation()));
+	}
+
+	virtual void CreateSnapshot(ISerContainer* actorContainer)
+	{
+		actorContainer->SetFloat("health", m_Health);
+		actorContainer->SetVec3("pos", entity->GetPosition());
+		actorContainer->SetVec3("orientation", entity->GetOrientation());
+	}
+};
+
+class ActorReceipt : public IEntityReceipt
+{
+public:
+	virtual void Apply(IEntity* entity)
+	{
+		entity->AddComponent(engine->Get3DEngine()->CreateMesh());
+		entity->AddComponent(engine->GetPhysics()->CreatePhysObject());
+		entity->CreateComponent<Actor>();
+	}
+};
+
+
+Okay. This is kinda terrible - too much stuff to write, too much redundant code.
+However, this method allows us for HIGH flexibility in implementation of serialization/deserialization
+
+-> Can we combine both?
+-> Remember we're still registering properties in the components. That means we can also define
+   Getters/Setters there that can provide flexibility in implementation.
+-> However, we don't want to implement interpolation between values for each value
+-> Well, we probably will do interpolation only for entity properties position and orientation..
+-> Okay. But should we implement interpolation in the entity implementation itself? Or isn't the
+   interpolation algorithm part of the netcode? Remember, we must not use netcode in the entity,
+   or can we?
+-> No, we shouldn't, as the entity has not necessarily anything todo with networking
+-> Should we possibly extract the transformation properties out of the entity? I what's bad about
+   a Transformable component?
+-> Well, the advantage of a Transformable component is the ability to implement it in Game Facilities
+   which allows also netcode to be accessed there. However it might add quite a bit of overhead
+   to each single entity.
+-> Okay, that means that the implementation of serialization/interpolation should be done in the 
+   Game Facilities components?
+-> Well, not necessarily. What about a way to extent existing properties? Can't we just override them?
+   Something like:
+	void Actor::SetEntity(IEntity* entity)
+	{
+		// This overrides the "pos" property registered in the Entity implementation
+		// We replace it with Getter/Setters that implement interpolation for network purposes
+		entity->RegisterProperty("pos", this, &Actor::GetPosition, &Actor::SetPosition);
+	}
+
+	void Actor::SetPosition(const Vec3f& pos)
+	{
+		// Implement interpolation here...
+	}
+
+   I just noticed, that we need to somehow distinguish the getters/setters from being called
+   by the netcode or scripts, etc.
+-> What about actually writing a NetworkComponent that will provide an interface to define
+   network-properties per entity?
+   Also, as interpolation is only done for NPCs, we should also implement it there, not directly
+   in the Actor class.
+
+   In GameFacilities:
+	class NetObjectComponent : public IComponent, public NetObject {};
+
+   In Networking:
+	class NetObject
+	{
+	public:
+		template<typename T>
+		void RegisterProperty(const string& name, T& var);
+	
+		template<typename T>
+		void RegisterProperty(const string& name, const CallbackFn<T>& getter, const CallbackFn<T>& setter);
+
+		void CreateSnapshot(NetContainer* container) const;
+		void DeserializeFromSnapshot(NetContainer* container);
+	};
+
+	class Networking
+	{
+	private:
+		ComponentChunkedPool<NetObject>* m_NetObjects;
+		
+		// NOTE that the snapshot is actually created in the Networking module now instead of in the scene
+		void CreateSnapshot(NetContainer* container)
+		{
+			for (object : m_NetObjects)
+			{
+				NetContainer* objectContainer = container->CreateContainer();
+				object->CreateSnapshot(objectContainer);
+			}
+			...
+		}
+	};
+
+   In ECS:
+	Entity::Entity()
+	{
+		RegisterProperty("pos", &m_Position);	// stays the same
+	}
+
+   In GameFacilities:
+	class NPC : public Actor {}
+
+	void NPC::SetEntity(IEntity* entity)
+	{
+		NetworkObj* nc = entity->GetComponent<NetObjectComponent>();
+		nc->RegisterProperty("pos", this, &NPC::Net_GetPosition, &NPC::Net_SetPosition);
+	}
+
+	Vec3f NPC::Net_GetPosition() const
+	{
+		return GetEntity()->GetPos();
+	}
+
+	void NPC::Net_SetPosition(const Vec3f& pos)
+	{
+
+
+		// Implement interpolation here...
+
+		// (No idea yet how to do that, but this is another question...)
+
+
+	}
+
+
+--> Are there alternatives?
+	Can we avoid an extra net-object?
+	That would mean, that we have to
+		- find another way to implement net-specific getters/setters
+		- create the snapshot purely from entity properties
+
+
+
+
