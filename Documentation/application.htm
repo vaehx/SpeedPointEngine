@@ -1,0 +1,48 @@
+<html>
+<head>
+<link rel="stylesheet" href="content.css" type="text/css">
+</head>
+<body>
+
+<h1>Writing a SpeedPoint Application in Visual Studio</h1>
+
+<p>Tested with Visual Studio 2017.</p>
+
+<p>
+<ol>
+	<li>Create an <u>empty</u> Win32 Project</li>
+	<li>Add 'SP_UNITTEST' to preprocessor definitions</li>
+	<li>Add 'SpeedPoint\SpeedPointEngine\Source\SpeedPointEngine' path to VC++ Include Directories</li>
+	<li>Add 'SpeedPoint\Debug' or 'SpeedPoint\Release' to VC++ Library Directories</li>
+	<li>Add following libraries to Linker > Include:
+		<ol>
+			<li>SpeedPointCore.lib</li>
+			<li>SpeedPoint3DEngine.lib</li>
+			<li>SpeedPointDirectX11Renderer.lib</li>
+			<li>SpeedPointGameFacilities.lib</li>
+			<li>SpeedPointPhysics.lib</li>
+			<li>SpeedPointFileFormats.lib</li>
+		</ol>
+	</li>
+</ol>
+
+File Game.h:
+<pre>
+#include <SpeedPoint.h>
+#include <Windows.h>
+
+using namespace SpeedPoint;
+
+class CMyGame : public SpeedPointApplication
+{
+private:
+	HWND hWnd;
+public: // SpeedPointApplication
+	virtual void Update(float fTime);
+};
+</pre>
+
+File 
+
+</body>
+</html>
