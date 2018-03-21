@@ -170,6 +170,24 @@ namespace SpeedPoint
 		return v.Length();
 	}
 
+	template<typename F>
+	S_API inline Vec3<F> Vec3Min(const Vec3<F>& a, const Vec3<F>& b)
+	{
+		return Vec3<F>(
+			a.x < b.x ? a.x : b.x,
+			a.y < b.y ? a.y : b.y,
+			a.z < b.z ? a.z : b.z);
+	}
+
+	template<typename F>
+	S_API inline Vec3<F> Vec3Max(const Vec3<F>& a, const Vec3<F>& b)
+	{
+		return Vec3<F>(
+			a.x > b.x ? a.x : b.x,
+			a.y > b.y ? a.y : b.y,
+			a.z > b.z ? a.z : b.z);
+	}
+
 	template<typename F> S_API inline Vec3<F> operator *(F f, const Vec3<F>& v)
 	{
 		return v * f;

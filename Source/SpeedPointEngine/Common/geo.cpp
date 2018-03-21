@@ -142,11 +142,17 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_CIRCLE][eSHAPE_CIRCLE] = (_IntersectionTestFnPtr)&_CircleCircle;
 }
 
-bool _Intersection(const shape* pshape1, const shape* pshape2, SIntersection* pinters)
+bool _Intersection(const shape* pshape1, const shape* pshape2, SIntersection* pinters /*= 0*/)
 {
+	static SIntersection _tmpinters;
+
 	_IntersectionTestFnPtr fn = _intersectionTestTable[pshape1->GetType()][pshape2->GetType()];
 	if (!fn)
 		return false;
+
+	// Intersection methods require a valid ptr to a intersection structure
+	if (!pinters)
+		pinters = &_tmpinters;
 
 	return fn(pshape1, pshape2, pinters);
 }
@@ -174,6 +180,16 @@ shape* ray::Clone() const
 	pray->p = p;
 	pray->v = v;
 	return pray;
+}
+
+void ray::CopyTo(shape* pother) const
+{
+	if (pother && pother->GetType() == ty)
+	{
+		ray* pray = dynamic_cast<ray*>(pother);
+		pray->p = p;
+		pray->v = v;
+	}
 }
 
 void ray::Transform(const Mat44& mtx)
@@ -465,6 +481,15 @@ shape* plane::Clone() const
 	return pplane;
 }
 
+void plane::CopyTo(shape* pother) const
+{
+	if (pother && pother->GetType() == ty)
+	{
+		plane* pplane = dynamic_cast<plane*>(pother);
+		*pplane = *this;
+	}
+}
+
 void plane::Transform(const Mat44& mtx)
 {
 	Vec3f p[3];
@@ -649,6 +674,12 @@ float circle::GetVolume() const
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+AABB sphere::GetBoundBoxAxisAligned() const
+{
+	Vec3f d(r, r, r);
+	return AABB(c - d, c + d);
+}
+
 OBB sphere::GetBoundBox() const
 {
 	OBB obb;
@@ -673,6 +704,15 @@ shape* sphere::Clone() const
 	psphere->c = c;
 	psphere->r = r;
 	return psphere;
+}
+
+void sphere::CopyTo(shape * pother) const
+{
+	if (pother && pother->GetType() == ty)
+	{
+		sphere* psphere = dynamic_cast<sphere*>(pother);
+		*psphere = *this;
+	}
 }
 
 void sphere::Transform(const Mat44& mtx)
@@ -854,6 +894,14 @@ bool _SphereTriangle(const sphere* psphere, const triangle* ptri, SIntersection*
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+AABB cylinder::GetBoundBoxAxisAligned() const
+{
+	// Bound box around capsule of same dimensions is easier to compute
+	// and provides a good-enough approximation
+	Vec3f d(r);
+	return AABB(Vec3Min(p[0], p[1]) - d, Vec3Max(p[0], p[1]) + d);
+}
+
 OBB cylinder::GetBoundBox() const
 {
 	float axisln = (p[1] - p[0]).Length();
@@ -924,6 +972,15 @@ shape* cylinder::Clone() const
 	pcyl->p[1] = p[1];
 	pcyl->r = r;
 	return pcyl;
+}
+
+void cylinder::CopyTo(shape * pother) const
+{
+	if (pother && pother->GetType() == ty)
+	{
+		cylinder* pcyl = dynamic_cast<cylinder*>(pother);
+		*pcyl = *this;
+	}
 }
 
 void cylinder::Transform(const Mat44& mtx)
@@ -1042,6 +1099,14 @@ bool _CylinderCylinder(const cylinder* pcyl1, const cylinder* pcyl2, SIntersecti
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+AABB capsule::GetBoundBoxAxisAligned() const
+{
+	Vec3f d(r), p[2];
+	p[0] = c + axis * hh;
+	p[1] = c - axis * hh;
+	return AABB(Vec3Min(p[0], p[1]) - d, Vec3Max(p[0], p[1]) + d);
+}
+
 OBB capsule::GetBoundBox() const
 {
 	OBB bb;
@@ -1075,6 +1140,15 @@ shape* capsule::Clone() const
 	pcapsule->hh = hh;
 	pcapsule->r = r;
 	return pcapsule;
+}
+
+void capsule::CopyTo(shape * pother) const
+{
+	if (pother && pother->GetType() == ty)
+	{
+		capsule* pcaps = dynamic_cast<capsule*>(pother);
+		*pcaps = *this;
+	}
 }
 
 void capsule::Transform(const Mat44& mtx)
@@ -1338,6 +1412,15 @@ bool _CapsuleTriangle(const capsule* pcapsule, const triangle* ptri, SIntersecti
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+AABB triangle::GetBoundBoxAxisAligned() const
+{
+	AABB aabb;
+	aabb.Reset();
+	for (int i = 0; i < 3; ++i)
+		aabb.AddPoint(p[i]);
+	return aabb;
+}
+
 float triangle::GetVolume() const
 {
 	return 0.0f;
@@ -1382,6 +1465,15 @@ float triangle::GetDistance(const Vec3f& q) const
 	}
 
 	return (q - closestMin).Length();
+}
+
+void triangle::CopyTo(shape * pother) const
+{
+	if (pother && pother->GetType() == ty)
+	{
+		triangle* ptri = dynamic_cast<triangle*>(pother);
+		*ptri = *this;
+	}
 }
 
 bool _PointIsInsideTriangle(const triangle* ptri, const Vec3f& P)
@@ -1493,6 +1585,17 @@ bool _CircleCircle(const circle* pcircle1, const circle* pcircle2, SIntersection
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+AABB box::GetBoundBoxAxisAligned() const
+{
+	AABB aabb;
+	aabb.Reset();
+	for (float x = -1.0f; x <= 1.0f; x += 2.0f)
+		for (float y = -1.0f; y <= 1.0f; y += 2.0f)
+			for (float z = -1.0f; z <= 1.0f; z += 2.0f)
+				aabb.AddPoint(c + x * dim[0] * axis[0] + y * dim[1] * axis[1] + z * dim[2] * axis[2]);
+	return aabb;
+}
+
 OBB box::GetBoundBox() const
 {
 	OBB bb;
@@ -1552,6 +1655,15 @@ shape* box::Clone() const
 	}
 
 	return pbox;
+}
+
+void box::CopyTo(shape * pother) const
+{
+	if (pother && pother->GetType() == ty)
+	{
+		box* pbox = dynamic_cast<box*>(pother);
+		*pbox = *this;
+	}
 }
 
 void box::Transform(const Mat44& mtx)
@@ -2281,6 +2393,11 @@ void mesh::ClearTree()
 	ClearMeshTreeNode(&root);
 }
 
+
+AABB mesh::GetBoundBoxAxisAligned() const
+{
+	return root.aabb;
+}
 
 OBB mesh::GetBoundBox() const
 {

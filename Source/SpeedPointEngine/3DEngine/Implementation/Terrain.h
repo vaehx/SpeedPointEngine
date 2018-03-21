@@ -58,7 +58,7 @@ private:
 
 	SResult GenerateFlatVertexHeightmap(float baseHeight);
 
-	ILINE bool RayHeightmapIntersectionRec(float maxHeight, float minHeight, const SRay& ray, const unsigned int recDepth,
+	ILINE bool RayHeightmapIntersectionRec(float maxHeight, float minHeight, const geo::ray& ray, const unsigned int recDepth,
 		const float step, Vec3f& intersection, const unsigned int curDepth) const;
 
 public:
@@ -91,7 +91,7 @@ public:
 
 	ILINE virtual Vec2f XZToTexCoords(float x, float z) const;
 
-	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const;
+	ILINE virtual bool RayHeightmapIntersection(const geo::ray& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const;
 
 	// Create and fill vertex and index buffers
 	SResult FillVertexAndIndexBuffers();

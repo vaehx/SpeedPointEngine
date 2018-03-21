@@ -55,25 +55,42 @@ struct S_API SPhysObjectState
 	bool gravity;
 };
 
+struct S_API SProxyPart
+{
+	AABB aabb;
+	AABB aabbworld;
+	geo::shape* pshape;
+	geo::shape* pshapeworld; // shape transformed into world space
+	IPhysDebugHelper* phelper;
+
+	SProxyPart()
+		: pshape(0),
+		pshapeworld(0),
+		phelper(0)
+	{
+	}
+};
+
+// Rigid Body
 class S_API PhysObject
 {
 private:
 	bool m_bTrash;
 	AABB m_AABB;
-	geo::shape* m_pTransformedShape; // collision shape, in world space
 
 	void RecalculateInertia();
 
 protected:
-	geo::shape* m_pShape; // collision shape, in object space
+	// Proxy describing the collision geometry of this object
+	// TODO: Convert this to a hierarchical accelerated structure (BVH)
+	SProxyPart m_Proxy;
+
 	SPhysObjectState m_State;
 	Vec3f m_Scale;
 	bool m_bHelperShown;
-	IPhysDebugHelper* m_pHelper;
 	EPhysObjectBehavior m_Behavior;
 
 	void Clear();
-	virtual void UpdateHelper();
 
 public:
 	PhysObject();
@@ -84,17 +101,6 @@ public:
 
 	virtual EPhysObjectType GetType() const { return ePHYSOBJ_TYPE_NORMAL; }
 
-	template<typename T>
-	void SetCollisionShape(const T& shape = T())
-	{
-		if (m_pShape) delete m_pShape;
-		if (m_pTransformedShape) delete m_pTransformedShape;
-		m_pShape = new T(shape);
-		m_pTransformedShape = new T(shape);
-		RecalculateInertia();
-	}
-
-	void SetMeshCollisionShape(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree = true, u16 maxTreeDepth = 4);
 	void SetBehavior(EPhysObjectBehavior behavior);
 	EPhysObjectBehavior GetBehavior() const { return m_Behavior; }
 
@@ -102,8 +108,24 @@ public:
 	void ResolveLivingTerrainContact(const PhysTerrain* pterrain, const geo::SIntersection* pinters, float fTime);
 
 	const AABB& GetAABB() const { return m_AABB; }
-	const geo::shape* GetTransformedCollisionShape() const;
-	const geo::shape* GetCollisionShape() const { return m_pShape; }
+	
+	template<typename T>
+	void SetProxy(const T& shape = T())
+	{
+		if (m_Proxy.pshapeworld == m_Proxy.pshape)
+			m_Proxy.pshapeworld = 0;
+		delete m_Proxy.pshape;
+		delete m_Proxy.pshapeworld;
+
+		m_Proxy.pshape = new T(shape);
+		m_Proxy.aabb = m_Proxy.pshape->GetBoundBoxAxisAligned();
+		m_Proxy.pshapeworld = (m_Proxy.pshape->GetType() == geo::eSHAPE_MESH ? m_Proxy.pshape : new T(shape));
+		m_Proxy.aabbworld = m_Proxy.aabb;
+	}
+
+	void SetMeshProxy(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree = true, u16 maxTreeDepth = 4);
+	const SProxyPart& GetProxy() const { return m_Proxy; }
+
 	SPhysObjectState* GetState() { return &m_State; }
 	void SetMass(float m) { m_State.M = m; m_State.Minv = 1.0f / m; }
 

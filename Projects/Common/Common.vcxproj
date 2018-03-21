@@ -29,7 +29,6 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\geo.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\IShutdownHandler.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat33.h" />
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\MathGeom.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat44.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ProfilingSystem.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\QHull.h" />
@@ -56,7 +55,6 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\geo.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat33.cpp" />
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\MathGeom.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat44.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ProfilingSystem.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\QHull.cpp" />

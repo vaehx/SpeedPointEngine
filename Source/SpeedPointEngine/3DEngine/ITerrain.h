@@ -8,8 +8,8 @@
 
 #include <Renderer\IIndexBuffer.h>
 #include <Renderer\IVertexBuffer.h>
+#include <Common\geo.h>
 #include <Common\Camera.h>
-#include <Common\MathGeom.h>
 #include <Common\Vector2.h>
 #include <Common\SPrerequisites.h>
 
@@ -236,7 +236,7 @@ public:
 	// Call this when the values of the heightmap changed to update min/max height
 	ILINE virtual void MarkDirty() = 0;
 
-	ILINE virtual bool RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const = 0;
+	ILINE virtual bool RayHeightmapIntersection(const geo::ray& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const = 0;
 
 	ILINE virtual Vec2f GetMinXZ() const = 0;
 	ILINE virtual Vec2f GetMaxXZ() const = 0;

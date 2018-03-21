@@ -1,6 +1,30 @@
 #include "CPhysics.h"
 #include "PhysDebug.h"
 
+/**
+--------------------------------------------------------------------------------------
+
+	TODO:
+
+	- Fix Ibody not multiplied with the mass for some reason in PhysObject
+
+	- Use a BVH to increase broad-phase performance
+
+	- Cache contacts until their interpenetration depth < -epsilon
+		This aggregates contacts over frames and thus produces a set of contacts
+		required for example for box-box or capsule-lying-on-plane cases.
+	
+	- De-Activate objects that have little to no momentum
+		Wake them up again when they are involved in a colliding contact
+
+	- Avoid "Behaviors" but use polymorphism instead:
+			class PhysObject {}
+			class RigidBodyObject : PhysObject {}
+			class LivingObject : PhysObject {}
+
+--------------------------------------------------------------------------------------
+*/
+
 SP_NMSPACE_BEG
 
 #define RESTING_TOLERANCE 0.02f
@@ -95,7 +119,7 @@ S_API void CPhysics::Update(float fTime)
 
 	m_Terrain.Update(fTime);
 
-	const geo::shape* pTerrainShape = m_Terrain.GetTransformedCollisionShape();
+	const geo::shape* pTerrainShape = m_Terrain.GetProxy().pshapeworld;
 	//if (pTerrainShape)
 	//	PhysDebug::VisualizeBox(pTerrainShape->GetBoundBox(), SColor::White(), true);
 
@@ -121,8 +145,8 @@ S_API void CPhysics::Update(float fTime)
 	for (auto& collidingPair : m_Colliding)
 	{
 		PhysObject *pobj1 = collidingPair.first, *pobj2 = collidingPair.second;
-		const shape* pshape1 = pobj1->GetTransformedCollisionShape();
-		const shape* pshape2 = pobj2->GetTransformedCollisionShape();
+		const shape* pshape1 = pobj1->GetProxy().pshapeworld;
+		const shape* pshape2 = pobj2->GetProxy().pshapeworld;
 		if (!pshape1 || !pshape2)
 			continue;
 

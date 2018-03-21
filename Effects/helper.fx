@@ -54,7 +54,7 @@ float4 PS_helper(v2f IN) : SV_Target0
 	if (length(IN.Normal) > 0)
 		lambert = saturate(dot(IN.Normal, normalize(float3(1.0f, 1.0f, 1.0f))) * 0.48f + 0.5f);
 
-	lambert = 1.0f;
+	//lambert = 1.0f;
 
 	float3 col = IN.Color * helperColor.rgb * lambert;
 	//col = float3(1.0f, 0, 0);

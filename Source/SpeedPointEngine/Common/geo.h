@@ -46,10 +46,13 @@ protected:
 	EShapeType ty;
 public:
 	EShapeType GetType() const { return ty; };
+	virtual AABB GetBoundBoxAxisAligned() const { return AABB(); }
 	virtual OBB GetBoundBox() const { return OBB(); }
 	virtual float GetVolume() const = 0;
 	virtual float GetDistance(const Vec3f& p) const = 0;
 	virtual shape* Clone() const { return 0; }
+	// Does not copy if the other shape is not of the same type
+	virtual void CopyTo(shape* pother) const {}
 	virtual void Transform(const Mat44& mtx) {};
 };
 
@@ -62,6 +65,7 @@ struct ray : shape
 	virtual float GetVolume() const;
 	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
+	virtual void CopyTo(shape* pother) const;
 	virtual void Transform(const Mat44& mtx);
 };
 
@@ -71,11 +75,25 @@ struct plane : shape
 	float d;
 	plane() { ty = eSHAPE_PLANE; }
 	plane(const Vec3f& normal, float _d) : n(normal), d(_d) { ty = eSHAPE_PLANE; }
+	plane(const Vec3f& normal, const Vec3f& p)
+	{
+		ty = eSHAPE_PLANE;
+		n = normal;
+		d = Vec3Dot(p, n);
+	}
+	// Creates a plane from the three points: n = normalize((p2 - p1) x (p3 - p1)), d = dot(p1, n)
+	plane(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3)
+	{
+		ty = eSHAPE_PLANE;
+		n = Vec3Normalize((p2 - p1) ^ (p3 - p1));
+		d = Vec3Dot(p1, n);
+	}
 	virtual OBB GetBoundBox() const;
-	virtual float GetVolume() const;	
+	virtual float GetVolume() const;
 	// signed distance (if negative, point is "behind" plane)
 	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
+	virtual void CopyTo(shape* pother) const;
 	virtual void Transform(const Mat44& mtx);
 };
 
@@ -94,11 +112,13 @@ struct sphere : shape
 	float r;
 	sphere() { ty = eSHAPE_SPHERE; }
 	sphere(const Vec3f& center, float radius) : c(center), r(radius) { ty = eSHAPE_SPHERE; }
+	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual OBB GetBoundBox() const;
 	virtual float GetVolume() const;
 	// signed distance. If negative, the point lies inside the sphere
 	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
+	virtual void CopyTo(shape* pother) const;
 	virtual void Transform(const Mat44& mtx);
 };
 
@@ -114,11 +134,13 @@ struct cylinder : shape
 		p[1] = top;
 		r = radius;
 	}
+	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual OBB GetBoundBox() const;
 	virtual float GetVolume() const;
 	// signed distance. if negative, the point lies inside the cylinder
 	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
+	virtual void CopyTo(shape* pother) const;
 	virtual void Transform(const Mat44& mtx);
 };
 
@@ -146,10 +168,12 @@ struct capsule : shape
 		r = radius;
 		axis = naxis;
 	}
+	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual OBB GetBoundBox() const;
 	virtual float GetVolume() const;
 	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
+	virtual void CopyTo(shape* pother) const;
 	virtual void Transform(const Mat44& mtx);
 };
 
@@ -170,8 +194,10 @@ struct triangle : shape
 	{
 		n = (p[1] - p[0]) ^ (p[2] - p[0]);
 	}
+	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual float GetVolume() const;
 	virtual float GetDistance(const Vec3f& p) const;
+	virtual void CopyTo(shape* pother) const;
 };
 
 struct box : shape
@@ -191,10 +217,12 @@ struct box : shape
 			dim[i] = obb.dimensions[i];
 		}
 	}
+	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual OBB GetBoundBox() const;
 	virtual float GetVolume() const;
 	virtual float GetDistance(const Vec3f& p) const;
 	virtual shape* Clone() const;
+	virtual void CopyTo(shape* pother) const;
 	virtual void Transform(const Mat44& mtx);
 };
 
@@ -227,6 +255,7 @@ struct mesh : shape
 		if (indices) delete[] indices; indices = 0;
 	}
 
+	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual OBB GetBoundBox() const;
 	virtual float GetVolume() const;
 	virtual float GetDistance(const Vec3f& p) const;
@@ -306,6 +335,6 @@ typedef bool (*_IntersectionTestFnPtr)(const shape* pshape1, const shape* pshape
 static _IntersectionTestFnPtr _intersectionTestTable[NUM_SHAPE_TYPES][NUM_SHAPE_TYPES];
 void FillIntersectionTestTable();
 
-bool _Intersection(const shape* pshape1, const shape* pshape2, SIntersection* pinters);
+bool _Intersection(const shape* pshape1, const shape* pshape2, SIntersection* pinters = 0);
 
 GEO_NMSPACE_END

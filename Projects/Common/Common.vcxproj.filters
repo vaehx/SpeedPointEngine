@@ -6,9 +6,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\MathGeom.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Quaternion.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -99,9 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\MathGeom.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Camera.cpp">

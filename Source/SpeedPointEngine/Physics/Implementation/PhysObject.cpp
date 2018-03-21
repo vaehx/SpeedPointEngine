@@ -14,11 +14,8 @@ SP_NMSPACE_BEG
 using namespace geo;
 
 S_API PhysObject::PhysObject()
-	: m_pShape(0),
-	m_pTransformedShape(0),
-	m_Behavior(ePHYSOBJ_BEHAVIOR_RIGID_BODY),
+	: m_Behavior(ePHYSOBJ_BEHAVIOR_RIGID_BODY),
 	m_bTrash(false),
-	m_pHelper(0),
 	m_bHelperShown(false)
 {
 	m_State.M = 0.0f;
@@ -37,18 +34,18 @@ S_API PhysObject::~PhysObject()
 
 S_API void PhysObject::Clear()
 {
-	if (m_pShape) delete m_pShape;
-	m_pShape = 0;
+	delete m_Proxy.pshape;
+	m_Proxy.pshape = 0;
 
-	if (m_pTransformedShape) delete m_pTransformedShape;
-	m_pTransformedShape = 0;
+	delete m_Proxy.pshapeworld;
+	m_Proxy.pshapeworld = 0;
 
 	m_bHelperShown = false;
-	if (m_pHelper)
+	if (m_Proxy.phelper)
 	{
-		m_pHelper->Clear();
-		delete m_pHelper;
-		m_pHelper = 0;
+		m_Proxy.phelper->Clear();
+		delete m_Proxy.phelper;
+		m_Proxy.phelper = 0;
 	}
 }
 
@@ -70,16 +67,6 @@ S_API void PhysObject::SetBehavior(EPhysObjectBehavior behavior)
 		m_State.w = Vec3f(0);
 		break;
 	}
-}
-
-S_API const shape* PhysObject::GetTransformedCollisionShape() const
-{
-	if (!m_pShape)
-		return 0;
-	else if (m_pShape->GetType() == eSHAPE_MESH)
-		return m_pShape;
-	else
-		return m_pTransformedShape;
 }
 
 S_API Mat33 Star(const Vec3f& v)
@@ -138,105 +125,37 @@ S_API void PhysObject::Update(float fTime)
 	m_State.livingOnGround = false;
 
 
-	if (m_pShape)
-	{
-		STransformationDesc transform;
-		transform.translation = Mat44::MakeTranslationMatrix(m_State.pos - m_State.centerOfMass);
-		transform.scale = Mat44::MakeScaleMatrix(m_Scale);
+	// Transform each proxy part
+	STransformationDesc transform;
+	transform.translation = Mat44::MakeTranslationMatrix(m_State.pos - m_State.centerOfMass);
+	transform.scale = Mat44::MakeScaleMatrix(m_Scale);
 		
-		if (m_Behavior == ePHYSOBJ_BEHAVIOR_LIVING)
-			transform.rotation = Mat44::Identity;
-		else
-			transform.rotation = m_State.rotation.ToRotationMatrix();
+	if (m_Behavior == ePHYSOBJ_BEHAVIOR_LIVING)
+		transform.rotation = Mat44::Identity;
+	else
+		transform.rotation = m_State.rotation.ToRotationMatrix();
 		
-		Mat44 mtx = transform.BuildTRS();
+	Mat44 mtx = transform.BuildTRS();
 
-		// Transform collision shape
-		switch (m_pShape->GetType())
+	// Update world-space proxy shape
+	if (m_Proxy.pshape)
+	{
+		if (m_Proxy.pshape->GetType() == eSHAPE_MESH)
 		{
-		case eSHAPE_SPHERE:
-			{
-				sphere* psphere = (sphere*)m_pShape;
-				sphere* ptransformed = (sphere*)m_pTransformedShape;
-				ptransformed->c = (mtx * Vec4f(psphere->c, 1.0f)).xyz();
-				ptransformed->r = psphere->r;
-				break;
-			}
-		case eSHAPE_CYLINDER:
-			{
-				cylinder* pcyl = (cylinder*)m_pShape;
-				cylinder* ptransformed = (cylinder*)m_pTransformedShape;
-				ptransformed->p[0] = (mtx * Vec4f(pcyl->p[0], 1.0f)).xyz();
-				ptransformed->p[1] = (mtx * Vec4f(pcyl->p[1], 1.0f)).xyz();
-				ptransformed->r = pcyl->r;
-				break;
-			}
-		case eSHAPE_CAPSULE:
-			{
-				capsule* pcapsule = (capsule*)m_pShape;
-				capsule* ptransformed = (capsule*)m_pTransformedShape;
-				Vec3f bottom = pcapsule->c - pcapsule->hh * pcapsule->axis, top = pcapsule->c + pcapsule->hh * pcapsule->axis;
-				bottom = (mtx * Vec4f(bottom, 1.0f)).xyz();
-				top = (mtx * Vec4f(top, 1.0f)).xyz();
-				ptransformed->c = (bottom + top) * 0.5f;
-				ptransformed->hh = (top - bottom).Length();
-				ptransformed->axis = (top - bottom) / ptransformed->hh;
-				ptransformed->hh *= 0.5f;
-				ptransformed->r = pcapsule->r;
-				break;
-			}
-		case eSHAPE_BOX:
-			{
-				box* pbox = (box*)m_pShape;
-				box* ptransformed = (box*)m_pTransformedShape;
-				ptransformed->c = pbox->c + m_State.pos;
-				for (int i = 0; i < 3; ++i)
-					ptransformed->axis[i] = m_State.rotation * pbox->axis[i];
-				break;
-			}
-		case eSHAPE_MESH:
-			{
-				mesh* pmesh = (mesh*)m_pShape;
-				m_pTransformedShape = 0;
-				pmesh->transform = mtx;
-				break;
-			}
-		case eSHAPE_PLANE:
-			{
-				plane* pplane = (plane*)m_pShape;
-				plane* ptransformed = (plane*)m_pTransformedShape;
-				ptransformed->n = pplane->n;
-				ptransformed->d = pplane->d;
-				break;
-			}
-		default:
-			break;
+			geo::mesh* pmesh = dynamic_cast<geo::mesh*>(m_Proxy.pshape);
+			pmesh->transform = mtx;
+		}
+		else
+		{
+			m_Proxy.pshape->CopyTo(m_Proxy.pshapeworld);
+			m_Proxy.pshapeworld->Transform(mtx);
+			m_Proxy.aabbworld = m_Proxy.pshapeworld->GetBoundBoxAxisAligned();
 		}
 
-		// Update AABB
-		m_AABB.Reset();
-		OBB obb = (m_pTransformedShape ? m_pTransformedShape->GetBoundBox() : m_pShape->GetBoundBox());
-
-		for (int x = -1; x < 2; x += 2)
-			for (int y = -1; y < 2; y += 2)
-				for (int z = -1; z < 2; z += 2)
-				{
-					m_AABB.AddPoint(obb.center 
-						+ (float)x * obb.dimensions[0] * obb.directions[0]
-						+ (float)y * obb.dimensions[1] * obb.directions[1]
-						+ (float)z * obb.dimensions[2] * obb.directions[2]);
-				}
-
-		UpdateHelper();
+		if (m_Proxy.phelper && m_Proxy.phelper->IsShown())
+			m_Proxy.phelper->UpdateFromShape(m_Proxy.pshapeworld);
 	}
 }
-
-S_API void PhysObject::UpdateHelper()
-{
-	if (m_pHelper && m_pHelper->IsShown())
-		m_pHelper->UpdateFromShape(m_pTransformedShape ? m_pTransformedShape : m_pShape);
-}
-
 
 
 Vec3f CalculateClosestPointOnShape(const shape* pshape, const Vec3f& p)
@@ -301,17 +220,17 @@ float __cube(float f) { return f * f * f; }
 
 S_API void PhysObject::RecalculateInertia()
 {
-	if (!m_pShape)
+	if (!m_Proxy.pshape)
 		return;
 
 	Mat33 Ibody;
 	float V;
 	Vec3f centerOfMass;
-	switch (m_pShape->GetType())
+	switch (m_Proxy.pshape->GetType())
 	{
 	case eSHAPE_BOX:
 		{
-			box* pbox = (box*)m_pShape;
+			box* pbox = (box*)m_Proxy.pshape;
 			float w = pbox->dim[0] * 2.0f;
 			float h = pbox->dim[1] * 2.0f;
 			float d = pbox->dim[2] * 2.0f;
@@ -325,7 +244,7 @@ S_API void PhysObject::RecalculateInertia()
 		}
 	case eSHAPE_SPHERE:
 		{
-			sphere* psphere = (sphere*)m_pShape;
+			sphere* psphere = (sphere*)m_Proxy.pshape;
 			V = (4.0f / 3.0f) * SP_PI * psphere->r * psphere->r;
 			Ibody._11 = Ibody._22 = Ibody._33 = 0.4f * V * psphere->r * psphere->r;
 			centerOfMass = psphere->c;
@@ -333,7 +252,7 @@ S_API void PhysObject::RecalculateInertia()
 		}
 	case eSHAPE_CYLINDER:
 		{
-			cylinder* pcyl = (cylinder*)m_pShape;
+			cylinder* pcyl = (cylinder*)m_Proxy.pshape;
 			float h = (pcyl->p[1] - pcyl->p[2]).Length();
 			V = SP_PI * pcyl->r * pcyl->r * h;
 			Ibody._11 = Ibody._22 = (1.0f / 12.0f) * V * (3.0f * pcyl->r * pcyl->r + h * h);
@@ -343,7 +262,7 @@ S_API void PhysObject::RecalculateInertia()
 		}
 	case eSHAPE_CAPSULE:
 		{
-			capsule* pcapsule = (capsule*)m_pShape;
+			capsule* pcapsule = (capsule*)m_Proxy.pshape;
 			float h = 2.0f * pcapsule->hh;
 			float hsq = h * h, rsq = pcapsule->r * pcapsule->r;
 			float Vcaps = (4.0f / 3.0f) * SP_PI * pcapsule->r * pcapsule->r * pcapsule->r; // 4/3 * pIbody * r^3
@@ -361,7 +280,7 @@ S_API void PhysObject::RecalculateInertia()
 		}
 	case eSHAPE_MESH:
 		{
-			mesh* pmesh = (mesh*)m_pShape;
+			mesh* pmesh = (mesh*)m_Proxy.pshape;
 			if (pmesh->points && pmesh->num_points > 0 && pmesh->indices && pmesh->num_indices > 0)
 			{
 				// reference point = Vec3f(0)
@@ -414,10 +333,10 @@ S_API void PhysObject::RecalculateInertia()
 	m_State.centerOfMass	= centerOfMass;
 }
 
-S_API void PhysObject::SetMeshCollisionShape(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree, u16 maxTreeDepth)
+S_API void PhysObject::SetMeshProxy(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree, u16 maxTreeDepth)
 {
-	SetCollisionShape<mesh>();
-	mesh* pmesh = dynamic_cast<mesh*>(m_pShape);
+	SetProxy<mesh>();
+	mesh* pmesh = dynamic_cast<mesh*>(m_Proxy.pshape);
 	if (!pmesh)
 		return;
 
@@ -473,22 +392,22 @@ S_API void PhysObject::ShowHelper(bool show)
 		return;
 
 	m_bHelperShown = show;
-	if (!m_pShape)
+	if (!m_Proxy.pshape)
 		return;
 
-	if (m_bHelperShown && !m_pHelper)
+	if (m_bHelperShown && !m_Proxy.phelper)
 	{
-		m_pHelper = PhysDebug::CreateHelper();
-		m_pHelper->CreateFromShape(m_pShape);
+		m_Proxy.phelper = PhysDebug::CreateHelper();
+		m_Proxy.phelper->CreateFromShape(m_Proxy.pshape);
 	}
 
-	if (m_pHelper)
+	if (m_Proxy.phelper)
 	{
-		m_pHelper->Show(m_bHelperShown);
+		m_Proxy.phelper->Show(m_bHelperShown);
 		
 		// Update once when shown
 		if (m_bHelperShown)
-			m_pHelper->UpdateFromShape(m_pTransformedShape ? m_pTransformedShape : m_pShape);
+			m_Proxy.phelper->UpdateFromShape(m_Proxy.pshapeworld);
 	}
 }
 

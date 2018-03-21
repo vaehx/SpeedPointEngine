@@ -28,15 +28,15 @@ S_API Vec3f ViewFrustum::GetViewDirection()
 	return viewDir;
 }
 
-S_API void ViewFrustum::GetEnclosingPlanes(SPlane _planes[4])
+S_API void ViewFrustum::GetEnclosingPlanes(geo::plane _planes[4])
 {
 	if (!bEnclosingPlanesCalculated)
 	{
 		CalculateCorners();
-		planes[0] = SPlane::FromPoints(corners[3], corners[0], corners[7]); // Left
-		planes[1] = SPlane::FromPoints(corners[6], corners[5], corners[2]); // Right
-		planes[2] = SPlane::FromPoints(corners[0], corners[1], corners[4]); // Top
-		planes[3] = SPlane::FromPoints(corners[2], corners[3], corners[6]); // Bottom
+		planes[0] = geo::plane(corners[3], corners[0], corners[7]); // Left
+		planes[1] = geo::plane(corners[6], corners[5], corners[2]); // Right
+		planes[2] = geo::plane(corners[0], corners[1], corners[4]); // Top
+		planes[3] = geo::plane(corners[2], corners[3], corners[6]); // Bottom
 		bEnclosingPlanesCalculated = true;
 	}
 

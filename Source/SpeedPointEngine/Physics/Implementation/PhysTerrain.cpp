@@ -82,9 +82,6 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 		return;
 	}
 
-	if (m_pShape)
-		delete m_pShape;
-
 	m_Params = params;
 
 #define EXCESSIVE_PROXY_TREE_DEPTH 100
@@ -98,7 +95,8 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 
 	SetBehavior(ePHYSOBJ_BEHAVIOR_STATIC);
 
-	geo::mesh* pmesh = (geo::mesh*)(m_pShape = new geo::mesh());
+	SetProxy<geo::mesh>();
+	geo::mesh* pmesh = dynamic_cast<geo::mesh*>(m_Proxy.pshape);
 	pmesh->transform = Mat44::Identity;
 	pmesh->num_points = (params.segments[1] + 1) * (params.segments[0] + 1);
 	pmesh->num_indices = (params.segments[1] * params.segments[0]) * 6;
@@ -165,7 +163,7 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 
 S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int heightmapSz[2], const AABB& bounds)
 {
-	if (!m_pShape)
+	if (!m_Proxy.pshape)
 	{
 		CLog::Log(S_ERROR, "Failed PhysTerrain::Update(): Create() never called");
 		return;
@@ -195,7 +193,7 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 	segMax[0] = params.segments[0];
 	segMax[1] = params.segments[1];
 
-	geo::mesh* pmesh = (geo::mesh*)m_pShape;
+	geo::mesh* pmesh = dynamic_cast<geo::mesh*>(m_Proxy.pshape);
 	float miny = FLT_MAX, maxy = -FLT_MAX, y;
 	for (unsigned int row = 0; row < (params.segments[1] + 1); ++row)
 		for (unsigned int col = 0; col < (params.segments[0] + 1); ++col)
@@ -223,8 +221,8 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
 
 	// Update helper
-	if (m_pHelper && m_pHelper->IsShown())
-		m_pHelper->UpdateFromShape(pmesh, bounds);
+	if (m_Proxy.phelper && m_Proxy.phelper->IsShown())
+		m_Proxy.phelper->UpdateFromShape(pmesh, bounds);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,12 +236,12 @@ S_API void PhysTerrain::UpdateHelper()
 S_API void PhysTerrain::Clear()
 {
 	PhysObject::Clear();
-	if (m_pHelper)
+	if (m_Proxy.phelper)
 	{
-		m_pHelper->Clear();
-		delete m_pHelper;
+		m_Proxy.phelper->Clear();
+		delete m_Proxy.phelper;
+		m_Proxy.phelper = 0;
 	}
-	m_pHelper = 0;
 }
 
 SP_NMSPACE_END

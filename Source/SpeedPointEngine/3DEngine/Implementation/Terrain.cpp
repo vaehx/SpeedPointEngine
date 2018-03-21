@@ -750,26 +750,26 @@ S_API float Terrain::SampleHeight(const Vec2f& texcoords, bool bilinear /* = fal
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight, const SRay& ray, const unsigned int recDepth,
+S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight, const geo::ray& ray, const unsigned int recDepth,
 	const float step, Vec3f& intersection, const unsigned int curDepth) const
 {
 	//CLog::Log(S_DEBUG, "RecFunc cd=%u, step=%.4f, min=%.4f max=%.4f", curDepth, step, minHeight, maxHeight);
 
 	// Create top and bottom planes from heights
-	SPlane minPlane = SPlane::FromHeight(minHeight);
-	SPlane maxPlane = SPlane::FromHeight(maxHeight);
+	geo::plane minPlane(Vec3f(0, 1.0f, 0), minHeight);
+	geo::plane maxPlane(Vec3f(0, 1.0f, 0), maxHeight);
 
 	// Calculate plane intersections
-	Vec3f minPlaneInt, maxPlaneInt;
-	if (!GeomIntersects(minPlane, ray, &minPlaneInt))
+	geo::SIntersection minPlaneInt, maxPlaneInt;
+	if (!geo::_Intersection(&minPlane, &ray, &minPlaneInt))
 	{
-		CLog::Log(S_DEBUG, "Ray not intersecting with min plane (h=%.2f, i=%.2f,%.2f,%.2f)", minHeight, minPlaneInt.x, minPlaneInt.y, minPlaneInt.z);
+		CLog::Log(S_DEBUG, "Ray not intersecting with min plane (h=%.2f, i=%.2f,%.2f,%.2f)", minHeight, minPlaneInt.p.x, minPlaneInt.p.y, minPlaneInt.p.z);
 		return false;
 	}
 
-	if (!GeomIntersects(maxPlane, ray, &maxPlaneInt))
+	if (!geo::_Intersection(&maxPlane, &ray, &maxPlaneInt))
 	{
-		CLog::Log(S_DEBUG, "Ray not intersecting with max plane (h=%.2f, i=%.2f,%.2f,%.2f)", maxHeight, maxPlaneInt.x, maxPlaneInt.y, maxPlaneInt.z);
+		CLog::Log(S_DEBUG, "Ray not intersecting with max plane (h=%.2f, i=%.2f,%.2f,%.2f)", maxHeight, maxPlaneInt.p.x, maxPlaneInt.p.y, maxPlaneInt.p.z);
 		return false;
 	}
 
@@ -779,13 +779,13 @@ S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight
 	Vec2f terrainDimensions = GetMaxXZ() - GetMinXZ();
 
 	// Loop through steps from max height to min height
-	float lastSampledHeight = SampleHeight((Vec2f(maxPlaneInt.x, maxPlaneInt.z) - GetMinXZ()) / terrainDimensions, true);
+	float lastSampledHeight = SampleHeight((Vec2f(maxPlaneInt.p.x, maxPlaneInt.p.z) - GetMinXZ()) / terrainDimensions, true);
 	float lastHeight = maxHeight;
 	//CLog::Log(S_DEBUG, "lh=%.2f lsh=%.2f", lastHeight, lastSampledHeight);
 	unsigned int iStep = 0;
 	bool bGoFurther = true;
 	bool mightHaveIntersected = false;
-	for (Vec3f curPos = maxPlaneInt + stepVec; bGoFurther; curPos += stepVec)
+	for (Vec3f curPos = maxPlaneInt.p + stepVec; bGoFurther; curPos += stepVec)
 	{
 		float newSampledHeight = SampleHeight((Vec2f(curPos.x, curPos.z) - GetMinXZ()) / terrainDimensions, true);
 		//CLog::Log(S_DEBUG, "Step %u. nsh=%.4f nh=%.4f lsh=%.4f lh=%.4f", iStep, newSampledHeight, curPos.y, lastSampledHeight, lastHeight);
@@ -831,14 +831,14 @@ S_API bool Terrain::RayHeightmapIntersectionRec(float maxHeight, float minHeight
 
 	// found nothing
 	CLog::Log(S_DEBUG, "Found no intersection. min=%.2f max=%.2f; minpi(%.1f,%.1f,%.1f) maxpi(%.1f,%.1f,%.1f)",
-		minHeight, maxHeight, minPlaneInt.x, minPlaneInt.y, minPlaneInt.z, maxPlaneInt.x, maxPlaneInt.y, maxPlaneInt.z);	
+		minHeight, maxHeight, minPlaneInt.p.x, minPlaneInt.p.y, minPlaneInt.p.z, maxPlaneInt.p.x, maxPlaneInt.p.y, maxPlaneInt.p.z);	
 	if (mightHaveIntersected)
 		CLog::Log(S_DEBUG, "Might have intersected though...");
 
 	return false;
 }
 
-S_API bool Terrain::RayHeightmapIntersection(const SRay& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const
+S_API bool Terrain::RayHeightmapIntersection(const geo::ray& ray, const unsigned int recDepth, const float step, Vec3f& intersection) const
 {
 	float maxHeight = GetMaxHeight();
 	float minHeight = GetMinHeight();	

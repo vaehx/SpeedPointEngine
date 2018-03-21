@@ -8,7 +8,7 @@
 #include "SPrerequisites.h"
 #include "Mat44.h"
 #include "Quaternion.h"
-#include "MathGeom.h"
+#include "geo.h"
 #include <math.h>
 
 SP_NMSPACE_BEG
@@ -23,7 +23,7 @@ private:
 	Vec3f viewDir;
 
 	bool bEnclosingPlanesCalculated;
-	SPlane planes[4];
+	geo::plane planes[4];
 
 	bool bCornersCalculated;
 	Vec3f corners[8]; // in view-space
@@ -43,7 +43,7 @@ public:
 	Vec3f GetViewDirection();
 
 	// Left, Right, Top, Bottom
-	void GetEnclosingPlanes(SPlane enclosingPlanes[4]);
+	void GetEnclosingPlanes(geo::plane enclosingPlanes[4]);
 
 	// Starting from top left, then clockwise
 	// 0-3: near, 4-7: far
