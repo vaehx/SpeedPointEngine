@@ -134,6 +134,13 @@ struct cylinder : shape
 		p[1] = top;
 		r = radius;
 	}
+	cylinder(const Vec3f& center, const Vec3f& axis, float halfheight, float radius)
+	{
+		ty = eSHAPE_CYLINDER;
+		p[0] = center - axis * halfheight;
+		p[1] = center + axis * halfheight;
+		r = radius;
+	}
 	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual OBB GetBoundBox() const;
 	virtual float GetVolume() const;
@@ -161,12 +168,9 @@ struct capsule : shape
 		r = radius;
 	}
 	capsule(const Vec3f& center, const Vec3f& naxis, float halfheight, float radius)
+		: c(center), hh(halfheight), r(radius), axis(naxis)
 	{
 		ty = eSHAPE_CAPSULE;
-		c = center;
-		hh = halfheight;
-		r = radius;
-		axis = naxis;
 	}
 	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual OBB GetBoundBox() const;

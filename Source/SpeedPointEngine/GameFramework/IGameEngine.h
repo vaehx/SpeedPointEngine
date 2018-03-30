@@ -26,6 +26,7 @@ struct S_API IEntitySystem;
 struct S_API IPhysics;
 struct S_API IShutdownHandler;
 class S_API ProfilingSystem;
+class S_API SPMManager;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,6 +70,7 @@ public: // Component getter
 	ILINE virtual I3DEngine* Get3DEngine() const = 0;
 	ILINE virtual IFontRenderer* GetFontRenderer() const = 0;
 	ILINE virtual IResourcePool* GetResources() const = 0;
+	ILINE virtual SPMManager* GetSPMManager() const = 0;
 	ILINE virtual ISettings* GetSettings() const = 0;
 	ILINE virtual IScene* GetScene() const = 0;
 	ILINE virtual IEntityClassManager* GetEntityClassManager() const = 0;

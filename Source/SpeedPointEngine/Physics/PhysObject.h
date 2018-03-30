@@ -112,14 +112,19 @@ public:
 	template<typename T>
 	void SetProxy(const T& shape = T())
 	{
+		SetProxyPtr(new T(shape));
+	}
+
+	void SetProxyPtr(geo::shape* pshape)
+	{
 		if (m_Proxy.pshapeworld == m_Proxy.pshape)
 			m_Proxy.pshapeworld = 0;
 		delete m_Proxy.pshape;
 		delete m_Proxy.pshapeworld;
 
-		m_Proxy.pshape = new T(shape);
+		m_Proxy.pshape = pshape;
 		m_Proxy.aabb = m_Proxy.pshape->GetBoundBoxAxisAligned();
-		m_Proxy.pshapeworld = (m_Proxy.pshape->GetType() == geo::eSHAPE_MESH ? m_Proxy.pshape : new T(shape));
+		m_Proxy.pshapeworld = (m_Proxy.pshape->GetType() == geo::eSHAPE_MESH ? m_Proxy.pshape : pshape->Clone());
 		m_Proxy.aabbworld = m_Proxy.aabb;
 	}
 

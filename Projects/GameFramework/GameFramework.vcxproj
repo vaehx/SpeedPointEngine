@@ -20,6 +20,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\PhysicsDebugRenderer.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\ProfilingDebugView.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SpeedPointEngine.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SPMManager.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\ISettings.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\PhysicalComponent.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\RenderableComponent.h" />
@@ -34,6 +35,7 @@
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\ProfilingDebugView.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\RenderableComponent.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SpeedPointEngine.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SPMManager.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6A802F58-8B42-46E9-A308-87ADE350A374}</ProjectGuid>

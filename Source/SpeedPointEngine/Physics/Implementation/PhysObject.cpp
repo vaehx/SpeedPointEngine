@@ -34,6 +34,9 @@ S_API PhysObject::~PhysObject()
 
 S_API void PhysObject::Clear()
 {
+	if (m_Proxy.pshapeworld == m_Proxy.pshape)
+		m_Proxy.pshapeworld = 0;
+
 	delete m_Proxy.pshape;
 	m_Proxy.pshape = 0;
 

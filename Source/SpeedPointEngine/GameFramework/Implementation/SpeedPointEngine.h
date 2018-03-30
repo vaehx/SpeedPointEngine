@@ -92,6 +92,7 @@ private:
 
 	EngineComponent<IRenderer> m_pRenderer;		// Renderer Engine Component (DirectX9, DirectX11, OpenGL)
 	EngineComponent<IResourcePool> m_pResourcePool;	// Common Resource Pool handling Vertex-, Index-, Texture-, ...-buffers
+	EngineComponent<SPMManager> m_pSPMManager;
 	EngineComponent<IScene> m_pScene;
 	EngineComponent<I3DEngine> m_p3DEngine;
 	EngineComponent<IPhysics> m_pPhysics;
@@ -126,6 +127,7 @@ public: // Component getters
 	ILINE virtual I3DEngine* Get3DEngine() const { return m_p3DEngine; }
 	ILINE virtual IFontRenderer* GetFontRenderer() const { return m_pRenderer->GetFontRenderer(); }
 	ILINE virtual IResourcePool* GetResources() const { return m_pResourcePool; }
+	ILINE virtual SPMManager* GetSPMManager() const { return m_pSPMManager; }
 	ILINE virtual IViewport* GetTargetViewport() const { return GetRenderer()->GetTargetViewport(); }
 	ILINE virtual IScene* GetScene() const { return m_pScene; }
 	ILINE virtual IEntityClassManager* GetEntityClassManager() const { return m_pEntityClassManager; }

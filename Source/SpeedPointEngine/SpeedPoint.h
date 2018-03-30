@@ -9,6 +9,7 @@
 
 #include <GameFramework\IApplication.h>
 #include <GameFramework\IGameEngine.h>
+#include <GameFramework\Implementation\SPMManager.h>
 #include <EntitySystem\IScene.h>
 #include <EntitySystem\IEntity.h>
 #include <Physics\IPhysics.h>

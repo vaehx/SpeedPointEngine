@@ -1,4 +1,5 @@
 #include "..\RenderableComponent.h"
+#include "SPMManager.h"
 #include <GameFramework\IGameEngine.h>
 #include <Renderer\ITexture.h>
 #include <Renderer\IResourcePool.h>
@@ -23,9 +24,20 @@ S_API void CRenderMeshComponent::Serialize(ISerContainer* ser, bool serialize /*
 		string geomFile = ser->GetString("geometry");
 		if (!geomFile.empty())
 		{
-			IGeometry* pGeometry = SpeedPointEnv::Get3DEngine()->GetGeometryManager()->LoadGeometry(geomFile);
-			if (pGeometry)
-				SetGeometry(pGeometry);
+			SPMManager* pSPMManager = SpeedPointEnv::GetEngine()->GetSPMManager();
+			const CSPMLoader* pSPM = pSPMManager->Load(geomFile);
+			if (pSPM)
+			{
+				SInitialGeometryDesc geomDesc;
+				SPMManager::FillInitialGeometryDescFromSPM(pSPM, geomDesc);
+
+				I3DEngine* p3DEngine = SpeedPointEnv::Get3DEngine();
+				IGeometry* pGeometry = p3DEngine->GetGeometryManager()->CreateGeometry(geomDesc, geomFile);
+				if (pGeometry)
+					SetGeometry(pGeometry);
+
+				SPMManager::ClearInitialGeometryDesc(geomDesc);
+			}
 		}
 	}
 }

@@ -11,6 +11,7 @@
 #include "FileLogListener.h"
 #include "ProfilingDebugView.h"
 #include "PhysicsDebugRenderer.h"
+#include "SPMManager.h"
 #include <GameFramework\Implementation\FileSPW.h>
 #include <GameFramework\PhysicalComponent.h>
 #include <GameFramework\RenderableComponent.h>
@@ -90,6 +91,9 @@ S_API SResult SpeedPointEngine::Initialize(const SGameEngineInitParams& params)
 	m_pResourcePool->SetResourceRootPath(execPath);
 
 	CLog::Log(S_INFO, "Initialized renderer (%s)", GetRendererTypeName(m_pRenderer->GetType()));
+
+	// SPM Manager
+	m_pSPMManager.SetOwn(new SPMManager(20));
 
 	// 3D Engine
 	m_p3DEngine.SetOwn(new C3DEngine(m_pRenderer));
@@ -231,6 +235,8 @@ S_API void SpeedPointEngine::Shutdown(void)
 
 	// has to be called before clearing renderer (RenderAPI)
 	m_p3DEngine.Clear();
+
+	m_pSPMManager.Clear();
 
 	// calls IRenderer::~IRenderer implementation which will destruct the resource pool	
 	m_pRenderer.Clear();

@@ -7,6 +7,7 @@
 
 #include "..\EntityClasses.h"
 #include "SpeedPointEngine.h"
+#include "SPMManager.h"
 #include <EntitySystem\IEntity.h>
 #include <Physics\IPhysics.h>
 #include <3DEngine\I3DEngine.h>
@@ -50,9 +51,14 @@ namespace EntityClasses
 
 	S_API void Renderable::SetGeometryFile(const string& geomFile, CRenderMesh* mesh) const
 	{
-		IGeometryManager* pGeometryMgr = SpeedPointEnv::Get3DEngine()->GetGeometryManager();
-		IGeometry* pGeom = pGeometryMgr->LoadGeometry(geomFile);
-		mesh->SetGeometry(pGeom);
+		SPMManager* pSPMMgr = SpeedPointEnv::GetEngine()->GetSPMManager();
+		SInitialGeometryDesc geomDesc;
+		pSPMMgr->FillInitialGeometryDescFromSPM(pSPMMgr->Load(geomFile), geomDesc);
+		
+		IGeometryManager* pGeomMgr = SpeedPointEnv::Get3DEngine()->GetGeometryManager();
+		mesh->SetGeometry(pGeomMgr->CreateGeometry(geomDesc, geomFile));
+
+		pSPMMgr->ClearInitialGeometryDesc(geomDesc);
 	}
 
 

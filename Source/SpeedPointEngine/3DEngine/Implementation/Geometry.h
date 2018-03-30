@@ -102,7 +102,6 @@ private:
 
 public:
 	virtual ~CGeometryManager();
-	virtual IGeometry* LoadGeometry(const string& spmResourcePath);
 	virtual IGeometry* CreateGeometry(const SInitialGeometryDesc& desc, const string& name = "");
 	virtual void GarbageCollect();
 	virtual void Clear();

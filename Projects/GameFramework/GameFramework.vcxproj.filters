@@ -51,6 +51,9 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\EntityClasses.h">
       <Filter>Abstract</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SPMManager.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\EngineSettings.cpp">
@@ -79,6 +82,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\RenderableComponent.cpp">
       <Filter>Implementation\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeedPointEngine\GameFramework\Implementation\SPMManager.cpp">
+      <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

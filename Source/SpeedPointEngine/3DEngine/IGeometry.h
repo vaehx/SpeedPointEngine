@@ -279,14 +279,12 @@ struct S_API IGeometryManager
 {
 	virtual ~IGeometryManager() {}
 
-	// If the geometry was loaded before, will return pointer to existing data, instead of loading it again
-	// spmResourcePath - Absolute resource path to the spm model file
-	virtual IGeometry* LoadGeometry(const string& spmResourcePath) = 0;
-
 	// Returns 0 if creation failed or a geometry with this name already exists
 	virtual IGeometry* CreateGeometry(const SInitialGeometryDesc& desc, const string& name = "") = 0;
 
+	// Removes Geometry instances that have been marked trash
 	virtual void GarbageCollect() = 0;
+
 	virtual void Clear() = 0;
 };
 

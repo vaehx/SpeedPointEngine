@@ -1,4 +1,6 @@
 #include "..\PhysicalComponent.h"
+#include "SPMManager.h"
+#include "../IGameEngine.h"
 #include <Common\SerializationTools.h>
 
 SP_NMSPACE_BEG
@@ -52,6 +54,25 @@ S_API void CPhysicalComponent::Serialize(ISerContainer* ser, bool serialize)
 	{
 		m_State.M = ser->GetFloat("mass", m_State.M);
 		m_State.Minv = 1.0f / m_State.M;
+
+		string proxyGeomFile = ser->GetString("proxyGeomFile");
+		if (!proxyGeomFile.empty())
+		{
+			SPMManager* pSPMManager = SpeedPointEnv::GetEngine()->GetSPMManager();
+			const CSPMLoader* pSPM = pSPMManager->Load(proxyGeomFile);
+			if (pSPM)
+			{
+				const SSPMPhysInfo& pi = pSPM->GetPhysInfo();
+				SetMass(pi.mass);
+				if (!pi.proxyShapes.empty())
+				{
+					const SSPMColShape* pSPMColShape = pi.proxyShapes.at(0);
+					geo::shape* pshape = SPMManager::ConvertSPMColShapeToGeoShape(pSPMColShape);
+					if (pshape)
+						SetProxyPtr(pshape);
+				}
+			}
+		}
 	}
 }
 
