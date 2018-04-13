@@ -152,10 +152,10 @@ public:
 		return g_LogIntrnl.GetLogLevel();
 	}
 
-	static SResult Log(SResult res, const string& msg)
-	{
-		return g_LogIntrnl.LogString(res, msg);
-	}
+	static SResult Log(SResult res, const string& msg) { return g_LogIntrnl.LogString(res, msg); }
+	static SResult LogInfo(const string& msg) { return g_LogIntrnl.LogString(S_INFO, msg); }
+	static SResult LogError(const string& msg) { return g_LogIntrnl.LogString(S_ERROR, msg); }
+	static SResult LogDebug(const string& msg) { return g_LogIntrnl.LogString(S_DEBUG, msg); }
 
 	static SResult Log(SResult res, const char* fmt, ...)
 	{

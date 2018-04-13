@@ -28,10 +28,10 @@ void UpdatePhysTerrainProxyNodeYBounds(geo::mesh_tree_node* pnode, float miny, f
 	pnode->aabb.vMin.y = miny - bias;
 	pnode->aabb.vMax.y = maxy + bias;
 
-	if (pnode->children)
+	if (pnode->pchildren)
 	{
 		for (unsigned int i = 0; i < pnode->num_children; ++i)
-			UpdatePhysTerrainProxyNodeYBounds(&pnode->children[i], miny, maxy, bias);
+			UpdatePhysTerrainProxyNodeYBounds(&pnode->pchildren[i], miny, maxy, bias);
 	}
 }
 
@@ -64,12 +64,12 @@ inline void DumpMeshTree(const geo::mesh* pmesh)
 		for (unsigned int i = 0; i < node.depth; ++i)
 			indent += "  ";
 
-		CLog::Log(S_DEBUG, "  %s[%d tris]", indent.c_str(), node.pnode->num_tris);
+		CLog::Log(S_DEBUG, "  %s[%d tris]", indent.c_str(), node.pnode->tris.size());
 
-		if (node.pnode->children)
+		if (node.pnode->pchildren)
 		{
 			for (unsigned int i = 0; i < node.pnode->num_children; ++i)
-				openNodes.emplace(&node.pnode->children[i], node.depth + 1);
+				openNodes.emplace(&node.pnode->pchildren[i], node.depth + 1);
 		}
 	}
 }
@@ -85,18 +85,17 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 	m_Params = params;
 
 #define EXCESSIVE_PROXY_TREE_DEPTH 100
-	if (m_Params.maxProxyTreeDepth > EXCESSIVE_PROXY_TREE_DEPTH)
+	if (m_Params.maxTrisPerLeaf > EXCESSIVE_PROXY_TREE_DEPTH)
 	{
-		CLog::Log(S_WARN, "PhysTerrain::Create(): maxProxyTreeDepth is excessively high (%d), setting to %d!",
-			m_Params.maxProxyTreeDepth, EXCESSIVE_PROXY_TREE_DEPTH);
+		CLog::Log(S_WARN, "PhysTerrain::Create(): maxTrisPerLeaf is excessively high (%d), setting to %d!",
+			m_Params.maxTrisPerLeaf, EXCESSIVE_PROXY_TREE_DEPTH);
 
-		m_Params.maxProxyTreeDepth = EXCESSIVE_PROXY_TREE_DEPTH;
+		m_Params.maxTrisPerLeaf = EXCESSIVE_PROXY_TREE_DEPTH;
 	}
 
 	SetBehavior(ePHYSOBJ_BEHAVIOR_STATIC);
 
-	SetProxy<geo::mesh>();
-	geo::mesh* pmesh = dynamic_cast<geo::mesh*>(m_Proxy.pshape);
+	geo::mesh* pmesh = new geo::mesh();
 	pmesh->transform = Mat44::Identity;
 	pmesh->num_points = (params.segments[1] + 1) * (params.segments[0] + 1);
 	pmesh->num_indices = (params.segments[1] * params.segments[0]) * 6;
@@ -116,11 +115,6 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 
 			remainder /= pixelSzTC;
 
-			if (row == params.segments[1] && col == params.segments[0])
-			{
-				int asd = 0;
-			}
-
 			samples[0] = SampleHeightmap(heightmap, tc + Vec2f(-0.5f, -0.5f) * pixelSzTC, heightmapSz);
 			samples[1] = SampleHeightmap(heightmap, tc + Vec2f( 0.5f, -0.5f) * pixelSzTC, heightmapSz);
 			samples[2] = SampleHeightmap(heightmap, tc + Vec2f(-0.5f,  0.5f) * pixelSzTC, heightmapSz);
@@ -131,11 +125,13 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 			miny = min(miny, y);
 			maxy = max(maxy, y);
 
-			pmesh->points[vtx = row * (params.segments[0] + 1) + col] = Vec3f(col * segSz.x, y, row * segSz.y) + params.offset;
+			pmesh->points[vtx = (row * (params.segments[0] + 1) + col)] = Vec3f(col * segSz.x, y, row * segSz.y) + params.offset;
+
+			//PhysDebug::VisualizePoint(pmesh->points[vtx]);
 
 			if (row < params.segments[1] && col < params.segments[0])
 			{
-				pmesh->indices[idx = (row * params.segments[0] + col) * 6] = vtx;
+				pmesh->indices[idx = ((row * params.segments[0] + col) * 6)] = vtx;
 				pmesh->indices[idx + 1] = vtx + (params.segments[0] + 1);
 				pmesh->indices[idx + 2] = vtx + (params.segments[0] + 1) + 1;
 				pmesh->indices[idx + 3] = vtx;
@@ -148,7 +144,7 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 	QueryPerformanceFrequency(&freq);
 	QueryPerformanceCounter(&start);
 
-	pmesh->CreateTree(false, params.maxProxyTreeDepth);
+	pmesh->CreateTree(false, params.maxTrisPerLeaf);
 
 	QueryPerformanceCounter(&end);
 	double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
@@ -157,6 +153,10 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 	//DumpMeshTree(pmesh);
 
 	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
+	
+	SetProxyPtr(pmesh);
+
+	UpdateHelper();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,8 +201,10 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 			if (row >= segMin[1] && row <= segMax[1] && col >= segMin[0] && col <= segMax[0])
 			{
 				tc = Vec2f((float)col / params.segments[0], (float)row / params.segments[1]);
-				tc -= (remainder = tc % pixelSzTC);
+				tc += 1.0f - (remainder = tc % pixelSzTC);
+				remainder /= pixelSzTC;
 
+				// simulate bilinear filtering
 				samples[0] = SampleHeightmap(heightmap, tc + Vec2f(-0.5f, -0.5f) * pixelSzTC, heightmapSz);
 				samples[1] = SampleHeightmap(heightmap, tc + Vec2f(0.5f, -0.5f) * pixelSzTC, heightmapSz);
 				samples[2] = SampleHeightmap(heightmap, tc + Vec2f(-0.5f, 0.5f) * pixelSzTC, heightmapSz);
@@ -219,6 +221,8 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 
 	// Update proxy bound boxes
 	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
+	m_Proxy.aabb = pmesh->root.aabb;
+	m_Proxy.aabbworld = pmesh->root.aabb;
 
 	// Update helper
 	if (m_Proxy.phelper && m_Proxy.phelper->IsShown())

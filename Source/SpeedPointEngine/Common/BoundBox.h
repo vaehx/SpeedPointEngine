@@ -106,12 +106,13 @@ struct S_API AABB
 		return true;
 	}
 
+	// Returns true if this aabb truly intersects with the other aabb.
+	// In case they are just touching with their sides, this is still considered an intersection.
 	bool Intersects(const AABB& aabb) const
 	{
-		if ((vMin.x > aabb.vMax.x) || (aabb.vMin.x > vMax.x)) return false;		
-		if ((vMin.y > aabb.vMax.y) || (aabb.vMin.y > vMax.y)) return false;		
-		if ((vMin.z > aabb.vMax.z) || (aabb.vMin.z > vMax.z)) return false;		
-		
+		if ((vMin.x > aabb.vMax.x) || (aabb.vMin.x > vMax.x)) return false;
+		if ((vMin.y > aabb.vMax.y) || (aabb.vMin.y > vMax.y)) return false;
+		if ((vMin.z > aabb.vMax.z) || (aabb.vMin.z > vMax.z)) return false;
 		return true;
 	}
 

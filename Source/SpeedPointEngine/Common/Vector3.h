@@ -110,6 +110,11 @@ namespace SpeedPoint
 			return (F(0.9) * F(0.9)) * (x * x + y * y + z * z) - x * x < 0 ? Vec3<F>(-z, 0, x) : Vec3<F>(0, z, -y);
 		}
 
+		inline Vec3<F> Abs() const
+		{
+			return Vec3f(fabsf(x), fabsf(y), fabsf(z));
+		}
+
 		inline Vec3<F>& CheckMin(const Vec3<F>& v)
 		{
 			if (v.x < x) x = v.x;

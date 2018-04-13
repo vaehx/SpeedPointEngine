@@ -27,6 +27,9 @@ public:
 	// Does not re-load the file if it is still cached
 	// absResResource - Absolute resource path to the SPM file
 	const CSPMLoader* Load(const string& absResPath);
+
+	// Loads the file with Load() and directly creates a geometry object for it with the path as name
+	IGeometry* LoadAsGeometry(const string& absResPath);
 	
 	// If name is empty, uses the absolute resource path of the loaded spm file
 	IGeometry* CreateGeometryFromSPM(const CSPMLoader* pSPM, const string& name = "");
@@ -34,6 +37,7 @@ public:
 	static void FillInitialGeometryDescFromSPM(const CSPMLoader* pSPM, SInitialGeometryDesc& geomDesc);
 	static void ClearInitialGeometryDesc(SInitialGeometryDesc& geomDesc);
 
+	// Allocates a new geo shape. Caller is responsible for deallocation
 	static geo::shape* ConvertSPMColShapeToGeoShape(const SSPMColShape* spmShape);
 
 	void Clear();

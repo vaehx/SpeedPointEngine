@@ -37,10 +37,10 @@ struct S_API SPhysTerrainParams
 	float heightScale; // a value multiplied to each height sample
 	unsigned int segments[2]; // number of rows/colums to divide the world dimensions into. The heightmap will be sampled bilinearly.
 	float size[2]; // (x,z) world-dimensions of the terrain
-	unsigned int maxProxyTreeDepth;
+	unsigned int maxTrisPerLeaf;
 
 	SPhysTerrainParams()
-		: maxProxyTreeDepth(16)
+		: maxTrisPerLeaf(16)
 	{
 	}
 };
@@ -80,7 +80,8 @@ struct S_API IPhysDebugHelper
 {
 	virtual ~IPhysDebugHelper() {}
 	virtual void CreateFromShape(const geo::shape* pshape, const SColor& color = SColor::White()) = 0;
-	virtual void UpdateFromShape(const geo::shape* pshape, const AABB& bounds = AABB()) = 0;
+	virtual void UpdateFromShape(const geo::shape* pshape, const AABB& bounds = AABB(Vec3f(-FLT_MAX), Vec3f(FLT_MAX))) = 0;
+	virtual void SetMeshTransform(const Mat44& transform) = 0;
 	virtual void Show(bool show = true) = 0;
 	virtual bool IsShown() const = 0;
 	virtual void Clear() = 0;

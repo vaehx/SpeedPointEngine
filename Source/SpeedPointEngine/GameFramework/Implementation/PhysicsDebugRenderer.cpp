@@ -173,6 +173,13 @@ S_API void CPhysDebugHelper::UpdateFromShape(const shape* pshape, const AABB& bo
 	}
 }
 
+S_API void CPhysDebugHelper::SetMeshTransform(const Mat44& transform)
+{
+	CDynamicMeshHelper* pMeshHelper = dynamic_cast<CDynamicMeshHelper*>(m_pHelper);
+	if (pMeshHelper)
+		pMeshHelper->SetTransform(transform);
+}
+
 S_API void CPhysDebugHelper::Show(bool show)
 {
 	if (!m_pHelper)

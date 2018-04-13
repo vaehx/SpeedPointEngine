@@ -28,15 +28,9 @@ S_API void CRenderMeshComponent::Serialize(ISerContainer* ser, bool serialize /*
 			const CSPMLoader* pSPM = pSPMManager->Load(geomFile);
 			if (pSPM)
 			{
-				SInitialGeometryDesc geomDesc;
-				SPMManager::FillInitialGeometryDescFromSPM(pSPM, geomDesc);
-
-				I3DEngine* p3DEngine = SpeedPointEnv::Get3DEngine();
-				IGeometry* pGeometry = p3DEngine->GetGeometryManager()->CreateGeometry(geomDesc, geomFile);
+				IGeometry* pGeometry = pSPMManager->CreateGeometryFromSPM(pSPM);
 				if (pGeometry)
 					SetGeometry(pGeometry);
-
-				SPMManager::ClearInitialGeometryDesc(geomDesc);
 			}
 		}
 	}

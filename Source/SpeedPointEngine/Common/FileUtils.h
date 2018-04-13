@@ -59,6 +59,15 @@ namespace SpeedPoint
 	//	bar.txt -> bar
 	S_API std::string GetFileNameWithoutExtension(const std::string& path);
 
+	// Description:
+	//	Returns the extension of the file, i.e. the part after the last dot in the path (if any).
+	//	Does not change the case of the extension part.
+	// Examples:
+	//	/foo -> (empty string)
+	//	/foo.txt -> txt
+	//	/foo.bar.TXT -> TXT
+	S_API std::string GetFileExtension(const std::string& path);
+
 	// path - An absolute system path
 	// workspacePath - An absolute system path to the workspace root directory
 	// relative - If true, the resource path will be relative to the reference path if possible.

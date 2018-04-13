@@ -6,8 +6,6 @@
 
 	TODO:
 
-	- Fix Ibody not multiplied with the mass for some reason in PhysObject
-
 	- Use a BVH to increase broad-phase performance
 
 	- Cache contacts until their interpenetration depth < -epsilon
@@ -96,6 +94,8 @@ S_API void CPhysics::Update(float fTime)
 	if (m_bPaused)
 		fTime = 0.0f;
 
+	//fTime *= 0.2f;
+
 	unsigned int iObject = 0;
 	PhysObject* pObject = 0;
 
@@ -114,14 +114,11 @@ S_API void CPhysics::Update(float fTime)
 		if (m_bHelpersShown)
 			pObject->ShowHelper(m_bHelpersShown);
 
-		//PhysDebug::VisualizeBox(pObject->GetTransformedCollisionShape()->GetBoundBox(), SColor::White(), true);
+		//PhysDebug::VisualizeBox(pObject->GetProxy().aabbworld, SColor::White(), true);
 	}
 
 	m_Terrain.Update(fTime);
-
-	const geo::shape* pTerrainShape = m_Terrain.GetProxy().pshapeworld;
-	//if (pTerrainShape)
-	//	PhysDebug::VisualizeBox(pTerrainShape->GetBoundBox(), SColor::White(), true);
+	//PhysDebug::VisualizeBox(m_Terrain.GetAABB(), SColor::Yellow(), true);
 
 	// Determine pairs of objects that possibly collide
 	PhysObject *pobj1, *pobj2;
@@ -132,12 +129,16 @@ S_API void CPhysics::Update(float fTime)
 		for (int j = i + 1; j < m_pObjects->GetNumObjects(); ++j)
 		{
 			pobj2 = m_pObjects->GetAt(j);
+
+			if (pobj1->GetBehavior() == ePHYSOBJ_BEHAVIOR_STATIC && pobj2->GetBehavior() == ePHYSOBJ_BEHAVIOR_STATIC)
+				continue; // never collide two static objects
+
 			if (pobj1->GetAABB().Intersects(pobj2->GetAABB()))
 				m_Colliding.push_back(std::make_pair(pobj1, pobj2));
 		}
 
 		//TODO: Use better bounding box hierarchy for terrain to prevent intersection test for each object
-		if (pobj1->GetAABB().Intersects(m_Terrain.GetAABB()))
+		if (pobj1->GetBehavior() != ePHYSOBJ_BEHAVIOR_STATIC && pobj1->GetAABB().Intersects(m_Terrain.GetAABB()))
 			m_Colliding.push_back(std::make_pair(pobj1, static_cast<PhysObject*>(&m_Terrain)));
 	}
 
@@ -150,37 +151,42 @@ S_API void CPhysics::Update(float fTime)
 		if (!pshape1 || !pshape2)
 			continue;
 
+		if (m_bHelpersShown)
+		{
+			/*PhysDebug::VisualizeAABB(pobj1->GetAABB(), SColor::Red(), true);
+			PhysDebug::VisualizeAABB(pobj2->GetAABB(), SColor::Red(), true);*/
+		}
+
 		SIntersection inters;
 		if (!_Intersection(pshape1, pshape2, &inters))
 			continue;
 
 		if (m_bHelpersShown)
 		{
-			PhysDebug::VisualizePoint(pobj1->GetState()->pos, SColor::Green(), true);
+			//PhysDebug::VisualizePoint(pobj1->GetState()->pos, SColor::Green(), true);
 
 			PhysDebug::VisualizePoint(inters.p, SColor::Red(), true);
-			PhysDebug::VisualizeVector(inters.p, inters.n, SColor::Red(), true);
+			//PhysDebug::VisualizeVector(inters.p, inters.n * 3.0f, SColor::Red(), true);
 			PhysDebug::VisualizeVector(inters.p, inters.n * inters.dist, SColor::Yellow(), true);
 		}
 
-		if ((pobj1->GetBehavior() == ePHYSOBJ_BEHAVIOR_LIVING && pobj2->GetType() == ePHYSOBJ_TYPE_TERRAIN) ||
-			(pobj1->GetType() == ePHYSOBJ_TYPE_TERRAIN && pobj2->GetBehavior() == ePHYSOBJ_BEHAVIOR_LIVING))
+		if (pobj1->GetBehavior() == ePHYSOBJ_BEHAVIOR_LIVING || pobj2->GetBehavior() == ePHYSOBJ_BEHAVIOR_LIVING)
 		{
-			PhysTerrain* pterrain;
-			PhysObject* pliving;
-			if (pobj1->GetType() == ePHYSOBJ_TYPE_TERRAIN)
+			// TODO: Implement check between two living entities?
+			PhysObject *pliving, *pother;
+			if (pobj1->GetBehavior() == ePHYSOBJ_BEHAVIOR_LIVING)
 			{
-				pterrain = (PhysTerrain*)pobj1;
-				pliving = pobj2;
+				pliving = pobj1;
+				pother = pobj2;
+				inters.n *= -1.0f;
 			}
 			else
 			{
-				pterrain = (PhysTerrain*)pobj2;
-				pliving = pobj1;
-				inters.n *= -1.0f;
+				pliving = pobj2;
+				pother = pobj1;
 			}
 
-			pliving->ResolveLivingTerrainContact(pterrain, &inters, fTime);
+			pliving->ResolveLivingContact(pother, &inters, fTime);
 			continue;
 		}
 
@@ -272,9 +278,6 @@ S_API void CPhysics::ClearTerrainProxy()
 
 S_API void CPhysics::ShowHelpers(bool show)
 {
-	if (m_bHelpersShown == show)
-		return;
-
 	m_bHelpersShown = show;
 
 	unsigned int iobj;

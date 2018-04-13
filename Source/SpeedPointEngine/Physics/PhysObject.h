@@ -76,7 +76,6 @@ class S_API PhysObject
 {
 private:
 	bool m_bTrash;
-	AABB m_AABB;
 
 	void RecalculateInertia();
 
@@ -105,30 +104,21 @@ public:
 	EPhysObjectBehavior GetBehavior() const { return m_Behavior; }
 
 	void Update(float fTime);
-	void ResolveLivingTerrainContact(const PhysTerrain* pterrain, const geo::SIntersection* pinters, float fTime);
+	void ResolveLivingContact(const PhysObject* pother, const geo::SIntersection* pinters, float fTime);
 
-	const AABB& GetAABB() const { return m_AABB; }
+	const AABB& GetAABB() const { return m_Proxy.aabbworld; }
 	
-	template<typename T>
-	void SetProxy(const T& shape = T())
+	// Don't use this for meshes
+	template<typename T> void SetProxy(const T& shape = T())
 	{
 		SetProxyPtr(new T(shape));
 	}
 
-	void SetProxyPtr(geo::shape* pshape)
-	{
-		if (m_Proxy.pshapeworld == m_Proxy.pshape)
-			m_Proxy.pshapeworld = 0;
-		delete m_Proxy.pshape;
-		delete m_Proxy.pshapeworld;
+	// pshape can be 0 to clear proxy.
+	// !! If pshape is a mesh, its tree must be initialized already
+	void SetProxyPtr(geo::shape* pshape);
 
-		m_Proxy.pshape = pshape;
-		m_Proxy.aabb = m_Proxy.pshape->GetBoundBoxAxisAligned();
-		m_Proxy.pshapeworld = (m_Proxy.pshape->GetType() == geo::eSHAPE_MESH ? m_Proxy.pshape : pshape->Clone());
-		m_Proxy.aabbworld = m_Proxy.aabb;
-	}
-
-	void SetMeshProxy(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree = true, u16 maxTreeDepth = 4);
+	void SetMeshProxy(const Vec3f* ppoints, u32 npoints, const u32* pindices, u32 nindices, bool octree = true, u16 maxTrisPerLeaf = 8);
 	const SProxyPart& GetProxy() const { return m_Proxy; }
 
 	SPhysObjectState* GetState() { return &m_State; }

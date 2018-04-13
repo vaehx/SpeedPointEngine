@@ -29,7 +29,7 @@ S_API const CSPMLoader* SPMManager::Load(const string& absResPath)
 
 	// Not found in cache, load from disk
 	IGameEngine* pEngine = SpeedPointEnv::GetEngine();
-	string absSysPath = pEngine->GetResourceSystemPath(absResPath).c_str();
+	string absSysPath = pEngine->GetResourceSystemPath(absResPath);
 
 	CSPMLoader* pLoader = new CSPMLoader();
 	if (!pLoader->Load(absSysPath.c_str()))
@@ -41,6 +41,7 @@ S_API const CSPMLoader* SPMManager::Load(const string& absResPath)
 	// Remove oldest cache entry based on FIFO
 	if (m_Cache.size() == m_NumMaxCached)
 	{
+		// Loader Destructor clears file structures
 		delete m_Cache.at(m_EvictionQueue.front());
 		m_Cache.erase(m_EvictionQueue.front());
 		m_EvictionQueue.pop();
@@ -55,6 +56,15 @@ S_API const CSPMLoader* SPMManager::Load(const string& absResPath)
 	return pLoader;
 }
 
+S_API IGeometry* SPMManager::LoadAsGeometry(const string& absResPath)
+{
+	const CSPMLoader* pLoader = Load(absResPath);
+	if (!pLoader)
+		return 0;
+
+	return CreateGeometryFromSPM(pLoader, absResPath);
+}
+
 S_API void SPMManager::FillInitialGeometryDescFromSPM(const CSPMLoader* pSPM, SInitialGeometryDesc& geomDesc)
 {
 	if (!pSPM)
@@ -63,10 +73,11 @@ S_API void SPMManager::FillInitialGeometryDescFromSPM(const CSPMLoader* pSPM, SI
 	I3DEngine* p3DEngine = SpeedPointEnv::Get3DEngine();
 
 	string spmSysPath = pSPM->GetLoadedFileName();
-	string spmResPath = MakePathRelativeTo(spmSysPath, SpeedPointEnv::GetEngine()->GetResourceSystemPath());
+	string spmResPath = SystemPathToResourcePath(spmSysPath, SpeedPointEnv::GetEngine()->GetResourceSystemPath());
 	string modelDir = GetDirectoryPath(spmResPath);
 
-	const std::vector<SModelMeta>& models = pSPM->GetModels();
+	const SSPMFile& spmFile = pSPM->GetFileUnmutable();
+	const std::vector<SModelMeta>& models = spmFile.models;
 
 	geomDesc.geomFile = spmResPath;
 	geomDesc.bRequireNormalRecalc = false;
@@ -85,8 +96,11 @@ S_API void SPMManager::FillInitialGeometryDescFromSPM(const CSPMLoader* pSPM, SI
 	geomDesc.pSubsets = new SInitialSubsetGeometryDesc[geomDesc.nSubsets];
 	geomDesc.pVertices = new SVertex[geomDesc.nVertices];
 
+	// Load material file
+	IMaterial* pMaterial = p3DEngine->GetMaterialManager()->LoadMaterial(
+		MakePathAbsolute(spmFile.materialFile, modelDir));
+
 	// Flatten-out the subsets in all models into a single array of subsets	
-	IMaterialManager* pMatMgr = p3DEngine->GetMaterialManager();
 	u32 vtxOffset = 0;
 	unsigned int iSubset = 0;
 	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
@@ -97,10 +111,6 @@ S_API void SPMManager::FillInitialGeometryDescFromSPM(const CSPMLoader* pSPM, SI
 			geomDesc.pVertices[vtxOffset + iVtx] = itModel->pVertices[iVtx];
 		}
 
-		// itModel->materialFile may already be absolute
-		string absMaterialFile = MakePathAbsolute(itModel->materialFile, modelDir);
-
-		IMaterial* pMaterial = pMatMgr->LoadMaterial(absMaterialFile);
 		for (u16 iModelSubset = 0; iModelSubset < itModel->nLoadedSubsets; ++iModelSubset)
 		{
 			const SSubset& modelSubset = itModel->pSubsets[iModelSubset];
@@ -115,22 +125,13 @@ S_API void SPMManager::FillInitialGeometryDescFromSPM(const CSPMLoader* pSPM, SI
 			if (pMaterial)
 			{
 				subset.pMaterial = pMaterial;
-				subset.iMaterialDefinition = pMaterial->GetDefinitionIndex(modelSubset.materialDefinition);
+				subset.iMaterialDefinition = pMaterial->GetDefinitionIndex(modelSubset.materialName);
 			}
 
 			iSubset++;
 		}
 
 		vtxOffset += itModel->nVertices;
-	}
-
-	for (auto itModel = models.begin(); itModel != models.end(); ++itModel)
-	{
-		for (u16 iSubset = 0; iSubset < itModel->nSubsets; ++iSubset)
-			delete[] itModel->pSubsets[iSubset].pIndices;
-
-		delete[] itModel->pSubsets;
-		delete[] itModel->pVertices;
 	}
 }
 
@@ -231,6 +232,7 @@ S_API geo::shape* SPMManager::ConvertSPMColShapeToGeoShape(const SSPMColShape* s
 				pbox->axis[i] = colbox->axis[i];
 				pbox->dim[i] = colbox->dimensions[i];
 			}
+			pshape = pbox;
 			break;
 		}
 	default:

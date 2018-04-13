@@ -39,6 +39,8 @@ ILINE __int32 sgnnz(f32 x)
 
 #define ONE_THIRD 0.333333333333f
 
+#define ORANGE SColor(1.0f, 0.54f, 0.f)
+
 inline float sqr(float f) { return f * f; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1157,10 +1159,10 @@ void capsule::Transform(const Mat44& mtx)
 	for (int i = 0; i < 2; ++i)
 		p[i] = (mtx * Vec4f(p[i], 1.0f)).xyz();
 	
-	Vec3f q = (mtx * Vec4f(c + axis.GetOrthogonal() * r, 1.0f)).xyz();
 	c = (p[0] + p[1]) * 0.5f;
-	hh = 0.5f * (p[1] - p[0]).Length();
-	r = (q - c).Length();
+	hh = (p[1] - p[0]).Length();
+	axis = (p[1] - p[0]) / hh;
+	hh *= 0.5f;
 }
 
 bool _CapsuleRay(const capsule* pcapsule, const ray* pray, SIntersection* pinters)
@@ -1233,61 +1235,93 @@ bool _CapsuleCapsule(const capsule* pcapsule1, const capsule* pcapsule2, SInters
 bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinters)
 {
 	Vec3f ep, ev, d, dp, cp, pp, sc, n;
-	float dlnsq, dln, t[2], tt;
+	float dist_tmp, dlnsq, dln, pp_sc_proj[2], tt, tt2, tt_abs;
 	int i, i2, i3;
 	quotient q;
 
+	pinters->dist = FLT_MAX;
+	bool inters = false;
+
 	// Capsule Ray intersection - Box sides
-	t[0] = FLT_MAX; t[1] = -FLT_MAX;
-	for (i = 0; i < 3; ++i)
+	for (i = 0; i < 3; ++i) // 3 box axes
 	{
 		i2 = (i + 1) % 3; i3 = (i + 2) % 3;
-		for (int sg = -1; sg <= 1; sg += 2)
+		for (int sg = -1; sg <= 1; sg += 2) // each axis: + and -
 		{
-			sc = pbox->c + pbox->axis[i] * sg * pbox->dim[i];
-			q.set(Vec3Dot(sc - pcapsule->c, pbox->axis[i] * sg), Vec3Dot(pcapsule->axis, pbox->axis[i] * sg));
-			if (fabsf(q.d) >= FLT_EPSILON)
-			{
+			n = pbox->axis[i] * sg;
+			sc = pbox->c + n * pbox->dim[i]; // middle point on box side (side center)
+			q.set(Vec3Dot(sc - pcapsule->c, n), Vec3Dot(pcapsule->axis, n));
+			if (fabsf(q.d) > FLT_EPSILON)
+			{ // capsule not parallel to box side				
 				tt = q.val();
-				pp = pcapsule->c + tt * pcapsule->axis;
-				if (isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i2])) - pbox->dim[i2]) &
-					isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i3])) - pbox->dim[i3]))
+				tt_abs = fabsf(tt);
+				pp = pcapsule->c + tt * pcapsule->axis; // intersection of capsule ray with box side plane
+				pp_sc_proj[0] = fabsf(Vec3Dot(pp - sc, pbox->axis[i2]));
+				pp_sc_proj[1] = fabsf(Vec3Dot(pp - sc, pbox->axis[i3]));
+				// pp_sc_proj must be inside 2d side dimensions
+				if (isneg(pp_sc_proj[0] - pbox->dim[i2]) & isneg(pp_sc_proj[1] - pbox->dim[i3]))
 				{
-					t[0] = min(t[0], tt);
-					t[1] = max(t[1], tt);
-					n = pbox->axis[i] * sg;
+					// pp must also be inside capsule segment
+					if (isneg(tt - pcapsule->hh) & isneg(-pcapsule->hh - tt))
+					{
+						// capsule end point that lies "behind" side plane
+						cp = pbox->c - pcapsule->axis * sgnnz(Vec3Dot(n, pcapsule->axis)) * pcapsule->hh;
+						dist_tmp = Vec3Dot(cp - pp, n) - pcapsule->r;
+						if (dist_tmp < pinters->dist)
+						{
+							pinters->dist = dist_tmp;
+							pinters->p = pp;
+							pinters->n = -n;
+							pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+							inters = true;
+						}
+					}
 				}
 			}
+			//else
+			//{ // capsule parallel to box side
+			//  // project capsule center onto box side and clamp into box dimensions
+			//  // this avoids rotational force when possible
+			//	Vec3f cc = pcapsule->c - sc;
+			//	dist_tmp = Vec3Dot(cc, n) - pcapsule->r;
+			//	if (dist_tmp <= 0 && dist_tmp < pinters->dist)
+			//	{
+			//		pp = Vec3f(Vec3Dot(cc, pbox->axis[i2]), 0, Vec3Dot(cc, pbox->axis[i3]));
+			//		if (fabsf(pp.x) > pbox->dim[i2])
+			//			pp.x = sgnnz(pp.x) * pbox->dim[i2];
+			//		if (fabsf(pp.z) > pbox->dim[i3])
+			//			pp.z = sgnnz(pp.z) * pbox->dim[i3];
+			//		pinters->p = sc + pbox->axis[i2] * pp.x + pbox->axis[i3] * pp.z;
+			//		pinters->dist = dist_tmp;
+			//		pinters->n = -n;
+			//		pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+			//		inters = true;
+			//	}
+			//}
 		}
 	}
 
-	if ((t[0] < t[1]) & isneg(t[0] - pcapsule->hh) & isneg(-pcapsule->hh - t[1]))
-	{
-		cp = pcapsule->c + pcapsule->axis * sgnnz(Vec3Dot(pcapsule->axis, -n)) * pcapsule->hh - n * pcapsule->r;
-		pinters->dist = Vec3Dot(cp - pinters->p, n);
-		pinters->p = pcapsule->c + t[0] * pcapsule->axis;
-		pinters->n = -n;
-		pinters->feature = eINTERSECTION_FEATURE_CAP;
-		return true;
-	}
-
 	// Caps - Box sides
-	pinters->feature = eINTERSECTION_FEATURE_CAP;
 	for (int cap = -1; cap <= 1; cap += 2)
 	{
-		cp = pcapsule->c + pcapsule->axis * pcapsule->hh * cap;
+		cp = pcapsule->c + pcapsule->axis * pcapsule->hh * (float)cap;
 		for (i = 0; i < 3; ++i)
 		{
 			i2 = (i + 1) % 3; i3 = (i + 2) % 3;
 			n = pbox->axis[i] * sgnnz(Vec3Dot(cp - pbox->c, pbox->axis[i]));
 			pp = cp - (dln = Vec3Dot(cp - (sc = pbox->c + n * pbox->dim[i]), n)) * n;
-			if (isneg(pinters->dist = dln - pcapsule->r)
+			if (isneg(dist_tmp = dln - pcapsule->r)
 				& isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i2])) - pbox->dim[i2])
 				& isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i3])) - pbox->dim[i3]))
 			{
-				pinters->n = -n;
-				pinters->p = cp + pinters->n * pcapsule->r;
-				return true;
+				if (dist_tmp < pinters->dist)
+				{
+					pinters->dist = dist_tmp;
+					pinters->n = -n;
+					pinters->p = cp + pinters->n * pcapsule->r;
+					pinters->feature = eINTERSECTION_FEATURE_CAP;
+					inters = true;
+				}
 			}
 		}
 	}
@@ -1303,43 +1337,167 @@ bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinter
 					+ (float)s1 * pbox->dim[(a + 1) % 3] * pbox->axis[(a + 1) % 3]
 					+ (float)s2 * pbox->dim[(a + 2) % 3] * pbox->axis[(a + 2) % 3];
 
-				// edge cylinder
+				// edge <-> cylinder
 				dp = pcapsule->c - ep;
 				dlnsq = (d = ev ^ pcapsule->axis).LengthSq();
-				if (isneg(fabsf(Vec3Dot(ev, pcapsule->axis)) - (1.0f - FLT_EPSILON))
-					& isneg(sqr(Vec3Dot(dp, d)) - pcapsule->r * pcapsule->r * dlnsq)
-					& isneg(fabsf(t[0] = Vec3Dot(dp ^ ev, d)) - pcapsule->hh * dlnsq)
-					& isneg(fabsf(Vec3Dot(dp ^ pcapsule->axis, d)) - pbox->dim[a] * 2 * dlnsq))
+				if (isneg(fabsf(Vec3Dot(ev, pcapsule->axis)) - (1.0f - FLT_EPSILON)) // !parallel
+					& isneg(sqr(Vec3Dot(dp, d)) - pcapsule->r * pcapsule->r * dlnsq) // distanceBetweenRays < radius*radius
+					& isneg(fabsf(tt = Vec3Dot(dp ^ ev, d)) - pcapsule->hh * dlnsq) // parameter for capsule ray must be inside capsule segment
+					& isneg((tt2 = Vec3Dot(dp ^ pcapsule->axis, d)) - pbox->dim[a] * 2 * dlnsq) && tt2 >= 0) // parameter for edge ray must be inside box dimensions
 				{
 					dln = sqrtf(dlnsq);
-					pinters->p = pcapsule->c + t[0] * pcapsule->axis;
-					pinters->n = (d / dln) * sgnnz(Vec3Dot(-dp, d));
-					pinters->dist = fabsf(Vec3Dot(dp, d) / dln) - pcapsule->r;
-					pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
-					return true;
+					dist_tmp = fabsf(Vec3Dot(dp, d) / dln) - pcapsule->r;
+					if (dist_tmp < pinters->dist)
+					{
+						pinters->dist = dist_tmp;
+						pinters->p = pcapsule->c + tt * pcapsule->axis;
+						pinters->n = d / dln;
+						// make sure normal points away from box (and negate it, because dist is negative)
+						pinters->n *= -sgnnz(Vec3Dot(pinters->n, (ep + ev * pbox->dim[a]) - pbox->c));
+						pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+						inters = true;
+					}
 				}
 
-				// edge cap
+				// edge <-> cap
 				for (i = -1; i <= 1; i += 2)
 				{
-					cp = pcapsule->c + pcapsule->axis * pcapsule->hh * i;
+					// a capsule end point (center of caps)
+					cp = pcapsule->c + pcapsule->axis * pcapsule->hh * (float)i;
+					// project cp onto edge ray and clamp into [0;2*dim]
 					pp = ep + min(max(Vec3Dot(cp - ep, ev), 0), pbox->dim[a] * 2.0f) * ev;
 					dlnsq = (d = cp - pp).LengthSq();
 					if (dlnsq <= pcapsule->r * pcapsule->r)
 					{
 						dln = sqrtf(dlnsq);
-						pinters->n = -d / dln;
-						pinters->p = cp + pinters->n * pcapsule->r;
-						pinters->dist = dln - pcapsule->r;
-						pinters->feature = eINTERSECTION_FEATURE_CAP;
-						return true;
+						dist_tmp = dln - pcapsule->r;
+						if (dist_tmp < pinters->dist)
+						{
+							pinters->dist = dist_tmp;
+							pinters->n = -d / dln;
+							pinters->p = cp + pinters->n * pcapsule->r;
+							pinters->feature = eINTERSECTION_FEATURE_CAP;
+							inters = true;
+						}
 					}
 				}
 			}
 	}
 
-	return false;
+	return inters;
 }
+
+
+//bool _CapsuleBox(const capsule* pcapsule, const box* pbox, SIntersection* pinters)
+//{
+//	Vec3f ep, ev, d, dp, cp, pp, sc, n;
+//	float dlnsq, dln, t[2], tt;
+//	int i, i2, i3;
+//	quotient q;
+//
+//	// Capsule Ray intersection - Box sides
+//	t[0] = FLT_MAX; t[1] = -FLT_MAX;
+//	for (i = 0; i < 3; ++i)
+//	{
+//		i2 = (i + 1) % 3; i3 = (i + 2) % 3;
+//		for (int sg = -1; sg <= 1; sg += 2)
+//		{
+//			sc = pbox->c + pbox->axis[i] * sg * pbox->dim[i];
+//			q.set(Vec3Dot(sc - pcapsule->c, pbox->axis[i] * sg), Vec3Dot(pcapsule->axis, pbox->axis[i] * sg));
+//			if (fabsf(q.d) >= FLT_EPSILON)
+//			{
+//				tt = q.val();
+//				pp = pcapsule->c + tt * pcapsule->axis;
+//				if (isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i2])) - pbox->dim[i2]) &
+//					isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i3])) - pbox->dim[i3]))
+//				{
+//					t[0] = min(t[0], tt);
+//					t[1] = max(t[1], tt);
+//					n = pbox->axis[i] * sg;
+//				}
+//			}
+//		}
+//	}
+//
+//	if ((t[0] < t[1]) & isneg(t[0] - pcapsule->hh) & isneg(-pcapsule->hh - t[1]))
+//	{
+//		cp = pcapsule->c + pcapsule->axis * sgnnz(Vec3Dot(pcapsule->axis, -n)) * pcapsule->hh - n * pcapsule->r;
+//		pinters->dist = Vec3Dot(cp - pinters->p, n);
+//		pinters->p = pcapsule->c + t[0] * pcapsule->axis;
+//		pinters->n = -n;
+//		pinters->feature = eINTERSECTION_FEATURE_CAP;
+//		return true;
+//	}
+//
+//	// Caps - Box sides
+//	pinters->feature = eINTERSECTION_FEATURE_CAP;
+//	for (int cap = -1; cap <= 1; cap += 2)
+//	{
+//		cp = pcapsule->c + pcapsule->axis * pcapsule->hh * cap;
+//		for (i = 0; i < 3; ++i)
+//		{
+//			i2 = (i + 1) % 3; i3 = (i + 2) % 3;
+//			n = pbox->axis[i] * sgnnz(Vec3Dot(cp - pbox->c, pbox->axis[i]));
+//			pp = cp - (dln = Vec3Dot(cp - (sc = pbox->c + n * pbox->dim[i]), n)) * n;
+//			if (isneg(pinters->dist = dln - pcapsule->r)
+//				& isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i2])) - pbox->dim[i2])
+//				& isneg(fabsf(Vec3Dot(pp - sc, pbox->axis[i3])) - pbox->dim[i3]))
+//			{
+//				pinters->n = -n;
+//				pinters->p = cp + pinters->n * pcapsule->r;
+//				return true;
+//			}
+//		}
+//	}
+//
+//	// All edges - capsule	
+//	for (int a = 0; a < 3; ++a)
+//	{
+//		ev = pbox->axis[a];
+//		for (int s1 = -1; s1 <= 1; s1 += 2)
+//			for (int s2 = -1; s2 <= 1; s2 += 2)
+//			{
+//				ep = pbox->c - ev * pbox->dim[a]
+//					+ (float)s1 * pbox->dim[(a + 1) % 3] * pbox->axis[(a + 1) % 3]
+//					+ (float)s2 * pbox->dim[(a + 2) % 3] * pbox->axis[(a + 2) % 3];
+//
+//				// edge cylinder
+//				dp = pcapsule->c - ep;
+//				dlnsq = (d = ev ^ pcapsule->axis).LengthSq();
+//				if (isneg(fabsf(Vec3Dot(ev, pcapsule->axis)) - (1.0f - FLT_EPSILON))
+//					& isneg(sqr(Vec3Dot(dp, d)) - pcapsule->r * pcapsule->r * dlnsq)
+//					& isneg(fabsf(t[0] = Vec3Dot(dp ^ ev, d)) - pcapsule->hh * dlnsq)
+//					& isneg(fabsf(Vec3Dot(dp ^ pcapsule->axis, d)) - pbox->dim[a] * 2 * dlnsq))
+//				{
+//					dln = sqrtf(dlnsq);
+//					pinters->p = pcapsule->c + t[0] * pcapsule->axis;
+//					pinters->n = (d / dln) * sgnnz(Vec3Dot(-dp, d));
+//					pinters->dist = fabsf(Vec3Dot(dp, d) / dln) - pcapsule->r;
+//					pinters->feature = eINTERSECTION_FEATURE_BASE_SHAPE;
+//					return true;
+//				}
+//
+//				// edge cap
+//				for (i = -1; i <= 1; i += 2)
+//				{
+//					cp = pcapsule->c + pcapsule->axis * pcapsule->hh * i;
+//					pp = ep + min(max(Vec3Dot(cp - ep, ev), 0), pbox->dim[a] * 2.0f) * ev;
+//					dlnsq = (d = cp - pp).LengthSq();
+//					if (dlnsq <= pcapsule->r * pcapsule->r)
+//					{
+//						dln = sqrtf(dlnsq);
+//						pinters->n = -d / dln;
+//						pinters->p = cp + pinters->n * pcapsule->r;
+//						pinters->dist = dln - pcapsule->r;
+//						pinters->feature = eINTERSECTION_FEATURE_CAP;
+//						return true;
+//					}
+//				}
+//			}
+//	}
+//
+//	return false;
+//}
 
 bool _CapsuleTriangle(const capsule* pcapsule, const triangle* ptri, SIntersection* pinters)
 {
@@ -1663,6 +1821,7 @@ void box::CopyTo(shape * pother) const
 	{
 		box* pbox = dynamic_cast<box*>(pother);
 		*pbox = *this;
+		int asd = 0;
 	}
 }
 
@@ -1671,8 +1830,12 @@ void box::Transform(const Mat44& mtx)
 	c = (mtx * Vec4f(c, 1.0f)).xyz();
 	for (int i = 0; i < 3; ++i)
 	{
+		// TODO: When Scaling non-uniformly, we can't just multiply direction vectors with the matrix.
+		// Instead, we have to multiply with inverse transposed of mtx
 		axis[i] = (mtx * Vec4f(axis[i], 0)).xyz();
-		axis[i] /= (dim[i] = axis[i].Length());
+		float axisLn = axis[i].Length();
+		axis[i] /= axisLn; // normalize
+		dim[i] *= axisLn; // include scaling
 	}
 }
 
@@ -1952,150 +2115,361 @@ inline int _TestLineSegmentAABB(const Vec3f& p0, const Vec3f& p1, const AABB& aa
 }
 
 
-struct TriBuffer
+//struct TriBuffer
+//{
+//	unsigned int* buffer;
+//	unsigned int capacity;
+//	unsigned int size;
+//
+//	TriBuffer() : buffer(0), capacity(0), size(0) {}
+//};
+//
+//void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const TriBuffer& parentTris, bool octree, unsigned int maxDepth, Vec3f* triCache, unsigned int depth = 1)
+//{
+//	TriBuffer tris;
+//	unsigned int itri;
+//	for (unsigned int i = 0; i < parentTris.size; ++i)
+//	{
+//		itri = parentTris.buffer[i];
+//
+//		static Vec3f p[3];
+//		p[0] = triCache[itri];
+//		p[1] = triCache[itri + 1];
+//		p[2] = triCache[itri + 2];
+//
+//		if (/*pnode->aabb.ContainsPoint(p[0]) || pnode->aabb.ContainsPoint(p[1]) || pnode->aabb.ContainsPoint(p[2]) ||*/
+//			_TestLineSegmentAABB(p[0], p[1], pnode->aabb)
+//			|| _TestLineSegmentAABB(p[1], p[2], pnode->aabb)
+//			|| _TestLineSegmentAABB(p[2], p[0], pnode->aabb))
+//		{
+//			if (!tris.buffer || tris.size >= tris.capacity)
+//			{
+//				unsigned int newCapacity = tris.capacity + 20;
+//				unsigned int* newBuffer = new unsigned int[newCapacity];
+//				if (tris.buffer)
+//				{
+//					memcpy(newBuffer, tris.buffer, tris.size * sizeof(unsigned int));
+//					delete[] tris.buffer;
+//					tris.buffer = 0;
+//				}
+//
+//				tris.buffer = newBuffer;
+//				tris.capacity = newCapacity;
+//			}
+//
+//			tris.buffer[tris.size] = itri;
+//			tris.size++;
+//		}
+//	}
+//
+//	if (depth < maxDepth && tris.size > 16) // min 16 triangles in one BV
+//	{
+//		pnode->tris = 0;
+//		pnode->num_tris = 0;
+//		pnode->num_children = (octree ? 8 : 4);
+//		pnode->children = new mesh_tree_node[pnode->num_children];
+//
+//		Vec3f vMin = pnode->aabb.vMin, vMax = pnode->aabb.vMax;
+//		Vec3f vCenter = (vMin + vMax) * 0.5f;
+//		if (octree)
+//		{
+//			pnode->children[0].aabb = AABB(vMin, vCenter);
+//			pnode->children[1].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vCenter.y, vMax.z));
+//			pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vCenter.y, vMax.z));
+//			pnode->children[3].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vCenter.y, vCenter.z));
+//			pnode->children[4].aabb = AABB(Vec3f(vMin.x, vCenter.y, vMin.z), Vec3f(vCenter.x, vMax.y, vCenter.z));
+//			pnode->children[5].aabb = AABB(Vec3f(vMin.x, vCenter.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
+//			pnode->children[6].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+//			pnode->children[7].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
+//		}
+//		else
+//		{
+//			pnode->children[0].aabb = AABB(vMin, Vec3f(vCenter.x, vMax.y, vCenter.z));
+//			pnode->children[1].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
+//			pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+//			pnode->children[3].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
+//		}
+//
+//		for (unsigned int i = 0; i < pnode->num_children; ++i)
+//			CreateMeshTreeNode(pmesh, &pnode->children[i], tris, octree, maxDepth, triCache, depth + 1);
+//	}
+//	else
+//	{
+//		pnode->num_children = 0;
+//		pnode->children = 0;
+//		pnode->num_tris = tris.size;
+//		if (pnode->num_tris > 0)
+//		{
+//			// !! We do not copy the buffer here! Instead we takeover control of it
+//			pnode->tris = tris.buffer;
+//			tris.buffer = 0;
+//		}
+//
+//		static bool seeded = false;
+//		if (!seeded)
+//		{
+//			srand(static_cast<unsigned>(time(0)));
+//			seeded = true;
+//		}
+//
+//		pnode->_color.r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+//		pnode->_color.g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+//		pnode->_color.b = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+//
+//		//PhysDebug::VisualizeAABB(pnode->aabb, pnode->_color);
+//	}
+//
+//	if (tris.buffer)
+//	{
+//		delete[] tris.buffer;
+//		tris.buffer = 0;
+//	}
+//}
+//
+//void mesh::CreateTree(bool octree, unsigned int maxDepth)
+//{
+//	ClearTree();
+//	if (!points || !indices || num_points == 0 || num_indices == 0)
+//		return;
+//
+//	for (unsigned int i = 0; i < num_points; ++i)
+//		root.aabb.AddPoint(points[i]);
+//
+//	TriBuffer rootTris;
+//	rootTris.capacity = (unsigned int)(num_indices / 3);
+//	rootTris.buffer = new unsigned int[rootTris.capacity];
+//
+//	// Cache triangle points
+//	Vec3f* triCache = (Vec3f*)malloc(sizeof(Vec3f) * num_indices);
+//
+//	for (unsigned int i = 0; i < num_indices; i += 3)
+//	{
+//		rootTris.buffer[rootTris.size++] = i;
+//		triCache[i] = points[indices[i]];
+//		triCache[i + 1] = points[indices[i + 1]];
+//		triCache[i + 2] = points[indices[i + 2]];
+//	}
+//
+//	CreateMeshTreeNode(this, &root, rootTris, octree, maxDepth, triCache);
+//
+//	if (rootTris.buffer)
+//	{
+//		delete[] rootTris.buffer;
+//		rootTris.buffer = 0;
+//	}
+//
+//	free(triCache);
+//}
+
+// If triangle just touches a side of the aabb, this is still reported as an intersection
+bool _TestAABBTriangle(const AABB& aabb, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, bool& onlyTouching)
 {
-	unsigned int* buffer;
-	unsigned int capacity;
-	unsigned int size;
+	onlyTouching = true;
+	geo::plane triplane = geo::plane(p1, p2, p3);
+	float r, s;
+	Vec3f c = (aabb.vMin + aabb.vMax) * 0.5f, e = aabb.vMax - c;
+	Vec3f v[] = { p1 - c, p2 - c, p3 - c };
 
-	TriBuffer() : buffer(0), capacity(0), size(0) {}
-};
-
-void CreateMeshTreeNode(mesh* pmesh, mesh_tree_node* pnode, const TriBuffer& parentTris, bool octree, unsigned int maxDepth, Vec3f* triCache, unsigned int depth = 1)
-{
-	TriBuffer tris;
-	unsigned int itri;
-	for (unsigned int i = 0; i < parentTris.size; ++i)
-	{
-		itri = parentTris.buffer[i];
-
-		static Vec3f p[3];
-		p[0] = triCache[itri];
-		p[1] = triCache[itri + 1];
-		p[2] = triCache[itri + 2];
-
-		if (/*pnode->aabb.ContainsPoint(p[0]) || pnode->aabb.ContainsPoint(p[1]) || pnode->aabb.ContainsPoint(p[2]) ||*/
-			_TestLineSegmentAABB(p[0], p[1], pnode->aabb)
-			|| _TestLineSegmentAABB(p[1], p[2], pnode->aabb)
-			|| _TestLineSegmentAABB(p[2], p[0], pnode->aabb))
+	// Test cross product between 3 axes and edges in aabb space
+	static const Vec3f u[] = { Vec3f(1, 0, 0), Vec3f(0, 1, 0), Vec3f(0, 0, 1) };
+	Vec3f f[] = { v[1] - v[0], v[2] - v[1], v[0] - v[2] }, a;
+	float q, qmin, qmax;
+	bool thisOnlyTouching = false;
+	for (int i = 0; i < 3; ++i)
+		for (int j = 0; j < 3; ++j)
 		{
-			if (!tris.buffer || tris.size >= tris.capacity)
+			a = Vec3Cross(u[i], f[j]);
+			r = e[0] * fabsf(Vec3Dot(u[0], a)) + e[1] * fabsf(Vec3Dot(u[1], a)) + e[2] * fabsf(Vec3Dot(u[2], a));
+
+			qmin = FLT_MAX; qmax = -FLT_MAX;
+			for (int k = 0; k < 3; ++k)
 			{
-				unsigned int newCapacity = tris.capacity + 20;
-				unsigned int* newBuffer = new unsigned int[newCapacity];
-				if (tris.buffer)
-				{
-					memcpy(newBuffer, tris.buffer, tris.size * sizeof(unsigned int));
-					delete[] tris.buffer;
-					tris.buffer = 0;
-				}
-
-				tris.buffer = newBuffer;
-				tris.capacity = newCapacity;
+				q = Vec3Dot(v[k], a);
+				if (q < qmin) qmin = q;
+				if (q > qmax) qmax = q;
 			}
-
-			tris.buffer[tris.size] = itri;
-			tris.size++;
+			if (!(-r <= qmax && r >= qmin))
+				return false;
+			thisOnlyTouching |= (-r == qmax || r == qmin);
 		}
-	}
+	onlyTouching &= thisOnlyTouching;
 
-	if (depth < maxDepth && tris.size > 16) // min 16 triangles in one BV
+	// Test AABB-AABB
+	static AABB triaabb;
+	triaabb.Reset();
+	triaabb.AddPoint(p1);
+	triaabb.AddPoint(p2);
+	triaabb.AddPoint(p3);
+	thisOnlyTouching = false;
+	for (int i = 0; i < 3; ++i)
 	{
-		pnode->tris = 0;
-		pnode->num_tris = 0;
-		pnode->num_children = (octree ? 8 : 4);
-		pnode->children = new mesh_tree_node[pnode->num_children];
+		if (aabb.vMin[i] > triaabb.vMax[i] || triaabb.vMin[i] > aabb.vMax[i])
+			return false;
+		thisOnlyTouching |= (aabb.vMin[i] == triaabb.vMax[i] || triaabb.vMin[i] == aabb.vMax[i]);
+	}
+	onlyTouching &= thisOnlyTouching;
 
-		Vec3f vMin = pnode->aabb.vMin, vMax = pnode->aabb.vMax;
-		Vec3f vCenter = (vMin + vMax) * 0.5f;
-		if (octree)
-		{
-			pnode->children[0].aabb = AABB(vMin, vCenter);
-			pnode->children[1].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vCenter.y, vMax.z));
-			pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vCenter.y, vMax.z));
-			pnode->children[3].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vCenter.y, vCenter.z));
-			pnode->children[4].aabb = AABB(Vec3f(vMin.x, vCenter.y, vMin.z), Vec3f(vCenter.x, vMax.y, vCenter.z));
-			pnode->children[5].aabb = AABB(Vec3f(vMin.x, vCenter.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
-			pnode->children[6].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
-			pnode->children[7].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
-		}
-		else
-		{
-			pnode->children[0].aabb = AABB(vMin, Vec3f(vCenter.x, vMax.y, vCenter.z));
-			pnode->children[1].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
-			pnode->children[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
-			pnode->children[3].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
-		}
+	// Test triangle plane against aabb
+	s = fabsf(Vec3Dot(triplane.n, c) - triplane.d);
+	r = Vec3Dot(e, triplane.n.Abs());
+	if (s > r)
+		return false;
+	onlyTouching &= (s == r);
 
-		for (unsigned int i = 0; i < pnode->num_children; ++i)
-			CreateMeshTreeNode(pmesh, &pnode->children[i], tris, octree, maxDepth, triCache, depth + 1);
+	return true;
+}
+
+void MeshTree_Insert(const mesh* pmesh, mesh_tree_node* pnode, bool octree, unsigned int itri, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, unsigned int maxTrisPerLeaf);
+
+void MeshTree_SplitNode(const mesh* pmesh, mesh_tree_node* pnode, unsigned int maxTrisPerLeaf, bool octree = true)
+{
+	// Create children
+	pnode->num_children = octree ? 8 : 4;
+	pnode->pchildren = new mesh_tree_node[pnode->num_children];
+	
+	Vec3f vMin = pnode->aabb.vMin, vMax = pnode->aabb.vMax;
+	Vec3f vCenter = (vMin + vMax) * 0.5f;
+	if (octree)
+	{
+		pnode->pchildren[0].aabb = AABB(vMin, vCenter);
+		pnode->pchildren[1].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vCenter.y, vMax.z));
+		pnode->pchildren[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vCenter.y, vMax.z));
+		pnode->pchildren[3].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vCenter.y, vCenter.z));
+		pnode->pchildren[4].aabb = AABB(Vec3f(vMin.x, vCenter.y, vMin.z), Vec3f(vCenter.x, vMax.y, vCenter.z));
+		pnode->pchildren[5].aabb = AABB(Vec3f(vMin.x, vCenter.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
+		pnode->pchildren[6].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+		pnode->pchildren[7].aabb = AABB(Vec3f(vCenter.x, vCenter.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
 	}
 	else
 	{
-		pnode->num_children = 0;
-		pnode->children = 0;
-		pnode->num_tris = tris.size;
-		if (pnode->num_tris > 0)
-		{
-			// !! We do not copy the buffer here! Instead we takeover control of it
-			pnode->tris = tris.buffer;
-			tris.buffer = 0;
-		}
-
-		static bool seeded = false;
-		if (!seeded)
-		{
-			srand(static_cast<unsigned>(time(0)));
-			seeded = true;
-		}
-
-		pnode->_color.r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		pnode->_color.g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		pnode->_color.b = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-		//PhysDebug::VisualizeAABB(pnode->aabb, pnode->_color);
+		pnode->pchildren[0].aabb = AABB(vMin, Vec3f(vCenter.x, vMax.y, vCenter.z));
+		pnode->pchildren[1].aabb = AABB(Vec3f(vCenter.x, vMin.y, vMin.z), Vec3f(vMax.x, vMax.y, vCenter.z));
+		pnode->pchildren[2].aabb = AABB(Vec3f(vCenter.x, vMin.y, vCenter.z), Vec3f(vMax.x, vMax.y, vMax.z));
+		pnode->pchildren[3].aabb = AABB(Vec3f(vMin.x, vMin.y, vCenter.z), Vec3f(vCenter.x, vMax.y, vMax.z));
 	}
 
-	if (tris.buffer)
+	/*for (int i = 0; i < pnode->num_children; ++i)
+		PhysDebug::VisualizeAABB(pnode->pchildren[i].aabb, SColor::White());*/
+
+	// Copy tris to children
+	for (const auto& itri : pnode->tris)
 	{
-		delete[] tris.buffer;
-		tris.buffer = 0;
+		const Vec3f& np1 = pmesh->points[pmesh->indices[itri]];
+		const Vec3f& np2 = pmesh->points[pmesh->indices[itri + 1]];
+		const Vec3f& np3 = pmesh->points[pmesh->indices[itri + 2]];
+		MeshTree_Insert(pmesh, pnode, octree, itri, np1, np2, np3, maxTrisPerLeaf);
+	}
+
+	// this tris array is not needed anymore
+	pnode->tris.resize(0);
+}
+
+// Returns false if the triangle is not inside pnode
+// Does not check if tri intersects with node - you must check before calling this method!
+void MeshTree_Insert(const mesh* pmesh, mesh_tree_node* pnode, bool octree, unsigned int itri, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, unsigned int maxTrisPerLeaf)
+{
+	if (!pnode)
+		return;
+
+	if (!pnode->pchildren) // leaf?
+	{
+		if (pnode->tris.size() < maxTrisPerLeaf)
+		{
+			// Add to leaf
+			pnode->tris.push_back(itri);
+			return;
+		}
+		else
+		{
+			// Split leaf
+			MeshTree_SplitNode(pmesh, pnode, maxTrisPerLeaf, octree);
+		}
+	}
+
+	// Insert into a children
+	bool onlyTouching;
+	for (int ichild = 0; ichild < pnode->num_children; ++ichild)
+	{
+		if (_TestAABBTriangle(pnode->pchildren[ichild].aabb, p1, p2, p3, onlyTouching))
+			MeshTree_Insert(pmesh, &pnode->pchildren[ichild], octree, itri, p1, p2, p3, maxTrisPerLeaf);
 	}
 }
 
-void mesh::CreateTree(bool octree, unsigned int maxDepth)
+// Minimizes y bounds of this and all sub nodes
+void MeshTree_CompactQuadtreeNode(const mesh* pmesh, mesh_tree_node* pnode)
+{
+	float ymin = FLT_MAX, ymax = -FLT_MAX;
+
+	if (pnode->pchildren)
+	{
+		for (unsigned int i = 0; i < pnode->num_children; ++i)
+		{
+			mesh_tree_node* pchild = &pnode->pchildren[i];
+			MeshTree_CompactQuadtreeNode(pmesh, pchild);
+			if (pchild->aabb.vMin.y < ymin) ymin = pchild->aabb.vMin.y;
+			if (pchild->aabb.vMax.y > ymax) ymax = pchild->aabb.vMax.y;
+		}
+	}
+	else
+	{
+		// leaf
+		for (const auto& itri : pnode->tris)
+			for (int i = 0; i < 3; ++i)
+			{
+				const Vec3f& p = pmesh->points[pmesh->indices[itri + i]];
+				if (p.y < ymin) ymin = p.y;
+				if (p.y > ymax) ymax = p.y;
+			}
+	}
+
+	if (ymax - ymin < 0.001f)
+	{
+		ymin -= 0.01f;
+		ymax += 0.01f;
+	}
+
+	pnode->aabb.vMin.y = ymin;
+	pnode->aabb.vMax.y = ymax;
+
+	/*if (!pnode->pchildren)
+		PhysDebug::VisualizeAABB(pnode->aabb);*/
+}
+
+void mesh::CreateTree(bool octree, unsigned int maxTrisPerLeaf)
 {
 	ClearTree();
 	if (!points || !indices || num_points == 0 || num_indices == 0)
 		return;
 
+	// Create root node
 	for (unsigned int i = 0; i < num_points; ++i)
 		root.aabb.AddPoint(points[i]);
 
-	TriBuffer rootTris;
-	rootTris.capacity = (unsigned int)(num_indices / 3);
-	rootTris.buffer = new unsigned int[rootTris.capacity];
-
-	// Cache triangle points
-	Vec3f* triCache = (Vec3f*)malloc(sizeof(Vec3f) * num_indices);
-
-	for (unsigned int i = 0; i < num_indices; i += 3)
+	// Root tree must not have 0 dimension on any axis
+	for (int i = 0; i < 3; ++i)
 	{
-		rootTris.buffer[rootTris.size++] = i;
-		triCache[i] = points[indices[i]];
-		triCache[i + 1] = points[indices[i + 1]];
-		triCache[i + 2] = points[indices[i + 2]];
+		if (root.aabb.vMax[i] - root.aabb.vMin[i] < 0.001f)
+		{
+			root.aabb.vMin[i] -= 0.1f;
+			root.aabb.vMax[i] += 0.1f;
+		}
 	}
 
-	CreateMeshTreeNode(this, &root, rootTris, octree, maxDepth, triCache);
+	// Todo: Pre-allocate tree based on some heuristic to avoid some copies in Split operation
 
-	if (rootTris.buffer)
+	// Insert each triangle:
+	for (unsigned int itri = 0; itri < num_indices; itri += 3)
 	{
-		delete[] rootTris.buffer;
-		rootTris.buffer = 0;
+		const Vec3f& p1 = points[indices[itri]];
+		const Vec3f& p2 = points[indices[itri + 1]];
+		const Vec3f& p3 = points[indices[itri + 2]];
+		//PhysDebug::VisualizePoint((p1 + p2 + p3) * 0.5f);
+		//PhysDebug::VisualizeVector((p1 + p2 + p3) * 0.5f, Vec3f(0, 1.0f, 0));
+		MeshTree_Insert(this, &root, octree, itri, p1, p2, p3, maxTrisPerLeaf);
 	}
 
-	free(triCache);
+	if (!octree)
+		MeshTree_CompactQuadtreeNode(this, &root);
 }
 
 
@@ -2370,27 +2744,25 @@ void mesh::CreateTree(bool octree, unsigned int maxDepth)
 void ClearMeshTreeNode(mesh_tree_node* pnode)
 {
 	if (!pnode) return;
-	if (pnode->children)
+	if (pnode->pchildren)
 	{
 		for (unsigned int i = 0; i < pnode->num_children; ++i)
-			ClearMeshTreeNode(&pnode->children[i]);
+			ClearMeshTreeNode(&pnode->pchildren[i]);
 
-		delete[] pnode->children;
+		delete[] pnode->pchildren;
+		pnode->pchildren = 0;
 	}
 
-	if (pnode->tris)
-		delete[] pnode->tris;
+	//pnode->tris.clear();
 
 	pnode->aabb.Reset();
-	pnode->children = 0;
 	pnode->num_children = 0;
-	pnode->tris = 0;
-	pnode->num_tris = 0;
 }
 
 void mesh::ClearTree()
 {
 	ClearMeshTreeNode(&root);
+	root.tris.resize(0);
 }
 
 
@@ -2445,7 +2817,7 @@ float mesh::GetDistance(const Vec3f & p) const
 }
 
 
-bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebox, const shape* pshape, const box* pshapebox, SIntersection* pinters)
+bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, const shape* pshape, const AABB& shapeaabb, SIntersection* pinters)
 {
 	// Check against node bounding box
 	static SIntersection bbinters;
@@ -2453,51 +2825,57 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebo
 	static triangle tri;
 	
 	OBB nodeBB(pnode->aabb);
-	pnodebox->c = nodeBB.center;
+	box nodebox;
+	nodebox.c = nodeBB.center;
 	for (int i = 0; i < 3; ++i)
 	{
-		pnodebox->axis[i] = nodeBB.directions[i];
-		pnodebox->dim[i] = nodeBB.dimensions[i];
+		nodebox.axis[i] = nodeBB.directions[i];
+		nodebox.dim[i] = nodeBB.dimensions[i];
 	}
 
 	if (pshape->GetType() == eSHAPE_RAY || pshape->GetType() == eSHAPE_PLANE)
 	{
 		// Intersect infinite shapes directly with bound box
-		if (!_Intersection(pnodebox, pshape, &bbinters))
+		if (!_Intersection(&nodebox, pshape, &bbinters))
 			return false;
 	}
 	else
 	{
-		//if (!_Intersection(pnodebox, pshapebox, &bbinters))
-		if (!_BoxBoxExists(pnodebox, pshapebox))
+		// TODO: Use OBB for shape
+
+		//if (!_BoxBoxExists(pnodebox, pshapebox))
+		if (!pnode->aabb.Intersects(shapeaabb))
+		{
+			//PhysDebug::VisualizeAABB(pnode->aabb, SColor::Blue(), true);
 			return false;
+		}
 	}
 
-	//PhysDebug::VisualizeBox(nodeBB, pnode->_color, true);
-
 	bool inters = false;
-	if (pnode->children)
+	if (pnode->pchildren)
 	{
 		for (unsigned int i = 0; i < pnode->num_children; ++i)
 		{
-			inters |= _MeshNodeShape(pmesh, &pnode->children[i], pnodebox, pshape, pshapebox, pinters);
+			inters |= _MeshNodeShape(pmesh, &pnode->pchildren[i], pshape, shapeaabb, pinters);
 		}
 	}
-	else if (pnode->num_tris > 0 && pnode->tris)
+	else if (!pnode->tris.empty())
 	{
-		for (unsigned int i = 0; i < pnode->num_tris; ++i)
+		//PhysDebug::VisualizeAABB(pnode->aabb, SColor::Red(), true);
+
+		for (const auto& itri : pnode->tris)
 		{
-			tri.p[0] = pmesh->points[pmesh->indices[pnode->tris[i] + 0]];
-			tri.p[1] = pmesh->points[pmesh->indices[pnode->tris[i] + 1]];
-			tri.p[2] = pmesh->points[pmesh->indices[pnode->tris[i] + 2]];
+			tri.p[0] = pmesh->points[pmesh->indices[itri + 0]];
+			tri.p[1] = pmesh->points[pmesh->indices[itri + 1]];
+			tri.p[2] = pmesh->points[pmesh->indices[itri + 2]];
 			tri.n = ((tri.p[1] - tri.p[0]) ^ (tri.p[2] - tri.p[0])).Normalized();
 
 			//for (int i = 0; i < 3; ++i)
 			//	PhysDebug::VisualizeVector(tri.p[i], tri.p[(i + 1) % 3] - tri.p[i], pnode->_color, true);
 
-			//PhysDebug::VisualizeVector(tri.p[0], tri.p[1] - tri.p[0], pnode->_color, true);
-			//PhysDebug::VisualizeVector(tri.p[1], tri.p[2] - tri.p[1], pnode->_color, true);
-			//PhysDebug::VisualizeVector(tri.p[2], tri.p[0] - tri.p[2], pnode->_color, true);
+			//PhysDebug::VisualizeVector(tri.p[0], tri.p[1] - tri.p[0], SColor::Red(), true);
+			//PhysDebug::VisualizeVector(tri.p[1], tri.p[2] - tri.p[1], SColor::Red(), true);
+			//PhysDebug::VisualizeVector(tri.p[2], tri.p[0] - tri.p[2], SColor::Red(), true);
 
 			// TODO: Actually save all contacts instead finding the minimum here?
 			if (!_Intersection(&tri, pshape, &tmpinters))
@@ -2518,7 +2896,7 @@ bool _MeshNodeShape(const mesh* pmesh, const mesh_tree_node* pnode, box* pnodebo
 
 bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters)
 {
-	box nodebox, shapebox;
+	box nodebox;
 	Mat44 invTransform = SMatrixInvert(pmesh->transform);
 
 	shape* ptshape = pshape->Clone();
@@ -2528,19 +2906,16 @@ bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters)
 	if (ptshape->GetType() == eSHAPE_PLANE)
 		int a = 0;
 
+	// Transform the other shape into object space of the mesh, so
+	// we can work on octree/quadtree with axis aligned bound boxes
 	ptshape->Transform(invTransform);
 
-	OBB shapebb = ptshape->GetBoundBox();
-	shapebox.c = shapebb.center;
-	for (int i = 0; i < 3; ++i)
-	{
-		shapebox.axis[i] = shapebb.directions[i];
-		shapebox.dim[i] = shapebb.dimensions[i];
-	}
+	AABB shapeaabb = ptshape->GetBoundBoxAxisAligned();
+	PhysDebug::VisualizeAABB(shapeaabb, SColor::Purple(), true);
 
 	pinters->dist = FLT_MAX;
 
-	bool res = _MeshNodeShape(pmesh, &pmesh->root, &nodebox, ptshape, &shapebox, pinters);
+	bool res = _MeshNodeShape(pmesh, &pmesh->root, ptshape, shapeaabb, pinters);
 	delete ptshape;
 
 	if (res)

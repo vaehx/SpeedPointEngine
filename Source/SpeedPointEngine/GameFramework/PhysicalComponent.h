@@ -13,6 +13,9 @@ public:
 	CPhysicalComponent();
 	virtual ~CPhysicalComponent() {}
 
+	const string& GetProxyGeomFile() const { return m_ProxyGeomFile; }
+	void LoadProxyFromSPM(const string& proxyGeomFile);
+
 	// IComponent:
 public:
 	virtual void OnRelease();
@@ -23,6 +26,9 @@ public:
 	virtual void OnSimulationPrepare();
 	virtual void OnSimulationFinished();
 	virtual void OnIntersection(const geo::SIntersection& contact, const PhysObject* other);
+
+private:
+	string m_ProxyGeomFile; // abs res path
 };
 
 SP_NMSPACE_END

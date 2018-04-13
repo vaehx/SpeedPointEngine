@@ -187,6 +187,7 @@ struct triangle : shape
 	Vec3f n;
 
 	triangle() { ty = eSHAPE_TRIANGLE; }
+	// _n must be normalized!
 	triangle(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Vec3f& _n)
 		: triangle()
 	{
@@ -196,7 +197,7 @@ struct triangle : shape
 	triangle(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3)
 		: triangle(p1, p2, p3, Vec3f(0))
 	{
-		n = (p[1] - p[0]) ^ (p[2] - p[0]);
+		n = ((p[1] - p[0]) ^ (p[2] - p[0])).Normalized();
 	}
 	virtual AABB GetBoundBoxAxisAligned() const;
 	virtual float GetVolume() const;
@@ -208,7 +209,7 @@ struct box : shape
 {
 	Vec3f c;
 	Vec3f axis[3];
-	float dim[3]; // half-dimensions
+	Vec3f dim; // half-dimensions
 
 	box() { ty = eSHAPE_BOX; }
 	box(const OBB& obb)
@@ -233,14 +234,13 @@ struct box : shape
 struct mesh_tree_node
 {
 	AABB aabb;
-	unsigned int* tris; // for each tri: start index in indices array of mesh shape
-	unsigned int num_tris;
-	mesh_tree_node* children; // if 0, this node is a leaf
+	vector<unsigned int> tris; // for each tri: start index in indices array of mesh shape
+	mesh_tree_node* pchildren; // if 0, this node is a leaf
 	unsigned int num_children;
 	SColor _color;
 
 	mesh_tree_node() 
-		: tris(0), num_tris(0), children(0), num_children(0) {}
+		: tris(0), pchildren(0), num_children(0) {}
 };
 
 struct mesh : shape
@@ -255,6 +255,7 @@ struct mesh : shape
 	mesh() : points(0), indices(0) { ty = eSHAPE_MESH; }
 	~mesh()
 	{
+		ClearTree();
 		if (points) delete[] points; points = 0;
 		if (indices) delete[] indices; indices = 0;
 	}

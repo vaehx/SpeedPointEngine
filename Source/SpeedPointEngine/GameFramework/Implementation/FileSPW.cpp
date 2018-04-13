@@ -405,6 +405,7 @@ S_API void CSPWLoader::ReadAndParseTerrainBlock(unsigned int blockIndent, const 
 	physTerrain.segments[1]	= terrain.segments;
 	physTerrain.size[0]		= terrain.size;
 	physTerrain.size[1]		= terrain.size;
+	physTerrain.maxTrisPerLeaf = 32;
 
 	unsigned int heightmapSz[2];
 	pTerrain->GetHeightmap()->GetSize(&heightmapSz[0], &heightmapSz[1]);
