@@ -140,6 +140,10 @@ enum S_API ETextureSamplingType
 	eTEXTURE_SAMPLING_SHADOWING, // comparative sampling for shadowmapping
 };
 
+
+#define RENDERFLAG_RENDER_SOLID 0x1
+#define RENDERFLAG_RENDER_ALPHATESTED 0x2
+
 struct S_API IRenderAPI
 {
 	virtual ~IRenderAPI() {}

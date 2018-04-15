@@ -1406,7 +1406,7 @@ S_API SResult DX11Renderer::EndScene(void)
 
 
 // -----------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc, bool overrideBlendState)
+S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc, bool overrideBlendState, unsigned int renderFlags)
 {
 	for (unsigned int iSubset = 0; iSubset < renderDesc.nSubsets; ++iSubset)
 	{
@@ -1423,6 +1423,12 @@ S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc, bool over
 			FrameDump("[DX11Renderer] Cannot render helper with deferred pipeline!");
 			continue;
 		}
+
+		if (subset.enableAlphaTest && (renderFlags & RENDERFLAG_RENDER_ALPHATESTED) == 0)
+			continue;
+
+		if (!subset.enableAlphaTest && (renderFlags & RENDERFLAG_RENDER_SOLID) == 0)
+			continue;
 
 		if (overrideBlendState)
 		{

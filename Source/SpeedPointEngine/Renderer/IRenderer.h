@@ -563,7 +563,8 @@ public:
 
 	//---
 
-	virtual SResult Render(const SRenderDesc& renderDesc) = 0;
+	// The flags allow you to filter subsets to be rendered
+	virtual SResult Render(const SRenderDesc& renderDesc, unsigned int flags = RENDERFLAG_RENDER_SOLID) = 0;
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
 	

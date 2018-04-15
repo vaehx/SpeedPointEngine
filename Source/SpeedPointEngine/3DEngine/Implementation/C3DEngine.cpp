@@ -584,7 +584,7 @@ S_API void C3DEngine::RenderCollected()
 		// Shadowmap Prepass
 		// TODO: Only render objects that are inside the ViewFrustum !!!!!
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADOWMAP);
-		RenderMeshes();
+		RenderMeshes(RENDERFLAG_RENDER_SOLID | RENDERFLAG_RENDER_ALPHATESTED);
 
 		// Skybox
 		if (IS_VALID_PTR(m_pSkyBox))
@@ -599,7 +599,7 @@ S_API void C3DEngine::RenderCollected()
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
 		pGBufferPass->Bind();
-		RenderMeshes();
+		RenderMeshes(RENDERFLAG_RENDER_SOLID);
 
 		// Deferred light prepass
 		m_pRenderer->BindShaderPass(eSHADERPASS_LIGHTPREPASS);
@@ -610,7 +610,12 @@ S_API void C3DEngine::RenderCollected()
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
 		pShadingPass->Bind();
-		RenderMeshes();
+		RenderMeshes(RENDERFLAG_RENDER_SOLID);
+
+		
+		// Render subsets with alpha testing enabled in a forward pass
+		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
+		RenderMeshes(RENDERFLAG_RENDER_ALPHATESTED);
 
 
 		// Particles
@@ -633,7 +638,7 @@ S_API void C3DEngine::RenderCollected()
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-S_API void C3DEngine::RenderMeshes()
+S_API void C3DEngine::RenderMeshes(unsigned int flags)
 {
 	if (!m_pMeshes)
 		return;
@@ -660,7 +665,7 @@ S_API void C3DEngine::RenderMeshes()
 			if (m_bDrawNormals)
 				DrawNormalsForMesh(rd);
 
-			m_pRenderer->Render(*rd);
+			m_pRenderer->Render(*rd, flags);
 
 			pMesh = m_pMeshes->GetNext(itMesh);
 

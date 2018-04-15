@@ -14,52 +14,15 @@ SP_NMSPACE_BEG
 	Render()
 		RenderGeometry()
 			DrawSubsets()
-				pCurrentShaderPass->SetShaderResources()
-				Draw()
-					pD3DDeviceContext->Draw()
+				For each subset:
+					pCurrentShaderPass->SetShaderResources()
+					Draw()
+						pD3DDeviceContext->Draw()
 
 */
 
 // --------------------------------------------------------------------------------------------------------------------
-S_API void DX11Renderer::RenderGeometry(const SRenderDesc& renderDesc, bool overrideBlendState)
-{
-	EnableDepthTest(renderDesc.bDepthStencilEnable);
-
-	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
-	SetDepthTestFunction(depthTestFunc);
-
-	// If renderDesc specifies a custom viewProj matrix, backup current scene constants and use it
-	SSceneConstants origSceneConstants;
-	if (renderDesc.bCustomViewProjMtx)
-	{
-		FrameDump("Setting custom viewproj mtx");
-
-		// Backup current scene constants, so we can restore them later
-		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
-		memcpy(&origSceneConstants, pSceneConstants, sizeof(SSceneConstants));
-
-		SetViewProjMatrix(renderDesc.viewMtx, renderDesc.projMtx);
-	}
-
-
-	// In case something else was bound to the slot before...
-	BindSceneCB(m_SceneConstants.GetCB());
-
-
-	DrawSubsets(renderDesc, overrideBlendState);
-
-
-	// Restore scene constants if necessary
-	if (renderDesc.bCustomViewProjMtx)
-	{
-		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
-		memcpy(pSceneConstants, &origSceneConstants, sizeof(SSceneConstants));
-		m_SceneConstants.Update();
-	}
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
+S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc, unsigned int flags)
 {
 	if (!m_bInScene)
 	{
@@ -76,7 +39,7 @@ S_API SResult DX11Renderer::Render(const SRenderDesc& renderDesc)
 
 	EnableBackfaceCulling(false);
 
-	RenderGeometry(renderDesc);
+	RenderGeometry(renderDesc, true, flags);
 
 	return S_SUCCESS;
 }
@@ -198,6 +161,44 @@ S_API SResult DX11Renderer::RenderTerrain(const STerrainRenderDesc& terrainRende
 	}
 
 	return S_SUCCESS;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+S_API void DX11Renderer::RenderGeometry(const SRenderDesc& renderDesc, bool overrideBlendState, unsigned int renderFlags)
+{
+	EnableDepthTest(renderDesc.bDepthStencilEnable);
+
+	EDepthTestFunction depthTestFunc = (renderDesc.bInverseDepthTest ? eDEPTH_TEST_GREATER : eDEPTH_TEST_LESS);
+	SetDepthTestFunction(depthTestFunc);
+
+	// If renderDesc specifies a custom viewProj matrix, backup current scene constants and use it
+	SSceneConstants origSceneConstants;
+	if (renderDesc.bCustomViewProjMtx)
+	{
+		FrameDump("Setting custom viewproj mtx");
+
+		// Backup current scene constants, so we can restore them later
+		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
+		memcpy(&origSceneConstants, pSceneConstants, sizeof(SSceneConstants));
+
+		SetViewProjMatrix(renderDesc.viewMtx, renderDesc.projMtx);
+	}
+
+
+	// In case something else was bound to the slot before...
+	BindSceneCB(m_SceneConstants.GetCB());
+
+
+	DrawSubsets(renderDesc, overrideBlendState, renderFlags);
+
+
+	// Restore scene constants if necessary
+	if (renderDesc.bCustomViewProjMtx)
+	{
+		SSceneConstants* pSceneConstants = m_SceneConstants.GetConstants();
+		memcpy(pSceneConstants, &origSceneConstants, sizeof(SSceneConstants));
+		m_SceneConstants.Update();
+	}
 }
 
 // --------------------------------------------------------------------------------------------------------------------

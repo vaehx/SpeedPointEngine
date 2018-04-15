@@ -76,12 +76,13 @@ public:
 };
 
 
-
+#define SHADING_FLAG_ALPHATEST 0x1
 
 struct S_API SMatObjConstants : SObjectConstants
 {
 	float matRoughnes;
-	float __padding[3];
+	char flags;
+	char __padding[11];
 };
 
 ///////////////////////////////////////////////////////////////////////////////////

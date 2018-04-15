@@ -26,6 +26,7 @@ struct S_API SMaterialDefinition
 	string roughnessMap;
 	float roughness; // ignored if roughnessMap valid
 	float metalness;
+	bool alphaTesting; // key is black (0,0,0)
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

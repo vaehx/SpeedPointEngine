@@ -177,12 +177,12 @@ private:
 	int IsBoundAsTexture(ID3D11ShaderResourceView* srv);
 
 	// Does not apply blend state etc., called from public Render() methods
-	void RenderGeometry(const SRenderDesc& renderDesc, bool overrideBlendState = true);
+	void RenderGeometry(const SRenderDesc& renderDesc, bool overrideBlendState = true, unsigned int renderFlags = 0);
 
 	SResult DrawTerrainSubset(const STerrainDrawCallDesc& dcd);
 	
 	// overrideBlendState - if false, will NOT override the currently set blend state
-	SResult DrawSubsets(const SRenderDesc& renderDesc, bool overrideBlendState);
+	SResult DrawSubsets(const SRenderDesc& renderDesc, bool overrideBlendState, unsigned int renderFlags);
 
 	void SetEyePosition(const Vec3f& eyePos);
 	void SetDepthTestFunction(EDepthTestFunction depthTestFunc);
@@ -338,7 +338,7 @@ public:
 
 	virtual string GetShaderPath(EShaderFileType type) const;
 
-	virtual SResult Render(const SRenderDesc& renderDesc);
+	virtual SResult Render(const SRenderDesc& renderDesc, unsigned int flags = RENDERFLAG_RENDER_SOLID);
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
 	virtual SResult RenderDeferredLight(const SRenderDesc& renderDesc);

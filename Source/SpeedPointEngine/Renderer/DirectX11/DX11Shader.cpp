@@ -655,8 +655,13 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	{
 		SMatObjConstants* constants = m_Constants.GetConstants();
 
+		// Object constants
 		constants->mtxWorld = transform;
+
+		// Material constants
 		constants->matRoughnes = sr.roughness;
+		constants->flags = 0;
+		sr.
 
 		m_Constants.Update();
 	}

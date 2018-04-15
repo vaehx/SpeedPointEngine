@@ -57,7 +57,7 @@ private:
 	void CreateHUDRenderDesc();
 	void UpdateSunViewProj();
 
-	void RenderMeshes();
+	void RenderMeshes(unsigned int flags);
 	void DrawNormalsForMesh(const SRenderDesc* rd);
 	void RenderHelpers();
 	void RenderDeferredLights();
