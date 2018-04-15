@@ -34,6 +34,7 @@ enum EShapeType
 	eSHAPE_TRIANGLE,
 	eSHAPE_CIRCLE, // 3d circle
 	eSHAPE_MESH,
+	eSHAPE_TERRAIN_MESH,
 
 	NUM_SHAPE_TYPES
 };
@@ -46,7 +47,7 @@ protected:
 	EShapeType ty;
 public:
 	EShapeType GetType() const { return ty; };
-	virtual AABB GetBoundBoxAxisAligned() const { return AABB(); }
+	virtual AABB GetBoundBoxAxisAligned() const { return AABB(Vec3f(-FLT_MAX, -FLT_MAX, -FLT_MAX), Vec3f(FLT_MAX, FLT_MAX, FLT_MAX)); }
 	virtual OBB GetBoundBox() const { return OBB(); }
 	virtual float GetVolume() const = 0;
 	virtual float GetDistance(const Vec3f& p) const = 0;
@@ -268,6 +269,31 @@ struct mesh : shape
 	void ClearTree();
 };
 
+// Assumes regular, ordered grid of points that allow immediate access of triangles
+// without storing indices
+struct terrain_mesh : shape
+{
+	AABB aabb;
+	float segmentSz; // distance between each point projected in xz-plane
+	unsigned int segmentsPerSide; // stride on x side
+	Vec3f* points;
+	unsigned int num_points;
+
+	terrain_mesh() : points(0), num_points(0) { ty = eSHAPE_TERRAIN_MESH; }
+	~terrain_mesh()
+	{
+		delete[] points;
+		points = 0;
+		num_points = 0;
+	}
+
+	virtual AABB GetBoundBoxAxisAligned() const { return aabb; }
+	virtual OBB GetBoundBox() const { return OBB(aabb); }
+	virtual float GetVolume() const { return 0; }
+	// returns vertical distance only
+	virtual float GetDistance(const Vec3f& p) const;
+};
+
 // --------------------------------------------------------------------------------------------------------------------
 
 enum EIntersectionFeature
@@ -335,6 +361,9 @@ bool _BoxCapsule(const box* pbox, const capsule* pcapsule, SIntersection* pinter
 
 bool _MeshShape(const mesh* pmesh, const shape* pshape, SIntersection* pinters);
 bool _ShapeMesh(const shape* pshape, const mesh* pmesh, SIntersection* pinters);
+
+bool _TerrainMeshShape(const terrain_mesh* pmesh, const shape* pshape, SIntersection* pinters);
+bool _ShapeTerrainMesh(const shape* pshape, const terrain_mesh* pmesh, SIntersection* pinters);
 
 typedef bool (*_IntersectionTestFnPtr)(const shape* pshape1, const shape* pshape2, SIntersection* pinters);
 static _IntersectionTestFnPtr _intersectionTestTable[NUM_SHAPE_TYPES][NUM_SHAPE_TYPES];

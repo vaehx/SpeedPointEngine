@@ -95,14 +95,19 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 
 	SetBehavior(ePHYSOBJ_BEHAVIOR_STATIC);
 
-	geo::mesh* pmesh = new geo::mesh();
-	pmesh->transform = Mat44::Identity;
+	LARGE_INTEGER freq, start, end;
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&start);
+
+	geo::terrain_mesh* pmesh = new geo::terrain_mesh();
+	pmesh->segmentsPerSide = params.segments[0];
 	pmesh->num_points = (params.segments[1] + 1) * (params.segments[0] + 1);
-	pmesh->num_indices = (params.segments[1] * params.segments[0]) * 6;
-	pmesh->points = new Vec3f[pmesh->num_points];	
-	pmesh->indices = new unsigned int[pmesh->num_indices];
+	pmesh->points = new Vec3f[pmesh->num_points];
+	pmesh->aabb.Reset();
 
 	Vec2f segSz(params.size[0] / params.segments[0], params.size[1] / params.segments[1]);
+	pmesh->segmentSz = segSz.x;
+
 	Vec2f pixelSzTC = 1.0f / Vec2f((float)heightmapSz[0] - 1, (float)heightmapSz[1] - 1);
 	Vec2f tc, remainder, roundedTC;
 	float samples[4], h, y, miny = FLT_MAX, maxy = -FLT_MAX;
@@ -119,40 +124,22 @@ S_API void PhysTerrain::Create(const float* heightmap, unsigned int heightmapSz[
 			samples[1] = SampleHeightmap(heightmap, tc + Vec2f( 0.5f, -0.5f) * pixelSzTC, heightmapSz);
 			samples[2] = SampleHeightmap(heightmap, tc + Vec2f(-0.5f,  0.5f) * pixelSzTC, heightmapSz);
 			samples[3] = SampleHeightmap(heightmap, tc + Vec2f( 0.5f,  0.5f) * pixelSzTC, heightmapSz);
-			
+
 			h = lerp(lerp(samples[0], samples[1], remainder.x), lerp(samples[2], samples[3], remainder.x), remainder.y);			
 			y = h * params.heightScale;
 			miny = min(miny, y);
 			maxy = max(maxy, y);
 
 			pmesh->points[vtx = (row * (params.segments[0] + 1) + col)] = Vec3f(col * segSz.x, y, row * segSz.y) + params.offset;
-
-			//PhysDebug::VisualizePoint(pmesh->points[vtx]);
-
-			if (row < params.segments[1] && col < params.segments[0])
-			{
-				pmesh->indices[idx = ((row * params.segments[0] + col) * 6)] = vtx;
-				pmesh->indices[idx + 1] = vtx + (params.segments[0] + 1);
-				pmesh->indices[idx + 2] = vtx + (params.segments[0] + 1) + 1;
-				pmesh->indices[idx + 3] = vtx;
-				pmesh->indices[idx + 4] = vtx + (params.segments[0] + 1) + 1;
-				pmesh->indices[idx + 5] = vtx + 1;
-			}
+			pmesh->aabb.AddPoint(pmesh->points[vtx]);
 		}
-
-	LARGE_INTEGER freq, start, end;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
-
-	pmesh->CreateTree(false, params.maxTrisPerLeaf);
 
 	QueryPerformanceCounter(&end);
 	double elapsed = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
-	CLog::Log(S_DEBUG, "Created terrain proxy mesh tree in %.4f milliseconds", elapsed * 1000.0f);
+	CLog::Log(S_DEBUG, "Created terrain proxy mesh in %.4f milliseconds", elapsed * 1000.0f);
 
 	//DumpMeshTree(pmesh);
-
-	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
+	//UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
 	
 	SetProxyPtr(pmesh);
 
@@ -193,11 +180,13 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 	segMax[0] = params.segments[0];
 	segMax[1] = params.segments[1];
 
-	geo::mesh* pmesh = dynamic_cast<geo::mesh*>(m_Proxy.pshape);
-	float miny = FLT_MAX, maxy = -FLT_MAX, y;
+	geo::terrain_mesh* pmesh = dynamic_cast<geo::terrain_mesh*>(m_Proxy.pshape);
+	pmesh->aabb.Reset();
+	unsigned int ipoint;
 	for (unsigned int row = 0; row < (params.segments[1] + 1); ++row)
 		for (unsigned int col = 0; col < (params.segments[0] + 1); ++col)
 		{
+			ipoint = row * (params.segments[0] + 1) + col;
 			if (row >= segMin[1] && row <= segMax[1] && col >= segMin[0] && col <= segMax[0])
 			{
 				tc = Vec2f((float)col / params.segments[0], (float)row / params.segments[1]);
@@ -211,18 +200,11 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 				samples[3] = SampleHeightmap(heightmap, tc + Vec2f(0.5f, 0.5f) * pixelSzTC, heightmapSz);
 				h = lerp(lerp(samples[0], samples[1], remainder.x), lerp(samples[2], samples[3], remainder.x), remainder.y);
 
-				pmesh->points[row * (params.segments[0] + 1) + col].y = h * params.heightScale;
+				pmesh->points[ipoint].y = h * params.heightScale;
 			}
 
-			y = pmesh->points[row * (params.segments[0] + 1) + col].y;
-			miny = min(miny, y);
-			maxy = max(maxy, y);
+			pmesh->aabb.AddPoint(pmesh->points[ipoint]);
 		}
-
-	// Update proxy bound boxes
-	UpdatePhysTerrainProxyNodeYBounds(&pmesh->root, miny, maxy, TERRAIN_PROXY_Y_BOUNDS_BIAS);
-	m_Proxy.aabb = pmesh->root.aabb;
-	m_Proxy.aabbworld = pmesh->root.aabb;
 
 	// Update helper
 	if (m_Proxy.phelper && m_Proxy.phelper->IsShown())

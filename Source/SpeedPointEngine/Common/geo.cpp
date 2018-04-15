@@ -84,6 +84,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_RAY][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_RayTriangle;
 	_intersectionTestTable[eSHAPE_RAY][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
 	_intersectionTestTable[eSHAPE_RAY][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_RayBox;
+	_intersectionTestTable[eSHAPE_RAY][eSHAPE_TERRAIN_MESH] = (_IntersectionTestFnPtr)&_ShapeTerrainMesh;
 
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_PlaneRay;
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_PlanePlane;
@@ -93,6 +94,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_PlaneTriangle;
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
 	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_PlaneBox;
+	_intersectionTestTable[eSHAPE_PLANE][eSHAPE_TERRAIN_MESH] = (_IntersectionTestFnPtr)&_ShapeTerrainMesh;
 
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_SphereRay;
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_SpherePlane;
@@ -102,6 +104,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_SphereTriangle;
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
 	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_SphereBox;
+	_intersectionTestTable[eSHAPE_SPHERE][eSHAPE_TERRAIN_MESH] = (_IntersectionTestFnPtr)&_ShapeTerrainMesh;
 
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_CylinderRay;
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_PLANE] = 0;
@@ -110,6 +113,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_CAPSULE] = 0;
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_TRIANGLE] = 0;
 	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
+	_intersectionTestTable[eSHAPE_CYLINDER][eSHAPE_TERRAIN_MESH] = (_IntersectionTestFnPtr)&_ShapeTerrainMesh;
 
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_CapsuleRay;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_CapsulePlane;
@@ -119,12 +123,14 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_CapsuleBox;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_TRIANGLE] = (_IntersectionTestFnPtr)&_CapsuleTriangle;
 	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_MESH] = (_IntersectionTestFnPtr)&_ShapeMesh;
+	_intersectionTestTable[eSHAPE_CAPSULE][eSHAPE_TERRAIN_MESH] = (_IntersectionTestFnPtr)&_ShapeTerrainMesh;
 
 	_intersectionTestTable[eSHAPE_BOX][eSHAPE_BOX] = (_IntersectionTestFnPtr)&_BoxBox;
 	_intersectionTestTable[eSHAPE_BOX][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_BoxRay;
 	_intersectionTestTable[eSHAPE_BOX][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_BoxPlane;
 	_intersectionTestTable[eSHAPE_BOX][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_BoxSphere;
 	_intersectionTestTable[eSHAPE_BOX][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_BoxCapsule;
+	_intersectionTestTable[eSHAPE_BOX][eSHAPE_TERRAIN_MESH] = (_IntersectionTestFnPtr)&_ShapeTerrainMesh;
 
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_TriangleRay;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_TrianglePlane;
@@ -132,6 +138,7 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_CYLINDER] = 0;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_TriangleCapsule;
 	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_TRIANGLE][eSHAPE_TERRAIN_MESH] = 0;
 
 	_intersectionTestTable[eSHAPE_MESH][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_MeshShape;
 	_intersectionTestTable[eSHAPE_MESH][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_MeshShape;
@@ -140,6 +147,14 @@ void FillIntersectionTestTable()
 	_intersectionTestTable[eSHAPE_MESH][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_MeshShape;
 	_intersectionTestTable[eSHAPE_MESH][eSHAPE_TRIANGLE] = 0;
 	_intersectionTestTable[eSHAPE_MESH][eSHAPE_MESH] = 0;
+
+	_intersectionTestTable[eSHAPE_TERRAIN_MESH][eSHAPE_RAY] = (_IntersectionTestFnPtr)&_TerrainMeshShape;
+	_intersectionTestTable[eSHAPE_TERRAIN_MESH][eSHAPE_PLANE] = (_IntersectionTestFnPtr)&_TerrainMeshShape;
+	_intersectionTestTable[eSHAPE_TERRAIN_MESH][eSHAPE_SPHERE] = (_IntersectionTestFnPtr)&_TerrainMeshShape;
+	_intersectionTestTable[eSHAPE_TERRAIN_MESH][eSHAPE_CYLINDER] = (_IntersectionTestFnPtr)&_TerrainMeshShape;
+	_intersectionTestTable[eSHAPE_TERRAIN_MESH][eSHAPE_CAPSULE] = (_IntersectionTestFnPtr)&_TerrainMeshShape;
+	_intersectionTestTable[eSHAPE_TERRAIN_MESH][eSHAPE_TRIANGLE] = 0;
+	_intersectionTestTable[eSHAPE_TERRAIN_MESH][eSHAPE_MESH] = 0;
 
 	_intersectionTestTable[eSHAPE_CIRCLE][eSHAPE_CIRCLE] = (_IntersectionTestFnPtr)&_CircleCircle;
 }
@@ -2933,5 +2948,108 @@ bool _ShapeMesh(const shape* pshape, const mesh* pmesh, SIntersection *pinters)
 	pinters->n *= -1.0f;
 	return res;
 }
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//	Terrain-Mesh
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+float terrain_mesh::GetDistance(const Vec3f& p) const
+{
+	if (!aabb.ContainsPoint(p))
+		return FLT_MAX;
+
+	unsigned int offset[2] = { (unsigned int)((p.x - aabb.vMin.x) / segmentSz), (unsigned int)((p.z - aabb.vMin.z) / segmentSz) };
+	const Vec3f v[4] =
+	{
+		points[offset[1] * (segmentsPerSide + 1) + offset[0]],
+		points[(offset[1] + 1) * (segmentsPerSide + 1) + offset[0]],
+		points[(offset[1] + 1) * (segmentsPerSide + 1) + offset[0] + 1],
+		points[offset[1] * (segmentsPerSide + 1) + 1]
+	};
+
+	// To check which of the current segment triangles we have to test, we use the constant
+	// normal of (-1, 0, 1) for a plane separating both triangles. Testing on which side the point
+	// is, is a simple matter of projecting (p - v[0]) onto this constant normal.
+	//	-> Tri0: 0->1->2, Tri1: 0->2->3
+	int itri = Vec3Dot(p - v[0], Vec3f(-1.0f, 0, 1.0f)) < 0;
+
+	// We now calculate the signed distance of a vertical line from the point down into the tilted triangle plane.
+	Vec3f n = Vec3Normalize(Vec3Cross(v[1 + itri] - v[0], v[2 + itri] - v[0]));
+	float l = Vec3Dot(p - v[0], n);
+	return l * fabsf(Vec3Dot(l * n, Vec3f(0, 1.0f, 0))); // l * cos(theta)
+}
+
+bool _TerrainMeshShape(const terrain_mesh* pmesh, const shape* pshape, SIntersection* pinters)
+{
+	static triangle tri;
+
+	AABB terrainBounds = pmesh->aabb;
+	AABB shapeBounds = pshape->GetBoundBoxAxisAligned();
+
+	unsigned int minOffs[2], maxOffs[2];
+	minOffs[0] = (unsigned int)floorf((shapeBounds.vMin.x - terrainBounds.vMin.x) / pmesh->segmentSz);
+	minOffs[1] = (unsigned int)floorf((shapeBounds.vMin.z - terrainBounds.vMin.z) / pmesh->segmentSz);
+	maxOffs[0] = (unsigned int)ceilf((shapeBounds.vMax.x - terrainBounds.vMin.x) / pmesh->segmentSz);
+	maxOffs[1] = (unsigned int)ceilf((shapeBounds.vMax.z - terrainBounds.vMin.z) / pmesh->segmentSz);
+
+	// Calculate min and max height of the region of interest. This way we can early out quickly
+	AABB roiBounds;
+	roiBounds.Reset();
+	roiBounds.AddPoint(pmesh->points[minOffs[1] * (pmesh->segmentsPerSide + 1) + minOffs[0]]);
+	roiBounds.AddPoint(pmesh->points[maxOffs[1] * (pmesh->segmentsPerSide + 1) + maxOffs[0]]);
+
+	if (!shapeBounds.Intersects(roiBounds))
+		return false;
+
+	// Find triangle of all possibly intersecting triangles that has maximum penetration depth (i.e. minimum dist)
+	SIntersection tmp_inters;
+	pinters->dist = FLT_MAX;
+	bool foundInters = false;
+	unsigned int ivtx[4]; // Tri0: 0->1->2, Tri1: 0->2->3	
+	for (unsigned int y = minOffs[1]; y < maxOffs[1]; ++y)
+		for (unsigned int x = minOffs[0]; x < maxOffs[0]; ++x)
+		{
+			tri.p[0] = pmesh->points[ivtx[0] = (y * (pmesh->segmentsPerSide + 1) + x)];
+			ivtx[1] = ivtx[0] + (pmesh->segmentsPerSide + 1);
+			ivtx[2] = ivtx[1] + 1;
+			ivtx[3] = ivtx[0] + 1;
+			for (int itri = 0; itri <= 1; ++itri)
+			{
+				tri.p[1] = pmesh->points[ivtx[1 + itri]];
+				tri.p[2] = pmesh->points[ivtx[2 + itri]];
+				tri.n = ((tri.p[1] - tri.p[0]) ^ (tri.p[2] - tri.p[0])).Normalized();
+				
+				PhysDebug::VisualizeTriangleOutline(tri.p[0], tri.p[1], tri.p[2], SColor::Red(), true);
+
+				if (_Intersection(&tri, pshape, &tmp_inters))
+				{
+					foundInters = true;
+					if (tmp_inters.dist < pinters->dist)
+						*pinters = tmp_inters;
+				}
+			}
+		}
+
+	return foundInters;
+}
+
+bool _ShapeTerrainMesh(const shape* pshape, const terrain_mesh* pmesh, SIntersection* pinters)
+{
+	bool res = _TerrainMeshShape(pmesh, pshape, pinters);
+	pinters->n *= -1.0f;
+	return res;
+}
+
+
+
+
+
 
 GEO_NMSPACE_END

@@ -159,6 +159,12 @@ S_API void PhysObject::Update(float fTime)
 			if (m_Proxy.phelper && m_Proxy.phelper->IsShown())
 				m_Proxy.phelper->SetMeshTransform(mtx);
 		}
+		else if (m_Proxy.pshape->GetType() == eSHAPE_TERRAIN_MESH)
+		{
+			geo::terrain_mesh* pterrain = dynamic_cast<geo::terrain_mesh*>(m_Proxy.pshape);
+			m_Proxy.aabb = pterrain->aabb;
+			m_Proxy.aabbworld = m_Proxy.aabb;
+		}
 		else
 		{
 			m_Proxy.pshape->CopyTo(m_Proxy.pshapeworld);
@@ -374,7 +380,11 @@ S_API void PhysObject::SetProxyPtr(geo::shape* pshape)
 	{
 		m_Proxy.pshape = pshape;
 		m_Proxy.aabb = m_Proxy.pshape->GetBoundBoxAxisAligned();
-		m_Proxy.pshapeworld = (m_Proxy.pshape->GetType() == geo::eSHAPE_MESH ? m_Proxy.pshape : pshape->Clone());
+		
+		if (pshape->GetType() == geo::eSHAPE_MESH || pshape->GetType() == geo::eSHAPE_TERRAIN_MESH)
+			m_Proxy.pshapeworld = m_Proxy.pshape;
+		else
+			m_Proxy.pshapeworld = pshape->Clone();
 		m_Proxy.aabbworld = m_Proxy.aabb;
 		RecalculateInertia();
 

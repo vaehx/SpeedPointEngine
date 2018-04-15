@@ -5,6 +5,8 @@
 --------------------------------------------------------------------------------------
 
 	TODO:
+	
+	- Islands/Clustering to implement new terrain collision detection
 
 	- Use a BVH to increase broad-phase performance
 
@@ -19,6 +21,8 @@
 			class PhysObject {}
 			class RigidBodyObject : PhysObject {}
 			class LivingObject : PhysObject {}
+
+	- Create objects islands/clusters based on proximity
 
 --------------------------------------------------------------------------------------
 */
@@ -137,6 +141,7 @@ S_API void CPhysics::Update(float fTime)
 				m_Colliding.push_back(std::make_pair(pobj1, pobj2));
 		}
 
+		// == Test Intersection against terrain ==
 		//TODO: Use better bounding box hierarchy for terrain to prevent intersection test for each object
 		if (pobj1->GetBehavior() != ePHYSOBJ_BEHAVIOR_STATIC && pobj1->GetAABB().Intersects(m_Terrain.GetAABB()))
 			m_Colliding.push_back(std::make_pair(pobj1, static_cast<PhysObject*>(&m_Terrain)));
@@ -290,5 +295,7 @@ S_API void CPhysics::ShowHelpers(bool show)
 
 	m_Terrain.ShowHelper(m_bHelpersShown);
 }
+
+
 
 SP_NMSPACE_END

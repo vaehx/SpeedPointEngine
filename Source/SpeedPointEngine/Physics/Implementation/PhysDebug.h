@@ -22,6 +22,22 @@ public:
 			spRenderer->VisualizeVector(p, v, color, releaseAfterRender);
 	}
 
+	static void VisualizeLine(const Vec3f& p1, const Vec3f& p2, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false)
+	{
+		if (spRenderer)
+			spRenderer->VisualizeLine(p1, p2, color, releaseAfterRender);
+	}
+
+	static void VisualizeTriangleOutline(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false)
+	{
+		if (spRenderer)
+		{
+			spRenderer->VisualizeLine(p1, p2, color, releaseAfterRender);
+			spRenderer->VisualizeLine(p2, p3, color, releaseAfterRender);
+			spRenderer->VisualizeLine(p3, p1, color, releaseAfterRender);
+		}
+	}
+
 	static void VisualizePlane(const Vec3f& p, const Vec3f& n, const SColor& color = SColor::Turqouise(), bool releaseAfterRender = false)
 	{
 		if (spRenderer)

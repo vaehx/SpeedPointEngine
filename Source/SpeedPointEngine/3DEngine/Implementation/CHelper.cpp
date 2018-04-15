@@ -128,7 +128,7 @@ S_API void CDynamicMeshHelper::SetParams(const Params& params)
 		if (!lines)
 		{
 			pResources->AddIndexBuffer(&dcd->pIndexBuffer);
-			dcd->pIndexBuffer->Initialize(pRenderer, eIBUSAGE_STATIC, params.pIndices, params.numIndices);
+			dcd->pIndexBuffer->Initialize(pRenderer, eIBUSAGE_STATIC, S_INDEXBUFFER_32, params.pIndices, params.numIndices);
 			dcd->iStartIBIndex = 0;
 			dcd->iEndIBIndex = params.numIndices - 1;
 		}
@@ -836,13 +836,16 @@ CHelper* CreateHelperForShape(const geo::shape* pshape, const SColor& color, boo
 			params.numVertices = geomDesc.nVertices;
 			params.pVertices = geomDesc.pVertices;
 			params.numIndices = geomDesc.GetZeroSubset()->nIndices;
-			params.pIndices = geomDesc.GetZeroSubset()->pIndices;
+			params.pIndices = new SLargeIndex[params.numIndices];
+			for (u32 i = 0; i < params.numIndices; ++i)
+				params.pIndices[i] = (SLargeIndex)geomDesc.GetZeroSubset()->pIndices[i];
 			params.topology = geomDesc.primitiveType;
 
 			pHelper = p3DEngine->AddHelper<CDynamicMeshHelper>(params, releaseAfterRender);
 
 			delete[] geomDesc.pVertices;
 			delete[] geomDesc.GetZeroSubset()->pIndices;
+			delete[] params.pIndices;
 			break;
 		}
 	case geo::eSHAPE_TRIANGLE:
@@ -853,12 +856,12 @@ CHelper* CreateHelperForShape(const geo::shape* pshape, const SColor& color, boo
 			params.numVertices = 3;
 			params.pVertices = new SVertex[params.numVertices];
 			params.numIndices = 3;
-			params.pIndices = new SIndex[params.numIndices];
+			params.pIndices = new SLargeIndex[params.numIndices];
 
 			for (int i = 0; i < 3; ++i)
 			{
 				params.pVertices[i] = SVertex(ptri->p[i].x, ptri->p[i].y, ptri->p[i].z);
-				params.pIndices[i] = i;
+				params.pIndices[i] = (SLargeIndex)i;
 			}
 
 			pHelper = p3DEngine->AddHelper<CDynamicMeshHelper>(params, releaseAfterRender);
@@ -877,7 +880,7 @@ CHelper* CreateHelperForShape(const geo::shape* pshape, const SColor& color, boo
 			CDynamicMeshHelper::Params params;
 			params.topology = PRIMITIVE_TYPE_TRIANGLELIST;
 			params.pVertices = new SVertex[params.numVertices = ntris * 3];
-			params.pIndices = new SIndex[params.numIndices = ntris * 3];
+			params.pIndices = new SLargeIndex[params.numIndices = ntris * 3];
 
 			Vec3f n;
 			for (unsigned int itri = 0; itri < ntris * 3; itri += 3)
@@ -887,11 +890,11 @@ CHelper* CreateHelperForShape(const geo::shape* pshape, const SColor& color, boo
 				const Vec3f &p3 = pmesh->points[pmesh->indices[itri + 2]];
 				n = ((p2 - p1) ^ (p3 - p1)).Normalized();
 
-				for (int i = 0; i < 3; ++i)
+				for (unsigned int i = 0; i < 3; ++i)
 				{
 					const Vec3f& p = pmesh->points[pmesh->indices[itri + i]];
 					params.pVertices[itri + i] = SVertex(p.x, p.y, p.z, n.x, n.y, n.z, 0, 0, 0);
-					params.pIndices[itri + i] = itri + i;
+					params.pIndices[itri + i] = (SLargeIndex)(itri + i);
 				}
 			}
 
@@ -910,6 +913,49 @@ CHelper* CreateHelperForShape(const geo::shape* pshape, const SColor& color, boo
 			for (int i = 0; i < 3; ++i)
 				params.dimensions[i] = pbox->axis[i] * pbox->dim[i];
 			pHelper = p3DEngine->AddHelper<CBoxHelper>(params, SHelperRenderParams(color, /*outline*/true, true), releaseAfterRender);
+			break;
+		}
+	case geo::eSHAPE_TERRAIN_MESH:
+		{
+			const geo::terrain_mesh* pmesh = dynamic_cast<const geo::terrain_mesh*>(pshape);
+			if (!pmesh || !pmesh->points || pmesh->num_points == 0)
+				return 0;
+
+			CDynamicMeshHelper::Params params;
+			params.topology = PRIMITIVE_TYPE_TRIANGLELIST;
+			params.pVertices = new SVertex[params.numVertices = pmesh->segmentsPerSide * pmesh->segmentsPerSide * 4];
+			params.pIndices = new SLargeIndex[params.numIndices = pmesh->segmentsPerSide * pmesh->segmentsPerSide * 2 * 3];
+			
+			// Flatten out triangles so we can use flat shading for triangles
+			SLargeIndex ivert = 0, iidx = 0;
+			for (unsigned int y = 0; y < pmesh->segmentsPerSide; ++y)
+				for (unsigned int x = 0; x < pmesh->segmentsPerSide; ++x)
+				{
+					// tris: [ 0->1->2, 0->2->3 ]
+					Vec3f p[] =
+					{
+						pmesh->points[y * (pmesh->segmentsPerSide + 1) + x],
+						pmesh->points[(y + 1) * (pmesh->segmentsPerSide + 1) + x],
+						pmesh->points[(y + 1) * (pmesh->segmentsPerSide + 1) + (x + 1)],
+						pmesh->points[y * (pmesh->segmentsPerSide + 1) + (x + 1)]
+					};
+
+					Vec3f n = Vec3Normalize((p[1] - p[0]) ^ (p[3] - p[0]));
+					for (int i = 0; i < 4; ++i)
+						params.pVertices[ivert + i] = SVertex(p[i].x, p[i].y, p[i].z, n.x, n.y, n.z, 0, 0, 0);
+
+					for (int itri = 0; itri <= 1; ++itri)
+						for (int i = 0; i < 3; ++i)
+							params.pIndices[iidx++] = (i == 0 ? ivert : ivert + i + itri);
+
+					ivert += 4;
+				}
+
+			pHelper = C3DEngine::Get()->AddHelper<CDynamicMeshHelper>(params);
+			pHelper->SetColor(color);
+
+			delete[] params.pVertices;
+			delete[] params.pIndices;
 			break;
 		}
 	}

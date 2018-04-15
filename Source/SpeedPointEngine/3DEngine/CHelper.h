@@ -174,7 +174,7 @@ public:
 	struct Params
 	{
 		SVertex* pVertices;		
-		SIndex* pIndices;
+		SLargeIndex* pIndices;
 		u32 numVertices;
 		u32 numIndices;
 		EPrimitiveType topology;
@@ -188,7 +188,7 @@ public:
 		{
 		}
 
-		Params(SVertex* _verts, u32 _nVerts, SIndex* _indices, u32 _nIndices, EPrimitiveType _topology)
+		Params(SVertex* _verts, u32 _nVerts, SLargeIndex* _indices, u32 _nIndices, EPrimitiveType _topology)
 			: pVertices(_verts),
 			numVertices(_nVerts),
 			pIndices(_indices),

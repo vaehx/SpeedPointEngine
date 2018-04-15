@@ -170,6 +170,54 @@ S_API void CPhysDebugHelper::UpdateFromShape(const shape* pshape, const AABB& bo
 			pHelper->SetParams(params);
 			break;
 		}
+	case eSHAPE_TERRAIN_MESH:
+		{
+			const terrain_mesh* pmesh = dynamic_cast<const terrain_mesh*>(pshape);
+			if (!pmesh)
+				return;
+
+			CDynamicMeshHelper* pMeshHelper = dynamic_cast<CDynamicMeshHelper*>(m_pHelper);
+			if (!pMeshHelper)
+				return;
+
+			// Helper must be recreated if vertex/index count changes.
+			// We just assume it's the same here.
+			IVertexBuffer* pVB = pMeshHelper->GetVertexBuffer();
+			SVertex* pVerts = pVB->GetShadowBuffer();
+			if (!pVerts)
+				return;
+
+			unsigned int minOffs[2], maxOffs[2];
+			minOffs[0] = (unsigned int)floorf((bounds.vMin.x - pmesh->aabb.vMin.x) / pmesh->segmentSz);
+			minOffs[1] = (unsigned int)floorf((bounds.vMin.z - pmesh->aabb.vMin.z) / pmesh->segmentSz);
+			maxOffs[0] = (unsigned int)ceilf((bounds.vMax.x - pmesh->aabb.vMin.x) / pmesh->segmentSz);
+			maxOffs[1] = (unsigned int)ceilf((bounds.vMax.z - pmesh->aabb.vMin.z) / pmesh->segmentSz);
+
+			unsigned int minvtx = UINT_MAX, maxvtx = 0;
+			for (unsigned int y = minOffs[1]; y < maxOffs[1]; ++y)
+				for (unsigned int x = minOffs[0]; x < maxOffs[0]; ++x)
+				{
+					// tris: [ 0->1->2, 0->2->3 ]
+					Vec3f p[] =
+					{
+						pmesh->points[y * (pmesh->segmentsPerSide + 1) + x],
+						pmesh->points[(y + 1) * (pmesh->segmentsPerSide + 1) + x],
+						pmesh->points[(y + 1) * (pmesh->segmentsPerSide + 1) + (x + 1)],
+						pmesh->points[y * (pmesh->segmentsPerSide + 1) + (x + 1)]
+					};
+
+					Vec3f n = Vec3Normalize((p[1] - p[0]) ^ (p[3] - p[0]));
+					unsigned int ivert = (y * pmesh->segmentsPerSide + x) * 4;
+					minvtx = min(minvtx, ivert);
+					maxvtx = max(maxvtx, ivert + 3);
+					for (int i = 0; i < 4; ++i)
+						pVerts[ivert + i] = SVertex(p[i].x, p[i].y, p[i].z, n.x, n.y, n.z, 0, 0, 0);
+				}
+
+			if (maxvtx >= minvtx)
+				pVB->UploadVertexData(minvtx, max(1, maxvtx - minvtx));
+			break;
+		}
 	}
 }
 
@@ -214,6 +262,12 @@ S_API void PhysicsDebugRenderer::VisualizePoint(const Vec3f& p, const SColor& co
 S_API void PhysicsDebugRenderer::VisualizeVector(const Vec3f& p, const Vec3f& v, const SColor& color, bool releaseAfterRender)
 {
 	CHelper* helper = C3DEngine::Get()->AddHelper<CVectorHelper>(CVectorHelper::Params(p, v.Normalized(), v.Length()), releaseAfterRender);
+	helper->SetColor(color);
+}
+
+S_API void PhysicsDebugRenderer::VisualizeLine(const Vec3f& p1, const Vec3f& p2, const SColor& color, bool releaseAfterRender)
+{
+	CHelper* helper = C3DEngine::Get()->AddHelper<CLineHelper>(CLineHelper::Params(p1, p2), releaseAfterRender);
 	helper->SetColor(color);
 }
 
