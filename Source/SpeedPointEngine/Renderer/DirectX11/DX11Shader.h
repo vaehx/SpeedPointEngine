@@ -81,8 +81,8 @@ public:
 struct S_API SMatObjConstants : SObjectConstants
 {
 	float matRoughnes;
-	char flags;
-	char __padding[11];
+	u32 flags;
+	char __padding[8];
 };
 
 ///////////////////////////////////////////////////////////////////////////////////

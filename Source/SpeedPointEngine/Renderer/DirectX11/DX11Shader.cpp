@@ -661,7 +661,9 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 		// Material constants
 		constants->matRoughnes = sr.roughness;
 		constants->flags = 0;
-		sr.
+
+		if (sr.alphaTest)
+			constants->flags |= SHADING_FLAG_ALPHATEST;
 
 		m_Constants.Update();
 	}
@@ -684,8 +686,8 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 ## GBUFFER-LAYOUT
 
-	#1 GBUF0 Depth D32
-	#2 GBUF1 Normal RGB8 + Roughness A8
+	#1 GBUF-Z: Depth D32
+	#2 GBUF-0: Normal RGB8 + Roughness A8
 
 TODO: We probably need more material parameters later (metallicness, fresnel coefficients, ...)
 
@@ -829,6 +831,7 @@ S_API void GBufferShaderPass::SetShaderResources(const SShaderResources& sr, con
 	SMatObjConstants* constants = m_Constants.GetConstants();
 	constants->mtxWorld = transform;
 	constants->matRoughnes = sr.roughness;
+	constants->flags = 0;
 
 	m_Constants.Update();
 }

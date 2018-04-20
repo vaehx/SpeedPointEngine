@@ -38,7 +38,7 @@ private:
 	ITexture* m_pLayermask;
 	ITexture* m_pTextureMaps;
 	ITexture* m_pNormalMaps;
-	ITexture* m_pRoughnessMaps;
+	ITexture* m_pGlossinessMaps;
 	bool* m_pLayersUsed;
 	STerrainLayerDesc* m_pLayerDescs;
 	unsigned int m_nLayers;

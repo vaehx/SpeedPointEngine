@@ -331,6 +331,8 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 {
 	map<string, string> params;
 	params["detailmap"] = "\"\"";
+	params["normalmap"] = "\"\"";
+	params["glossinessmap"] = "\"\"";
 	params["alphamap"] = "\"\"";
 	params["colormap"] = "\"\"";
 	ParseParams(paramsExpr, params);
@@ -346,6 +348,8 @@ S_API void CSPWLoader::ReadAndParseTerrainLayerBlock(unsigned int blockIndent, I
 	IMaterial* pMaterial = m_p3DEngine->GetMaterialManager()->CreateMaterial(layerMaterialSpec);
 	SMaterialDefinition* pMatDef = pMaterial->GetDefinition();
 	pMatDef->textureMap = DeserializeString(params["detailmap"]);
+	pMatDef->normalMap = DeserializeString(params["normalmap"]);
+	pMatDef->glossinessMap = DeserializeString(params["glossinessMap"]);
 
 	STerrainLayerDesc layer;
 	layer.mask = layerMaskSpec;

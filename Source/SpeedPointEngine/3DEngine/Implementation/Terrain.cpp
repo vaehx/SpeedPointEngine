@@ -308,7 +308,7 @@ S_API Terrain::Terrain()
 	m_bCustomHeightmapSet(false),
 	m_pTextureMaps(0),
 	m_pNormalMaps(0),
-	m_pRoughnessMaps(0),
+	m_pGlossinessMaps(0),
 	m_nLayers(0),
 	m_pLayersUsed(0)
 {
@@ -390,8 +390,8 @@ S_API SResult Terrain::Init(IRenderer* pRenderer, const STerrainParams& params)
 	m_pNormalMaps = pResourcePool->GetTexture("$terrain_normals");
 	m_pNormalMaps->CreateEmptyArray(m_nLayers, params.textureSz[0], params.textureSz[1], eTEXTURE_R8G8B8A8_UNORM);
 
-	m_pRoughnessMaps = pResourcePool->GetTexture("$terrain_roughness");
-	m_pRoughnessMaps->CreateEmptyArray(m_nLayers, params.textureSz[0], params.textureSz[1], eTEXTURE_R8G8B8A8_UNORM);
+	m_pGlossinessMaps = pResourcePool->GetTexture("$terrain_roughness");
+	m_pGlossinessMaps->CreateEmptyArray(m_nLayers, params.textureSz[0], params.textureSz[1], eTEXTURE_R8G8B8A8_UNORM);
 
 	// Initialize empty layer mask
 	m_pLayermask = pResourcePool->GetTexture("$terrain_mask");
@@ -869,7 +869,7 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 	pTerrainRenderDesc->pLayerMask = m_pLayermask;
 	pTerrainRenderDesc->pTextureMaps = m_pTextureMaps;
 	pTerrainRenderDesc->pNormalMaps = m_pNormalMaps;
-	pTerrainRenderDesc->pRoughnessMaps = m_pRoughnessMaps;
+	pTerrainRenderDesc->pRoughnessMaps = m_pGlossinessMaps;
 
 	pTerrainRenderDesc->bRender = true;
 	SMatrixIdentity(pTerrainRenderDesc->transform.scale);
@@ -1040,7 +1040,7 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 		m_pLayerDescs = pNewLayerDescs;
 		m_pTextureMaps->ResizeArray(newNumLayers);
 		m_pNormalMaps->ResizeArray(newNumLayers);
-		m_pRoughnessMaps->ResizeArray(newNumLayers);
+		m_pGlossinessMaps->ResizeArray(newNumLayers);
 		m_pLayermask->ResizeArray(newNumLayers);
 	}
 
@@ -1059,8 +1059,13 @@ S_API unsigned int Terrain::AddLayer(const STerrainLayerDesc& desc)
 	if (!pMatDef->normalMap.empty())
 		m_pNormalMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->normalMap));
 
-	if (!pMatDef->roughnessMap.empty())
-		m_pRoughnessMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->roughnessMap));
+	if (!pMatDef->glossinessMap.empty())
+		m_pGlossinessMaps->LoadArraySliceFromFile(layer, pResourcePool->GetResourceSystemPath(pMatDef->glossinessMap));
+
+	
+	// TODO: Specular maps?
+
+
 
 	// Fill mask
 	bool clearMask = true;
@@ -1167,7 +1172,7 @@ S_API void Terrain::Clear(void)
 
 	SP_SAFE_RELEASE(m_pTextureMaps);
 	SP_SAFE_RELEASE(m_pNormalMaps);
-	SP_SAFE_RELEASE(m_pRoughnessMaps);
+	SP_SAFE_RELEASE(m_pGlossinessMaps);
 
 	SP_SAFE_RELEASE(m_pVtxHeightMap);
 	SP_SAFE_RELEASE(m_pLayermask);

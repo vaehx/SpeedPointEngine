@@ -54,6 +54,7 @@ cbuffer ObjectCB : register(b1)
 {
 	float4x4 mtxWorld;
 	float matRoughness;
+	uint shadingFlags;
 }
 
 Texture2D normalMap : register(t0);

@@ -148,14 +148,18 @@ S_API SResult CRenderMesh::SetGeometry(IGeometry* pGeometry)
 				SMaterialDefinition* matDefinition = mat->GetDefinition(subset->iMaterialDefinition);
 				if (matDefinition)
 				{
-					renderSubset.shaderResources.roughness = matDefinition->roughness;
-					renderSubset.shaderResources.metalness = matDefinition->metalness;
+					// TODO: Implement specular workflow in low level renderer:
+
+					renderSubset.shaderResources.roughness = matDefinition->glossiness;
+					//renderSubset.shaderResources.metalness = matDefinition->metalness;
+					renderSubset.shaderResources.alphaTest = matDefinition->alphaTesting;
+					renderSubset.shaderResources.enableBackfaceCulling = !matDefinition->doubleSided;
 
 					if (pRes)
 					{
 						renderSubset.shaderResources.textureMap = pRes->GetTexture(matDefinition->textureMap);
 						renderSubset.shaderResources.normalMap = pRes->GetTexture(matDefinition->normalMap);
-						renderSubset.shaderResources.roughnessMap = pRes->GetTexture(matDefinition->textureMap);
+						renderSubset.shaderResources.roughnessMap = pRes->GetTexture(matDefinition->glossinessMap);
 					}
 				}
 			}

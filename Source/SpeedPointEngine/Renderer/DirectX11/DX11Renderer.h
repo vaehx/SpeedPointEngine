@@ -338,7 +338,7 @@ public:
 
 	virtual string GetShaderPath(EShaderFileType type) const;
 
-	virtual SResult Render(const SRenderDesc& renderDesc, unsigned int flags = RENDERFLAG_RENDER_SOLID);
+	virtual SResult Render(const SRenderDesc& renderDesc, unsigned int flags = RENDERFLAG_RENDER_OPAQUE);
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc);
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc);
 	virtual SResult RenderDeferredLight(const SRenderDesc& renderDesc);

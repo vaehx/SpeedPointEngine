@@ -18,15 +18,29 @@ using std::vector;
 
 SP_NMSPACE_BEG
 
+/****
+
+	We're using Specular Workflow.
+
+	Specular Workflow:
+		Albedo, Specular intensity, Glossiness
+
+	Metalness/Roughness Workflow:
+		Albedo, Roughness, Metalness
+
+****/
+
 struct S_API SMaterialDefinition
 {
 	string name;
-	string textureMap;
+	string textureMap; // albedo
 	string normalMap;
-	string roughnessMap;
-	float roughness; // ignored if roughnessMap valid
-	float metalness;
+	float specular; // ignored if specularMap valid
+	string specularMap;
+	float glossiness; // ignored if roughnessMap valid
+	string glossinessMap;
 	bool alphaTesting; // key is black (0,0,0)
+	bool doubleSided; // disables backface culling
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

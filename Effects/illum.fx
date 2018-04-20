@@ -2,6 +2,10 @@
 //	Illum Shader
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: Maybe define those during compilation
+#define SHADING_FLAG_ALPHATEST 0x1
+
+
 cbuffer SceneCB : register(b0)
 {
     float4x4 mtxView;
@@ -78,6 +82,7 @@ cbuffer ObjectCB : register(b1)
 {
 	float4x4 mtxWorld;
 	float matRoughness;
+	uint shadingFlags;
 };
 
 Texture2D textureMap : register(t0);
@@ -180,6 +185,15 @@ PS_OUTPUT_FORWARD PS_forward(PS_INPUT_FORWARD IN)
 {
 	PS_OUTPUT_FORWARD OUT;
 
+	// Get texture map color
+	float4 albedo4 = textureMap.Sample(LinearSampler, IN.TexCoord);
+	float3 albedo = albedo4.rgb;
+
+	// ALPHA TEST
+	if ((shadingFlags & SHADING_FLAG_ALPHATEST) && (albedo4.a < 0.1f || dot(albedo, albedo) < 0.0001f))
+		discard;
+
+
     // calc binormal. Everything in World space!
     float3 normal = IN.Normal;
     float3 tangent = IN.Tangent;
@@ -197,10 +211,6 @@ PS_OUTPUT_FORWARD PS_forward(PS_INPUT_FORWARD IN)
     //normal = bumpNormal;
 
 
-
-    // Get texture map color
-    float3 albedo = textureMap.Sample(LinearSampler, IN.TexCoord).rgb;
-
     // Calculate lighting factor. Using a fixed light dir and eye pos for now
     float3 L = normalize(sunPos.xyz);
     float3 V = normalize(eyePos.xyz - IN.WorldPos);
@@ -208,7 +218,7 @@ PS_OUTPUT_FORWARD PS_forward(PS_INPUT_FORWARD IN)
     float lambertBRDF = 1 / PI;
 
 	float3 irradiance = float3(1.0f, 1.0f, 1.0f) * 4.0f;
-	irradiance *= CalculateShadowMapFactor(IN.WorldPos);
+	//irradiance *= CalculateShadowMapFactor(IN.WorldPos);
 	float3 ambient = float3(0.8f, 0.8f, 0.8f) * 0.2f;
 
     float3 LOut = IN.Color * saturate(albedo * (lambertBRDF * saturate(dot(normal, L)) * irradiance + ambient));

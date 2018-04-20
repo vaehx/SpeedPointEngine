@@ -63,7 +63,7 @@ S_API void C3DEngine::CreateFullscreenPlane()
 	m_FullscreenPlane.pSubsets = new SRenderSubset[1];
 	m_FullscreenPlane.pSubsets[0].bOnce = false;
 	m_FullscreenPlane.pSubsets[0].render = true;
-	m_FullscreenPlane.pSubsets[0].enableAlphaTest = false;
+	m_FullscreenPlane.pSubsets[0].shaderResources.alphaTest = false;
 
 	SVertex fsPlaneVerts[] =
 	{
@@ -269,7 +269,7 @@ S_API void C3DEngine::CreateLightVolume(ELightType type, const SInitialGeometryD
 	
 	SRenderSubset* subset = &rd->pSubsets[1];
 	subset->bOnce = false;
-	subset->enableAlphaTest = false;
+	subset->shaderResources.alphaTest = false;
 	subset->render = true;
 	
 	SDrawCallDesc* dcd = &subset->drawCallDesc;
@@ -456,7 +456,7 @@ S_API void C3DEngine::CreateHUDRenderDesc()
 	SRenderSubset& subset = m_HUDRenderDesc.pSubsets[0];
 	subset.bOnce = false;
 	subset.render = true;
-	subset.enableAlphaTest = true;
+	subset.shaderResources.alphaTest = true;
 	
 	vector<SVertex> vertices = {
 		SVertex(-0.5f, -0.5f, 1.0f, 0, 0, -1.0f, 1.0f, 0, 0, 0, 1.0f),
@@ -584,7 +584,7 @@ S_API void C3DEngine::RenderCollected()
 		// Shadowmap Prepass
 		// TODO: Only render objects that are inside the ViewFrustum !!!!!
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADOWMAP);
-		RenderMeshes(RENDERFLAG_RENDER_SOLID | RENDERFLAG_RENDER_ALPHATESTED);
+		RenderMeshes(RENDERFLAG_RENDER_OPAQUE);
 
 		// Skybox
 		if (IS_VALID_PTR(m_pSkyBox))
@@ -599,7 +599,7 @@ S_API void C3DEngine::RenderCollected()
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
 		pGBufferPass->Bind();
-		RenderMeshes(RENDERFLAG_RENDER_SOLID);
+		RenderMeshes(RENDERFLAG_RENDER_OPAQUE);
 
 		// Deferred light prepass
 		m_pRenderer->BindShaderPass(eSHADERPASS_LIGHTPREPASS);
@@ -610,10 +610,10 @@ S_API void C3DEngine::RenderCollected()
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
 		pShadingPass->Bind();
-		RenderMeshes(RENDERFLAG_RENDER_SOLID);
+		RenderMeshes(RENDERFLAG_RENDER_OPAQUE);
 
-		
-		// Render subsets with alpha testing enabled in a forward pass
+
+		// Render alpha tested objects in forward pass
 		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 		RenderMeshes(RENDERFLAG_RENDER_ALPHATESTED);
 
@@ -865,11 +865,11 @@ S_API void C3DEngine::RenderDebugTexture()
 		* Mat44::MakeScaleMatrix(Vec3f((float)size[0], (float)size[1], 1.0f));
 
 	m_HUDRenderDesc.pSubsets[0].shaderResources.textureMap = m_pDebugTexture;
-	m_HUDRenderDesc.pSubsets[0].enableAlphaTest = false;
+	m_HUDRenderDesc.pSubsets[0].shaderResources.alphaTest = false;
 	
 	m_pRenderer->Render(m_HUDRenderDesc);
 
-	m_HUDRenderDesc.pSubsets[0].enableAlphaTest = true;
+	m_HUDRenderDesc.pSubsets[0].shaderResources.alphaTest = true;
 }
 
 SP_NMSPACE_END

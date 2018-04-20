@@ -121,6 +121,9 @@ struct S_API SShaderResources
 	float metalness;
 
 	bool enableBackfaceCulling;
+	
+	// All pure black (0,0,0) pixels will be transparent, blending enabled
+	bool alphaTest;
 
 	SShaderResources()
 		: textureMap(0),
@@ -131,7 +134,8 @@ struct S_API SShaderResources
 		roughnessMap(0),
 		roughness(1.0f),
 		illumModel(eILLUM_BLINNPHONG),
-		enableBackfaceCulling(true)
+		enableBackfaceCulling(true),
+		alphaTest(false)
 	{
 	}
 
@@ -157,6 +161,7 @@ struct S_API SShaderResources
 		roughnessMap = src.roughnessMap;
 		roughness = src.roughness;
 		enableBackfaceCulling = src.enableBackfaceCulling;
+		alphaTest = src.alphaTest;
 	}
 };
 
@@ -186,12 +191,8 @@ struct SRenderSubset
 	bool render; // true to render, false to skip
 	bool bOnce;	// set bRender to false if drawcall passed the pipeline
 
-	// All pure black (0,0,0) pixels will be transparent, blending enabled
-	bool enableAlphaTest;
-
 	SRenderSubset()
-		: bOnce(false),
-		enableAlphaTest(false)
+		: bOnce(false)
 	{
 	}
 };
@@ -564,7 +565,7 @@ public:
 	//---
 
 	// The flags allow you to filter subsets to be rendered
-	virtual SResult Render(const SRenderDesc& renderDesc, unsigned int flags = RENDERFLAG_RENDER_SOLID) = 0;
+	virtual SResult Render(const SRenderDesc& renderDesc, unsigned int flags = RENDERFLAG_RENDER_OPAQUE) = 0;
 	virtual SResult RenderInstanced(const SInstancedRenderDesc& renderDesc) = 0;
 	virtual SResult RenderTerrain(const STerrainRenderDesc& terrainRenderDesc) = 0;
 	

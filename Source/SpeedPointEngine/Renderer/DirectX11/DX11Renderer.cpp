@@ -797,7 +797,7 @@ S_API void DX11Renderer::InitFullscreenQuad()
 	m_FullscreenPlane.pSubsets = new SRenderSubset[1];
 	m_FullscreenPlane.pSubsets[0].bOnce = false;
 	m_FullscreenPlane.pSubsets[0].render = true;
-	m_FullscreenPlane.pSubsets[0].enableAlphaTest = false;
+	m_FullscreenPlane.pSubsets[0].shaderResources.alphaTest = false;
 
 	SVertex fsPlaneVerts[] =
 	{
@@ -1424,15 +1424,16 @@ S_API SResult DX11Renderer::DrawSubsets(const SRenderDesc& renderDesc, bool over
 			continue;
 		}
 
-		if (subset.enableAlphaTest && (renderFlags & RENDERFLAG_RENDER_ALPHATESTED) == 0)
+		if (subset.shaderResources.alphaTest && (renderFlags & RENDERFLAG_RENDER_ALPHATESTED) == 0)
 			continue;
 
-		if (!subset.enableAlphaTest && (renderFlags & RENDERFLAG_RENDER_SOLID) == 0)
+		if (!subset.shaderResources.alphaTest && (renderFlags & RENDERFLAG_RENDER_OPAQUE) == 0)
 			continue;
 
 		if (overrideBlendState)
 		{
-			D3D11_SetBlendState(subset.enableAlphaTest ? m_pAlphaTestBlendState : m_pDefBlendState);
+			//D3D11_SetBlendState(subset.shaderResources.alphaTest ? m_pAlphaTestBlendState : m_pDefBlendState);
+			D3D11_SetBlendState(m_pDefBlendState);
 		}
 
 		GetCurrentShaderPass()->SetShaderResources(subset.shaderResources, SMatrixTranspose(renderDesc.transform));

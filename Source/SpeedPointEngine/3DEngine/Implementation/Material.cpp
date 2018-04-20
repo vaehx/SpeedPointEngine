@@ -170,13 +170,18 @@ S_API IMaterial* MaterialManager::LoadMaterial(const string& absResourcePath)
 		for (unsigned int i = 0; i < numMaterials; ++i)
 		{
 			auto& material = mat.materials[i];
+			
+			// Convert MAT to engine material definition
 			SMaterialDefinition* definition = pMaterial->GetDefinition(i);
 			definition->name			= material.name;
-			definition->roughness		= material.roughness;
 			definition->textureMap		= material.textureMap;
 			definition->normalMap		= material.normalMap;
-			definition->roughnessMap	= material.roughnessMap;
-			definition->metalness		= material.metalness;
+			definition->specular		= material.specular;
+			definition->specularMap		= material.specularMap;
+			definition->glossiness		= material.glossiness;
+			definition->glossinessMap	= material.glossinessMap;
+			definition->alphaTesting	= material.alphaTesting;
+			definition->doubleSided		= material.doubleSided;
 		}
 	}
 
