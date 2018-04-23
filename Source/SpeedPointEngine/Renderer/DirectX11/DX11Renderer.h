@@ -177,7 +177,7 @@ private:
 	int IsBoundAsTexture(ID3D11ShaderResourceView* srv);
 
 	// Does not apply blend state etc., called from public Render() methods
-	void RenderGeometry(const SRenderDesc& renderDesc, bool overrideBlendState = true, unsigned int renderFlags = 0);
+	void RenderGeometry(const SRenderDesc& renderDesc, bool overrideBlendState = true, unsigned int renderFlags = RENDERFLAG_RENDER_OPAQUE);
 
 	SResult DrawTerrainSubset(const STerrainDrawCallDesc& dcd);
 	

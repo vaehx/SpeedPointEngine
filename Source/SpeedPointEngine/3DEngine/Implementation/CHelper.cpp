@@ -578,6 +578,7 @@ const SHelperGeometryDesc* CPlaneHelper::GetBaseGeometry(bool outline)
 
 	if (!geomInited)
 	{
+		geom.backfaceCulling = false;
 		geom.topology = PRIMITIVE_TYPE_TRIANGLELIST;
 		geom.vertices =
 		{
@@ -738,11 +739,11 @@ void MakeCapsule(SInitialGeometryDesc& geom, const Vec3f& bottom, const Vec3f& t
 		{
 			unsigned int i = seg * 6;
 			subset->pIndices[i + 0] = mantleVtx;
-			subset->pIndices[i + 1] = mantleVtx + 1;
-			subset->pIndices[i + 2] = mantleVtx + 1 + 2;
+			subset->pIndices[i + 1] = mantleVtx + 1 + 2;
+			subset->pIndices[i + 2] = mantleVtx + 1;
 			subset->pIndices[i + 3] = mantleVtx;
-			subset->pIndices[i + 4] = mantleVtx + 1 + 2;
-			subset->pIndices[i + 5] = mantleVtx + 2;
+			subset->pIndices[i + 4] = mantleVtx + 2;
+			subset->pIndices[i + 5] = mantleVtx + 1 + 2;
 		}
 
 		for (unsigned int ring = 0; ring <= rings; ++ring)
@@ -763,19 +764,19 @@ void MakeCapsule(SInitialGeometryDesc& geom, const Vec3f& bottom, const Vec3f& t
 			{
 				unsigned int i = numMantleIndices + ((seg * rings) + ring) * 6;
 				subset->pIndices[i + 0] = capVtxBottom;
-				subset->pIndices[i + 1] = capVtxBottom + 1;
-				subset->pIndices[i + 2] = capVtxBottom + (rings + 1) + 1;
+				subset->pIndices[i + 1] = capVtxBottom + (rings + 1) + 1;
+				subset->pIndices[i + 2] = capVtxBottom + 1;
 				subset->pIndices[i + 3] = capVtxBottom;
-				subset->pIndices[i + 4] = capVtxBottom + (rings + 1) + 1;
-				subset->pIndices[i + 5] = capVtxBottom + (rings + 1);
+				subset->pIndices[i + 4] = capVtxBottom + (rings + 1);
+				subset->pIndices[i + 5] = capVtxBottom + (rings + 1) + 1;
 
 				i = numMantleIndices + numCapIndices + ((seg * rings) + ring) * 6;
 				subset->pIndices[i + 0] = capVtxTop;
-				subset->pIndices[i + 1] = capVtxTop + 1;
-				subset->pIndices[i + 2] = capVtxTop + (rings + 1) + 1;
+				subset->pIndices[i + 1] = capVtxTop + (rings + 1) + 1;
+				subset->pIndices[i + 2] = capVtxTop + 1;
 				subset->pIndices[i + 3] = capVtxTop;
-				subset->pIndices[i + 4] = capVtxTop + (rings + 1) + 1;
-				subset->pIndices[i + 5] = capVtxTop + (rings + 1);
+				subset->pIndices[i + 4] = capVtxTop + (rings + 1);
+				subset->pIndices[i + 5] = capVtxTop + (rings + 1) + 1;
 			}
 		}
 	}

@@ -82,7 +82,7 @@ namespace SpeedPoint
 	template<typename F> inline Vec4<F> operator * (const Vec4<F>& va, const F& f) { return Vec4<F>(va.x * f, va.y * f, va.z * f, va.w * f); }
 	template<typename F> inline Vec4<F> operator * (const F& f, const Vec4<F>& va) { return Vec4<F>(va.x * f, va.y * f, va.z * f, va.w * f); }
 	template<typename F> inline Vec4<F> operator / (const Vec4<F>& va, const Vec4<F>& vb) { return Vec4<F>(va.x / vb.x, va.y / vb.y, va.z / vb.z, va.w / vb.w); }
-	template<typename F> inline Vec4<F> operator / (const Vec4<F>& va, const F& f) { F finv = 1 / f; return Vec4<F>(va.x * k, va.y * finv, va.z * finv, va.w * finv); }
+	template<typename F> inline Vec4<F> operator / (const Vec4<F>& va, const F& f) { F finv = 1 / f; return Vec4<F>(va.x * finv, va.y * finv, va.z * finv, va.w * finv); }
 	template<typename F> inline Vec4<F> operator / (const F& f, const Vec4<F>& va) { return Vec4<F>(f / va.x, f / va.y, f / va.z, f / va.w); }	
 
 	template<typename F>

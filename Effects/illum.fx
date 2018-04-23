@@ -118,7 +118,8 @@ VS_OUTPUT_FORWARD VS_forward(VS_INPUT IN)
     OUT.WorldPos = wPos.xyz;
     OUT.Position = mul(mtxProj, mul(mtxView, wPos));
 
-    OUT.Normal = normalize(mul(mtxWorld, normalize(float4(IN.Normal,0.0f))).xyz);
+    OUT.Normal = mul(float4(IN.Normal, 0.0f), mtxWorldInv).xyz;
+	//OUT.Normal = IN.Normal;
     OUT.Tangent = normalize(mul(mtxWorldInv, normalize(float4(IN.Tangent,0.0f))).xyz);
     OUT.TexCoord = IN.TexCoord;
     OUT.Color = IN.Color;
@@ -231,7 +232,9 @@ PS_OUTPUT_FORWARD PS_forward(PS_INPUT_FORWARD IN)
 	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
 
 
-    OUT.Color = float4(lerp(LOut, fogColor, fogAmount), 0.0f);
+    //OUT.Color = float4(lerp(LOut, fogColor, fogAmount), 0.0f);
+	OUT.Color = float4(normalize(IN.Normal), 0.0f);
+	//OUT.Color = float4(1.0f, 1.0f, 1.0f, 0.0f);
 
     return OUT;
 }
@@ -368,7 +371,9 @@ PS_OUTPUT_LIGHT_PREPASS PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN)
 		falloff = pow(saturate(1 - pow(distance / lightMaxDistance, 4)), 2) / pow(max(distance, FALLOFF_EPSILON), lightDecay);
 	}
 
-	float glossiness = RoughnessToAlpha(matRoughness);
+	//float glossiness = RoughnessToAlpha(matRoughness);
+	float glossiness = matRoughness;
+	//float glossiness = 30.0f;
 	float3 H = normalize(L + V); // computed in PS as we need the world position from the GBuffer
 
 
@@ -378,6 +383,7 @@ PS_OUTPUT_LIGHT_PREPASS PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN)
 	BRDF_Blinn(L, V, N, H, glossiness, diff, spec);
 //	BRDF_Phong(L, V, N, glossiness, diff, spec);
 
+	shadowFactor = saturate(shadowFactor);
 
 	// Calculate radiometric irradiance
 	float3 irradiance = lightIntensity * falloff * shadowFactor;
@@ -408,7 +414,7 @@ PS_OUTPUT_LIGHT_PREPASS PS_LightPrepass(VS_OUTPUT_LIGHT_PREPASS IN)
 
 #if defined(ENTRY_DeferredShading) || defined(ENTRY_DeferredShadingTerrain)
 
-static float3 fakeGI = float3(0.18f, 0.18f, 0.18f);
+static float3 fakeGI = float3(0.1f, 0.1f, 0.1f);
 
 Texture2D GBufferDepth : register(t0); // Depth
 Texture2D GBuffer1 : register(t1); // Normal + Roughness
@@ -470,8 +476,9 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 	float3 Lemissive	= float3(0, 0, 0);
 	float3 Lglobal		= fakeGI; // TODO
 
-	float3 kd = albedo * (1.0f - matMetalness);
-	float3 ks = lerp(float3(0.03f, 0.03f, 0.03f), albedo, matMetalness);
+	float specularity = 0.5f;
+	float3 kd = albedo * (1.0f - specularity);
+	float3 ks = lerp(float3(0.03f, 0.03f, 0.03f), albedo, specularity);
 
 	float3 Lout = Lemissive + albedo * Lglobal + kd * Ldiff + ks * Lspec;
 
@@ -484,6 +491,7 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 	*/
 
 	// TODO: Lout may not be in [0,1] range (HDR) -> Apply tone mapping here
+	//OUT.Color = float4(Lout, 1.0f);
 	OUT.Color = float4(Lout, 1.0f);
 
 	return OUT;

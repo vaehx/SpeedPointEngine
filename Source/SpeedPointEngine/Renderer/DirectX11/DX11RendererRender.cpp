@@ -204,7 +204,7 @@ S_API void DX11Renderer::RenderGeometry(const SRenderDesc& renderDesc, bool over
 // --------------------------------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::RenderDeferredLight(const SRenderDesc& renderDesc)
 {
-	EnableBackfaceCulling(true);
+	//EnableBackfaceCulling(true);
 	D3D11_SetBlendState(m_pDeferredLightBlendState);
 
 	RenderGeometry(renderDesc, false);

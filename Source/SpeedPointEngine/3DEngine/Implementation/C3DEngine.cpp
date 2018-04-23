@@ -64,6 +64,7 @@ S_API void C3DEngine::CreateFullscreenPlane()
 	m_FullscreenPlane.pSubsets[0].bOnce = false;
 	m_FullscreenPlane.pSubsets[0].render = true;
 	m_FullscreenPlane.pSubsets[0].shaderResources.alphaTest = false;
+	m_FullscreenPlane.pSubsets[0].shaderResources.enableBackfaceCulling = false;
 
 	SVertex fsPlaneVerts[] =
 	{
@@ -358,6 +359,7 @@ S_API SResult C3DEngine::_CreateHelperPrefab(unsigned int id, const SHelperGeome
 		subset->bOnce = false;
 		subset->render = true;
 		subset->shaderResources.illumModel = eILLUM_HELPER;
+		subset->shaderResources.enableBackfaceCulling = geometry->backfaceCulling;
 		
 		SDrawCallDesc* dcd = &subset->drawCallDesc;
 		dcd->primitiveType = geometry->topology;

@@ -611,6 +611,8 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 	bool regularConstants = true;
 	if (sr.illumModel == eILLUM_HELPER)
 	{
+		m_pRenderer->EnableBackfaceCulling(sr.enableBackfaceCulling);
+
 		m_pHelperShader->Bind();
 		m_pRenderer->BindConstantsBuffer(m_HelperConstants.GetCB());
 
@@ -676,7 +678,7 @@ S_API void ForwardShaderPass::SetShaderResources(const SShaderResources& sr, con
 
 //				GBuffer Shader Pass
 
-/*
+/*f
 
 1st Pass: Render objects to MINIMAL gbuffer
 	- See GBUFFER-LAYOUT below
