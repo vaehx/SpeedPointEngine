@@ -343,7 +343,11 @@ S_API void DX11FontRenderer::EndRender()
 
 	ID3D11DeviceContext* pD3D11DeviceContext = m_pDXRenderer->GetD3D11DeviceContext();
 	m_FontShader.Bind();
-	pD3D11DeviceContext->OMSetBlendState(m_pBlendState, 0, 0xffffffff);
+	
+	// Use Renderer API where possible to avoid inconsistent states in renderer.
+	// e.g. Renderer stores currently bound blend state, so it will not be bound twice.
+	m_pDXRenderer->D3D11_SetBlendState(m_pBlendState, 0, 0xffffffff);
+
 	pD3D11DeviceContext->IASetIndexBuffer(m_pD2DIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	unsigned int stride = sizeof(SVertex);

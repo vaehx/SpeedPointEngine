@@ -232,8 +232,8 @@ PS_OUTPUT_FORWARD PS_forward(PS_INPUT_FORWARD IN)
 	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
 
 
-    //OUT.Color = float4(lerp(LOut, fogColor, fogAmount), 0.0f);
-	OUT.Color = float4(normalize(IN.Normal), 0.0f);
+    OUT.Color = float4(lerp(LOut, fogColor, fogAmount), 0.0f);
+	//OUT.Color = float4(normalize(IN.Normal), 0.0f);
 	//OUT.Color = float4(1.0f, 1.0f, 1.0f, 0.0f);
 
     return OUT;
@@ -491,7 +491,6 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 	*/
 
 	// TODO: Lout may not be in [0,1] range (HDR) -> Apply tone mapping here
-	//OUT.Color = float4(Lout, 1.0f);
 	OUT.Color = float4(Lout, 1.0f);
 
 	return OUT;

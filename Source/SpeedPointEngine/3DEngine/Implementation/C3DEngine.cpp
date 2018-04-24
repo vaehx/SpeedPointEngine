@@ -585,53 +585,65 @@ S_API void C3DEngine::RenderCollected()
 		
 		// Shadowmap Prepass
 		// TODO: Only render objects that are inside the ViewFrustum !!!!!
+		m_pRenderer->StartDebugSection("Sun Shadowmap Pass");
 		m_pRenderer->BindShaderPass(eSHADERPASS_SHADOWMAP);
 		RenderMeshes(RENDERFLAG_RENDER_OPAQUE);
 
 		// Skybox
 		if (IS_VALID_PTR(m_pSkyBox))
 		{
+			m_pRenderer->StartDebugSection("Skybox");
 			m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 			SRenderDesc* rd = m_pSkyBox->GetRenderDesc();
 			m_pRenderer->Render(*rd);
 		}
 
 		// Z Prepass / GBuffer pass
+		m_pRenderer->StartDebugSection("ZPass (Terrain)");
 		IShaderPass* pGBufferPass = m_pRenderer->BindShaderPass(eSHADERPASS_GBUFFER);
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
+		m_pRenderer->StartDebugSection("ZPass");
 		pGBufferPass->Bind();
 		RenderMeshes(RENDERFLAG_RENDER_OPAQUE);
 
 		// Deferred light prepass
+		m_pRenderer->StartDebugSection("Light Prepass");
 		m_pRenderer->BindShaderPass(eSHADERPASS_LIGHTPREPASS);
 		RenderDeferredLights();
 
 		// Shading and merging post-pass
+		m_pRenderer->StartDebugSection("Deferred shading (Terrain)");
 		IShaderPass* pShadingPass = m_pRenderer->BindShaderPass(eSHADERPASS_SHADING);
 		m_pRenderer->RenderTerrain(m_TerrainRenderDesc);
 
+		m_pRenderer->StartDebugSection("Deferred shading");
 		pShadingPass->Bind();
 		RenderMeshes(RENDERFLAG_RENDER_OPAQUE);
 
 
 		// Render alpha tested objects in forward pass
+		m_pRenderer->StartDebugSection("Alpha-tested Forward pass");
 		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 		RenderMeshes(RENDERFLAG_RENDER_ALPHATESTED);
 
 
 		// Particles
+		m_pRenderer->StartDebugSection("Particles");
 		m_pRenderer->BindShaderPass(eSHADERPASS_PARTICLES);
 		m_ParticleSystem.Render();
 
 		// Helpers
+		m_pRenderer->StartDebugSection("Helpers");
 		m_pRenderer->BindShaderPass(eSHADERPASS_FORWARD);
 		RenderHelpers();
 
 		// HUD
+		m_pRenderer->StartDebugSection("HUD");
 		RenderHUD();
 
 		// Debugging stuff
+		m_pRenderer->StartDebugSection("Misc");
 		RenderDebugTexture();
 
 		ProfilingSystem::EndSection(budgetTimer);

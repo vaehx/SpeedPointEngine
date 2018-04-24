@@ -106,6 +106,7 @@ private:
 	D3D11_DEPTH_STENCIL_DESC m_terrainDepthDesc;
 	ID3D11DepthStencilState* m_pTerrainDepthState;
 
+	ID3DUserDefinedAnnotation* m_pUserDefinedAnnotation;
 
 	bool m_bFullscreen;
 
@@ -327,6 +328,8 @@ public:
 
 	virtual SResult BeginScene(void);
 	virtual SResult EndScene(void);
+
+	virtual SResult StartDebugSection(const string& name);
 
 	virtual IShader* CreateShader() const;
 

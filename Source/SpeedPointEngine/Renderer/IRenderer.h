@@ -560,6 +560,10 @@ public:
 	virtual SResult BeginScene(void) = 0;
 	virtual SResult EndScene(void) = 0;
 
+	// Groups all further API events under this name. This is helpful for annotating
+	// the event list in Graphics Debuggers
+	virtual SResult StartDebugSection(const string& name) = 0;
+
 	virtual STerrainRenderDesc* GetTerrainRenderDesc() = 0;
 
 	//---

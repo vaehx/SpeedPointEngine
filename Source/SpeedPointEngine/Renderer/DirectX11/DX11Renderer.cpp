@@ -59,7 +59,8 @@ m_bInScene(false),
 m_bDumpFrame(false),
 m_SetPrimitiveType(PRIMITIVE_TYPE_UNKNOWN),
 m_iMaxBoundVSResource(0),
-m_iMaxBoundPSResource(0)
+m_iMaxBoundPSResource(0),
+m_pUserDefinedAnnotation(0)
 {
 	for (int i = 0; i < NUM_SHADERPASS_TYPES; ++i)
 		m_Passes[i] = 0;
@@ -837,6 +838,8 @@ S_API IFontRenderer* DX11Renderer::GetFontRenderer() const
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Renderer::Shutdown(void)
 {
+	SP_SAFE_RELEASE(m_pUserDefinedAnnotation);
+
 	delete m_pFontRenderer;
 	m_pFontRenderer = 0;
 
@@ -1393,6 +1396,29 @@ S_API SResult DX11Renderer::EndScene(void)
 	return sr;
 }
 
+
+// -----------------------------------------------------------------------------------------------
+S_API SResult DX11Renderer::StartDebugSection(const string& name)
+{
+	if (!m_pD3DDeviceContext)
+		return CLog::LogError("Cannot StartDebugSection(): Device context not initialized");
+
+	if (!m_pUserDefinedAnnotation)
+	{
+		HRESULT hr = m_pD3DDeviceContext->QueryInterface(IID_PPV_ARGS(&m_pUserDefinedAnnotation));
+		if (FAILED(hr))
+			return CLog::LogError("Could not query device context for ID3DUserDefinedAnnotation!");
+	}
+
+	if (m_pUserDefinedAnnotation)
+	{
+		wchar_t* pnamew = new wchar_t[name.length() + 1];
+		std::mbstowcs(pnamew, name.c_str(), name.length());
+		pnamew[name.length()] = 0;
+		m_pUserDefinedAnnotation->SetMarker(pnamew);
+		delete[] pnamew;
+	}
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
