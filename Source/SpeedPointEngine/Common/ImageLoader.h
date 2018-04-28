@@ -66,6 +66,7 @@ private:
 public:
 	// Description:
 	//	Loads the given image from file and fills the given image structure
+	//  The buffer in the filled image structure is created with new. You can use ClearLoadedImage() to free the memory
 	// Arguments:
 	//	file - absolute system path to file
 	//	scaleToWidth, scaleToHeight - If 0, will use size of actual image. Otherwise, the image will be rescaled if possible
@@ -73,6 +74,8 @@ public:
 	static SResult Load(const string& file, SLoadedImage* pImage,
 		unsigned int scaleToWidth = 0, unsigned int scaleToHeight = 0,
 		WICPixelFormatGUID convertToFmt = GUID_WICPixelFormatUndefined);
+
+	static void ClearLoadedImage(SLoadedImage* pImage);
 };
 
 SP_NMSPACE_END

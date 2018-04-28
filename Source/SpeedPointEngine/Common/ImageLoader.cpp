@@ -274,6 +274,17 @@ S_API SResult CImageLoader::Load(const string& file, SLoadedImage* pImage, unsig
 	return S_SUCCESS;
 }
 
+
+S_API void CImageLoader::ClearLoadedImage(SLoadedImage* pImage)
+{
+	if (pImage)
+	{
+		delete[] pImage->buffer;
+		ZeroMemory(pImage, sizeof(SLoadedImage));
+	}
+}
+
+
 S_API size_t CImageLoader::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
 {
 	if (!pWIC)
