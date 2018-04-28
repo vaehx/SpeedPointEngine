@@ -88,6 +88,9 @@ S_API SResult SpeedPointEngine::Initialize(const SGameEngineInitParams& params)
 
 	char execPath[200];
 	GetModuleFileName(NULL, execPath, 200);
+	OutputDebugStringA("execPath='");
+	OutputDebugStringA(execPath);
+	OutputDebugStringA("'\n");
 	m_pResourcePool->SetResourceRootPath(execPath);
 
 	CLog::Log(S_INFO, "Initialized renderer (%s)", GetRendererTypeName(m_pRenderer->GetType()));

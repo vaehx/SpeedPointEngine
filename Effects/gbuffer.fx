@@ -110,14 +110,16 @@ PS_GBUFFER_OUTPUT PS_GBuffer(VS_OUTPUT IN)
 
 #ifdef ENTRY_GBufferTerrain
 
+#define MAX_TERRAIN_LAYERS_IN_SHADER 16
+
 cbuffer TerrainCB : register(b1)
 {
 	float terrainDMFadeRadius;
 	float terrainMaxHeight;
 	uint terrainHeightmapSz;
 	float terrainSegSz;
-	float2 detailmapSz;
 	uint terrainNumLayers;
+	float4 terrainLayerParams[MAX_TERRAIN_LAYERS_IN_SHADER]; // (scale, UNUSED, UNUSED, UNUSED)
 }
 
 // vs

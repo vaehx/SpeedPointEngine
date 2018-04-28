@@ -509,14 +509,16 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef ENTRY_DeferredShadingTerrain
 
+#define MAX_TERRAIN_LAYERS_IN_SHADER 16
+
 cbuffer TerrainCB : register(b1)
 {
 	float terrainDMFadeRadius;
 	float terrainMaxHeight;
 	uint terrainHeightmapSz;
 	float terrainSegSz;
-	float2 detailmapSz;
 	uint terrainNumLayers;
+	float4 terrainLayerParams[MAX_TERRAIN_LAYERS_IN_SHADER]; // (scale, UNUSED, UNUSED, UNUSED)
 }
 
 // vs
@@ -617,18 +619,19 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 
 	// Determine albedo
 	float3 detailMapAlbedo = float3(0, 0, 0);
-	float3 terrainTC;
+	float3 terrainTC, detailmapTC;
 	terrainTC.xy = IN.TexCoord;
-	float3 detailmapTC;
-	detailmapTC.xy = IN.WorldPosAndDepth.xz / detailmapSz;
-	for (uint iLayer = 0; iLayer < 3; ++iLayer) // TODO: Dynamic layer count
+	for (uint iLayer = 0; iLayer < terrainNumLayers; ++iLayer)
 	{
 		terrainTC.z = (float)iLayer;
 		float maskSample = terrainLayerMask.Sample(LinearSampler, terrainTC).r;
 
+		detailmapTC.xy = IN.WorldPosAndDepth.xz / terrainLayerParams[iLayer].x;
 		detailmapTC.z = (float)iLayer;
 		float3 textureMapSample = TextureMap.Sample(LinearSampler, detailmapTC).rgb;
-		detailMapAlbedo = lerp(detailMapAlbedo, textureMapSample, maskSample);
+
+		//detailMapAlbedo = lerp(detailMapAlbedo, textureMapSample, maskSample);
+		detailMapAlbedo += maskSample * textureMapSample;
 	}
 
 	float3 colorMapAlbedo = terrainColorMap.Sample(LinearSampler, terrainTC).rgb;

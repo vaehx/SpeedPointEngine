@@ -78,6 +78,8 @@ struct S_API SObjectConstants
 
 // --------------------------------------------------------------------------------------------------------------------
 
+#define MAX_TERRAIN_LAYERS_IN_SHADER 16
+
 struct S_API STerrainConstants
 {
 	float fTerrainDMFadeRadius;
@@ -85,9 +87,10 @@ struct S_API STerrainConstants
 	unsigned int vtxHeightMapSz;
 	float segmentSize;
 
-	float detailmapSz[2];
-	unsigned int numLayers;
-	char __padding[4];
+	unsigned int numLayers; // max: MAX_TERRAIN_LAYERS_IN_SHADER
+	char __padding[12];
+
+	float4 layerParams[MAX_TERRAIN_LAYERS_IN_SHADER]; // for each layer, (scale, UNUSED, UNUSED, UNUSED)
 };
 
 struct S_API STerrainShaderResources

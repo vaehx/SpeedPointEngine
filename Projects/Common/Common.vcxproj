@@ -27,6 +27,7 @@
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ComponentPool.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\FileUtils.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\geo.h" />
+    <ClInclude Include="..\..\Source\SpeedPointEngine\Common\ImageLoader.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\IShutdownHandler.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat33.h" />
     <ClInclude Include="..\..\Source\SpeedPointEngine\Common\Mat44.h" />
@@ -52,6 +53,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Camera.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\CLog.cpp" />
+    <ClCompile Include="..\..\Source\SpeedPointEngine\Common\ImageLoader.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\FileUtils.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\geo.cpp" />
     <ClCompile Include="..\..\Source\SpeedPointEngine\Common\Mat33.cpp" />

@@ -10,46 +10,13 @@
 #include "..\ITexture.h"
 #include <Common\SPrerequisites.h>
 #include "DX11.h"
+#include <vector>
 
 SP_NMSPACE_BEG
 
 class S_API DX11Renderer;
 
-// IWICImagineFactory must not be forward declared in SpeedPoint NameSpace!
-SP_NMSPACE_END
-struct IWICImagingFactory;
-SP_NMSPACE_BEG
 
-
-template<class T> class S_API ScopedTextureLoadingObject
-{
-public:
-	explicit ScopedTextureLoadingObject(T *p = 0) : _pointer(p) {}
-	~ScopedTextureLoadingObject()
-	{
-		if (_pointer)
-		{
-			_pointer->Release();
-			_pointer = nullptr;
-		}
-	}
-
-	bool IsNull() const { return (!_pointer); }
-
-	T& operator*() { return *_pointer; }
-	T* operator->() { return _pointer; }
-	T** operator&() { return &_pointer; }
-
-	void Reset(T *p = 0) { if (_pointer) { _pointer->Release(); } _pointer = p; }
-
-	T* Get() const { return _pointer; }
-
-private:
-	ScopedTextureLoadingObject(const ScopedTextureLoadingObject&);
-	ScopedTextureLoadingObject& operator=(const ScopedTextureLoadingObject&);
-
-	T* _pointer;
-};
 
 
 
@@ -76,6 +43,14 @@ struct S_API SLoadedTextureBitmap
 	DXGI_FORMAT format;
 };
 
+struct S_API SLockedTextureArraySlice
+{
+	unsigned int iSlice;
+	unsigned int iSubresource;
+	bool useUpdateBox;
+	D3D11_BOX updateBox;
+};
+
 class S_API DX11Texture : public ITexture
 {
 private:
@@ -87,6 +62,7 @@ private:
 	ID3D11Texture2D* m_pDXTexture;
 	ID3D11Texture2D* m_pDXStagingTexture; // for array
 	D3D11_TEXTURE2D_DESC m_DXTextureDesc;
+	Vec2f m_PixelSzTC; // texel size in texture coordinates
 	ID3D11ShaderResourceView* m_pDXSRV;
 	D3D11_SHADER_RESOURCE_VIEW_DESC m_DXSRVDesc;
 
@@ -96,6 +72,10 @@ private:
 	bool* m_bSliceLocked; // only set if an array
 
 	void* m_pStagedData;
+
+	// We can't copy subresources from the array staging texture to live texture
+	// while other slices are still locked. So we have to queue them up until all slices unlocked
+	std::vector<SLockedTextureArraySlice> m_DirtyArraySlices;
 
 	void Clear();
 	bool CheckMipMapAutogenSupported(DXGI_FORMAT format);
@@ -165,7 +145,6 @@ public:
 	}
 
 private:
-	static size_t BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC);
 	static void GetCubemapImageName(string& name, ECubemapSide side);
 	static unsigned int GetDXCubemapArraySlice(ECubemapSide side);
 

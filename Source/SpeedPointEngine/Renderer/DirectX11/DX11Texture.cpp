@@ -9,106 +9,9 @@
 #include "DX11Renderer.h"
 #include "..\IRenderer.h"
 
-#include <comdef.h>
-#include <d2d1.h>
-#include <wincodec.h>
-#include <memory>
+#include <Common\ImageLoader.h>
 
 SP_NMSPACE_BEG
-
-
-const char* GetWICPixelFormatName(WICPixelFormatGUID fmt)
-{
-	if (fmt == GUID_WICPixelFormatDontCare) return "GUID_WICPixelFormatDontCare";
-	else if (fmt == GUID_WICPixelFormatUndefined) return "GUID_WICPixelFormatUndefined";
-	else if (fmt == GUID_WICPixelFormat1bppIndexed) return "GUID_WICPixelFormat1bppIndexed";
-	else if (fmt == GUID_WICPixelFormat2bppIndexed) return "GUID_WICPixelFormat2bppIndexed";
-	else if (fmt == GUID_WICPixelFormat4bppIndexed) return "GUID_WICPixelFormat4bppIndexed";
-	else if (fmt == GUID_WICPixelFormat8bppIndexed) return "GUID_WICPixelFormat8bppIndexed";
-	else if (fmt == GUID_WICPixelFormatBlackWhite) return "GUID_WICPixelFormatBlackWhite";
-	else if (fmt == GUID_WICPixelFormat2bppGray) return "GUID_WICPixelFormat2bppGray";
-	else if (fmt == GUID_WICPixelFormat4bppGray) return "GUID_WICPixelFormat4bppGray";
-	else if (fmt == GUID_WICPixelFormat8bppGray) return "GUID_WICPixelFormat8bppGray";
-	else if (fmt == GUID_WICPixelFormat8bppAlpha) return "GUID_WICPixelFormat8bppAlpha";
-	else if (fmt == GUID_WICPixelFormat16bppBGR555) return "GUID_WICPixelFormat16bppBGR555";
-	else if (fmt == GUID_WICPixelFormat16bppBGR565) return "GUID_WICPixelFormat16bppBGR565";
-	else if (fmt == GUID_WICPixelFormat16bppBGRA5551) return "GUID_WICPixelFormat16bppBGRA5551";
-	else if (fmt == GUID_WICPixelFormat16bppGray) return "GUID_WICPixelFormat16bppGray";
-	else if (fmt == GUID_WICPixelFormat24bppBGR) return "GUID_WICPixelFormat24bppBGR";
-	else if (fmt == GUID_WICPixelFormat24bppRGB) return "GUID_WICPixelFormat24bppRGB";
-	else if (fmt == GUID_WICPixelFormat32bppBGR) return "GUID_WICPixelFormat32bppBGR";
-	else if (fmt == GUID_WICPixelFormat32bppBGRA) return "GUID_WICPixelFormat32bppBGRA";
-	else if (fmt == GUID_WICPixelFormat32bppPBGRA) return "GUID_WICPixelFormat32bppPBGRA";
-	else if (fmt == GUID_WICPixelFormat32bppGrayFloat) return "GUID_WICPixelFormat32bppGrayFloat";
-	else if (fmt == GUID_WICPixelFormat32bppRGB) return "GUID_WICPixelFormat32bppRGB";
-	else if (fmt == GUID_WICPixelFormat32bppRGBA) return "GUID_WICPixelFormat32bppRGBA";
-	else if (fmt == GUID_WICPixelFormat32bppPRGBA) return "GUID_WICPixelFormat32bppPRGBA";
-	else if (fmt == GUID_WICPixelFormat48bppRGB) return "GUID_WICPixelFormat48bppRGB";
-	else if (fmt == GUID_WICPixelFormat48bppBGR) return "GUID_WICPixelFormat48bppBGR";
-	else if (fmt == GUID_WICPixelFormat64bppRGB) return "GUID_WICPixelFormat64bppRGB";
-	else if (fmt == GUID_WICPixelFormat64bppRGBA) return "GUID_WICPixelFormat64bppRGBA";
-	else if (fmt == GUID_WICPixelFormat64bppBGRA) return "GUID_WICPixelFormat64bppBGRA";
-	else if (fmt == GUID_WICPixelFormat64bppPRGBA) return "GUID_WICPixelFormat64bppPRGBA";
-	else if (fmt == GUID_WICPixelFormat64bppPBGRA) return "GUID_WICPixelFormat64bppPBGRA";
-	else if (fmt == GUID_WICPixelFormat16bppGrayFixedPoint) return "GUID_WICPixelFormat16bppGrayFixedPoint";
-	else if (fmt == GUID_WICPixelFormat32bppBGR101010) return "GUID_WICPixelFormat32bppBGR101010";
-	else if (fmt == GUID_WICPixelFormat48bppRGBFixedPoint) return "GUID_WICPixelFormat48bppRGBFixedPoint";
-	else if (fmt == GUID_WICPixelFormat48bppBGRFixedPoint) return "GUID_WICPixelFormat48bppBGRFixedPoint";
-	else if (fmt == GUID_WICPixelFormat96bppRGBFixedPoint) return "GUID_WICPixelFormat96bppRGBFixedPoint";
-	else if (fmt == GUID_WICPixelFormat96bppRGBFloat) return "GUID_WICPixelFormat96bppRGBFloat";
-	else if (fmt == GUID_WICPixelFormat128bppRGBAFloat) return "GUID_WICPixelFormat128bppRGBAFloat";
-	else if (fmt == GUID_WICPixelFormat128bppPRGBAFloat) return "GUID_WICPixelFormat128bppPRGBAFloat";
-	else if (fmt == GUID_WICPixelFormat128bppRGBFloat) return "GUID_WICPixelFormat128bppRGBFloat";
-	else if (fmt == GUID_WICPixelFormat32bppCMYK) return "GUID_WICPixelFormat32bppCMYK";
-	else if (fmt == GUID_WICPixelFormat64bppRGBAFixedPoint) return "GUID_WICPixelFormat64bppRGBAFixedPoint";
-	else if (fmt == GUID_WICPixelFormat64bppBGRAFixedPoint) return "GUID_WICPixelFormat64bppBGRAFixedPoint";
-	else if (fmt == GUID_WICPixelFormat64bppRGBFixedPoint) return "GUID_WICPixelFormat64bppRGBFixedPoint";
-	else if (fmt == GUID_WICPixelFormat128bppRGBAFixedPoint) return "GUID_WICPixelFormat128bppRGBAFixedPoint";
-	else if (fmt == GUID_WICPixelFormat128bppRGBFixedPoint) return "GUID_WICPixelFormat128bppRGBFixedPoint";
-	else if (fmt == GUID_WICPixelFormat64bppRGBAHalf) return "GUID_WICPixelFormat64bppRGBAHalf";
-	else if (fmt == GUID_WICPixelFormat64bppRGBHalf) return "GUID_WICPixelFormat64bppRGBHalf";
-	else if (fmt == GUID_WICPixelFormat48bppRGBHalf) return "GUID_WICPixelFormat48bppRGBHalf";
-	else if (fmt == GUID_WICPixelFormat32bppRGBE) return "GUID_WICPixelFormat32bppRGBE";
-	else if (fmt == GUID_WICPixelFormat16bppGrayHalf) return "GUID_WICPixelFormat16bppGrayHalf";
-	else if (fmt == GUID_WICPixelFormat32bppGrayFixedPoint) return "GUID_WICPixelFormat32bppGrayFixedPoint";
-	else if (fmt == GUID_WICPixelFormat32bppRGBA1010102) return "GUID_WICPixelFormat32bppRGBA1010102";
-	else if (fmt == GUID_WICPixelFormat32bppRGBA1010102XR) return "GUID_WICPixelFormat32bppRGBA1010102XR";
-	else if (fmt == GUID_WICPixelFormat64bppCMYK) return "GUID_WICPixelFormat64bppCMYK";
-	else if (fmt == GUID_WICPixelFormat24bpp3Channels) return "GUID_WICPixelFormat24bpp3Channels";
-	else if (fmt == GUID_WICPixelFormat32bpp4Channels) return "GUID_WICPixelFormat32bpp4Channels";
-	else if (fmt == GUID_WICPixelFormat40bpp5Channels) return "GUID_WICPixelFormat40bpp5Channels";
-	else if (fmt == GUID_WICPixelFormat48bpp6Channels) return "GUID_WICPixelFormat48bpp6Channels";
-	else if (fmt == GUID_WICPixelFormat56bpp7Channels) return "GUID_WICPixelFormat56bpp7Channels";
-	else if (fmt == GUID_WICPixelFormat64bpp8Channels) return "GUID_WICPixelFormat64bpp8Channels";
-	else if (fmt == GUID_WICPixelFormat48bpp3Channels) return "GUID_WICPixelFormat48bpp3Channels";
-	else if (fmt == GUID_WICPixelFormat64bpp4Channels) return "GUID_WICPixelFormat64bpp4Channels";
-	else if (fmt == GUID_WICPixelFormat80bpp5Channels) return "GUID_WICPixelFormat80bpp5Channels";
-	else if (fmt == GUID_WICPixelFormat96bpp6Channels) return "GUID_WICPixelFormat96bpp6Channels";
-	else if (fmt == GUID_WICPixelFormat112bpp7Channels) return "GUID_WICPixelFormat112bpp7Channels";
-	else if (fmt == GUID_WICPixelFormat128bpp8Channels) return "GUID_WICPixelFormat128bpp8Channels";
-	else if (fmt == GUID_WICPixelFormat40bppCMYKAlpha) return "GUID_WICPixelFormat40bppCMYKAlpha";
-	else if (fmt == GUID_WICPixelFormat80bppCMYKAlpha) return "GUID_WICPixelFormat80bppCMYKAlpha";
-	else if (fmt == GUID_WICPixelFormat32bpp3ChannelsAlpha) return "GUID_WICPixelFormat32bpp3ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat40bpp4ChannelsAlpha) return "GUID_WICPixelFormat40bpp4ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat48bpp5ChannelsAlpha) return "GUID_WICPixelFormat48bpp5ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat56bpp6ChannelsAlpha) return "GUID_WICPixelFormat56bpp6ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat64bpp7ChannelsAlpha) return "GUID_WICPixelFormat64bpp7ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat72bpp8ChannelsAlpha) return "GUID_WICPixelFormat72bpp8ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat64bpp3ChannelsAlpha) return "GUID_WICPixelFormat64bpp3ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat80bpp4ChannelsAlpha) return "GUID_WICPixelFormat80bpp4ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat96bpp5ChannelsAlpha) return "GUID_WICPixelFormat96bpp5ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat112bpp6ChannelsAlpha) return "GUID_WICPixelFormat112bpp6ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat128bpp7ChannelsAlpha) return "GUID_WICPixelFormat128bpp7ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat144bpp8ChannelsAlpha) return "GUID_WICPixelFormat144bpp8ChannelsAlpha";
-	else if (fmt == GUID_WICPixelFormat8bppY) return "GUID_WICPixelFormat8bppY";
-	else if (fmt == GUID_WICPixelFormat8bppCb) return "GUID_WICPixelFormat8bppCb";
-	else if (fmt == GUID_WICPixelFormat8bppCr) return "GUID_WICPixelFormat8bppCr";
-	else if (fmt == GUID_WICPixelFormat16bppCbCr) return "GUID_WICPixelFormat16bppCbCr";
-	else if (fmt == GUID_WICPixelFormat16bppYQuantizedDctCoefficients) return "GUID_WICPixelFormat16bppYQuantizedDctCoefficients";
-	else if (fmt == GUID_WICPixelFormat16bppCbQuantizedDctCoefficients) return "GUID_WICPixelFormat16bppCbQuantizedDctCoefficients";
-	else if (fmt == GUID_WICPixelFormat16bppCrQuantizedDctCoefficients) return "GUID_WICPixelFormat16bppCrQuantizedDctCoefficients";
-	else return "Unknown format";
-}
 
 const char* GetDXGIFormatName(DXGI_FORMAT format)
 {
@@ -338,194 +241,47 @@ DX11Texture::~DX11Texture()
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Texture::LoadTextureImage(const string& cFileName, SLoadedTextureBitmap& bitmap)
 {
-	HRESULT hRes;
-
-	IWICImagingFactory* pImgFactory;
-	hRes = CoCreateInstance(CLSID_WICImagingFactory, 0, CLSCTX_INPROC_SERVER, IID_IWICImagingFactory, (void**)&pImgFactory);
-	if (Failure(hRes))
-	{
-		return CLog::Log(S_ERROR, "Failed create WIC Imaging Factory!");
-	}
-
-	IWICBitmapDecoder* pImgDecoder;
-	wchar_t* cWFilename = new wchar_t[cFileName.length() + 1];
-	size_t nNumCharsConv;
-	mbstowcs_s(&nNumCharsConv, cWFilename, cFileName.length() + 1, cFileName.c_str(), _TRUNCATE);
-	hRes = pImgFactory->CreateDecoderFromFilename(cWFilename, 0, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &pImgDecoder);
-	if (Failure(hRes))
-	{
-		_com_error err(hRes);
-		CLog::Log(S_DEBUG, "Failed create WIC Image decoder for %s: %s!", cFileName.c_str(), err.ErrorMessage());
-		return S_ERROR;
-	}
-
-
-	//
-	// TODO:
-	//	for animated texture, loop through all frames and call pImgFactory->GetFrameCount() first.
-	//
-
-
-
-	// Decode frame
-	IWICBitmapFrameDecode* pBmpFrameDecode;
-	pImgDecoder->GetFrame(0, &pBmpFrameDecode);
-
-
-	// Get pixel format from loaded bitmap frame
-	WICPixelFormatGUID srcFmtWIC;
-	if (Failure(pBmpFrameDecode->GetPixelFormat(&srcFmtWIC)))
-	{
-		return CLog::Log(S_ERROR, "Failed get pixel format of desired frame!");
-	}
-
-	WICPixelFormatGUID dstFmtWIC;
-	DXGI_FORMAT dstFmtDXGI;
+	WICPixelFormatGUID dstFmtWIC = GUID_WICPixelFormatUndefined;
 
 	if (bitmap.format != DXGI_FORMAT_UNKNOWN)
 	{
 		// Desired format was specified in bitmap structure. Try to use this.
-		dstFmtDXGI = bitmap.format;
-		MapWICFormatDXGIFormat(dstFmtWIC, dstFmtDXGI, false);
-		if (dstFmtDXGI == DXGI_FORMAT_UNKNOWN || dstFmtWIC == GUID_WICPixelFormatUndefined)
+		MapWICFormatDXGIFormat(dstFmtWIC, bitmap.format, false);
+		if (bitmap.format == DXGI_FORMAT_UNKNOWN || dstFmtWIC == GUID_WICPixelFormatUndefined)
 		{
 			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Desired format is unsupported (%s) for file %s",
 				GetDXGIFormatName(bitmap.format), cFileName.c_str());
 		}
 	}
-	else
+
+	SLoadedImage image;
+	if (Failure(CImageLoader::Load(cFileName, &image, bitmap.width, bitmap.height, dstFmtWIC)))
+		return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Could not load image %s!", cFileName.c_str());
+
+	bitmap.buffer = image.buffer;
+	bitmap.width = image.width;
+	bitmap.height = image.height;
+	bitmap.bytePerPixel = image.bytePerPixel;
+	bitmap.imageSize = image.imageSize;
+	bitmap.imageStride = image.imageStride;
+
+	// Convert WIC pixel format of loaded image to DXGI format
+	// Some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
+	dstFmtWIC = image.pixelFormat;
+	if (image.pixelFormat == GUID_WICPixelFormat24bppBGR) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
+	else if (image.pixelFormat == GUID_WICPixelFormat8bppIndexed) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
+	else if (image.pixelFormat == GUID_WICPixelFormat32bppPBGRA) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
+
+	// Convert WIC pixel format to DXGI format
+	DXGI_FORMAT dstFmtDXGI;
+	MapWICFormatDXGIFormat(dstFmtWIC, dstFmtDXGI);
+	if (dstFmtDXGI == DXGI_FORMAT_UNKNOWN)
 	{
-		// Some pixel format cannot be directly translated into a DXGI Format. So find a nearest match.	
-		dstFmtWIC = srcFmtWIC;
-		if (srcFmtWIC == GUID_WICPixelFormat24bppBGR) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
-		else if (srcFmtWIC == GUID_WICPixelFormat8bppIndexed) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
-		else if (srcFmtWIC == GUID_WICPixelFormat32bppPBGRA) dstFmtWIC = GUID_WICPixelFormat32bppRGBA;
-
-		// Convert WIC pixel format to DXGI format
-		MapWICFormatDXGIFormat(dstFmtWIC, dstFmtDXGI);
-		if (dstFmtDXGI == DXGI_FORMAT_UNKNOWN)
-		{
-			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Unsupported pixel format (%s) of file '%s'",
-				GetWICPixelFormatName(srcFmtWIC), cFileName.c_str());
-		}
-
-		bitmap.format = dstFmtDXGI;
+		return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Pixel format (%s) of file '%s' not supported for texture!",
+			GetWICPixelFormatName(image.pixelFormat), cFileName.c_str());
 	}
 
-
-	// ----------------------------------------------------------------------------------------------------------------------
-	// Create temporary buffer
-
-	UINT nLoadedWidth, nLoadedHeight;
-	pBmpFrameDecode->GetSize(&nLoadedWidth, &nLoadedHeight);
-
-	if (bitmap.width == 0 || bitmap.height == 0)
-	{
-		bitmap.width = nLoadedWidth;
-		bitmap.height = nLoadedHeight;
-	}
-
-	UINT nBPP = BitsPerPixel(dstFmtWIC, pImgFactory);
-	if (nBPP == 0)
-	{
-		return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Could not retrieve bits per pixel for loaded texture!");
-	}
-
-	bitmap.imageStride = (bitmap.width * nBPP + 7) / 8;
-	bitmap.imageSize = bitmap.imageStride * bitmap.height;
-	bitmap.bytePerPixel = (unsigned int)(nBPP / 8);
-
-	bitmap.buffer = new uint8_t[bitmap.imageSize];
-
-	// ----------------------------------------------------------------------------------------------------------------------
-	// Scale or convert the image to the desired format
-
-	bool needConversion = false;
-	IWICBitmapSource* pConversionSrc = 0;
-	IWICBitmapScaler* pScaler = 0;
-
-	if (nLoadedWidth == bitmap.width && nLoadedHeight == bitmap.height && memcmp(&dstFmtWIC, &srcFmtWIC, sizeof(GUID)) == 0)
-	{
-		// We can directly copy pixels without modification 
-		hRes = pBmpFrameDecode->CopyPixels(0, static_cast<UINT>(bitmap.imageStride), static_cast<UINT>(bitmap.imageSize), bitmap.buffer);
-		if (Failure(hRes))
-			return CLog::Log(S_ERROR, "Failed to buffer texture!");
-
-		needConversion = false;
-	}
-	else if (nLoadedWidth != bitmap.width || nLoadedHeight != bitmap.height)
-	{
-		// Create scaler
-		if (Failure(pImgFactory->CreateBitmapScaler(&pScaler)))
-		{
-			CLog::Log(S_DEBUG, "Failed pImgFactory->CreateBitmapScalar()");
-			return S_ERROR;
-		}
-
-		if (Failure(pScaler->Initialize(pBmpFrameDecode, bitmap.width, bitmap.height,
-			WICBitmapInterpolationModeFant))) // Maybe change this someday??
-		{
-			CLog::Log(S_DEBUG, "Failed pScaler->Initialize()");
-			return S_ERROR;
-		}
-
-		WICPixelFormatGUID pfScaler;
-		if (Failure(pScaler->GetPixelFormat(&pfScaler)))
-		{
-			CLog::Log(S_DEBUG, "Failed pScaler->GetPixelFormat()");
-			return S_ERROR;
-		}
-
-		if (memcmp(&dstFmtWIC, &pfScaler, sizeof(GUID)) == 0)
-		{
-			// Scale directly
-			hRes = pScaler->CopyPixels(0, static_cast<UINT>(bitmap.imageStride), static_cast<UINT>(bitmap.imageSize), bitmap.buffer);
-			if (Failure(hRes))
-				return CLog::Log(S_ERROR, "Failed to buffer scaled texture while loading %s!", cFileName.c_str());
-		}
-		else
-		{
-			// Convert with the scaler output as source bitmap
-			needConversion = true;
-			pConversionSrc = pScaler;
-		}
-	}
-	else
-	{
-		needConversion = true;
-		pConversionSrc = pBmpFrameDecode;
-	}
-	
-	
-	if (needConversion)
-	{
-		ScopedTextureLoadingObject<IWICFormatConverter> formatConverter;
-		if (Failure(pImgFactory->CreateFormatConverter(&formatConverter)))
-			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Failed to create pixel format convert!");
-
-		hRes = formatConverter->Initialize(pConversionSrc, dstFmtWIC, WICBitmapDitherTypeErrorDiffusion, 0, 0, WICBitmapPaletteTypeCustom);
-		if (Failure(hRes))
-			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Failed to initialize format converter (%s -> %s) for file '%s'!",
-				GetWICPixelFormatName(srcFmtWIC), GetWICPixelFormatName(dstFmtWIC), cFileName.c_str());
-
-		BOOL bCanConvert;
-		hRes = formatConverter->CanConvert(srcFmtWIC, dstFmtWIC, &bCanConvert);
-		if (Failure(hRes))
-			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Could not determine if format %s is convertable to %s",
-				GetWICPixelFormatName(srcFmtWIC), GetWICPixelFormatName(dstFmtWIC));
-
-		if (!bCanConvert)
-			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Format %s cannot be converted to %s!",
-				GetWICPixelFormatName(srcFmtWIC), GetWICPixelFormatName(dstFmtWIC));
-
-		hRes = formatConverter->CopyPixels(0, static_cast<UINT>(bitmap.imageStride), static_cast<UINT>(bitmap.imageSize), bitmap.buffer);
-		if (Failure(hRes))
-			return CLog::Log(S_ERROR, "DX11Texture::LoadTextureImage(): Failed to convert and copy pixels for file %s!", cFileName.c_str());
-	}
-
-	SP_SAFE_RELEASE(pScaler);
-	SP_SAFE_RELEASE(pImgDecoder);
-	SP_SAFE_RELEASE(pImgFactory);
+	bitmap.format = dstFmtDXGI;
 
 	return S_SUCCESS;
 }
@@ -665,6 +421,8 @@ S_API SResult DX11Texture::LoadCubemapFromFile(const string& baseName, unsigned 
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	textureDesc.MipLevels = (bMipAutoGenSupported) ? mipLevels : 1;
 
+	m_PixelSzTC = 1.0f / Vec2f((float)textureDesc.Width, (float)textureDesc.Height);
+
 	D3D11_SUBRESOURCE_DATA initData[6];
 
 	for (unsigned int i = 0; i < 6; ++i)
@@ -788,34 +546,6 @@ assert(hr == S_OK);
 }
 
 // -----------------------------------------------------------------------------------------------
-S_API size_t DX11Texture::BitsPerPixel(REFGUID targetGuid, IWICImagingFactory* pWIC)
-{
-	if (!pWIC)
-		return 0;
-
-	ScopedTextureLoadingObject<IWICComponentInfo> comInfo;
-	if (Failure(pWIC->CreateComponentInfo(targetGuid, &comInfo)))
-		return 0;
-
-	// make sure we got the correct component type
-	WICComponentType comType;
-	if (Failure(comInfo->GetComponentType(&comType)))
-		return 0;
-	if (comType != WICPixelFormat)
-		return 0;
-
-	ScopedTextureLoadingObject<IWICPixelFormatInfo> pxlFmtInfo;
-	if (Failure(comInfo->QueryInterface(__uuidof(IWICPixelFormatInfo), reinterpret_cast<void**>(&pxlFmtInfo))))
-		return 0;
-
-	UINT bpp;
-	if (Failure(pxlFmtInfo->GetBitsPerPixel(&bpp)))
-		return 0;
-
-	return bpp;
-}
-
-// -----------------------------------------------------------------------------------------------
 S_API unsigned int DX11Texture::GetSubresourceIndex(unsigned int mipLevel, unsigned int arraySlice /*= 0*/)
 {
 	// DX stores a contiguous array of mipmap subresources.
@@ -885,6 +615,8 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w,
 	textureDesc.Height = bitmap.height;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0; // No MS for now!
+
+	m_PixelSzTC = 1.0f / Vec2f((float)textureDesc.Width, (float)textureDesc.Height);
 
 	if (!m_bDynamic)
 	{
@@ -1288,6 +1020,8 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	m_DXTextureDesc.SampleDesc.Count = 1;
 	m_DXTextureDesc.SampleDesc.Quality = 0; // No MS for now!	
 
+	m_PixelSzTC = 1.0f / Vec2f((float)m_DXTextureDesc.Width, (float)m_DXTextureDesc.Height);
+
 	MapTextureType(m_DXTextureDesc.Format, type, false);
 
 	bool bMipAutoGenSupported = CheckMipMapAutogenSupported(m_DXTextureDesc.Format);
@@ -1495,6 +1229,14 @@ S_API SResult DX11Texture::D3D11_InitializeFromExistingResource(ID3D11Texture2D*
 	m_pDXTexture = pResource;
 	m_pDXTexture->AddRef();
 	m_pDXTexture->GetDesc(&m_DXTextureDesc);
+
+	if (m_DXTextureDesc.Width == 0 && m_DXTextureDesc.Height == 0)
+	{
+		return CLog::Log(S_ERROR, "DX11Texture::D3D11_InitializeFromExistingResource(): Invalid dimensions (%d, %d)",
+			m_DXTextureDesc.Width, m_DXTextureDesc.Height);
+	}
+
+	m_PixelSzTC = 1.0f / Vec2f((float)m_DXTextureDesc.Width, (float)m_DXTextureDesc.Height);
 
 	MapTextureType(m_DXTextureDesc.Format, m_Type, true);
 	m_bDynamic = false;
@@ -1798,27 +1540,64 @@ S_API SResult DX11Texture::Unlock(SRectangle* pUpdateRect /*= 0*/, unsigned int 
 
 		if (needsUpdate && m_pDXTexture)
 		{
-			// Upload slice to live texture
-			unsigned int dx = 0, dy = 0;
-			D3D11_BOX updateBox, *pUpdateBox = 0;
+			// Queue slice update
+			// This will be queued until there are no more slices locked, so we can copy the subresources
+			m_DirtyArraySlices.emplace_back();
+			SLockedTextureArraySlice& slice = m_DirtyArraySlices.back();
+			slice.iSlice = iArraySlice;
+			slice.iSubresource = iSubresource;
 			if (pUpdateRect)
 			{
-				updateBox.right = min(pUpdateRect->x + pUpdateRect->width, m_DXTextureDesc.Width - 1);
-				updateBox.bottom = min(pUpdateRect->y + pUpdateRect->height, m_DXTextureDesc.Height - 1);
-				updateBox.left = min(pUpdateRect->x, updateBox.right - 1);
-				updateBox.top = min(pUpdateRect->y, updateBox.bottom - 1);
-				updateBox.front = 0;
-				updateBox.back = 1;
-
-				pUpdateBox = &updateBox;
-				dx = updateBox.left;
-				dy = updateBox.top;
+				slice.updateBox.right = min(pUpdateRect->x + pUpdateRect->width, m_DXTextureDesc.Width - 1);
+				slice.updateBox.bottom = min(pUpdateRect->y + pUpdateRect->height, m_DXTextureDesc.Height - 1);
+				slice.updateBox.left = min(pUpdateRect->x, slice.updateBox.right - 1);
+				slice.updateBox.top = min(pUpdateRect->y, slice.updateBox.bottom - 1);
+				slice.updateBox.front = 0;
+				slice.updateBox.back = 1;
+				slice.useUpdateBox = true;
 			}
-
-			pDXDevCon->CopySubresourceRegion(m_pDXTexture, iSubresource, dx, dy, 0, m_pDXStagingTexture, iSubresource, pUpdateBox);
+			else
+			{
+				slice.useUpdateBox = false;
+			}
 		}
 
 		m_bSliceLocked[iArraySlice] = false;
+
+		// If no more slices locked, update all queued slice-regions in live texture
+		bool anySlicesLocked = false;
+		for (unsigned int i = 0; i < m_DXTextureDesc.ArraySize; ++i)
+		{
+			if (m_bSliceLocked[i])
+			{
+				anySlicesLocked = true;
+				break;
+			}
+		}
+
+		if (!anySlicesLocked && !m_DirtyArraySlices.empty())
+		{
+			unsigned int dst[2];
+			D3D11_BOX* pUpdateBox;
+			for (auto& slice : m_DirtyArraySlices)
+			{
+				if (slice.useUpdateBox)
+				{
+					pUpdateBox = &slice.updateBox;
+					dst[0] = slice.updateBox.left;
+					dst[1] = slice.updateBox.top;
+				}
+				else
+				{
+					pUpdateBox = 0;
+					dst[0] = dst[1] = 0;
+				}
+
+				pDXDevCon->CopySubresourceRegion(m_pDXTexture, slice.iSubresource, dst[0], dst[1], 0, m_pDXStagingTexture, slice.iSubresource, pUpdateBox);
+			}
+
+			m_DirtyArraySlices.clear();
+		}
 	}
 
 	return S_SUCCESS;
@@ -1834,29 +1613,29 @@ S_API SResult DX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pData) co
 		return S_INVALIDPARAM;
 
 	// casting to int rounds towards 0
-	Vec2f roundedTC;
+	/*Vec2f roundedTC;
 	Vec2f remainder(
 		modff(min(max(texcoords.x, 0), 1.0f) * (float)m_DXTextureDesc.Width, &roundedTC.x),
 		modff(min(max(texcoords.y, 0), 1.0f) * (float)m_DXTextureDesc.Height, &roundedTC.y)
-	);
+	);*/
 
-	Vec2f pixelSizeInTexcoords = 1.0f / Vec2f((float)m_DXTextureDesc.Width, (float)m_DXTextureDesc.Height);
-	roundedTC *= pixelSizeInTexcoords;
+	//roundedTC *= pixelSizeInTexcoords;
 
 	switch (m_Type)
 	{
 	case eTEXTURE_D32_FLOAT:
 	case eTEXTURE_R32_FLOAT:
 		{
-			static float samples[4];
-			SampleStaged(roundedTC + Vec2f(-0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[0]);
-			SampleStaged(roundedTC + Vec2f(0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[1]);
-			SampleStaged(roundedTC + Vec2f(-0.5f, 0.5f) * pixelSizeInTexcoords, (void*)&samples[2]);
-			SampleStaged(roundedTC + Vec2f(0.5f, 0.5f) * pixelSizeInTexcoords, (void*)&samples[3]);
-			*(float*)pData = lerp(
+			float samples[4];
+			SampleStaged(texcoords + Vec2f(-0.5f, -0.5f) * m_PixelSzTC, (void*)&samples[0]);
+			SampleStaged(texcoords + Vec2f(0.5f, -0.5f) * m_PixelSzTC, (void*)&samples[1]);
+			SampleStaged(texcoords + Vec2f(-0.5f, 0.5f) * m_PixelSzTC, (void*)&samples[2]);
+			SampleStaged(texcoords + Vec2f(0.5f, 0.5f) * m_PixelSzTC, (void*)&samples[3]);
+			*(float*)pData = 0.5f * (samples[0] + samples[1] + samples[2] + samples[3]);
+			/*(float*)pData = lerp(
 				lerp(samples[0], samples[1], remainder.x),
 				lerp(samples[2], samples[3], remainder.x),
-				remainder.y);
+				remainder.y);*/
 			break;
 		}
 	//case eTEXTURE_R8G8B8A8_UNORM:
@@ -1886,22 +1665,20 @@ S_API SResult DX11Texture::SampleStaged(const Vec2f& texcoords, void* pData) con
 		return S_INVALIDPARAM;
 
 	// convert texture coordinates to pixel coordinates
-	static unsigned int pixelCoords[2];
-	pixelCoords[0] = min((unsigned int)(max(texcoords.x, 0) * (float)m_DXTextureDesc.Width), m_DXTextureDesc.Width - 1);
-	pixelCoords[1] = min((unsigned int)(max(texcoords.y, 0) * (float)m_DXTextureDesc.Height), m_DXTextureDesc.Height - 1);
+	unsigned int pixelCoords[2] = { 0, 0 };
+
+	/*pixelCoords[0] = min((unsigned int)(max(texcoords.x, 0) * (float)m_DXTextureDesc.Width), m_DXTextureDesc.Width - 1);
+	pixelCoords[1] = min((unsigned int)(max(texcoords.y, 0) * (float)m_DXTextureDesc.Height), m_DXTextureDesc.Height - 1);*/
 
 	// sample data
-	static unsigned int pixelIdx;
-	pixelIdx = pixelCoords[1] * m_DXTextureDesc.Width + pixelCoords[0];
-
 	switch (m_Type)
 	{
 	case eTEXTURE_R8G8B8A8_UNORM:
-		*(unsigned int*)pData = ((unsigned int*)m_pStagedData)[pixelIdx];
+		*(unsigned int*)pData = ((unsigned int*)m_pStagedData)[pixelCoords[1] * m_DXTextureDesc.Width + pixelCoords[0]];
 		break;
 	case eTEXTURE_R32_FLOAT:
 	case eTEXTURE_D32_FLOAT:
-		*(float*)pData = ((float*)m_pStagedData)[pixelIdx];
+		*(float*)pData = ((float*)m_pStagedData)[pixelCoords[1] * m_DXTextureDesc.Width + pixelCoords[0]];
 		break;
 	}
 

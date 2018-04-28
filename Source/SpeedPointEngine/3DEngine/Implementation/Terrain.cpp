@@ -743,8 +743,15 @@ S_API float Terrain::SampleHeight(const Vec2f& texcoords, bool bilinear /* = fal
 	float val;
 	if (!bilinear && Failure(m_pVtxHeightMap->SampleStaged(texcoords, &val)))
 		return FLT_MIN;
-	else if (bilinear && Failure(m_pVtxHeightMap->SampleStagedBilinear(texcoords, &val)))
-		return FLT_MIN;
+	else if (bilinear)
+	{
+		// Do it manually for performance reasons
+		const float* heightmap = (float*)m_pVtxHeightMap->GetStagedData();
+		unsigned int heightmapSz[2];
+		m_pVtxHeightMap->GetSize(&heightmapSz[0], &heightmapSz[1]);
+
+		val = heightmap[(unsigned int)(texcoords.y * heightmapSz[1]) * heightmapSz[0] + (unsigned int)(texcoords.x * heightmapSz[0])];
+	}
 
 	return val * m_HeightScale;
 }
@@ -922,9 +929,14 @@ S_API void Terrain::UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc)
 		pTerrainRenderDesc->constants.vtxHeightMapSz = vtxHeightmapSz[0]; // assuming its squared
 
 		pTerrainRenderDesc->constants.segmentSize = m_fSegSz;
-		pTerrainRenderDesc->constants.detailmapSz[0] = m_Params.detailmapSz[0];
-		pTerrainRenderDesc->constants.detailmapSz[1] = m_Params.detailmapSz[1];
 		pTerrainRenderDesc->constants.numLayers = m_nLayers;
+
+		for (unsigned int i = 0; i < min(m_nLayers, MAX_TERRAIN_LAYERS_IN_SHADER); ++i)
+		{
+			// uniform
+			pTerrainRenderDesc->constants.layerParams[i].x = m_pLayerDescs[i].detailMapScale;
+		}
+		
 		m_bRequireCBUpdate = false;
 	}
 
