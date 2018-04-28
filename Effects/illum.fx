@@ -429,8 +429,9 @@ struct VS_INPUT_DEFERRED_SHADING
 
 struct VS_OUTPUT_DEFERRED_SHADING
 {
-	float4 Position : SV_Position;
+	float4 Position : SV_Position;	
 	float2 TexCoord : TEXCOORD0;
+	float3 WorldPos : TEXCOORD1;
 };
 
 struct PS_OUTPUT_DEFERRED_SHADING
@@ -454,7 +455,9 @@ VS_OUTPUT_DEFERRED_SHADING VS_DeferredShading(VS_INPUT_DEFERRED_SHADING IN)
 {
 	VS_OUTPUT_DEFERRED_SHADING OUT;
 	
-	OUT.Position = mul(mtxProj, mul(mtxView, mul(mtxWorld, float4(IN.Position, 1.0f))));
+	float4 wPos = mul(mtxWorld, float4(IN.Position, 1.0f));
+	OUT.WorldPos = wPos.xyz;
+	OUT.Position = mul(mtxProj, mul(mtxView, wPos));
 	OUT.TexCoord = IN.TexCoord;
 
 	return OUT;
@@ -482,16 +485,14 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShading(VS_OUTPUT_DEFERRED_SHADING IN)
 
 	float3 Lout = Lemissive + albedo * Lglobal + kd * Ldiff + ks * Lspec;
 
-	/*
 	// Fog
 	float viewZ = -dot(mtxView[2], float4(IN.WorldPos, 1.0f));
 	float fogAmount = saturate((viewZ - fogStart) / (fogEnd - fogStart));
 	fogAmount *= fogAmount;
 	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
-	*/
 
 	// TODO: Lout may not be in [0,1] range (HDR) -> Apply tone mapping here
-	OUT.Color = float4(Lout, 1.0f);
+	OUT.Color = float4(lerp(Lout, fogColor, fogAmount), 1.0f);
 
 	return OUT;
 }
@@ -537,7 +538,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
 	float4 Position : SV_Position;
-	float3 WorldPos : TEXCOORD0;
+	float4 WorldPosAndDepth : TEXCOORD0; // xyz: WorldPos, w: View-Space Z
 	float2 TexCoord : TEXCOORD1;
 };
 
@@ -585,8 +586,9 @@ VS_OUTPUT VS_DeferredShadingTerrain(VS_INPUT IN)
 	float4 wPos = float4(IN.Position, 1.0f);
 	wPos.y = SampleVertexHeightmapBilinear(IN.TexCoord) * terrainMaxHeight;
 
-	OUT.WorldPos = wPos.xyz;
-	OUT.Position = mul(mtxProj, mul(mtxView, wPos));
+	float4 viewPos = mul(mtxView, wPos);
+	OUT.WorldPosAndDepth = float4(wPos.xyz, viewPos.z);
+	OUT.Position = mul(mtxProj, viewPos);
 	OUT.TexCoord = IN.TexCoord;
 
 	return OUT;
@@ -596,7 +598,7 @@ VS_OUTPUT VS_DeferredShadingTerrain(VS_INPUT IN)
 
 float terrain_fade_factor(float radius)
 {
-	float factor = -0.05f * (radius - terrainDMFadeRadius) + 1.0f;
+	float factor = -0.01f * (radius - terrainDMFadeRadius) + 1.0f;
 	return saturate(factor);
 }
 
@@ -618,7 +620,7 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 	float3 terrainTC;
 	terrainTC.xy = IN.TexCoord;
 	float3 detailmapTC;
-	detailmapTC.xy = IN.WorldPos.xz / detailmapSz;
+	detailmapTC.xy = IN.WorldPosAndDepth.xz / detailmapSz;
 	for (uint iLayer = 0; iLayer < 3; ++iLayer) // TODO: Dynamic layer count
 	{
 		terrainTC.z = (float)iLayer;
@@ -631,7 +633,9 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 
 	float3 colorMapAlbedo = terrainColorMap.Sample(LinearSampler, terrainTC).rgb;
 
-	float dirln = length(eyePos.xyz - IN.WorldPos.xyz);
+	// Calculate detail map visibility factor
+	// Farther away from the camera, we will show less detailmap
+	float dirln = abs(IN.WorldPosAndDepth.w);
 	float terrainFadeFactor = saturate(terrain_fade_factor(dirln));
 
 	float3 albedo = lerp(colorMapAlbedo, saturate(BlendOverlay(detailMapAlbedo, colorMapAlbedo)), terrainFadeFactor);
@@ -647,13 +651,13 @@ PS_OUTPUT_DEFERRED_SHADING PS_DeferredShadingTerrain(VS_OUTPUT IN)
 	float3 Lout = Lemissive + albedo * Lglobal + albedo * Ldiff + ks * Lspec;
 
 	// Fog
-//	float viewZ = -dot(mtxView[2], float4(IN.WorldPos, 1.0f));
-//	float fogAmount = saturate((viewZ - fogStart) / (fogEnd - fogStart));
-//	fogAmount *= fogAmount;
-//	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
+	float viewZ = -dot(mtxView[2], float4(IN.WorldPosAndDepth.xyz, 1.0f));
+	float fogAmount = saturate((viewZ - fogStart) / (fogEnd - fogStart));
+	fogAmount *= fogAmount;
+	float3 fogColor = float3(0.6016f, 0.746f, 0.7539f); // blue from skybox shader
 
 	// TODO: Lout may not be in [0,1] range (HDR) -> Apply tone mapping here
-	OUT.Color = float4(Lout, 1.0f);
+	OUT.Color = float4(lerp(Lout, fogColor, fogAmount), 1.0f);
 
 	return OUT;
 }

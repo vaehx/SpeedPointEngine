@@ -30,7 +30,7 @@ namespace SpeedPoint
 
 		Vec2<F>& operator += (const Vec2<F>& v) { x += v.x; y += v.y; return *this; }		
 		Vec2<F>& operator -= (const Vec2<F>& v) { x -= v.x; y -= v.y; return *this; }
-		Vec2<F>& operator *= (const Vec2<F>& v) { x += v.x; y *= v.y; return *this; }
+		Vec2<F>& operator *= (const Vec2<F>& v) { x *= v.x; y *= v.y; return *this; }
 		Vec2<F>& operator /= (const Vec2<F>& v) { x /= v.x; y /= v.y; return *this; }
 
 		Vec2<F>& operator += (float k) { x += k; y += k; return *this; }

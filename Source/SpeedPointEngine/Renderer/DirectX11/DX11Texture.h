@@ -93,8 +93,7 @@ private:
 	bool m_bIsCubemap;
 	bool m_bArray;
 	bool m_bLocked;
-	void* m_pLockedData;
-	unsigned int m_nLockedBytes;
+	bool* m_bSliceLocked; // only set if an array
 
 	void* m_pStagedData;
 
@@ -115,7 +114,8 @@ public:
 
 	// Initialization
 public:
-	virtual SResult LoadFromFile(const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0);
+	virtual SResult LoadFromFile(const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0,
+		ETextureType targetType = eTEXTURE_UNKNOWN, bool staged = false, bool dynamic = false);
 	virtual SResult LoadCubemapFromFile(const string& basePath, unsigned int singleW = 0, unsigned int singleH = 0);
 	virtual SResult CreateEmpty(unsigned int w, unsigned int h, unsigned int mipLevels, ETextureType type, SColor clearcolor);
 	
@@ -137,6 +137,7 @@ public:
 	virtual ETextureType GetType() const;
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH);
 	virtual unsigned int GetArraySize() const;
+	virtual Vec2f GetPixelSizeTC() const;
 
 	virtual bool IsInitialized() const;
 	virtual bool IsDynamic() const { return m_bDynamic; }

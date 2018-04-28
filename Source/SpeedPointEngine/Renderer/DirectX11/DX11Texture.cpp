@@ -283,7 +283,9 @@ void MapWICFormatDXGIFormat(WICPixelFormatGUID& fmt1, DXGI_FORMAT& fmt2, bool fm
 // fmt1Tofmt2 - if true, fmt1 is converted to fmt2, otherwise fmt2 is converted to fmt1
 S_API static void MapTextureType(DXGI_FORMAT& fmt1, ETextureType& fmt2, bool fmt1Tofmt2)
 {
+	TEXTURE_FORMAT_MAPPING(DXGI_FORMAT_UNKNOWN, eTEXTURE_UNKNOWN);
 	TEXTURE_FORMAT_MAPPING(DXGI_FORMAT_R32_FLOAT, eTEXTURE_R32_FLOAT);
+	TEXTURE_FORMAT_MAPPING(DXGI_FORMAT_R16_FLOAT, eTEXTURE_R16_FLOAT);
 	TEXTURE_FORMAT_MAPPING(DXGI_FORMAT_R32_TYPELESS, eTEXTURE_R32_FLOAT);
 	TEXTURE_FORMAT_MAPPING(DXGI_FORMAT_D32_FLOAT, eTEXTURE_D32_FLOAT);
 	TEXTURE_FORMAT_MAPPING(DXGI_FORMAT_R16G16B16A16_FLOAT, eTEXTURE_R16G16B16A16_FLOAT);
@@ -292,12 +294,12 @@ S_API static void MapTextureType(DXGI_FORMAT& fmt1, ETextureType& fmt2, bool fmt
 
 	if (fmt1Tofmt2)
 	{
-		CLog::Log(S_WARNING, "Could not map dxgi format %d to SpeedPoint texture type", (int)fmt1);
+		CLog::Log(S_WARNING, "Could not map dxgi format %d to SpeedPoint texture type! Defaulting to RGBA8", (int)fmt1);
 		fmt2 = eTEXTURE_R8G8B8A8_UNORM;
 	}
 	else
 	{
-		CLog::Log(S_WARNING, "Could not map texture type %s to DXGI format", GetTextureTypeName(fmt2));
+		CLog::Log(S_WARNING, "Could not map texture type %s to DXGI format! Defaulting to RGBA8", GetTextureTypeName(fmt2));
 		fmt1 = DXGI_FORMAT_R8G8B8A8_UNORM;
 	}
 }
@@ -312,11 +314,10 @@ m_bDynamic(false),
 m_pDXTexture(0),
 m_pDXStagingTexture(0),
 m_pDXSRV(nullptr),
-m_pLockedData(nullptr),
-m_nLockedBytes(0),
 m_pStagedData(0),
 m_bStaged(false),
 m_bLocked(false),
+m_bSliceLocked(false),
 m_bIsCubemap(false),
 m_bArray(false)
 {
@@ -835,7 +836,8 @@ S_API unsigned int DX11Texture::GetSubresourceIndex(unsigned int mipLevel, unsig
 
 // -----------------------------------------------------------------------------------------------
 // remember that the w and h parameters will specify the output texture size to which the image will be scaled to
-S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w /*=0*/, unsigned int h /*=0*/, unsigned int mipLevels /*=0*/)
+S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w, unsigned int h, unsigned int mipLevels,
+	ETextureType targetType, bool staged, bool dynamic)
 {
 	Clear();
 
@@ -846,11 +848,18 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 	HRESULT hRes;
 
 	// ----------------------------------------------------------------------------------------------------------------------
+
+	m_bStaged = staged;
+	m_bDynamic = dynamic;
+
+	// ----------------------------------------------------------------------------------------------------------------------
 	
 	SLoadedTextureBitmap bitmap;
 	memset(&bitmap, 0, sizeof(bitmap));
 	bitmap.width = w;
 	bitmap.height = h;
+
+	MapTextureType(bitmap.format, targetType, false); // targetType -> dxgi format
 
 	res = LoadTextureImage(cFileName, bitmap);
 	if (Failure(res))
@@ -960,7 +969,8 @@ S_API SResult DX11Texture::LoadFromFile(const string& cFileName, unsigned int w 
 		memcpy(m_pStagedData, bitmap.buffer, bitmap.imageSize);
 	}	
 
-	CLog::Log(S_DEBUG, "Loaded texture %s", cFileName.c_str());
+	CLog::Log(S_DEBUG, "Loaded texture %s (type: %s, stag: %s, dyn: %s)", cFileName.c_str(),
+		GetTextureTypeName(m_Type), m_bStaged ? "true" : "false", m_bDynamic ? "true" : "false");
 
 	return S_SUCCESS;
 }
@@ -1104,6 +1114,20 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 	if (count >= 100)
 		CLog::Log(S_WARN, "DX11Texture::ResizeArray(): New count (=%d) is extraordinarily big!", count);
 
+	// Make sure there is no layer locked in the first place
+	for (unsigned int i = 0; i < m_DXTextureDesc.ArraySize; ++i)
+	{
+		if (m_bSliceLocked[i])
+			return CLog::Log(S_ERROR, "DX11Texture::ResizeArray(): At least one slice (%d) is still locked!", i);
+	}
+
+	delete[] m_bSliceLocked;
+	m_bSliceLocked = new bool[count];
+
+	// Lock all layers
+	for (unsigned int i = 0; i < count; ++i)
+		m_bSliceLocked[i] = true;
+
 	// Copy old data into new initial subresource data
 	ID3D11Device* pD3DDevice = m_pDXRenderer->GetD3D11Device();
 	ID3D11DeviceContext* pD3DDeviceContext = m_pDXRenderer->GetD3D11DeviceContext();
@@ -1175,6 +1199,10 @@ S_API SResult DX11Texture::ResizeArray(unsigned int count)
 
 		return CLog::Log(S_ERROR, "Failed ResizeArray(count=%d): Failed create new texture array (%s)", m_Specification.c_str());
 	}
+
+	// Unlock all layers
+	for (unsigned int i = 0; i < count; ++i)
+		m_bSliceLocked[i] = false;
 
 	// Create new staging texture
 	sr = CreateArrayStagingTexture(data);
@@ -1426,6 +1454,14 @@ S_API SResult DX11Texture::CreateEmptyIntrnl(unsigned int arraySize, unsigned in
 	delete[] initData;
 	initData = 0;
 
+
+	if (m_DXTextureDesc.ArraySize > 1)
+	{
+		m_bSliceLocked = new bool[m_DXTextureDesc.ArraySize];
+		for (unsigned int i = 0; i < m_DXTextureDesc.ArraySize; ++i)
+			m_bSliceLocked[i] = false;
+	}
+
 	return S_SUCCESS;
 }
 
@@ -1625,6 +1661,12 @@ S_API unsigned int DX11Texture::GetArraySize() const
 }
 
 // -----------------------------------------------------------------------------------------------
+S_API Vec2f DX11Texture::GetPixelSizeTC() const
+{
+	return Vec2f(1.0f / (float)m_DXTextureDesc.Width, 1.0f / (float)m_DXTextureDesc.Height);
+}
+
+// -----------------------------------------------------------------------------------------------
 S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned int* pnRowPitch /*= 0*/, unsigned int iArraySlice /*= 0*/)
 {
 	HRESULT hr;
@@ -1634,9 +1676,6 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 
 	if (!m_bDynamic)
 		return CLog::Log(S_ERROR, "Tried DX11Texture::Lock on non-dynamic texture (%s)", m_Specification.c_str());
-
-	if (m_bLocked)
-		return CLog::Log(S_ERROR, "Cannot lock DX11Texture (%s): Already locked!", m_Specification.c_str());
 
 	if (!IS_VALID_PTR(pPixels) || !IS_VALID_PTR(pnPixels))
 		return S_INVALIDPARAM;
@@ -1655,9 +1694,11 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 		if (!IS_VALID_PTR(m_pStagedData))
 			return CLog::Log(S_ERROR, "Failed lock staged texture (%s): Staged data invalid (0x%p)!", m_Specification.c_str(), m_pStagedData);
 
+		if (m_bLocked)
+			return CLog::Log(S_ERROR, "Cannot lock DX11Texture (%s): Already locked!", m_Specification.c_str());
+
 		m_bLocked = true;
 		*pPixels = m_pStagedData;
-		m_pLockedData = 0;
 
 		if (IS_VALID_PTR(pnRowPitch))
 			*pnRowPitch = m_DXTextureDesc.Width * bytePerLockedPixel;
@@ -1666,6 +1707,9 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 	{
 		if (!m_pDXStagingTexture)
 			return CLog::Log(S_ERROR, "Failed lock dynamic array texture: Staging texture not initialized (%s)", m_Specification.c_str());
+
+		if (m_bSliceLocked[iArraySlice])
+			return CLog::Log(S_ERROR, "Failed lock array texture slice %d (%s): Already locked!", iArraySlice, m_Specification.c_str());
 
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
 		ZeroMemory(&mappedResource, sizeof(mappedResource));
@@ -1676,9 +1720,8 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 		if (FAILED(hr))
 			return CLog::Log(S_ERROR, "DX11Texture::Lock(): Failed map array staging texture (%s)", m_Specification.c_str());
 
-		m_bLocked = true;
+		m_bSliceLocked[iArraySlice] = true;
 		*pPixels = mappedResource.pData;
-		m_pLockedData = 0;
 
 		if (pnRowPitch)
 			*pnRowPitch = mappedResource.RowPitch;
@@ -1689,7 +1732,6 @@ S_API SResult DX11Texture::Lock(void **pPixels, unsigned int* pnPixels, unsigned
 	}
 
 	*pnPixels = m_DXTextureDesc.Width * m_DXTextureDesc.Height;	
-	m_nLockedBytes = (*pnPixels) * bytePerLockedPixel;
 
 	return S_SUCCESS;
 }
@@ -1703,54 +1745,60 @@ S_API SResult DX11Texture::Unlock(SRectangle* pUpdateRect /*= 0*/, unsigned int 
 	if (!IsInitialized())
 		return S_NOTINIT;
 
-	if (!m_bLocked)
-		return CLog::Log(S_WARN, "Tried unlock texture (%s) which is not locked!", m_Specification.c_str());
-
-	assert(m_nLockedBytes > 0);
-
-	if (!m_bStaged && !IS_VALID_PTR(m_pLockedData))
-		return S_ERROR;
-
 	ID3D11DeviceContext* pDXDevCon = m_pDXRenderer->GetD3D11DeviceContext();
 	if (!IS_VALID_PTR(pDXDevCon))
 		return S_NOTINIT;
 
-	m_bLocked = false;
+	bool needsUpdate = !pUpdateRect || (pUpdateRect->width > 0 && pUpdateRect->height > 0);
 
-	if (m_bStaged && !m_bArray)
+	if (!m_bArray)
 	{
-		// copy over staged data
-		HRESULT hr;
-		D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-		hr = pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
-		
-		if (FAILED(hr))
-			return CLog::Log(S_ERROR, "Failed map texture (%s) for staged update!", m_Specification.c_str());
+		if (!m_bStaged)
+			return CLog::Log(S_WARN, "Tried to unlock non-staged and non-array texture (%s)", m_Specification.c_str());
 
-		unsigned int bytePerLockedPixel = GetTextureBPP(m_Type);
+		if (!m_bLocked)
+			return CLog::Log(S_WARN, "Tried unlock texture (%s) which is not locked!", m_Specification.c_str());
 
-		// We have to copy each line separately to fit DX's pitch
-		for (unsigned int ln = 0; ln < m_DXTextureDesc.Height; ++ln)
+		if (needsUpdate)
 		{
-			memcpy((char*)mappedSubresource.pData + ln * mappedSubresource.RowPitch,
-				(const char*)m_pStagedData + ln * m_DXTextureDesc.Width * bytePerLockedPixel,
-				m_DXTextureDesc.Width * bytePerLockedPixel);
+			// copy over staged data
+			HRESULT hr;
+			D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+			hr = pDXDevCon->Map(m_pDXTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource);
+
+			if (FAILED(hr))
+				return CLog::Log(S_ERROR, "Failed map texture (%s) for staged update!", m_Specification.c_str());
+
+			unsigned int bytePerLockedPixel = GetTextureBPP(m_Type);
+
+			// We have to copy each line separately to fit DX's pitch
+			for (unsigned int ln = 0; ln < m_DXTextureDesc.Height; ++ln)
+			{
+				memcpy((char*)mappedSubresource.pData + ln * mappedSubresource.RowPitch,
+					(const char*)m_pStagedData + ln * m_DXTextureDesc.Width * bytePerLockedPixel,
+					m_DXTextureDesc.Width * bytePerLockedPixel);
+			}
+
+			pDXDevCon->Unmap(m_pDXTexture, 0);
 		}
 
-		pDXDevCon->Unmap(m_pDXTexture, 0);
+		m_bLocked = false;
 	}
-	else if (m_bArray && m_pDXStagingTexture)
+	else if (m_bArray)
 	{
 		if (iArraySlice >= m_DXTextureDesc.ArraySize)
 			return S_INVALIDPARAM;
+
+		if (!m_bSliceLocked[iArraySlice])
+			return CLog::Log(S_WARN, "Tried unlock array texture slice %d (%s) which is not locked!", iArraySlice, m_Specification.c_str());
 
 		unsigned int iSubresource = GetSubresourceIndex(0, iArraySlice);
 
 		pDXDevCon->Unmap(m_pDXStagingTexture, iSubresource);
 
-		// Upload slice to live texture
-		if (m_pDXTexture)
+		if (needsUpdate && m_pDXTexture)
 		{
+			// Upload slice to live texture
 			unsigned int dx = 0, dy = 0;
 			D3D11_BOX updateBox, *pUpdateBox = 0;
 			if (pUpdateRect)
@@ -1769,10 +1817,9 @@ S_API SResult DX11Texture::Unlock(SRectangle* pUpdateRect /*= 0*/, unsigned int 
 
 			pDXDevCon->CopySubresourceRegion(m_pDXTexture, iSubresource, dx, dy, 0, m_pDXStagingTexture, iSubresource, pUpdateBox);
 		}
-	}
 
-	m_pLockedData = 0;
-	m_nLockedBytes = 0;
+		m_bSliceLocked[iArraySlice] = false;
+	}
 
 	return S_SUCCESS;
 }
@@ -1780,74 +1827,50 @@ S_API SResult DX11Texture::Unlock(SRectangle* pUpdateRect /*= 0*/, unsigned int 
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pData) const
 {
-	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
+	if (!m_bStaged || !m_pStagedData)
 		return S_NOTINIT;
 
-	if (!IS_VALID_PTR(pData))
+	if (!pData)
 		return S_INVALIDPARAM;
 
-	if (m_Type != eTEXTURE_D32_FLOAT && m_Type != eTEXTURE_R32_FLOAT && m_Type != eTEXTURE_R8G8B8A8_UNORM)
-		return S_ERROR;
+	// casting to int rounds towards 0
+	Vec2f roundedTC;
+	Vec2f remainder(
+		modff(min(max(texcoords.x, 0), 1.0f) * (float)m_DXTextureDesc.Width, &roundedTC.x),
+		modff(min(max(texcoords.y, 0), 1.0f) * (float)m_DXTextureDesc.Height, &roundedTC.y)
+	);
 
 	Vec2f pixelSizeInTexcoords = 1.0f / Vec2f((float)m_DXTextureDesc.Width, (float)m_DXTextureDesc.Height);
-
-	// Round texcoords to floor
-	Vec2f remainder = texcoords % pixelSizeInTexcoords;
-	Vec2f roundedTC = texcoords - remainder;
-
-	// transform remainder from [0;pixelSizeInTexcoords] to [0;1]
-	remainder /= pixelSizeInTexcoords;		
-
-	// Get all 4 samples
-	Vec4f samples[4];
-	switch (m_Type)
-	{
-	case eTEXTURE_D32_FLOAT:
-	case eTEXTURE_R32_FLOAT:
-	case eTEXTURE_R8G8B8A8_UNORM:
-		SampleStaged(roundedTC + Vec2f(-0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[0]);
-		SampleStaged(roundedTC + Vec2f( 0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[1]);
-		SampleStaged(roundedTC + Vec2f(-0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[2]);		
-		SampleStaged(roundedTC + Vec2f( 0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[3]);
-		break;
-	/*case eTEXTURE_R8G8B8A8_UNORM:
-		SampleStaged(roundedTC + Vec2f(-0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[0]);
-		SampleStaged(roundedTC + Vec2f( 0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[1]);
-		SampleStaged(roundedTC + Vec2f(-0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[2]);
-		SampleStaged(roundedTC + Vec2f( 0.5f,  0.5f) * pixelSizeInTexcoords, (void*)&samples[3]);
-		break;*/
-	default:
-		return CLog::Log(S_ERROR, "Cannot SampleStagedBilinear() a texture without floating point format");
-	}
-
-	// Interpolate
-	Vec4f interpolated[] = 
-	{
-		Lerp(samples[0], samples[1], remainder.x),
-		Lerp(samples[2], samples[3], remainder.x)
-	};
-
-	Vec4f out = Lerp(interpolated[0], interpolated[1], remainder.y);
+	roundedTC *= pixelSizeInTexcoords;
 
 	switch (m_Type)
 	{
 	case eTEXTURE_D32_FLOAT:
 	case eTEXTURE_R32_FLOAT:
 		{
-			float* pOut = (float*)pData;
-			*pOut = out.x;
+			static float samples[4];
+			SampleStaged(roundedTC + Vec2f(-0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[0]);
+			SampleStaged(roundedTC + Vec2f(0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[1]);
+			SampleStaged(roundedTC + Vec2f(-0.5f, 0.5f) * pixelSizeInTexcoords, (void*)&samples[2]);
+			SampleStaged(roundedTC + Vec2f(0.5f, 0.5f) * pixelSizeInTexcoords, (void*)&samples[3]);
+			*(float*)pData = lerp(
+				lerp(samples[0], samples[1], remainder.x),
+				lerp(samples[2], samples[3], remainder.x),
+				remainder.y);
 			break;
 		}
-	
-	case eTEXTURE_R8G8B8A8_UNORM:	
-		{
-			Vec4f* pOut = (Vec4f*)pData;
-			*pOut = out;
-			break;
-		}
-
+	//case eTEXTURE_R8G8B8A8_UNORM:
+	//	{
+	//		static unsigned int samples[4];
+	//		SampleStaged(roundedTC + Vec2f(-0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[0]);
+	//		SampleStaged(roundedTC + Vec2f(0.5f, -0.5f) * pixelSizeInTexcoords, (void*)&samples[1]);
+	//		SampleStaged(roundedTC + Vec2f(-0.5f, 0.5f) * pixelSizeInTexcoords, (void*)&samples[2]);
+	//		SampleStaged(roundedTC + Vec2f(0.5f, 0.5f) * pixelSizeInTexcoords, (void*)&samples[3]);
+	//		// TODO
+	//		break;
+	//	}
 	default:
-		return S_ERROR;
+		return CLog::Log(S_ERROR, "Cannot SampleStagedBilinear(): Unsupported Format %s", GetTextureTypeName(m_Type));
 	}
 
 	return S_SUCCESS;
@@ -1856,33 +1879,32 @@ S_API SResult DX11Texture::SampleStagedBilinear(Vec2f texcoords, void* pData) co
 // -----------------------------------------------------------------------------------------------
 S_API SResult DX11Texture::SampleStaged(const Vec2f& texcoords, void* pData) const
 {
-	if (!m_bStaged || !IS_VALID_PTR(m_pStagedData))
+	if (!m_bStaged || !m_pStagedData)
 		return S_NOTINIT;
 
-	if (!IS_VALID_PTR(pData))
+	if (!pData)
 		return S_INVALIDPARAM;
 
 	// convert texture coordinates to pixel coordinates
-	unsigned int pixelCoords[2];
-	pixelCoords[0] = (unsigned int)(texcoords.x * (float)m_DXTextureDesc.Width);
-	pixelCoords[1] = (unsigned int)(texcoords.y * (float)m_DXTextureDesc.Height);
-
-	// Apply wrap address mode
-	pixelCoords[0] = pixelCoords[0] % m_DXTextureDesc.Width;
-	pixelCoords[1] = pixelCoords[1] % m_DXTextureDesc.Height;
+	static unsigned int pixelCoords[2];
+	pixelCoords[0] = min((unsigned int)(max(texcoords.x, 0) * (float)m_DXTextureDesc.Width), m_DXTextureDesc.Width - 1);
+	pixelCoords[1] = min((unsigned int)(max(texcoords.y, 0) * (float)m_DXTextureDesc.Height), m_DXTextureDesc.Height - 1);
 
 	// sample data
-	unsigned int bpp;
+	static unsigned int pixelIdx;
+	pixelIdx = pixelCoords[1] * m_DXTextureDesc.Width + pixelCoords[0];
+
 	switch (m_Type)
 	{
-	case eTEXTURE_R8G8B8A8_UNORM: bpp = 4; break;
+	case eTEXTURE_R8G8B8A8_UNORM:
+		*(unsigned int*)pData = ((unsigned int*)m_pStagedData)[pixelIdx];
+		break;
 	case eTEXTURE_R32_FLOAT:
 	case eTEXTURE_D32_FLOAT:
-		bpp = sizeof(float);
+		*(float*)pData = ((float*)m_pStagedData)[pixelIdx];
+		break;
 	}
 
-	unsigned int bytePos = (pixelCoords[1] * m_DXTextureDesc.Width + pixelCoords[0]) * bpp;
-	memcpy(pData, static_cast<char*>(m_pStagedData) + bytePos, bpp);
 	return S_SUCCESS;
 }
 
@@ -1904,9 +1926,10 @@ S_API void DX11Texture::Clear(void)
 	SP_SAFE_RELEASE(m_pDXTexture);
 	SP_SAFE_RELEASE(m_pDXStagingTexture);
 
-	m_pLockedData = 0;
-	m_nLockedBytes = 0;
 	m_bLocked = false;
+
+	delete[] m_bSliceLocked;
+	m_bSliceLocked = 0;
 
 	m_Type = eTEXTURE_R8G8B8A8_UNORM;
 	m_bIsCubemap = false;

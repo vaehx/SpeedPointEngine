@@ -629,7 +629,12 @@ S_API SResult DX11Renderer::Initialize(const SRendererInitParams& params)
 	// Initialize the default Viewport
 	// This viewport is forced to be generated. Client is only able to add more SwapChains
 	// !! Do NOT put this call before CreateDX11Device(). InitDefaultViewport depends on an existing device in DX11 !!
-	if (Failure(InitDefaultViewport(params.hWnd, params.resolution[0], params.resolution[1])))
+	if (Failure(InitDefaultViewport(
+		params.hWnd,
+		params.resolution[0],
+		params.resolution[1],
+		params.defViewportZNear,
+		params.defViewportZFar)))
 	{
 		Shutdown();
 		return CLog::Log(S_ERROR, "Failed Init default viewport!");

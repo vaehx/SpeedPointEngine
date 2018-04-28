@@ -170,15 +170,11 @@ S_API void PhysTerrain::UpdateHeightmap(const float* heightmap, unsigned int hei
 	float samples[4], h;
 
 	unsigned int segMin[2], segMax[2];
-	segMin[0] = (unsigned int)max(floorf((bounds.vMin.x - params.offset.x) / segSz.x), 0.0f) * params.segments[0];
-	segMin[1] = (unsigned int)max(floorf((bounds.vMin.y - params.offset.y) / segSz.y), 0.0f) * params.segments[1];
+	segMin[0] = (unsigned int)max(floorf((bounds.vMin.x - params.offset.x) / segSz.x), 0.0f);
+	segMin[1] = (unsigned int)max(floorf((bounds.vMin.z - params.offset.z) / segSz.y), 0.0f);
 	
-	segMax[0] = ((unsigned int)ceilf(min(bounds.vMax.x - params.offset.x, params.size[0] + segSz.x) / segSz.x) * params.segments[0]);
-	segMax[1] = ((unsigned int)ceilf(min(bounds.vMax.y - params.offset.y, params.size[1] + segSz.y) / segSz.y) * params.segments[1]);
-
-	segMin[0] = segMin[1] = 0;
-	segMax[0] = params.segments[0];
-	segMax[1] = params.segments[1];
+	segMax[0] = (unsigned int)ceilf(min(bounds.vMax.x - params.offset.x, params.size[0]) / segSz.x);
+	segMax[1] = (unsigned int)ceilf(min(bounds.vMax.z - params.offset.z, params.size[1]) / segSz.y);
 
 	geo::terrain_mesh* pmesh = dynamic_cast<geo::terrain_mesh*>(m_Proxy.pshape);
 	pmesh->aabb.Reset();

@@ -217,6 +217,8 @@ public:
 	virtual void GenLodLevelChunks(SCamera* pCamera) = 0;	
 	virtual void SetHeightmap(ITexture* heightmap) = 0;
 	virtual ITexture* GetHeightmap() const = 0;
+	
+	// Returned height is scaled by height scale
 	virtual float SampleHeight(const Vec2f& texcoords, bool bilinear = false) const = 0;
 	
 	virtual void UpdateRenderDesc(STerrainRenderDesc* pTerrainRenderDesc) = 0;

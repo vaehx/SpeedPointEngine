@@ -19,26 +19,30 @@ SP_NMSPACE_BEG
 // Type of the texture
 enum S_API ETextureType
 {
+	eTEXTURE_UNKNOWN,
 	eTEXTURE_R8G8B8A8_UNORM,
 	eTEXTURE_R16G16B16A16_FLOAT,
 	eTEXTURE_R16G16_FLOAT,
 	//eTEXTURE_D16_FLOAT,
 	eTEXTURE_D32_FLOAT,
-	eTEXTURE_R32_FLOAT
+	eTEXTURE_R16_FLOAT, // Warning: Staged data is half precision array too!
+	eTEXTURE_R32_FLOAT,
 };
 
 S_API inline const char* GetTextureTypeName(ETextureType type)
 {
 	switch (type)
 	{
+	case eTEXTURE_UNKNOWN: return "TEXTURE_UNKNOWN";
 	case eTEXTURE_R8G8B8A8_UNORM: return "TEXTURE_R8G8B8A8_UNORM";
 	case eTEXTURE_R16G16B16A16_FLOAT: return "TEXTURE_R16G16B16A16_FLOAT";
 	case eTEXTURE_R16G16_FLOAT: return "TEXTURE_R16G16_FLOAT";
 //	case eTEXTURE_D16_FLOAT: return "TEXTURE_D16_FLOAT";
 	case eTEXTURE_D32_FLOAT: return "TEXTURE_D32_FLOAT";
 	case eTEXTURE_R32_FLOAT: return "TEXTURE_R32_FLOAT";
+	case eTEXTURE_R16_FLOAT: return "TEXTURE_R16_FLOAT";
 	default:
-		return "Unknown";
+		return "Unknown Type";
 	}
 }
 
@@ -49,10 +53,13 @@ inline unsigned int GetTextureBPP(ETextureType type)
 {
 	switch (type)
 	{
-	case eTEXTURE_R8G8B8A8_UNORM: return 4;
+	case eTEXTURE_R8G8B8A8_UNORM:
+		return 4;
 	case eTEXTURE_R32_FLOAT:
 	case eTEXTURE_D32_FLOAT:
-		return sizeof(float);
+		return 4;
+	case eTEXTURE_R16_FLOAT:
+		return 2;
 	default:
 		return 0;
 	}
@@ -93,7 +100,11 @@ public:
 	//		If mipLevels == 0, the full mip chain will be generated
 	// Arguments:
 	//		filePath - system path to the texture file
-	virtual SResult LoadFromFile(const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0) = 0;
+	//		targetType - if not set to eTEXTURE_UNKNOWN, will try to convert the texture to the given format/type
+	//		staged - if true, the engine will keep texture contents in cpu-side memory to allow fast read and/or modification
+	//		dynamic - if true, the gpu texture data can be modified in a way defined by if the texture is staged or not
+	virtual SResult LoadFromFile(const string& filePath, unsigned int w = 0, unsigned int h = 0, unsigned int mipLevels = 0,
+		ETextureType targetType = eTEXTURE_UNKNOWN, bool staged = false, bool dynamic = false) = 0;
 
 	// Summary:
 	//		Load the texture contents from a cubemap.
@@ -141,6 +152,9 @@ public:
 	virtual const string& GetSpecification() const = 0;
 	virtual ETextureType GetType() const = 0;
 	virtual SResult GetSize(unsigned int* pW, unsigned int* pH) = 0;
+	
+	// Returns the size of one pixel in texture coordinates
+	virtual Vec2f GetPixelSizeTC() const = 0;
 	
 	// Returns the array slice count or 0 if this is not an array texture
 	virtual unsigned int GetArraySize() const = 0;
